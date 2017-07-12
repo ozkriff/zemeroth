@@ -1,0 +1,24 @@
+[package]
+name = "hate"
+version = "0.1.0"
+authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Häte2d (Hate2d) is a simple 2d game engine"
+keywords = ["graphics", "gamedev", "2D", "game", "engine"]
+categories = ["game-engines"]
+
+[dependencies]
+gfx_core = "0.7"
+gfx_device_gl = "0.14"
+gfx_window_glutin = "0.16"
+gfx = "0.16"
+glutin = "0.8"
+cgmath = "0.14"
+rand = "0.3"
+rusttype = "0.2"
+png = "0.8"
+serde = "1.0"
+serde_derive = "1.0"
+
+[target.arm-linux-androideabi.dependencies]
+android_glue = "0.2"

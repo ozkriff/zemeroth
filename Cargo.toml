@@ -1,0 +1,19 @@
+[package]
+name = "zemeroth"
+version = "0.1.0"
+authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
+license = "MIT OR Apache-2.0"
+
+[workspace]
+members = ["hate"]
+[dependencies]
+hate = { path = "hate" }
+cgmath = "0.14"
+toml = "0.4"
+
+[package.metadata.android]
+assets = "assets"
+fullscreen = true
+
+# TODO: force landscape only orientation
+# https://stackoverflow.com/questions/8408197/android-landscape-only-orientation
