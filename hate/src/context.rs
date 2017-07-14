@@ -132,7 +132,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub(super) fn new(tx: Sender<screen::Command>, settings: Settings) -> Context {
+    pub(crate) fn new(tx: Sender<screen::Command>, settings: Settings) -> Context {
         let events_loop = glutin::EventsLoop::new();
         let (window, device, mut factory, out, out_depth) =
             gfx_window_glutin::init(new_window_builder(), &events_loop);
@@ -185,7 +185,7 @@ impl Context {
     }
 
     /// Loads a texture with caching
-    pub(super) fn load_texture<P: AsRef<Path>>(&mut self, path: P) -> Texture {
+    pub(crate) fn load_texture<P: AsRef<Path>>(&mut self, path: P) -> Texture {
         let path = path.as_ref().to_path_buf();
         if let Some(texture) = self.texture_cache.get(&path) {
             return texture.clone();
@@ -195,7 +195,7 @@ impl Context {
         texture
     }
 
-    pub(super) fn clear(&mut self) {
+    pub(crate) fn clear(&mut self) {
         self.encoder.clear(&self.data.out, self.clear_color);
         self.encoder.clear_depth(&self.data.out_depth, 1.0);
     }
@@ -204,21 +204,21 @@ impl Context {
         Time::from_duration(time::Instant::now() - self.start_time)
     }
 
-    pub(super) fn should_close(&self) -> bool {
+    pub(crate) fn should_close(&self) -> bool {
         self.should_close
     }
 
-    pub(super) fn flush(&mut self) {
+    pub(crate) fn flush(&mut self) {
         self.encoder.flush(&mut self.device);
         self.window.swap_buffers().expect("Can`t swap buffers");
         self.device.cleanup();
     }
 
-    pub(super) fn font(&self) -> &rusttype::Font {
+    pub(crate) fn font(&self) -> &rusttype::Font {
         &self.font
     }
 
-    pub(super) fn factory_mut(&mut self) -> &mut gfx_device_gl::Factory {
+    pub(crate) fn factory_mut(&mut self) -> &mut gfx_device_gl::Factory {
         &mut self.factory
     }
 
@@ -231,7 +231,7 @@ impl Context {
         &self.mouse
     }
 
-    pub(super) fn draw_mesh(&mut self, mvp: Matrix4<f32>, mesh: &Mesh) {
+    pub(crate) fn draw_mesh(&mut self, mvp: Matrix4<f32>, mesh: &Mesh) {
         self.data.mvp = mvp.into();
         self.data.texture.0 = mesh.texture().0.clone();
         self.data.vbuf = mesh.vertex_buffer().clone();
