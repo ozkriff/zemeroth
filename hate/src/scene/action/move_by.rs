@@ -22,6 +22,10 @@ impl MoveBy {
 }
 
 impl Action for MoveBy {
+    fn duration(&self) -> Time {
+        self.duration
+    }
+
     fn update(&mut self, mut dtime: Time) {
         let old_pos = self.sprite.pos();
         if dtime.0 + self.progress.0 > self.duration.0 {

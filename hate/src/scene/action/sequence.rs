@@ -5,12 +5,18 @@ use scene::Action;
 #[derive(Debug)]
 pub struct Sequence {
     actions: VecDeque<Box<Action>>,
+    duration: Time,
 }
 
 impl Sequence {
     pub fn new(actions: Vec<Box<Action>>) -> Self {
+        let mut total_time = Time(0.0);
+        for action in &actions {
+            total_time.0 += action.duration().0;
+        }
         Self {
             actions: actions.into(),
+            duration: total_time,
         }
     }
 
@@ -31,6 +37,10 @@ impl Sequence {
 }
 
 impl Action for Sequence {
+    fn duration(&self) -> Time {
+        self.duration
+    }
+
     fn begin(&mut self) {
         if !self.actions.is_empty() {
             self.action().begin();

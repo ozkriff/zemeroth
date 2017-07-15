@@ -28,6 +28,10 @@ pub trait Action: Debug {
     fn update(&mut self, _dtime: Time) {}
     fn end(&mut self) {}
 
+    fn duration(&self) -> Time {
+        Time(0.0)
+    }
+
     fn try_fork(&mut self) -> Option<Box<Action>> {
         None
     }
