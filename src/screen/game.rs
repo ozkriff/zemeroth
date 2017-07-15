@@ -1,6 +1,7 @@
 use hate::{self, Time, Sprite, Event, Screen, Context};
 use hate::geom::Point;
 use hate::gui::{self, Gui};
+use hate::scene::action::{self, Action};
 use visualize;
 use map;
 use game_view::GameView;
@@ -30,6 +31,7 @@ pub struct Game {
     view: GameView,
     selected_unit_id: Option<ObjId>,
     pathfinder: Pathfinder,
+    sprite_selection_marker: Sprite,
     block_timer: Option<Time>,
 }
 
@@ -110,6 +112,9 @@ impl Game {
             ])
         };
 
+        let mut sprite_selection_marker = Sprite::from_path(context, "selection.png", 0.2);
+        sprite_selection_marker.set_color([0.0, 0.0, 1.0, 0.8]);
+
         let mut screen = Self {
             gui,
             button_f_id,
@@ -119,6 +124,7 @@ impl Game {
             selected_unit_id: None,
             pathfinder,
             block_timer: None,
+            sprite_selection_marker,
         };
         screen.process_core_events(context);
         screen
@@ -167,9 +173,25 @@ impl Game {
         }
     }
 
-    fn select_unit(&mut self, id: ObjId) {
+    fn select_unit(&mut self, _: &mut Context, id: ObjId) {
         self.selected_unit_id = Some(id);
         self.pathfinder.fill_map(&self.state, self.state.unit(id));
+        let pos_hex = self.state.unit(id).pos;
+        let point = map::hex_to_point(self.view.tile_size(), pos_hex);
+        self.sprite_selection_marker.set_pos(point);
+        let mut actions: Vec<Box<Action>> = Vec::new();
+        if self.selected_unit_id.is_some() {
+            actions.push(Box::new(action::Hide::new(
+                &self.view.layers().selection_marker,
+                &self.sprite_selection_marker,
+            )));
+        }
+        actions.push(Box::new(action::Show::new(
+            &self.view.layers().selection_marker,
+            &self.sprite_selection_marker,
+        )));
+        let action_sequence = Box::new(action::Sequence::new(actions));
+        self.view.add_action(action_sequence);
     }
 
     fn handle_event_click(&mut self, context: &mut Context, pos: Point) {
@@ -187,7 +209,7 @@ impl Game {
                     let selected_unit_player_id = self.state.unit(selected_unit_id).player_id;
                     let other_unit_player_id = self.state.unit(id).player_id;
                     if selected_unit_player_id == other_unit_player_id {
-                        self.select_unit(id);
+                        self.select_unit(context, id);
                     } else {
                         let command_attack = command::Command::Attack(command::Attack {
                             attacker_id: selected_unit_id,
@@ -198,7 +220,7 @@ impl Game {
                             .fill_map(&self.state, self.state.unit(selected_unit_id));
                     }
                 } else {
-                    self.select_unit(id);
+                    self.select_unit(context, id);
                 }
             } else if let Some(id) = self.selected_unit_id {
                 let path = self.pathfinder.path(hex_pos).unwrap();
@@ -221,13 +243,13 @@ impl Game {
         }
     }
 
-    fn update_block_timer(&mut self, _: &mut Context, dtime: Time) {
+    fn update_block_timer(&mut self, context: &mut Context, dtime: Time) {
         self.block_timer.as_mut().map(|t| t.0 -= dtime.0);
         if let Some(time) = self.block_timer.clone() {
             if time <= Time(0.0) {
                 self.block_timer = None;
                 if let Some(id) = self.selected_unit_id {
-                    self.select_unit(id);
+                    self.select_unit(context, id);
                 }
             }
         }
