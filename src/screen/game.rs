@@ -30,6 +30,7 @@ pub struct Game {
     view: GameView,
     selected_unit_id: Option<ObjId>,
     pathfinder: Pathfinder,
+    block_timer: Option<Time>,
 }
 
 impl Game {
@@ -117,6 +118,7 @@ impl Game {
             view,
             selected_unit_id: None,
             pathfinder,
+            block_timer: None,
         };
         screen.process_core_events(context);
         screen
@@ -159,6 +161,8 @@ impl Game {
     fn process_core_events(&mut self, context: &mut Context) {
         while let Some(event) = self.simulator.tick() {
             let action = visualize::visualize(&self.state, &mut self.view, context, &event);
+            let time = Time(1.0); // TODO: get from the event visualizer
+            self.block_timer = Some(time);
             self.view.add_action(action);
             core::event::apply(&mut self.state, &event);
         }
@@ -171,6 +175,10 @@ impl Game {
 
     fn handle_event_click(&mut self, context: &mut Context, pos: Point) {
         let hex_pos = map::point_to_hex(self.view.tile_size(), pos);
+        self.gui.click(pos);
+        if self.block_timer.is_some() {
+            return;
+        }
         if self.state.map().is_inboard(hex_pos) {
             let object_ids = self.state.object_ids_at(hex_pos);
             println!("object_ids: {:?}", object_ids);
@@ -212,13 +220,25 @@ impl Game {
                 self.do_command(context, command_create);
             }
         }
-        self.gui.click(pos);
+    }
+
+    fn update_block_timer(&mut self, _: &mut Context, dtime: Time) {
+        self.block_timer.as_mut().map(|t| t.0 -= dtime.0);
+        if let Some(time) = self.block_timer.clone() {
+            if time <= Time(0.0) {
+                self.block_timer = None;
+                if let Some(id) = self.selected_unit_id {
+                    self.select_unit(id);
+                }
+            }
+        }
     }
 }
 
 impl Screen for Game {
     fn tick(&mut self, context: &mut Context, dtime: Time) {
         self.view.tick(context, dtime);
+        self.update_block_timer(context, dtime);
         self.gui.draw(context);
     }
 
