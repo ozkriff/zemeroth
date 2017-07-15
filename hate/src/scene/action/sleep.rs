@@ -17,6 +17,10 @@ impl Sleep {
 }
 
 impl Action for Sleep {
+    fn duration(&self) -> Time {
+        self.duration
+    }
+
     fn is_finished(&self) -> bool {
         self.time.0 / self.duration.0 > 1.0
     }

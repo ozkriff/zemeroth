@@ -23,6 +23,10 @@ impl ChangeColorTo {
 }
 
 impl Action for ChangeColorTo {
+    fn duration(&self) -> Time {
+        self.duration
+    }
+
     fn begin(&mut self) {
         self.from = self.sprite.color();
     }
