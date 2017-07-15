@@ -160,8 +160,7 @@ impl Game {
 
     fn process_core_events(&mut self, context: &mut Context) {
         while let Some(event) = self.simulator.tick() {
-            let action = visualize::visualize(&self.state, &mut self.view, context, &event);
-            let time = Time(1.0); // TODO: get from the event visualizer
+            let (action, time) = visualize::visualize(&self.state, &mut self.view, context, &event);
             self.block_timer = Some(time);
             self.view.add_action(action);
             core::event::apply(&mut self.state, &event);
