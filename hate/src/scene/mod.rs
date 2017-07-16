@@ -85,7 +85,7 @@ impl ActionInterpreter {
         let mut forked_actions = Vec::new();
         for action in &mut self.actions {
             action.update(dtime);
-            if let Some(forked_action) = action.try_fork() {
+            while let Some(forked_action) = action.try_fork() {
                 forked_actions.push(forked_action);
             }
             if action.is_finished() {
