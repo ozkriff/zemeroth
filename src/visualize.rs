@@ -139,7 +139,7 @@ fn visualize_effect_kill(
     let color = [1.0, 1.0, 1.0, 0.0];
     let action = Box::new(action::Sequence::new(vec![
         Box::new(action::Sleep::new(Time(0.25))),
-        Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.10))),
+        Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.1))),
         Box::new(action::Hide::new(&view.layers().fg, &sprite)),
     ]));
     let time = action.duration();
