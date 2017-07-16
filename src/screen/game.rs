@@ -1,7 +1,7 @@
 use hate::{self, Time, Sprite, Event, Screen, Context};
 use hate::geom::Point;
 use hate::gui::{self, Gui};
-use hate::scene::action::{self, Action};
+use hate::scene::action;
 use visualize;
 use map;
 use game_view::GameView;
@@ -185,7 +185,6 @@ impl Game {
     }
 
     fn show_walkable_tiles(&mut self, context: &mut Context, id: ObjId) {
-        let mut actions: Vec<Box<Action>> = Vec::new();
         let move_points = self.state.unit(id).move_points;
         let map = self.pathfinder.map();
         for pos in map.iter() {
@@ -197,41 +196,41 @@ impl Game {
                 color_from[3] = 0.0;
                 sprite.set_color(color_from);
                 sprite.set_pos(map::hex_to_point(self.view.tile_size(), pos));
-                let layer = &self.view.layers().walkable_tiles;
                 let sleep_time = Time(0.05 * tile.cost().0 as f32);
                 let color_to = WALKBALE_TILE_COLOR;
-                let action_sequence = Box::new(action::Sequence::new(vec![
-                    Box::new(action::Sleep::new(sleep_time)),
-                    Box::new(action::Show::new(layer, &sprite)),
-                    Box::new(action::ChangeColorTo::new(&sprite, color_to, Time(0.2))),
-                ]));
-                actions.push(Box::new(action::Fork::new(action_sequence)));
+                let action = {
+                    let layer = &self.view.layers().walkable_tiles;
+                    Box::new(action::Sequence::new(vec![
+                        Box::new(action::Sleep::new(sleep_time)),
+                        Box::new(action::Show::new(layer, &sprite)),
+                        Box::new(action::ChangeColorTo::new(&sprite, color_to, Time(0.2))),
+                    ]))
+                };
+                self.view.add_action(action);
             }
         }
-        let action_sequence = Box::new(action::Sequence::new(actions));
-        self.view.add_action(action_sequence);
     }
 
     fn deselect(&mut self, _: &mut Context) {
-        let mut actions: Vec<Box<Action>> = Vec::new();
         if self.selected_unit_id.is_some() {
-            actions.push(Box::new(action::Hide::new(
+            let action_hide = Box::new(action::Hide::new(
                 &self.view.layers().selection_marker,
                 &self.sprite_selection_marker,
-            )));
-            let layer = &self.view.layers().walkable_tiles;
+            ));
+            self.view.add_action(action_hide);
             for sprite in self.sprites_walkable_tiles.split_off(0) {
                 let mut color = WALKBALE_TILE_COLOR;
                 color[3] = 0.0;
-                let action_sequence = Box::new(action::Sequence::new(vec![
-                    Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.2))),
-                    Box::new(action::Hide::new(layer, &sprite)),
-                ]));
-                actions.push(Box::new(action::Fork::new(action_sequence)));
+                let action = {
+                    let layer = &self.view.layers().walkable_tiles;
+                    Box::new(action::Sequence::new(vec![
+                        Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.2))),
+                        Box::new(action::Hide::new(layer, &sprite)),
+                    ]))
+                };
+                self.view.add_action(action);
             }
         }
-        let action_sequence = Box::new(action::Sequence::new(actions));
-        self.view.add_action(action_sequence);
         self.selected_unit_id = None;
     }
 
