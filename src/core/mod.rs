@@ -1,5 +1,5 @@
 use std::default::Default;
-use std::collections::HashMap;
+use std::collections::{hash_map, HashMap};
 use core::map::{HexMap, PosHex};
 use core::movement::MovePoints;
 
@@ -40,6 +40,19 @@ impl Default for TileType {
 }
 
 #[derive(Clone, Debug)]
+pub struct ObjIdIter<'a> {
+    iter: hash_map::Keys<'a, ObjId, Unit>,
+}
+
+impl<'a> Iterator for ObjIdIter<'a> {
+    type Item = ObjId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(|id| *id)
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct State {
     units: HashMap<ObjId, Unit>,
     map: HexMap<TileType>,
@@ -71,6 +84,12 @@ impl State {
 
     pub fn map(&self) -> &HexMap<TileType> {
         &self.map
+    }
+
+    pub fn obj_iter(&self) -> ObjIdIter {
+        ObjIdIter {
+            iter: self.units.keys(),
+        }
     }
 
     pub fn unit_opt(&self, id: ObjId) -> Option<&Unit> {

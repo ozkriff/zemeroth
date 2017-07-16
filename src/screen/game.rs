@@ -36,6 +36,7 @@ pub struct Game {
     sprite_selection_marker: Sprite,
     block_timer: Option<Time>,
     sprites_walkable_tiles: Vec<Sprite>,
+    sprites_attackable_tiles: Vec<Sprite>,
 }
 
 impl Game {
@@ -129,6 +130,7 @@ impl Game {
             block_timer: None,
             sprite_selection_marker,
             sprites_walkable_tiles: Vec::new(),
+            sprites_attackable_tiles: Vec::new(),
         };
         screen.process_core_events(context);
         screen
@@ -184,6 +186,26 @@ impl Game {
         self.view.add_action(action);
     }
 
+    fn show_attackable_tiles(&mut self, context: &mut Context, id: ObjId) {
+        let selected_unit = self.state.unit(id);
+        for id in self.state.obj_iter() {
+            let unit = self.state.unit(id);
+            let dist = core::map::distance_hex(selected_unit.pos, unit.pos);
+            if unit.player_id == selected_unit.player_id || dist > 1 {
+                continue;
+            }
+            let mut sprite = Sprite::from_path(context, "tile.png", 0.2);
+            self.sprites_attackable_tiles.push(sprite.clone());
+            sprite.set_color([1.0, 0.3, 0.3, 0.8]);
+            sprite.set_pos(map::hex_to_point(self.view.tile_size(), unit.pos));
+            let action = Box::new(action::Show::new(
+                &self.view.layers().attackable_tiles,
+                &sprite,
+            ));
+            self.view.add_action(action);
+        }
+    }
+
     fn show_walkable_tiles(&mut self, context: &mut Context, id: ObjId) {
         let move_points = self.state.unit(id).move_points;
         let map = self.pathfinder.map();
@@ -230,6 +252,13 @@ impl Game {
                 };
                 self.view.add_action(action);
             }
+            for sprite in self.sprites_attackable_tiles.split_off(0) {
+                let action = {
+                    let layer = &self.view.layers().attackable_tiles;
+                    Box::new(action::Hide::new(layer, &sprite))
+                };
+                self.view.add_action(action);
+            }
         }
         self.selected_unit_id = None;
     }
@@ -240,6 +269,7 @@ impl Game {
         self.pathfinder.fill_map(&self.state, self.state.unit(id));
         self.show_selection_marker(id);
         self.show_walkable_tiles(context, id);
+        self.show_attackable_tiles(context, id);
     }
 
     fn handle_event_click(&mut self, context: &mut Context, pos: Point) {
