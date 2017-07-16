@@ -15,12 +15,9 @@ impl Tile {
         self.parent_dir
     }
 
-    // TODO:
-    /*
     pub fn cost(&self) -> MovePoints {
         self.cost
     }
-    */
 }
 
 impl Default for Tile {
@@ -90,12 +87,9 @@ impl Pathfinder {
         }
     }
 
-    // TODO:
-    /*
     pub fn map(&self) -> &HexMap<Tile> {
         &self.map
     }
-    */
 
     fn process_neighbor_pos(
         &mut self,

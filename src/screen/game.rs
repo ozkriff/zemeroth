@@ -22,6 +22,8 @@ enum Command {
     Deselect,
 }
 
+const WALKBALE_TILE_COLOR: [f32; 4] = [0.4, 1.0, 0.4, 0.8];
+
 #[derive(Debug)]
 pub struct Game {
     gui: Gui<Command>,
@@ -33,6 +35,7 @@ pub struct Game {
     pathfinder: Pathfinder,
     sprite_selection_marker: Sprite,
     block_timer: Option<Time>,
+    sprites_walkable_tiles: Vec<Sprite>,
 }
 
 impl Game {
@@ -125,6 +128,7 @@ impl Game {
             pathfinder,
             block_timer: None,
             sprite_selection_marker,
+            sprites_walkable_tiles: Vec::new(),
         };
         screen.process_core_events(context);
         screen
@@ -132,10 +136,6 @@ impl Game {
 
     fn exit(&mut self, context: &mut Context) {
         context.add_command(hate::screen::Command::Pop);
-    }
-
-    fn deselect(&mut self, _: &mut Context) {
-        self.selected_unit_id = None;
     }
 
     fn handle_commands(&mut self, context: &mut Context) {
@@ -173,25 +173,74 @@ impl Game {
         }
     }
 
-    fn select_unit(&mut self, _: &mut Context, id: ObjId) {
-        self.selected_unit_id = Some(id);
-        self.pathfinder.fill_map(&self.state, self.state.unit(id));
-        let pos_hex = self.state.unit(id).pos;
-        let point = map::hex_to_point(self.view.tile_size(), pos_hex);
+    fn show_selection_marker(&mut self, id: ObjId) {
+        let pos = self.state.unit(id).pos;
+        let point = map::hex_to_point(self.view.tile_size(), pos);
         self.sprite_selection_marker.set_pos(point);
+        let action = Box::new(action::Show::new(
+            &self.view.layers().selection_marker,
+            &self.sprite_selection_marker,
+        ));
+        self.view.add_action(action);
+    }
+
+    fn show_walkable_tiles(&mut self, context: &mut Context, id: ObjId) {
+        let mut actions: Vec<Box<Action>> = Vec::new();
+        let move_points = self.state.unit(id).move_points;
+        let map = self.pathfinder.map();
+        for pos in map.iter() {
+            let tile = map.tile(pos);
+            if tile.cost() <= move_points {
+                let mut sprite = Sprite::from_path(context, "tile.png", 0.2);
+                self.sprites_walkable_tiles.push(sprite.clone());
+                let mut color_from = WALKBALE_TILE_COLOR;
+                color_from[3] = 0.0;
+                sprite.set_color(color_from);
+                sprite.set_pos(map::hex_to_point(self.view.tile_size(), pos));
+                let layer = &self.view.layers().walkable_tiles;
+                let sleep_time = Time(0.05 * tile.cost().0 as f32);
+                let color_to = WALKBALE_TILE_COLOR;
+                let action_sequence = Box::new(action::Sequence::new(vec![
+                    Box::new(action::Sleep::new(sleep_time)),
+                    Box::new(action::Show::new(layer, &sprite)),
+                    Box::new(action::ChangeColorTo::new(&sprite, color_to, Time(0.2))),
+                ]));
+                actions.push(Box::new(action::Fork::new(action_sequence)));
+            }
+        }
+        let action_sequence = Box::new(action::Sequence::new(actions));
+        self.view.add_action(action_sequence);
+    }
+
+    fn deselect(&mut self, _: &mut Context) {
         let mut actions: Vec<Box<Action>> = Vec::new();
         if self.selected_unit_id.is_some() {
             actions.push(Box::new(action::Hide::new(
                 &self.view.layers().selection_marker,
                 &self.sprite_selection_marker,
             )));
+            let layer = &self.view.layers().walkable_tiles;
+            for sprite in self.sprites_walkable_tiles.split_off(0) {
+                let mut color = WALKBALE_TILE_COLOR;
+                color[3] = 0.0;
+                let action_sequence = Box::new(action::Sequence::new(vec![
+                    Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.2))),
+                    Box::new(action::Hide::new(layer, &sprite)),
+                ]));
+                actions.push(Box::new(action::Fork::new(action_sequence)));
+            }
         }
-        actions.push(Box::new(action::Show::new(
-            &self.view.layers().selection_marker,
-            &self.sprite_selection_marker,
-        )));
         let action_sequence = Box::new(action::Sequence::new(actions));
         self.view.add_action(action_sequence);
+        self.selected_unit_id = None;
+    }
+
+    fn select_unit(&mut self, context: &mut Context, id: ObjId) {
+        self.deselect(context);
+        self.selected_unit_id = Some(id);
+        self.pathfinder.fill_map(&self.state, self.state.unit(id));
+        self.show_selection_marker(id);
+        self.show_walkable_tiles(context, id);
     }
 
     fn handle_event_click(&mut self, context: &mut Context, pos: Point) {

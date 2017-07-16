@@ -8,6 +8,7 @@ use core::{ObjId, TileType, State};
 #[derive(Debug)]
 pub struct Layers {
     pub bg: Layer,
+    pub walkable_tiles: Layer,
     pub selection_marker: Layer,
     pub fg: Layer,
 }
@@ -25,11 +26,13 @@ impl GameView {
         let obj_to_sprite_map = HashMap::new();
         let layers = Layers {
             bg: Layer::new(),
+            walkable_tiles: Layer::new(),
             selection_marker: Layer::new(),
             fg: Layer::new(),
         };
         let scene = Scene::new(vec![
             layers.bg.clone(),
+            layers.walkable_tiles.clone(),
             layers.selection_marker.clone(),
             layers.fg.clone(),
         ]);
