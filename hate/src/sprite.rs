@@ -2,7 +2,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::path::Path;
 use cgmath::{Matrix4, Vector2, Zero};
-use ::Context;
+use context::Context;
 use mesh::RMesh;
 use geom::{self, Size, Point};
 

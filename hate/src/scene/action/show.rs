@@ -1,4 +1,4 @@
-use ::Sprite;
+use sprite::Sprite;
 use scene::{Layer, Action};
 
 #[derive(Debug)]

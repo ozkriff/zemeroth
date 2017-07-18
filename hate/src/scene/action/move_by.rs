@@ -1,4 +1,5 @@
-use ::{Time, Sprite};
+use time::Time;
+use sprite::Sprite;
 use scene::Action;
 use geom::Point;
 

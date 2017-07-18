@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use ::Time; // TODO: fix import
+use time::Time;
 
 pub use scene::action::sequence::Sequence;
 pub use scene::action::show::Show;

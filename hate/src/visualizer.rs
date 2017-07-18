@@ -1,7 +1,10 @@
 use std::thread;
 use std::sync::mpsc;
 use screen;
-use ::{Time, Screen, Context, Settings};
+use time::Time;
+use screen::Screen;
+use context::Context;
+use settings::Settings;
 use screen_stack::Screens;
 
 #[cfg(not(target_os = "android"))]

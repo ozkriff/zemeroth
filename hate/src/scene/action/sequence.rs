@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use ::Time;
+use time::Time;
 use scene::Action;
 
 #[derive(Debug)]

@@ -1,7 +1,7 @@
 use gfx;
 use gfx::traits::FactoryExt;
 use gfx_device_gl;
-use ::Context;
+use context::Context;
 use texture::Texture;
 use geom::Size;
 use pipeline::Vertex;

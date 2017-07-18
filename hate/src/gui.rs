@@ -1,7 +1,9 @@
 use cgmath::Vector2;
 use std::collections::HashMap;
-use ::{Sprite, Context};
-use ::{texture, text};
+use sprite::Sprite;
+use context::Context;
+use texture;
+use text;
 use mesh::RMesh;
 use geom::{Size, Point};
 

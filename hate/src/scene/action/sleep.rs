@@ -1,5 +1,5 @@
-use ::Time;
-use ::scene::Action;
+use time::Time;
+use scene::Action;
 
 #[derive(Debug)]
 pub struct Sleep {

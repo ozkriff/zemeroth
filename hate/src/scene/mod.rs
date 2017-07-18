@@ -1,8 +1,10 @@
 use std::rc::Rc;
 use std::cell::RefCell;
-use ::{Sprite, Context, Time};
+use sprite::Sprite;
+use context::Context;
+use time::Time;
 
-pub use ::scene::action::Action;
+pub use scene::action::Action;
 
 pub mod action;
 
