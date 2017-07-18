@@ -7,7 +7,9 @@ use pipeline::ColorFormat;
 use Context;
 
 #[derive(Debug, Clone)]
-pub struct Texture(pub gfx::handle::ShaderResourceView<gfx_device_gl::Resources, [f32; 4]>);
+pub struct Texture(
+    pub gfx::handle::ShaderResourceView<gfx_device_gl::Resources, [f32; 4]>,
+);
 
 pub fn load(context: &mut Context, data: &[u8]) -> Texture {
     let decoder = png::Decoder::new(io::Cursor::new(data));

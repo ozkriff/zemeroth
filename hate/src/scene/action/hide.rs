@@ -23,4 +23,3 @@ impl Action for Hide {
         data.sprites.retain(|sprite| !self.sprite.is_same(sprite))
     }
 }
-

@@ -21,4 +21,3 @@ impl Action for SetColor {
         self.sprite.set_color(self.to);
     }
 }
-

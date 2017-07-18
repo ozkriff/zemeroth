@@ -42,4 +42,3 @@ impl Action for MoveBy {
         self.progress.0 > (self.duration.0 - eps)
     }
 }
-

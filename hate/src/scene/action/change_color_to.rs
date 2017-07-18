@@ -51,4 +51,3 @@ impl Action for ChangeColorTo {
         self.progress.0 > (self.duration.0 - eps)
     }
 }
-

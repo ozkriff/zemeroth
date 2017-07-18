@@ -23,4 +23,3 @@ impl Action for Show {
         data.sprites.push(self.sprite.clone());
     }
 }
-
