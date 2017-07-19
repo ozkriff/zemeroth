@@ -13,7 +13,6 @@ extern crate serde_derive;
 
 extern crate gfx_window_glutin;
 extern crate gfx_device_gl;
-extern crate rand;
 extern crate cgmath;
 extern crate glutin;
 extern crate png;

@@ -150,6 +150,7 @@ pub fn visualize_effect(
 ) -> (Box<Action>, Time) {
     match *effect {
         Effect::Kill => visualize_effect_kill(state, view, context, target_id),
+        Effect::Miss => visualize_effect_miss(state, view, context, target_id),
     }
 }
 
@@ -169,6 +170,18 @@ fn visualize_effect_kill(
         Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.1))),
         Box::new(action::Hide::new(&view.layers().fg, &sprite)),
     ]));
+    let time = action.duration();
+    (action, time)
+}
+
+fn visualize_effect_miss(
+    state: &State,
+    view: &mut GameView,
+    context: &mut Context,
+    target_id: ObjId,
+) -> (Box<Action>, Time) {
+    let pos = state.unit(target_id).pos;
+    let action = message(view, context, pos, "missed");
     let time = action.duration();
     (action, time)
 }

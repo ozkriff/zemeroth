@@ -1,6 +1,7 @@
 extern crate hate;
 extern crate cgmath;
 extern crate toml;
+extern crate rand;
 
 mod screen;
 mod map;

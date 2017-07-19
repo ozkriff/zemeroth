@@ -1,4 +1,5 @@
 use std::collections::{HashMap, VecDeque};
+use rand::{thread_rng, Rng};
 use core::map::PosHex;
 use core::{State, Unit, PlayerId};
 use core::command;
@@ -82,7 +83,12 @@ impl Simulator {
             target_id: command.target_id,
         });
         let mut effects = HashMap::new();
-        effects.insert(command.target_id, vec![Effect::Kill]);
+        let effect = if thread_rng().gen_range(0, 6) > 3 {
+            Effect::Kill
+        } else {
+            Effect::Miss
+        };
+        effects.insert(command.target_id, vec![effect]);
         let event = event::Event {
             active_event,
             effects,

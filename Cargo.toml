@@ -6,10 +6,12 @@ license = "MIT OR Apache-2.0"
 
 [workspace]
 members = ["hate"]
+
 [dependencies]
 hate = { path = "hate" }
 cgmath = "0.14"
 toml = "0.4"
+rand = "0.3"
 
 [package.metadata.android]
 assets = "assets"
