@@ -12,6 +12,7 @@ pub struct Layers {
     pub attackable_tiles: Layer,
     pub selection_marker: Layer,
     pub fg: Layer,
+    pub text: Layer,
 }
 
 #[derive(Debug)]
@@ -31,6 +32,7 @@ impl GameView {
             attackable_tiles: Layer::new(),
             selection_marker: Layer::new(),
             fg: Layer::new(),
+            text: Layer::new(),
         };
         let scene = Scene::new(vec![
             layers.bg.clone(),
@@ -38,6 +40,7 @@ impl GameView {
             layers.attackable_tiles.clone(),
             layers.selection_marker.clone(),
             layers.fg.clone(),
+            layers.text.clone(),
         ]);
         let tile_size = 0.1;
         let mut this = Self {

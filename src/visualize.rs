@@ -1,13 +1,38 @@
+use cgmath::vec2;
 use hate::{Sprite, Context, Time};
 use hate::scene::Action;
 use hate::scene::action;
 use hate::geom::Point;
+use hate::gui;
 use core::{State, PlayerId, ObjId};
 use core::event::{Event, ActiveEvent};
+use core::map::PosHex;
 use core::event;
 use core::effect::Effect;
 use game_view::GameView;
 use map;
+
+pub fn message(view: &mut GameView, context: &mut Context, pos: PosHex, text: &str) -> Box<Action> {
+    let visible = [0.0, 0.0, 0.0, 1.0];
+    let invisible = [0.0, 0.0, 0.0, 0.0];
+    let mut sprite = gui::text_sprite(context, text, 0.1);
+    sprite.set_pos(map::hex_to_point(view.tile_size(), pos));
+    sprite.set_color(invisible);
+    let action_show_hide = Box::new(action::Sequence::new(vec![
+        Box::new(action::Show::new(&view.layers().text, &sprite)),
+        Box::new(action::ChangeColorTo::new(&sprite, visible, Time(0.5))),
+        Box::new(action::Sleep::new(Time(1.0))),
+        Box::new(action::ChangeColorTo::new(&sprite, invisible, Time(1.5))),
+        Box::new(action::Hide::new(&view.layers().text, &sprite)),
+    ]));
+    let time = action_show_hide.duration();
+    let delta = Point(vec2(0.0, 0.3));
+    let action_move = Box::new(action::MoveBy::new(&sprite, delta, time));
+    Box::new(action::Fork::new(Box::new(action::Sequence::new(vec![
+        Box::new(action::Fork::new(action_move)),
+        action_show_hide,
+    ]))))
+}
 
 pub fn visualize(
     state: &State,
@@ -129,15 +154,17 @@ pub fn visualize_effect(
 }
 
 fn visualize_effect_kill(
-    _: &State,
+    state: &State,
     view: &mut GameView,
-    _: &mut Context,
+    context: &mut Context,
     target_id: ObjId,
 ) -> (Box<Action>, Time) {
+    let pos = state.unit(target_id).pos;
     let sprite = view.id_to_sprite(target_id).clone();
     view.remove_object(target_id);
     let color = [1.0, 1.0, 1.0, 0.0];
     let action = Box::new(action::Sequence::new(vec![
+        message(view, context, pos, "killed"),
         Box::new(action::Sleep::new(Time(0.25))),
         Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.1))),
         Box::new(action::Hide::new(&view.layers().fg, &sprite)),
