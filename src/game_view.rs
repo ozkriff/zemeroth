@@ -5,7 +5,7 @@ use hate::scene::{Action, Layer};
 use map;
 use core::{ObjId, TileType, State};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Default)]
 pub struct Layers {
     pub bg: Layer,
     pub walkable_tiles: Layer,
@@ -13,6 +13,19 @@ pub struct Layers {
     pub selection_marker: Layer,
     pub fg: Layer,
     pub text: Layer,
+}
+
+impl Layers {
+    fn sorted(self) -> Vec<Layer> {
+        vec![
+            self.bg,
+            self.walkable_tiles,
+            self.attackable_tiles,
+            self.selection_marker,
+            self.fg,
+            self.text,
+        ]
+    }
 }
 
 #[derive(Debug)]
@@ -26,22 +39,8 @@ pub struct GameView {
 impl GameView {
     pub fn new(state: &State, context: &mut Context) -> Self {
         let obj_to_sprite_map = HashMap::new();
-        let layers = Layers {
-            bg: Layer::new(),
-            walkable_tiles: Layer::new(),
-            attackable_tiles: Layer::new(),
-            selection_marker: Layer::new(),
-            fg: Layer::new(),
-            text: Layer::new(),
-        };
-        let scene = Scene::new(vec![
-            layers.bg.clone(),
-            layers.walkable_tiles.clone(),
-            layers.attackable_tiles.clone(),
-            layers.selection_marker.clone(),
-            layers.fg.clone(),
-            layers.text.clone(),
-        ]);
+        let layers = Layers::default();
+        let scene = Scene::new(layers.clone().sorted());
         let tile_size = 0.1;
         let mut this = Self {
             scene,

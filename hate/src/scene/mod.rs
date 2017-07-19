@@ -19,7 +19,6 @@ pub struct Layer {
 }
 
 impl Layer {
-    #[cfg_attr(feature = "cargo-clippy", allow(new_without_default))]
     pub fn new() -> Self {
         let data = LayerData {
             sprites: Vec::new(),
@@ -39,6 +38,12 @@ impl Layer {
             .iter()
             .find(|other| other.is_same(sprite))
             .is_some()
+    }
+}
+
+impl Default for Layer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
