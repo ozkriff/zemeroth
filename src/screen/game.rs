@@ -185,7 +185,7 @@ impl Game {
     fn prepare_actions(&mut self, context: &mut Context) -> Vec<Box<Action>> {
         let mut actions = Vec::new();
         while let Some(event) = self.simulator.tick() {
-            let (action, _ /*TODO*/) = visualize::visualize(&self.state, &mut self.view, context, &event);
+            let action = visualize::visualize(&self.state, &mut self.view, context, &event);
             actions.push(action);
             core::event::apply(&mut self.state, &event);
         }
