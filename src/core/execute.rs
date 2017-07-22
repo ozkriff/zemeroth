@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
-use core::{State, Unit, PlayerId};
+use core::{State, Unit, PlayerId, Moves, Attacks};
 use core::command;
 use core::command::Command;
 use core::event;
@@ -135,11 +135,18 @@ pub fn create_objects(state: &mut State, simulator: &mut Simulator) {
                 id,
                 unit: Unit {
                     pos: PosHex {
-                        q: player_index,
+                        q: match player_index {
+                            0 => -2,
+                            _ => 2,
+                        },
                         r: -3 + i,
                     },
                     player_id: PlayerId(player_index),
-                    move_points: MovePoints(6), // TODO: remove code duplication
+
+                    // TODO: remove code duplication:
+                    move_points: MovePoints(3),
+                    attacks: Attacks(2),
+                    moves: Moves(2),
                 },
             });
             let event = event::Event {

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use core::{State, Unit, ObjId, PlayerId};
+use core::{State, Unit, ObjId, PlayerId, Moves, Attacks};
 use core::effect::{self, Effect};
 use core::map::PosHex;
 
@@ -75,10 +75,14 @@ fn apply_event_create(state: &mut State, event: &Create) {
 fn apply_event_move_to(state: &mut State, event: &MoveTo) {
     let unit = state.units.get_mut(&event.id).unwrap();
     unit.pos = *event.path.last().unwrap();
+    unit.moves.0 -= 1;
+    assert!(unit.moves >= Moves(0));
 }
 
-fn apply_event_attack(_: &mut State, _: &Attack) {
-    // TODO: remove attack points from attacker
+fn apply_event_attack(state: &mut State, event: &Attack) {
+    let attacker = state.units.get_mut(&event.attacker_id).unwrap();
+    attacker.attacks.0 -= 1;
+    assert!(attacker.attacks >= Attacks(0));
 }
 
 fn apply_event_end_turn(_: &mut State, _: &EndTurn) {
@@ -86,6 +90,12 @@ fn apply_event_end_turn(_: &mut State, _: &EndTurn) {
 }
 
 fn apply_event_begin_turn(state: &mut State, event: &BeginTurn) {
-    // TODO: restore moves/attacks of player's units
     state.player_id = event.player_id;
+    for unit in state.units.values_mut() {
+        if unit.player_id == event.player_id {
+            // TODO: get values from unit's type
+            unit.moves = Moves(2);
+            unit.attacks = Attacks(2);
+        }
+    }
 }

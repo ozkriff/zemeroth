@@ -2,6 +2,7 @@ use core::State;
 use core::command::{self, Command};
 use core::movement;
 use core::map;
+use core::{Moves, Attacks};
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
     match *command {
@@ -21,6 +22,8 @@ pub enum Error {
     TileIsOccupied,
     DistanceIsTooBig,
     CanNotCommandEnemyUnits,
+    NotEnoughMoves,
+    NotEnoughAttacks,
 }
 
 fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> {
@@ -30,6 +33,9 @@ fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> 
     };
     if unit.player_id != state.player_id() {
         return Err(Error::CanNotCommandEnemyUnits);
+    }
+    if unit.moves == Moves(0) {
+        return Err(Error::NotEnoughMoves);
     }
     let cost = movement::path_cost(state, unit, &command.path);
     if cost > unit.move_points {
@@ -56,10 +62,16 @@ fn check_attack(state: &State, command: &command::Attack) -> Result<(), Error> {
         Some(unit) => unit,
         None => return Err(Error::BadActorId),
     };
+    if attacker.player_id != state.player_id() {
+        return Err(Error::CanNotCommandEnemyUnits);
+    }
     let target = match state.unit_opt(command.target_id) {
         Some(unit) => unit,
         None => return Err(Error::BadTargetId),
     };
+    if attacker.attacks == Attacks(0) {
+        return Err(Error::NotEnoughAttacks);
+    }
     let dist = map::distance_hex(attacker.pos, target.pos);
     let max_dist = 1;
     if dist > max_dist {

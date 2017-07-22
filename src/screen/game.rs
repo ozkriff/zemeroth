@@ -6,10 +6,11 @@ use visualize;
 use map;
 use game_view::GameView;
 use core;
-use core::{Unit, PlayerId, State, Simulator, ObjId, check};
+use core::{Unit, PlayerId, State, Simulator, ObjId, Moves, Attacks, check};
 use core::command;
 use core::movement::{MovePoints, Pathfinder};
 
+// TODO: rename to `GuiCommand`?
 #[derive(Copy, Clone, Debug)]
 enum Command {
     A,
@@ -236,11 +237,14 @@ impl Game {
     }
 
     fn show_walkable_tiles(&mut self, context: &mut Context, id: ObjId) {
-        let move_points = self.state.unit(id).move_points;
+        let unit = self.state.unit(id);
+        if unit.moves == Moves(0) {
+            return;
+        }
         let map = self.pathfinder.map();
         for pos in map.iter() {
             let tile = map.tile(pos);
-            if tile.cost() <= move_points {
+            if tile.cost() <= unit.move_points {
                 let mut sprite = Sprite::from_path(context, "tile.png", 0.2);
                 self.sprites_walkable_tiles.push(sprite.clone());
                 let mut color_from = WALKBALE_TILE_COLOR;
@@ -338,7 +342,10 @@ impl Game {
                     unit: Unit {
                         pos: hex_pos,
                         player_id: PlayerId(0),
-                        move_points: MovePoints(6),
+                        // TODO: remove code duplication
+                        move_points: MovePoints(3),
+                        attacks: Attacks(2),
+                        moves: Moves(2),
                     },
                 });
                 self.do_command(context, command_create);
