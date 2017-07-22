@@ -16,7 +16,9 @@ pub fn message(view: &mut GameView, context: &mut Context, pos: PosHex, text: &s
     let visible = [0.0, 0.0, 0.0, 1.0];
     let invisible = [0.0, 0.0, 0.0, 0.0];
     let mut sprite = gui::text_sprite(context, text, 0.1);
-    sprite.set_pos(map::hex_to_point(view.tile_size(), pos));
+    let point = map::hex_to_point(view.tile_size(), pos);
+    let point = Point(point.0 + vec2(0.0, view.tile_size()));
+    sprite.set_pos(point);
     sprite.set_color(invisible);
     let action_show_hide = Box::new(action::Sequence::new(vec![
         Box::new(action::Show::new(&view.layers().text, &sprite)),
