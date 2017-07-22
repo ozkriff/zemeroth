@@ -50,6 +50,7 @@ impl Simulator {
             Command::Create(ref command) => self.execute_create(state, command),
             Command::MoveTo(ref command) => self.execute_move_to(state, command),
             Command::Attack(ref command) => self.execute_attack(state, command),
+            Command::EndTurn(ref command) => self.execute_end_turn(state, command),
         }
     }
 
@@ -94,6 +95,35 @@ impl Simulator {
             effects,
         };
         vec![event]
+    }
+
+    fn execute_end_turn(&mut self, state: &State, _: &command::EndTurn) -> Vec<Event> {
+        let player_id_old = state.player_id();
+        let player_id_new = next_player_id(state);
+        let event_end_turn = event::ActiveEvent::EndTurn(event::EndTurn {
+            player_id: player_id_old,
+        });
+        let event_end_turn = event::Event {
+            active_event: event_end_turn,
+            effects: HashMap::new(),
+        };
+        let event_begin_turn = event::ActiveEvent::BeginTurn(event::BeginTurn {
+            player_id: player_id_new,
+        });
+        let event_begin_turn = event::Event {
+            active_event: event_begin_turn,
+            effects: HashMap::new(),
+        };
+        vec![event_end_turn, event_begin_turn]
+    }
+}
+
+fn next_player_id(state: &State) -> PlayerId {
+    let current_player_id = PlayerId(state.player_id().0 + 1);
+    if current_player_id.0 < state.players_count {
+        current_player_id
+    } else {
+        PlayerId(0)
     }
 }
 

@@ -4,6 +4,7 @@ use core::map::{HexMap, PosHex};
 use core::movement::MovePoints;
 
 pub use core::execute::{Simulator, create_objects};
+pub use core::check::check;
 
 pub mod command;
 pub mod event;
@@ -57,6 +58,8 @@ pub struct State {
     units: HashMap<ObjId, Unit>,
     map: HexMap<TileType>,
     next_obj_id: ObjId,
+    player_id: PlayerId,
+    players_count: i32,
 }
 
 impl State {
@@ -73,7 +76,13 @@ impl State {
             units,
             map,
             next_obj_id,
+            player_id: PlayerId(0),
+            players_count: 2,
         }
+    }
+
+    pub fn player_id(&self) -> PlayerId {
+        self.player_id
     }
 
     pub fn alloc_id(&mut self) -> ObjId {

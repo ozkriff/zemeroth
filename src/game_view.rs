@@ -83,6 +83,7 @@ impl GameView {
     }
 }
 
+// TODO: move to game.rs?
 fn make_map_action(state: &State, view: &GameView, context: &mut Context) -> Box<Action> {
     let mut actions: Vec<Box<Action>> = Vec::new();
     for hex_pos in state.map().iter() {

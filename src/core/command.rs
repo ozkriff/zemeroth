@@ -6,6 +6,7 @@ pub enum Command {
     Create(Create),
     Attack(Attack),
     MoveTo(MoveTo),
+    EndTurn(EndTurn),
 }
 
 // TODO: this is a test command, remove it later
@@ -26,3 +27,6 @@ pub struct MoveTo {
     pub id: ObjId,
     pub path: Vec<PosHex>,
 }
+
+#[derive(Debug, Clone)]
+pub struct EndTurn;

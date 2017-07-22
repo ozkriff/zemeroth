@@ -70,6 +70,8 @@ pub fn visualize_event(
         ActiveEvent::Create(ref event) => visualize_event_create(state, view, context, event),
         ActiveEvent::MoveTo(ref event) => visualize_event_move_to(state, view, context, event),
         ActiveEvent::Attack(ref event) => visualize_event_attack(state, view, context, event),
+        ActiveEvent::EndTurn(ref event) => visualize_event_end_turn(state, view, context, event),
+        ActiveEvent::BeginTurn(ref ev) => visualize_event_begin_turn(state, view, context, ev),
     }
 }
 
@@ -136,6 +138,44 @@ fn visualize_event_attack(
     let action = Box::new(action::Sequence::new(vec![
         Box::new(action::MoveBy::new(&sprite, diff, Time(0.15))),
         Box::new(action::MoveBy::new(&sprite, Point(-diff.0), Time(0.15))),
+    ]));
+    let time = action.duration();
+    (action, time)
+}
+
+fn visualize_event_end_turn(
+    _: &State,
+    _: &mut GameView,
+    _: &mut Context,
+    _: &event::EndTurn,
+) -> (Box<Action>, Time) {
+    let action = Box::new(action::Sleep::new(Time(0.2)));
+    let time = action.duration();
+    (action, time)
+}
+
+fn visualize_event_begin_turn(
+    _: &State,
+    view: &mut GameView,
+    context: &mut Context,
+    event: &event::BeginTurn,
+) -> (Box<Action>, Time) {
+    let visible = [0.0, 0.0, 0.0, 1.0];
+    let invisible = [0.0, 0.0, 0.0, 0.0];
+    let text = match event.player_id {
+        PlayerId(0) => "YOUR TURN",
+        PlayerId(1) => "ENEMY TURN",
+        _ => unreachable!(),
+    };
+    let mut sprite = gui::text_sprite(context, text, 0.2);
+    sprite.set_pos(Point(vec2(0.0, 0.0)));
+    sprite.set_color(invisible);
+    let action = Box::new(action::Sequence::new(vec![
+        Box::new(action::Show::new(&view.layers().text, &sprite)),
+        Box::new(action::ChangeColorTo::new(&sprite, visible, Time(0.2))),
+        Box::new(action::Sleep::new(Time(1.5))),
+        Box::new(action::ChangeColorTo::new(&sprite, invisible, Time(0.3))),
+        Box::new(action::Hide::new(&view.layers().text, &sprite)),
     ]));
     let time = action.duration();
     (action, time)

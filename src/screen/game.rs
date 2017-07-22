@@ -1,12 +1,12 @@
 use hate::{self, Time, Sprite, Event, Screen, Context};
 use hate::geom::Point;
 use hate::gui::{self, Gui};
-use hate::scene::action;
+use hate::scene::action::{self, Action};
 use visualize;
 use map;
 use game_view::GameView;
 use core;
-use core::{Unit, PlayerId, State, Simulator, ObjId};
+use core::{Unit, PlayerId, State, Simulator, ObjId, check};
 use core::command;
 use core::movement::{MovePoints, Pathfinder};
 
@@ -20,6 +20,7 @@ enum Command {
     F,
     Exit,
     Deselect,
+    EndTurn,
 }
 
 const WALKBALE_TILE_COLOR: [f32; 4] = [0.4, 1.0, 0.4, 0.8];
@@ -99,10 +100,12 @@ impl Game {
             let sprite_b = gui::text_sprite(context, "attack: B", 0.1);
             let sprite_deselect = gui::text_sprite(context, "deselect", 0.1);
             let sprite_exit = gui::text_sprite(context, "exit", 0.1);
+            let sprite_end_turn = gui::text_sprite(context, "end turn", 0.1);
             let sprite_a_id = gui.add_button(context, sprite_a, Command::A);
             let sprite_b_id = gui.add_button(context, sprite_b, Command::B);
             let sprite_id_deselect = gui.add_button(context, sprite_deselect, Command::Deselect);
             let sprite_id_exit = gui.add_button(context, sprite_exit, Command::Exit);
+            let sprite_id_end_turn = gui.add_button(context, sprite_end_turn, Command::EndTurn);
             let anchor = gui::Anchor {
                 vertical: gui::VAnchor::Middle,
                 horizontal: gui::HAnchor::Left,
@@ -113,6 +116,7 @@ impl Game {
                 sprite_b_id,
                 sprite_id_deselect,
                 sprite_id_exit,
+                sprite_id_end_turn,
             ])
         };
 
@@ -140,6 +144,12 @@ impl Game {
         context.add_command(hate::screen::Command::Pop);
     }
 
+    fn end_turn(&mut self, context: &mut Context) {
+        self.deselect(context);
+        let command = command::Command::EndTurn(command::EndTurn);
+        self.do_command(context, command);
+    }
+
     fn handle_commands(&mut self, context: &mut Context) {
         while let Some(command) = self.gui.try_recv() {
             match command {
@@ -156,6 +166,7 @@ impl Game {
                 }
                 Command::Exit => self.exit(context),
                 Command::Deselect => self.deselect(context),
+                Command::EndTurn => self.end_turn(context),
             }
         }
     }
@@ -167,12 +178,24 @@ impl Game {
     }
 
     fn process_core_events(&mut self, context: &mut Context) {
+        let actions = self.prepare_actions(context);
+        self.add_actions(actions);
+    }
+
+    fn prepare_actions(&mut self, context: &mut Context) -> Vec<Box<Action>> {
+        let mut actions = Vec::new();
         while let Some(event) = self.simulator.tick() {
-            let (action, time) = visualize::visualize(&self.state, &mut self.view, context, &event);
-            self.block_timer = Some(time);
-            self.view.add_action(action);
+            let (action, _ /*TODO*/) = visualize::visualize(&self.state, &mut self.view, context, &event);
+            actions.push(action);
             core::event::apply(&mut self.state, &event);
         }
+        actions
+    }
+
+    fn add_actions(&mut self, actions: Vec<Box<Action>>) {
+        let action_sequence = Box::new(action::Sequence::new(actions));
+        self.block_timer = Some(action_sequence.duration());
+        self.view.add_action(action_sequence);
     }
 
     fn show_selection_marker(&mut self, id: ObjId) {
@@ -188,16 +211,22 @@ impl Game {
 
     fn show_attackable_tiles(&mut self, context: &mut Context, id: ObjId) {
         let selected_unit = self.state.unit(id);
-        for id in self.state.obj_iter() {
-            let unit = self.state.unit(id);
-            let dist = core::map::distance_hex(selected_unit.pos, unit.pos);
-            if unit.player_id == selected_unit.player_id || dist > 1 {
+        for target_id in self.state.obj_iter() {
+            let target = self.state.unit(target_id);
+            if target.player_id == selected_unit.player_id {
+                continue;
+            }
+            let command_attack = command::Command::Attack(command::Attack {
+                attacker_id: id,
+                target_id: target_id,
+            });
+            if check(&self.state, &command_attack).is_err() {
                 continue;
             }
             let mut sprite = Sprite::from_path(context, "tile.png", 0.2);
             self.sprites_attackable_tiles.push(sprite.clone());
             sprite.set_color([1.0, 0.3, 0.3, 0.8]);
-            sprite.set_pos(map::hex_to_point(self.view.tile_size(), unit.pos));
+            sprite.set_pos(map::hex_to_point(self.view.tile_size(), target.pos));
             let action = Box::new(action::Show::new(
                 &self.view.layers().attackable_tiles,
                 &sprite,
@@ -281,24 +310,20 @@ impl Game {
         if self.state.map().is_inboard(hex_pos) {
             let object_ids = self.state.object_ids_at(hex_pos);
             println!("object_ids: {:?}", object_ids);
-            if object_ids.len() == 1 {
+            if !object_ids.is_empty() {
+                assert_eq!(object_ids.len(), 1);
                 let id = object_ids[0];
-                if let Some(selected_unit_id) = self.selected_unit_id {
-                    let selected_unit_player_id = self.state.unit(selected_unit_id).player_id;
-                    let other_unit_player_id = self.state.unit(id).player_id;
-                    if selected_unit_player_id == other_unit_player_id {
-                        self.select_unit(context, id);
-                    } else {
-                        let command_attack = command::Command::Attack(command::Attack {
-                            attacker_id: selected_unit_id,
-                            target_id: id,
-                        });
-                        self.do_command(context, command_attack);
-                        self.pathfinder
-                            .fill_map(&self.state, self.state.unit(selected_unit_id));
-                    }
-                } else {
+                let other_unit_player_id = self.state.unit(id).player_id;
+                if other_unit_player_id == self.state.player_id() {
                     self.select_unit(context, id);
+                } else if let Some(selected_unit_id) = self.selected_unit_id {
+                    let command_attack = command::Command::Attack(command::Attack {
+                        attacker_id: selected_unit_id,
+                        target_id: id,
+                    });
+                    self.do_command(context, command_attack);
+                    let selected_unit = self.state.unit(selected_unit_id);
+                    self.pathfinder.fill_map(&self.state, selected_unit);
                 }
             } else if let Some(id) = self.selected_unit_id {
                 let path = self.pathfinder.path(hex_pos).unwrap();
