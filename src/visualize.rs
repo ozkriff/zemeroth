@@ -119,7 +119,8 @@ fn visualize_event_attack(
     let sprite = view.id_to_sprite(event.attacker_id).clone();
     let map_to = state.unit(event.target_id).pos;
     let to = map::hex_to_point(view.tile_size(), map_to);
-    let from = sprite.pos();
+    let map_from = state.unit(event.attacker_id).pos;
+    let from = map::hex_to_point(view.tile_size(), map_from);
     let diff = Point((to.0 - from.0) / 2.0);
     Box::new(action::Sequence::new(vec![
         Box::new(action::MoveBy::new(&sprite, diff, Time(0.15))),
