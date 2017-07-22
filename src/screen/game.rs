@@ -5,6 +5,7 @@ use hate::scene::action::{self, Action};
 use visualize;
 use map;
 use game_view::GameView;
+use ai::Ai;
 use core;
 use core::{Unit, PlayerId, State, Simulator, ObjId, Moves, Attacks, check};
 use core::command;
@@ -39,12 +40,14 @@ pub struct Game {
     block_timer: Option<Time>,
     sprites_walkable_tiles: Vec<Sprite>,
     sprites_attackable_tiles: Vec<Sprite>,
+    ai: Ai,
 }
 
 impl Game {
     pub fn new(context: &mut Context) -> Self {
         let mut state = State::new();
         let pathfinder = Pathfinder::new(state.map().radius());
+        let ai = Ai::new(PlayerId(1), state.map().radius());
         let mut simulator = Simulator::new();
         core::create_objects(&mut state, &mut simulator);
 
@@ -136,6 +139,7 @@ impl Game {
             sprite_selection_marker,
             sprites_walkable_tiles: Vec::new(),
             sprites_attackable_tiles: Vec::new(),
+            ai,
         };
         screen.process_core_events(context);
         screen
@@ -149,6 +153,22 @@ impl Game {
         self.deselect(context);
         let command = command::Command::EndTurn(command::EndTurn);
         self.do_command(context, command);
+        {
+            println!("AI: <");
+            let mut actions: Vec<Box<Action>> = Vec::new();
+            loop {
+                let command = self.ai.command(&self.state).unwrap();
+                println!("AI: command = {:?}", command);
+                self.simulator.do_command(&self.state, command.clone());
+                actions.extend(self.prepare_actions(context));
+                actions.push(Box::new(action::Sleep::new(Time(0.3))));
+                if let command::Command::EndTurn(_) = command {
+                    break;
+                }
+            }
+            self.add_actions(actions);
+            println!("AI: >");
+        }
     }
 
     fn handle_commands(&mut self, context: &mut Context) {

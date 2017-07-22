@@ -8,6 +8,7 @@ mod map;
 mod core;
 mod game_view;
 mod visualize;
+mod ai;
 
 pub fn main() {
     enable_backtrace();
