@@ -86,7 +86,7 @@ fn visualize_event_create(
         Box::new(action::ChangeColorTo::new(
             &sprite,
             [1.0, 1.0, 1.0, 1.0],
-            Time(0.5),
+            Time(0.25),
         )),
     ]))
 }
