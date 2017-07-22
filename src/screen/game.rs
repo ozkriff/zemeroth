@@ -323,7 +323,7 @@ impl Game {
 
     fn update_block_timer(&mut self, context: &mut Context, dtime: Time) {
         self.block_timer.as_mut().map(|t| t.0 -= dtime.0);
-        if let Some(time) = self.block_timer.clone() {
+        if let Some(time) = self.block_timer {
             if time <= Time(0.0) {
                 self.block_timer = None;
                 if let Some(id) = self.selected_unit_id {

@@ -48,7 +48,7 @@ impl<'a> Iterator for ObjIdIter<'a> {
     type Item = ObjId;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|id| *id)
+        self.iter.next().cloned()
     }
 }
 
