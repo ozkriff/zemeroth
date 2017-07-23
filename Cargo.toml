@@ -17,5 +17,5 @@ rand = "0.3"
 assets = "assets"
 fullscreen = true
 
-# TODO: force landscape only orientation
-# https://stackoverflow.com/questions/8408197/android-landscape-only-orientation
+[package.metadata.android.activity_attributes]
+"android:screenOrientation" = "sensorLandscape"
