@@ -3,7 +3,7 @@ use std::sync::mpsc::Sender;
 use std::path::{Path, PathBuf};
 use std::time;
 use cgmath::{self, Vector2, Matrix4, SquareMatrix, Zero, InnerSpace};
-use glutin::{self, Api, MouseButton};
+use glutin::{self, Api, MouseButton, GlContext};
 use glutin::ElementState::{Pressed, Released};
 use rusttype;
 use gfx::traits::{FactoryExt, Device};
@@ -41,7 +41,7 @@ fn fragment_shader(api: Api) -> String {
 }
 
 fn new_shader(
-    window: &glutin::Window,
+    window: &glutin::GlWindow,
     factory: &mut gfx_device_gl::Factory,
 ) -> Program<gfx_device_gl::Resources> {
     let api = window.get_api();
@@ -63,17 +63,6 @@ fn new_pso(
 fn new_font<P: AsRef<Path>>(path: P) -> rusttype::Font<'static> {
     let collection = rusttype::FontCollection::from_bytes(fs::load(path));
     collection.into_font().unwrap()
-}
-
-fn new_window_builder() -> glutin::WindowBuilder<'static> {
-    let gl_version = glutin::GlRequest::GlThenGles {
-        opengles_version: (2, 0),
-        opengl_version: (2, 1),
-    };
-    glutin::WindowBuilder::new()
-        .with_title("Zemeroth".to_string())
-        .with_pixel_format(24, 8)
-        .with_gl(gl_version)
 }
 
 fn get_win_size(window: &glutin::Window) -> Size<i32> {
@@ -120,7 +109,7 @@ pub struct Context {
     mouse: MouseState,
     should_close: bool,
     commands_tx: Sender<screen::Command>,
-    window: glutin::Window,
+    window: glutin::GlWindow,
     clear_color: [f32; 4],
     device: gfx_device_gl::Device,
     encoder: gfx::Encoder<gfx_device_gl::Resources, gfx_device_gl::CommandBuffer>,
@@ -136,9 +125,18 @@ pub struct Context {
 
 impl Context {
     pub(crate) fn new(tx: Sender<screen::Command>, settings: Settings) -> Context {
+        let gl_version = glutin::GlRequest::GlThenGles {
+            opengles_version: (2, 0),
+            opengl_version: (2, 1),
+        };
+        let window_builder = glutin::WindowBuilder::new()
+            .with_title("Zemeroth".to_string());
+        let context_builder = glutin::ContextBuilder::new()
+            .with_gl(gl_version)
+            .with_pixel_format(24, 8);
         let events_loop = glutin::EventsLoop::new();
         let (window, device, mut factory, out, out_depth) =
-            gfx_window_glutin::init(new_window_builder(), &events_loop);
+            gfx_window_glutin::init(window_builder, context_builder, &events_loop);
         let encoder = factory.create_command_buffer().into();
         let program = new_shader(&window, &mut factory);
         let primitive = gfx::Primitive::TriangleList;
@@ -253,10 +251,9 @@ impl Context {
         let mut raw_events = Vec::new();
         self.events_loop.poll_events(|e| raw_events.push(e));
         for event in &raw_events {
-            let event = match *event {
-                glutin::Event::WindowEvent { ref event, .. } => event,
-            };
-            self.handle_event(event);
+            if let glutin::Event::WindowEvent { ref event, .. } = *event {
+                self.handle_event(event);
+            }
         }
         self.events.split_off(0)
     }
@@ -266,17 +263,17 @@ impl Context {
             glutin::WindowEvent::Closed => {
                 self.should_close = true;
             }
-            glutin::WindowEvent::MouseInput(Released, MouseButton::Left) => {
+            glutin::WindowEvent::MouseInput { state: Released, button: MouseButton::Left, ..} => {
                 if self.is_tap() {
                     self.events.push(Event::Click {
                         pos: self.mouse.pos,
                     });
                 }
             }
-            glutin::WindowEvent::MouseInput(Pressed, MouseButton::Left) => {
+            glutin::WindowEvent::MouseInput { state: Pressed, button: MouseButton::Left, ..} => {
                 self.mouse.last_press_pos = self.mouse.pos;
             }
-            glutin::WindowEvent::MouseMoved(x, y) => {
+            glutin::WindowEvent::MouseMoved { position: (x, y), .. } => {
                 self.mouse.pos = window_to_screen(self, x as f32, y as f32);
             }
             glutin::WindowEvent::Touch(touch_event) => {

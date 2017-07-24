@@ -13,6 +13,10 @@ cgmath = "0.14"
 toml = "0.4"
 rand = "0.3"
 
+# TODO: remove when https://github.com/tomaka/glutin/pull/915 will be merged
+[patch.crates-io]
+glutin = { git = "https://github.com/ozkriff/glutin", branch = "android_missing_resize" }
+
 [package.metadata.android]
 assets = "assets"
 fullscreen = true
