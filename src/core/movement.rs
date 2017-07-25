@@ -1,5 +1,5 @@
-use core::map::{HexMap, Dir, PosHex, dirs};
-use core::{State, Unit, TileType};
+use core::map::{dirs, Dir, HexMap, PosHex};
+use core::{State, TileType, Unit};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MovePoints(pub i32);

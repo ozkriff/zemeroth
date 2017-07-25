@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use hate::{Time, Sprite, Context, Scene};
+use hate::{Context, Scene, Sprite, Time};
 use hate::scene::action;
 use hate::scene::{Action, Layer};
 use map;
-use core::{ObjId, TileType, State};
+use core::{ObjId, State, TileType};
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {

@@ -1,4 +1,4 @@
-use core::{Unit, ObjId};
+use core::{ObjId, Unit};
 use core::map::PosHex;
 
 #[derive(Debug, Clone)]

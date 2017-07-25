@@ -5,7 +5,7 @@ use context::Context;
 use texture;
 use text;
 use mesh::RMesh;
-use geom::{Size, Point};
+use geom::{Point, Size};
 
 // TODO: Make private? Move to other file?
 pub fn text_sprite(context: &mut Context, label: &str, height: f32) -> Sprite {
@@ -151,36 +151,28 @@ impl<Message: Clone> Gui<Message> {
         for (&layout_id, layout) in &self.layouts {
             let size = self.calc_size(layout_id);
             let y = match layout.direction {
-                Direction::Right => {
-                    match layout.anchor.vertical {
-                        VAnchor::Top => 1.0 - size.h / 2.0,
-                        VAnchor::Middle => 0.0,
-                        VAnchor::Bottom => -1.0,
-                    }
-                }
-                Direction::Up => {
-                    match layout.anchor.vertical {
-                        VAnchor::Top => 1.0 - size.h / 2.0,
-                        VAnchor::Middle => -size.h / 2.0,
-                        VAnchor::Bottom => -1.0,
-                    }
-                }
+                Direction::Right => match layout.anchor.vertical {
+                    VAnchor::Top => 1.0 - size.h / 2.0,
+                    VAnchor::Middle => 0.0,
+                    VAnchor::Bottom => -1.0,
+                },
+                Direction::Up => match layout.anchor.vertical {
+                    VAnchor::Top => 1.0 - size.h / 2.0,
+                    VAnchor::Middle => -size.h / 2.0,
+                    VAnchor::Bottom => -1.0,
+                },
             };
             let x = match layout.direction {
-                Direction::Right => {
-                    match layout.anchor.horizontal {
-                        HAnchor::Left => -aspect_ratio,
-                        HAnchor::Middle => -size.w / 2.0,
-                        HAnchor::Right => aspect_ratio - size.w,
-                    }
-                }
-                Direction::Up => {
-                    match layout.anchor.horizontal {
-                        HAnchor::Left => size.w / 2.0 - aspect_ratio,
-                        HAnchor::Middle => 0.0,
-                        HAnchor::Right => aspect_ratio - size.w / 2.0,
-                    }
-                }
+                Direction::Right => match layout.anchor.horizontal {
+                    HAnchor::Left => -aspect_ratio,
+                    HAnchor::Middle => -size.w / 2.0,
+                    HAnchor::Right => aspect_ratio - size.w,
+                },
+                Direction::Up => match layout.anchor.horizontal {
+                    HAnchor::Left => size.w / 2.0 - aspect_ratio,
+                    HAnchor::Middle => 0.0,
+                    HAnchor::Right => aspect_ratio - size.w / 2.0,
+                },
             };
             let mut cursor = Point(Vector2 { x, y });
             for id in &layout.children {

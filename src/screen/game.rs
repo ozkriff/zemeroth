@@ -1,4 +1,4 @@
-use hate::{self, Time, Sprite, Event, Screen, Context};
+use hate::{self, Context, Event, Screen, Sprite, Time};
 use hate::geom::Point;
 use hate::gui::{self, Gui};
 use hate::scene::action::{self, Action};
@@ -7,7 +7,7 @@ use map;
 use game_view::GameView;
 use ai::Ai;
 use core;
-use core::{Unit, PlayerId, State, Simulator, ObjId, Moves, Attacks, check};
+use core::{check, Attacks, Moves, ObjId, PlayerId, Simulator, State, Unit};
 use core::command;
 use core::movement::{MovePoints, Pathfinder};
 

@@ -1,4 +1,4 @@
-use hate::{self, Time, Sprite, Screen, Context, Event};
+use hate::{self, Context, Event, Screen, Sprite, Time};
 use hate::gui::{self, Gui};
 use hate::geom::Point;
 use screen;

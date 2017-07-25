@@ -2,7 +2,7 @@ use core::State;
 use core::command::{self, Command};
 use core::movement;
 use core::map;
-use core::{Moves, Attacks};
+use core::{Attacks, Moves};
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
     match *command {

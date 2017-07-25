@@ -2,7 +2,7 @@ use std::sync::mpsc;
 use context::Context;
 use time::Time;
 use event::Event;
-use screen::{Screen, Command};
+use screen::{Command, Screen};
 
 pub struct Screens {
     screens: Vec<Box<Screen>>,

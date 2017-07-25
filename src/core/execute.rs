@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
-use core::{State, Unit, PlayerId, Moves, Attacks};
+use core::{Attacks, Moves, PlayerId, State, Unit};
 use core::command;
 use core::command::Command;
 use core::event;

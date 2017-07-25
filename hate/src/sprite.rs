@@ -4,7 +4,7 @@ use std::path::Path;
 use cgmath::{Matrix4, Vector2, Zero};
 use context::Context;
 use mesh::RMesh;
-use geom::{self, Size, Point};
+use geom::{self, Point, Size};
 
 #[derive(Debug, Clone)]
 pub struct Sprite {

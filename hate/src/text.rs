@@ -1,4 +1,4 @@
-use rusttype::{Scale, PositionedGlyph, Font, point};
+use rusttype::{point, Font, PositionedGlyph, Scale};
 use geom::Size;
 
 fn calc_text_width(glyphs: &[PositionedGlyph]) -> f32 {

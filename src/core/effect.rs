@@ -1,4 +1,4 @@
-use core::{State, ObjId};
+use core::{ObjId, State};
 
 // TODO: subturns? EffectTime?
 //

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use core::{State, Unit, ObjId, PlayerId, Moves, Attacks};
+use core::{Attacks, Moves, ObjId, PlayerId, State, Unit};
 use core::effect::{self, Effect};
 use core::map::PosHex;
 

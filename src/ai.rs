@@ -1,6 +1,6 @@
 use core::command::{self, Command};
-use core::{State, PlayerId, ObjId, check};
-use core::movement::{self, Pathfinder, path_cost, truncate_path};
+use core::{check, ObjId, PlayerId, State};
+use core::movement::{self, path_cost, truncate_path, Pathfinder};
 use core::map::{self, PosHex};
 
 #[derive(Debug, Clone)]

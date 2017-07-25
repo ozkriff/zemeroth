@@ -1,11 +1,11 @@
 use cgmath::vec2;
-use hate::{Sprite, Context, Time};
+use hate::{Context, Sprite, Time};
 use hate::scene::Action;
 use hate::scene::action;
 use hate::geom::Point;
 use hate::gui;
-use core::{State, PlayerId, ObjId};
-use core::event::{Event, ActiveEvent};
+use core::{ObjId, PlayerId, State};
+use core::event::{ActiveEvent, Event};
 use core::map::PosHex;
 use core::event;
 use core::effect::Effect;

@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::sync::mpsc::Sender;
 use std::path::{Path, PathBuf};
 use std::time;
-use cgmath::{self, Vector2, Matrix4, SquareMatrix, Zero, InnerSpace};
-use glutin::{self, Api, MouseButton, GlContext};
+use cgmath::{self, InnerSpace, Matrix4, SquareMatrix, Vector2, Zero};
+use glutin::{self, Api, GlContext, MouseButton};
 use glutin::ElementState::{Pressed, Released};
 use rusttype;
-use gfx::traits::{FactoryExt, Device};
+use gfx::traits::{Device, FactoryExt};
 use gfx::handle::Program;
 use gfx;
 use gfx_device_gl;
@@ -16,7 +16,7 @@ use time::Time;
 use event::Event;
 use screen;
 use fs;
-use geom::{Size, Point};
+use geom::{Point, Size};
 use pipeline::pipe;
 use mesh::Mesh;
 use texture::{self, Texture};
@@ -129,8 +129,7 @@ impl Context {
             opengles_version: (2, 0),
             opengl_version: (2, 1),
         };
-        let window_builder = glutin::WindowBuilder::new()
-            .with_title("Zemeroth".to_string());
+        let window_builder = glutin::WindowBuilder::new().with_title("Zemeroth".to_string());
         let context_builder = glutin::ContextBuilder::new()
             .with_gl(gl_version)
             .with_pixel_format(24, 8);
@@ -263,17 +262,25 @@ impl Context {
             glutin::WindowEvent::Closed => {
                 self.should_close = true;
             }
-            glutin::WindowEvent::MouseInput { state: Released, button: MouseButton::Left, ..} => {
-                if self.is_tap() {
-                    self.events.push(Event::Click {
-                        pos: self.mouse.pos,
-                    });
-                }
-            }
-            glutin::WindowEvent::MouseInput { state: Pressed, button: MouseButton::Left, ..} => {
+            glutin::WindowEvent::MouseInput {
+                state: Released,
+                button: MouseButton::Left,
+                ..
+            } => if self.is_tap() {
+                self.events.push(Event::Click {
+                    pos: self.mouse.pos,
+                });
+            },
+            glutin::WindowEvent::MouseInput {
+                state: Pressed,
+                button: MouseButton::Left,
+                ..
+            } => {
                 self.mouse.last_press_pos = self.mouse.pos;
             }
-            glutin::WindowEvent::MouseMoved { position: (x, y), .. } => {
+            glutin::WindowEvent::MouseMoved {
+                position: (x, y), ..
+            } => {
                 self.mouse.pos = window_to_screen(self, x as f32, y as f32);
             }
             glutin::WindowEvent::Touch(touch_event) => {

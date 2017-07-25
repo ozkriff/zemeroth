@@ -1,5 +1,5 @@
 use sprite::Sprite;
-use scene::{Layer, Action};
+use scene::{Action, Layer};
 
 #[derive(Debug)]
 pub struct Hide {
