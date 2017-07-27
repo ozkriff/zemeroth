@@ -11,9 +11,8 @@ use core::{check, Attacks, Moves, ObjId, PlayerId, Simulator, State, Unit};
 use core::command;
 use core::movement::{MovePoints, Pathfinder};
 
-// TODO: rename to `GuiCommand`?
 #[derive(Copy, Clone, Debug)]
-enum Command {
+enum GuiCommand {
     Exit,
     Deselect,
     EndTurn,
@@ -23,7 +22,7 @@ const WALKBALE_TILE_COLOR: [f32; 4] = [0.4, 1.0, 0.4, 0.8];
 
 #[derive(Debug)]
 pub struct Game {
-    gui: Gui<Command>,
+    gui: Gui<GuiCommand>,
     simulator: Simulator,
     state: State,
     view: GameView,
@@ -52,9 +51,9 @@ impl Game {
             let sprite_deselect = gui::text_sprite(context, "deselect", 0.1);
             let sprite_exit = gui::text_sprite(context, "exit", 0.1);
             let sprite_end_turn = gui::text_sprite(context, "end turn", 0.1);
-            let sprite_id_deselect = gui.add_button(context, sprite_deselect, Command::Deselect);
-            let sprite_id_exit = gui.add_button(context, sprite_exit, Command::Exit);
-            let sprite_id_end_turn = gui.add_button(context, sprite_end_turn, Command::EndTurn);
+            let sprite_id_deselect = gui.add_button(context, sprite_deselect, GuiCommand::Deselect);
+            let sprite_id_exit = gui.add_button(context, sprite_exit, GuiCommand::Exit);
+            let sprite_id_end_turn = gui.add_button(context, sprite_end_turn, GuiCommand::EndTurn);
             let anchor = gui::Anchor {
                 vertical: gui::VAnchor::Middle,
                 horizontal: gui::HAnchor::Left,
@@ -116,9 +115,9 @@ impl Game {
     fn handle_commands(&mut self, context: &mut Context) {
         while let Some(command) = self.gui.try_recv() {
             match command {
-                Command::Exit => self.exit(context),
-                Command::Deselect => self.deselect(context),
-                Command::EndTurn => self.end_turn(context),
+                GuiCommand::Exit => self.exit(context),
+                GuiCommand::Deselect => self.deselect(context),
+                GuiCommand::EndTurn => self.end_turn(context),
             }
         }
     }
