@@ -8,6 +8,7 @@ enum Command {
     Exit,
     Start,
     NextMap,
+    GuiTest,
     // Dull,
 }
 
@@ -29,11 +30,13 @@ impl MainMenu {
         {
             let sprite_exit = gui::text_sprite(context, "exit", 0.1);
             let sprite_start = gui::text_sprite(context, "start", 0.1);
+            let sprite_gui_test = gui::text_sprite(context, "gui test", 0.1);
             let label_next_map = format!("map: {}", map_names[selected_map_index]);
             let sprite_next_map = gui::text_sprite(context, &label_next_map, 0.1);
             let button_id_exit = gui.add_button(context, sprite_exit, Command::Exit);
             let button_id_start = gui.add_button(context, sprite_start, Command::Start);
             button_id_next_map = gui.add_button(context, sprite_next_map, Command::NextMap);
+            let button_id_gui_test = gui.add_button(context, sprite_gui_test, Command::GuiTest);
             let anchor = gui::Anchor {
                 vertical: gui::VAnchor::Middle,
                 horizontal: gui::HAnchor::Middle,
@@ -42,7 +45,12 @@ impl MainMenu {
             let _ = gui.add_layout(
                 anchor,
                 direction,
-                vec![button_id_exit, button_id_start, button_id_next_map],
+                vec![
+                    button_id_exit,
+                    button_id_gui_test,
+                    button_id_start,
+                    button_id_next_map,
+                ],
             );
         }
         let mut sprite_imp = Sprite::from_path(context, "imp.png", 2.0);
@@ -54,6 +62,11 @@ impl MainMenu {
             button_id_next_map,
             sprite: sprite_imp,
         }
+    }
+
+    fn open_screen_gui_test(&mut self, context: &mut Context) {
+        let screen = Box::new(screen::GuiTest::new(context));
+        context.add_command(hate::screen::Command::Push(screen));
     }
 
     fn start_new_game(&mut self, context: &mut Context) {
@@ -80,6 +93,7 @@ impl MainMenu {
         self.gui.click(pos);
         while let Some(command) = self.gui.try_recv() {
             match command {
+                Command::GuiTest => self.open_screen_gui_test(context),
                 Command::NextMap => self.select_next_map(context),
                 Command::Start => self.start_new_game(context),
                 Command::Exit => self.exit(context),

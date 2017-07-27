@@ -14,12 +14,6 @@ use core::movement::{MovePoints, Pathfinder};
 // TODO: rename to `GuiCommand`?
 #[derive(Copy, Clone, Debug)]
 enum Command {
-    A,
-    B,
-    C,
-    D,
-    E,
-    F,
     Exit,
     Deselect,
     EndTurn,
@@ -30,7 +24,6 @@ const WALKBALE_TILE_COLOR: [f32; 4] = [0.4, 1.0, 0.4, 0.8];
 #[derive(Debug)]
 pub struct Game {
     gui: Gui<Command>,
-    button_f_id: gui::Id,
     simulator: Simulator,
     state: State,
     view: GameView,
@@ -55,58 +48,10 @@ impl Game {
 
         let mut gui = Gui::new(context);
 
-        let _ /*layout_a_id*/ = {
-            // let sprite_a = gui::text_sprite(context, "A", 0.1);
-            // let sprite_b = gui::text_sprite(context, "B", 0.1);
-            // let sprite_c = gui::text_sprite(context, "C", 0.1);
-            let sprite_a = Sprite::from_path(context, "tile.png", 0.2);
-            let sprite_b = Sprite::from_path(context, "imp.png", 0.2);
-            let sprite_c = Sprite::from_path(context, "swordsman.png", 0.2);
-            let sprite_a_id = gui.add_button(context, sprite_a, Command::A);
-            let sprite_b_id = gui.add_button(context, sprite_b, Command::B);
-            let sprite_c_id = gui.add_button(context, sprite_c, Command::C);
-            let anchor = gui::Anchor {
-                vertical: gui::VAnchor::Top,
-                horizontal: gui::HAnchor::Left,
-            };
-            let direction = gui::Direction::Right;
-            gui.add_layout(anchor, direction, vec![
-                sprite_a_id,
-                sprite_b_id,
-                sprite_c_id,
-            ])
-        };
-
-        let button_f_id;
-        let _ /*layout_b_id*/ = {
-            let sprite_d = gui::text_sprite(context, "D", 0.1);
-            let sprite_e = gui::text_sprite(context, "E", 0.1);
-            let sprite_f = gui::text_sprite(context, "F", 0.1);
-            let sprite_d_id = gui.add_button(context, sprite_d, Command::D);
-            let sprite_e_id = gui.add_button(context, sprite_e, Command::E);
-            let sprite_f_id = gui.add_button(context, sprite_f, Command::F);
-            button_f_id = sprite_f_id;
-            let anchor = gui::Anchor {
-                vertical: gui::VAnchor::Bottom,
-                horizontal: gui::HAnchor::Right,
-            };
-            let direction = gui::Direction::Up;
-            gui.add_layout(anchor, direction, vec![
-                sprite_d_id,
-                sprite_e_id,
-                // layout_a_id, // TODO: nested layouts
-                sprite_f_id,
-            ])
-        };
-
         let _ /*layout_c_id*/ = {
-            let sprite_a = gui::text_sprite(context, "move: A", 0.1);
-            let sprite_b = gui::text_sprite(context, "attack: B", 0.1);
             let sprite_deselect = gui::text_sprite(context, "deselect", 0.1);
             let sprite_exit = gui::text_sprite(context, "exit", 0.1);
             let sprite_end_turn = gui::text_sprite(context, "end turn", 0.1);
-            let sprite_a_id = gui.add_button(context, sprite_a, Command::A);
-            let sprite_b_id = gui.add_button(context, sprite_b, Command::B);
             let sprite_id_deselect = gui.add_button(context, sprite_deselect, Command::Deselect);
             let sprite_id_exit = gui.add_button(context, sprite_exit, Command::Exit);
             let sprite_id_end_turn = gui.add_button(context, sprite_end_turn, Command::EndTurn);
@@ -116,8 +61,6 @@ impl Game {
             };
             let direction = gui::Direction::Up;
             gui.add_layout(anchor, direction, vec![
-                sprite_a_id,
-                sprite_b_id,
                 sprite_id_deselect,
                 sprite_id_exit,
                 sprite_id_end_turn,
@@ -129,7 +72,6 @@ impl Game {
 
         let mut screen = Self {
             gui,
-            button_f_id,
             simulator,
             state,
             view,
@@ -174,17 +116,6 @@ impl Game {
     fn handle_commands(&mut self, context: &mut Context) {
         while let Some(command) = self.gui.try_recv() {
             match command {
-                Command::A => println!("A"),
-                Command::B => println!("B"),
-                Command::C => println!("C"),
-                Command::D => println!("D"),
-                Command::E => println!("E"),
-                Command::F => {
-                    println!("F");
-                    let new_sprite = gui::text_sprite(context, "FF", 0.1);
-                    self.gui
-                        .update_sprite(context, self.button_f_id, new_sprite);
-                }
                 Command::Exit => self.exit(context),
                 Command::Deselect => self.deselect(context),
                 Command::EndTurn => self.end_turn(context),
