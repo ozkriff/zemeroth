@@ -7,13 +7,7 @@ jobs:
       - image: tomaka/cargo-apk
     steps:
       - checkout
-      - restore_cache:
-          key: test-cache-{{ checksum "Cargo.toml" }}
       - run: cargo apk build
-      - save_cache:
-          key: test-cache-{{ checksum "Cargo.toml" }}
-          paths:
-            - target
 
 workflows:
   version: 2
