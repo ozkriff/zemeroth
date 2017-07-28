@@ -20,6 +20,39 @@ enum GuiCommand {
 
 const WALKBALE_TILE_COLOR: [f32; 4] = [0.4, 1.0, 0.4, 0.8];
 
+fn build_gui(context: &mut Context) -> Gui<GuiCommand> {
+    let mut gui = Gui::new(context);
+    let direction = gui::Direction::Up;
+    {
+        let sprite_exit = gui::text_sprite(context, "exit", 0.1);
+        let sprite_id_exit = gui.add_button(context, sprite_exit, GuiCommand::Exit);
+        let anchor = gui::Anchor {
+            vertical: gui::VAnchor::Top,
+            horizontal: gui::HAnchor::Left,
+        };
+        gui.add_layout(anchor, direction, vec![sprite_id_exit]);
+    }
+    {
+        let sprite_deselect = gui::text_sprite(context, "deselect", 0.1);
+        let sprite_id_deselect = gui.add_button(context, sprite_deselect, GuiCommand::Deselect);
+        let anchor = gui::Anchor {
+            vertical: gui::VAnchor::Bottom,
+            horizontal: gui::HAnchor::Left,
+        };
+        gui.add_layout(anchor, direction, vec![sprite_id_deselect]);
+    }
+    {
+        let sprite_end_turn = gui::text_sprite(context, "end turn", 0.15);
+        let sprite_id_end_turn = gui.add_button(context, sprite_end_turn, GuiCommand::EndTurn);
+        let anchor = gui::Anchor {
+            vertical: gui::VAnchor::Bottom,
+            horizontal: gui::HAnchor::Right,
+        };
+        gui.add_layout(anchor, direction, vec![sprite_id_end_turn]);
+    }
+    gui
+}
+
 #[derive(Debug)]
 pub struct Game {
     gui: Gui<GuiCommand>,
@@ -42,35 +75,11 @@ impl Game {
         let ai = Ai::new(PlayerId(1), state.map().radius());
         let mut simulator = Simulator::new();
         core::create_objects(&mut state, &mut simulator);
-
         let view = GameView::new(&state, context);
-
-        let mut gui = Gui::new(context);
-
-        let _ /*layout_c_id*/ = {
-            let sprite_deselect = gui::text_sprite(context, "deselect", 0.1);
-            let sprite_exit = gui::text_sprite(context, "exit", 0.1);
-            let sprite_end_turn = gui::text_sprite(context, "end turn", 0.1);
-            let sprite_id_deselect = gui.add_button(context, sprite_deselect, GuiCommand::Deselect);
-            let sprite_id_exit = gui.add_button(context, sprite_exit, GuiCommand::Exit);
-            let sprite_id_end_turn = gui.add_button(context, sprite_end_turn, GuiCommand::EndTurn);
-            let anchor = gui::Anchor {
-                vertical: gui::VAnchor::Middle,
-                horizontal: gui::HAnchor::Left,
-            };
-            let direction = gui::Direction::Up;
-            gui.add_layout(anchor, direction, vec![
-                sprite_id_deselect,
-                sprite_id_exit,
-                sprite_id_end_turn,
-            ])
-        };
-
         let mut sprite_selection_marker = Sprite::from_path(context, "selection.png", 0.2);
         sprite_selection_marker.set_color([0.0, 0.0, 1.0, 0.8]);
-
         let mut screen = Self {
-            gui,
+            gui: build_gui(context),
             simulator,
             state,
             view,
