@@ -106,6 +106,9 @@ impl Game {
         {
             println!("AI: <");
             let mut actions: Vec<Box<Action>> = Vec::new();
+            // TODO: This sleep is needed to compensate the computational
+            // slowdowns in the debug build. Fix the slowdowns, remove this:
+            actions.push(Box::new(action::Sleep::new(Time(0.5))));
             loop {
                 let command = self.ai.command(&self.state).unwrap();
                 println!("AI: command = {:?}", command);
