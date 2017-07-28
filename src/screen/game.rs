@@ -42,7 +42,7 @@ fn build_gui(context: &mut Context) -> Gui<GuiCommand> {
         gui.add_layout(anchor, direction, vec![sprite_id_deselect]);
     }
     {
-        let sprite_end_turn = gui::text_sprite(context, "end turn", 0.15);
+        let sprite_end_turn = gui::text_sprite(context, "end turn", 0.1);
         let sprite_id_end_turn = gui.add_button(context, sprite_end_turn, GuiCommand::EndTurn);
         let anchor = gui::Anchor {
             vertical: gui::VAnchor::Bottom,
