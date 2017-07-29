@@ -49,6 +49,8 @@ https://github.com/tomaka/android-rs-glue#setting-up-your-environment.
 
 Then run ``./do_android`` script.
 
+.. image:: http://i.imgur.com/T9EgPR1.png
+
 
 License
 -------
