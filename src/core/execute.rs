@@ -38,11 +38,7 @@ impl Simulator {
     }
 
     pub fn tick(&mut self) -> Option<Event> {
-        if self.events.is_empty() {
-            None
-        } else {
-            self.events.pop_front()
-        }
+        self.events.pop_front()
     }
 
     fn execute(&mut self, state: &State, command: &Command) -> Vec<Event> {
