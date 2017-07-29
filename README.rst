@@ -34,8 +34,6 @@ Building
 
 ``cargo build``.
 
-TODO: add note about ``--release``!
-
 
 Running
 -------
