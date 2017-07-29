@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use core::map::{dirs, Dir, HexMap, PosHex};
 use core::{State, TileType, Unit};
 
@@ -75,14 +76,14 @@ pub fn tile_cost(state: &State, _: &Unit, _: PosHex, pos: PosHex) -> MovePoints 
 
 #[derive(Clone, Debug)]
 pub struct Pathfinder {
-    queue: Vec<PosHex>,
+    queue: VecDeque<PosHex>,
     map: HexMap<Tile>,
 }
 
 impl Pathfinder {
     pub fn new(map_radius: i32) -> Pathfinder {
         Pathfinder {
-            queue: Vec::new(),
+            queue: VecDeque::new(),
             map: HexMap::new(map_radius),
         }
     }
@@ -109,7 +110,7 @@ impl Pathfinder {
                 parent_dir: Some(parent_dir),
             };
             self.map.set_tile(neighbor_pos, updated_tile);
-            self.queue.push(neighbor_pos);
+            self.queue.push_back(neighbor_pos);
         }
     }
 
@@ -139,15 +140,14 @@ impl Pathfinder {
     fn push_start_pos_to_queue(&mut self, start_pos: PosHex) {
         let start_tile = Tile::default();
         self.map.set_tile(start_pos, start_tile);
-        self.queue.push(start_pos);
+        self.queue.push_back(start_pos);
     }
 
     pub fn fill_map(&mut self, state: &State, unit: &Unit) {
         assert!(self.queue.is_empty());
         self.clean_map();
         self.push_start_pos_to_queue(unit.pos);
-        while !self.queue.is_empty() {
-            let pos = self.queue.remove(0);
+        while let Some(pos) = self.queue.pop_front() {
             self.try_to_push_neighbors(state, unit, pos);
         }
     }
