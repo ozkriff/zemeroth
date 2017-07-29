@@ -3,6 +3,7 @@ Zemeroth
 ========
 
 |license|_
+|loc|_
 |travis-ci|_
 |appveyor-ci|_
 |circle-ci|_
@@ -65,10 +66,12 @@ See `LICENSE-APACHE`_ and `LICENSE-MIT`_ for details.
 
 
 .. |license| image:: https://img.shields.io/badge/license-MIT_or_Apache_2.0-blue.svg
+.. |loc| image:: https://tokei.rs/b1/github/ozkriff/zemeroth
 .. |travis-ci| image:: https://travis-ci.org/ozkriff/zemeroth.svg?branch=master
 .. |appveyor-ci| image:: https://ci.appveyor.com/api/projects/status/rsxn9wh9xbpey26m/branch/master?svg=true
 .. |circle-ci| image:: https://circleci.com/gh/ozkriff/zemeroth/tree/master.svg?style=svg
 
+.. _loc: https://github.com/Aaronepower/tokei
 .. _travis-ci: https://travis-ci.org/ozkriff/zemeroth
 .. _appveyor-ci: https://ci.appveyor.com/project/ozkriff/zemeroth
 .. _circle-ci: https://circleci.com/gh/ozkriff/zemeroth
