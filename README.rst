@@ -5,6 +5,11 @@ Zemeroth
 |license|_
 
 
+News: https://twitter.com/ozkriff
+
+Devlog album: http://imgur.com/a/SMVqO
+
+
 Overview
 --------
 
