@@ -30,7 +30,6 @@ impl Default for Tile {
     }
 }
 
-#[allow(dead_code)] // TODO
 pub fn truncate_path(state: &State, path: &[PosHex], unit: &Unit) -> Option<Vec<PosHex>> {
     let mut new_path = Vec::new();
     let mut cost = MovePoints(0);
