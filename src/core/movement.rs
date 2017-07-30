@@ -152,13 +152,6 @@ impl Pathfinder {
         }
     }
 
-    // TODO:
-    /*
-    pub fn is_reachable(&self, pos: PosHex) -> bool {
-        self.map.tile(pos).cost != max_cost()
-    }
-    */
-
     pub fn path(&self, destination: PosHex) -> Option<Vec<PosHex>> {
         if self.map.tile(destination).cost == max_cost() {
             return None;
