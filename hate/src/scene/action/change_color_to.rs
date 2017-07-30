@@ -32,6 +32,10 @@ impl Action for ChangeColorTo {
         self.from = self.sprite.color();
     }
 
+    fn end(&mut self) {
+        self.sprite.set_color(self.to);
+    }
+
     fn update(&mut self, mut dtime: Time) {
         if dtime.0 + self.progress.0 > self.duration.0 {
             dtime = Time(self.duration.0 - self.progress.0);
