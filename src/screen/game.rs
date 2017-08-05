@@ -6,8 +6,7 @@ use visualize;
 use map;
 use game_view::GameView;
 use ai::Ai;
-use core;
-use core::{check, Attacks, Moves, ObjId, PlayerId, Simulator, State, Unit};
+use core::{self, check, Attacks, Moves, ObjId, PlayerId, State, Unit};
 use core::command;
 use core::movement::{MovePoints, Pathfinder};
 
@@ -56,7 +55,6 @@ fn build_gui(context: &mut Context) -> Gui<GuiCommand> {
 #[derive(Debug)]
 pub struct Game {
     gui: Gui<GuiCommand>,
-    simulator: Simulator,
     state: State,
     view: GameView,
     selected_unit_id: Option<ObjId>,
@@ -71,28 +69,26 @@ pub struct Game {
 impl Game {
     pub fn new(context: &mut Context) -> Self {
         let mut state = State::new();
-        let pathfinder = Pathfinder::new(state.map().radius());
-        let ai = Ai::new(PlayerId(1), state.map().radius());
-        let mut simulator = Simulator::new();
-        core::create_objects(&mut state, &mut simulator);
-        let view = GameView::new(&state, context);
+        let radius = state.map().radius();
+        let mut view = GameView::new(&state, context);
+        core::create_objects(&mut state, &mut |state: &mut State, event| {
+            let action = visualize::visualize(state, &mut view, context, event);
+            view.add_action(action);
+        });
         let mut sprite_selection_marker = Sprite::from_path(context, "selection.png", 0.2);
         sprite_selection_marker.set_color([0.0, 0.0, 1.0, 0.8]);
-        let mut screen = Self {
+        Self {
             gui: build_gui(context),
-            simulator,
             state,
             view,
             selected_unit_id: None,
-            pathfinder,
+            pathfinder: Pathfinder::new(radius),
             block_timer: None,
             sprite_selection_marker,
             sprites_walkable_tiles: Vec::new(),
             sprites_attackable_tiles: Vec::new(),
-            ai,
-        };
-        screen.process_core_events(context);
-        screen
+            ai: Ai::new(PlayerId(1), radius),
+        }
     }
 
     fn exit(&mut self, context: &mut Context) {
@@ -103,25 +99,30 @@ impl Game {
         self.deselect(context);
         let command = command::Command::EndTurn(command::EndTurn);
         self.do_command(context, command);
-        {
-            println!("AI: <");
-            let mut actions: Vec<Box<Action>> = Vec::new();
-            // TODO: This sleep is needed to compensate the computational
-            // slowdowns in the debug build. Fix the slowdowns, remove this:
-            actions.push(Box::new(action::Sleep::new(Time(0.5))));
-            loop {
-                let command = self.ai.command(&self.state).unwrap();
-                println!("AI: command = {:?}", command);
-                self.simulator.do_command(&self.state, command.clone());
-                actions.extend(self.prepare_actions(context));
-                actions.push(Box::new(action::Sleep::new(Time(0.3))));
-                if let command::Command::EndTurn(_) = command {
-                    break;
-                }
+        self.do_ai(context);
+    }
+
+    fn do_ai(&mut self, context: &mut Context) {
+        println!("AI: <");
+        let mut actions: Vec<Box<Action>> = Vec::new();
+        // TODO: This sleep is needed to compensate the computational
+        // slowdowns in the debug build. Fix the slowdowns, remove this:
+        actions.push(Box::new(action::Sleep::new(Time(0.5))));
+        loop {
+            let command = self.ai.command(&self.state).unwrap();
+            println!("AI: command = {:?}", command);
+            let view = &mut self.view;
+            core::execute(&mut self.state, &command, &mut |state, event| {
+                actions.push(visualize::visualize(state, view, context, event));
+                actions.push(Box::new(action::Sleep::new(Time(0.1))));
+            });
+            actions.push(Box::new(action::Sleep::new(Time(0.3))));
+            if let command::Command::EndTurn(_) = command {
+                break;
             }
-            self.add_actions(actions);
-            println!("AI: >");
         }
+        self.add_actions(actions);
+        println!("AI: >");
     }
 
     fn handle_commands(&mut self, context: &mut Context) {
@@ -136,23 +137,14 @@ impl Game {
 
     fn do_command(&mut self, context: &mut Context, command: command::Command) {
         println!("Game: do_command: {:?}", command);
-        self.simulator.do_command(&self.state, command);
-        self.process_core_events(context);
-    }
-
-    fn process_core_events(&mut self, context: &mut Context) {
-        let actions = self.prepare_actions(context);
-        self.add_actions(actions);
-    }
-
-    fn prepare_actions(&mut self, context: &mut Context) -> Vec<Box<Action>> {
         let mut actions = Vec::new();
-        while let Some(event) = self.simulator.tick() {
-            let action = visualize::visualize(&self.state, &mut self.view, context, &event);
-            actions.push(action);
-            core::event::apply(&mut self.state, &event);
+        {
+            let view = &mut self.view;
+            core::execute(&mut self.state, &command, &mut |state, event| {
+                actions.push(visualize::visualize(state, view, context, event));
+            });
         }
-        actions
+        self.add_actions(actions);
     }
 
     fn add_actions(&mut self, actions: Vec<Box<Action>>) {
@@ -288,8 +280,10 @@ impl Game {
                         target_id: id,
                     });
                     self.do_command(context, command_attack);
-                    let selected_unit = self.state.unit(selected_unit_id);
-                    self.pathfinder.fill_map(&self.state, selected_unit);
+                    if self.state.unit_opt(selected_unit_id).is_some() {
+                        let selected_unit = self.state.unit(selected_unit_id);
+                        self.pathfinder.fill_map(&self.state, selected_unit);
+                    }
                 }
             } else if let Some(id) = self.selected_unit_id {
                 let path = self.pathfinder.path(hex_pos).unwrap();
@@ -321,7 +315,11 @@ impl Game {
             if time <= Time(0.0) {
                 self.block_timer = None;
                 if let Some(id) = self.selected_unit_id {
-                    self.select_unit(context, id);
+                    if self.state.unit_opt(id).is_some() {
+                        self.select_unit(context, id);
+                    } else {
+                        self.deselect(context);
+                    }
                 }
             }
         }

@@ -31,10 +31,17 @@ pub struct MoveTo {
     pub id: ObjId,
 }
 
+#[derive(PartialEq, Clone, Debug)]
+pub enum AttackMode {
+    Active,
+    Reactive,
+}
+
 #[derive(Debug, Clone)]
 pub struct Attack {
     pub attacker_id: ObjId,
     pub target_id: ObjId,
+    pub mode: AttackMode,
 }
 
 #[derive(Debug, Clone)]
@@ -85,8 +92,12 @@ fn apply_event_attack(state: &mut State, event: &Attack) {
     assert!(attacker.attacks >= Attacks(0));
 }
 
-fn apply_event_end_turn(_: &mut State, _: &EndTurn) {
-    // TODO: prepare for reaction attacks here
+fn apply_event_end_turn(state: &mut State, event: &EndTurn) {
+    for unit in state.units.values_mut() {
+        if unit.player_id == event.player_id {
+            unit.attacks.0 += 1; // TODO: get inc value from unit's type
+        }
+    }
 }
 
 fn apply_event_begin_turn(state: &mut State, event: &BeginTurn) {

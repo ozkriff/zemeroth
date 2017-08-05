@@ -22,9 +22,9 @@ pub fn message(view: &mut GameView, context: &mut Context, pos: PosHex, text: &s
     sprite.set_color(invisible);
     let action_show_hide = Box::new(action::Sequence::new(vec![
         Box::new(action::Show::new(&view.layers().text, &sprite)),
-        Box::new(action::ChangeColorTo::new(&sprite, visible, Time(0.5))),
+        Box::new(action::ChangeColorTo::new(&sprite, visible, Time(0.3))),
         Box::new(action::Sleep::new(Time(1.0))),
-        Box::new(action::ChangeColorTo::new(&sprite, invisible, Time(1.5))),
+        Box::new(action::ChangeColorTo::new(&sprite, invisible, Time(1.0))), // TODO: read the time from Config
         Box::new(action::Hide::new(&view.layers().text, &sprite)),
     ]));
     let time = action_show_hide.duration();
@@ -115,7 +115,7 @@ fn visualize_event_move_to(
 fn visualize_event_attack(
     state: &State,
     view: &mut GameView,
-    _: &mut Context,
+    context: &mut Context,
     event: &event::Attack,
 ) -> Box<Action> {
     let sprite = view.id_to_sprite(event.attacker_id).clone();
@@ -124,10 +124,18 @@ fn visualize_event_attack(
     let map_from = state.unit(event.attacker_id).pos;
     let from = map::hex_to_point(view.tile_size(), map_from);
     let diff = Point((to.0 - from.0) / 2.0);
-    Box::new(action::Sequence::new(vec![
-        Box::new(action::MoveBy::new(&sprite, diff, Time(0.15))),
-        Box::new(action::MoveBy::new(&sprite, Point(-diff.0), Time(0.15))),
-    ]))
+    let mut actions: Vec<Box<Action>> = Vec::new();
+    actions.push(Box::new(action::Sleep::new(Time(0.1)))); // TODO: ??
+    if event.mode == event::AttackMode::Reactive {
+        actions.push(Box::new(action::Sleep::new(Time(0.3)))); // TODO: ??
+        actions.push(message(view, context, map_from, "reaction"));
+    }
+    actions.push(Box::new(action::MoveBy::new(&sprite, diff, Time(0.15))));
+    actions.push(Box::new(
+        action::MoveBy::new(&sprite, Point(-diff.0), Time(0.15)),
+    ));
+    actions.push(Box::new(action::Sleep::new(Time(0.1)))); // TODO: ??
+    Box::new(action::Sequence::new(actions))
 }
 
 fn visualize_event_end_turn(
