@@ -167,18 +167,18 @@ where
     F: FnMut(&mut State, &Event),
 {
     for &player_index in &[0, 1] {
-        for i in 0..6 {
+        for i in 0..5 {
             let id = state.alloc_id();
             let active_event = event::ActiveEvent::Create(event::Create {
                 id,
                 unit: Unit {
                     // TODO: really random positions
                     pos: PosHex {
-                        q: match player_index {
+                        q: thread_rng().gen_range(-1, 2) + match player_index {
                             0 => -2,
                             _ => 2,
                         },
-                        r: -3 + i,
+                        r: -2 + i,
                     },
                     player_id: PlayerId(player_index),
 
