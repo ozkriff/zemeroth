@@ -1,13 +1,12 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
 use core::{self, Attacks, Moves, ObjId, PlayerId, State, Strength, Unit};
 use core::command;
 use core::command::Command;
-use core::event;
-use core::event::Event;
+use core::event::{self, ActiveEvent, Event};
 use core::effect::{self, Effect};
-use core::check::check;
+use core::check::{check, check_attack_at};
 use core::movement::MovePoints;
 
 pub fn execute<F>(state: &mut State, command: &Command, cb: &mut F)
@@ -39,30 +38,83 @@ fn execute_move_to<F>(state: &mut State, cb: &mut F, command: &command::MoveTo)
 where
     F: FnMut(&mut State, &Event),
 {
-    let active_event = event::ActiveEvent::MoveTo(event::MoveTo {
-        id: command.id,
-        path: command.path.clone(),
-    });
-    let event = event::Event {
+    let id = command.id;
+    let mut cost = Some(Moves(1));
+    let mut current_path = Vec::new();
+    let mut remainder = VecDeque::from(command.path.clone());
+    while let Some(pos) = remainder.pop_front() {
+        if check_reaction_attacks_at(state, id, pos) {
+            current_path.push(pos);
+            do_move(state, cb, id, cost.take(), current_path.split_off(0));
+            let attack_status = try_execute_reaction_attacks(state, cb, id);
+            if attack_status == AttackStatus::Hit {
+                return;
+            }
+        }
+        current_path.push(pos);
+    }
+    do_move(state, cb, command.id, cost.take(), current_path);
+}
+
+fn do_move<F>(state: &mut State, cb: &mut F, id: ObjId, cost: Option<Moves>, path: Vec<PosHex>)
+where
+    F: FnMut(&mut State, &Event),
+{
+    let cost = cost.unwrap_or(Moves(0));
+    let active_event = ActiveEvent::MoveTo(event::MoveTo { id, path, cost });
+    let event = Event {
         active_event,
         effects: HashMap::new(),
     };
     do_event(state, cb, &event);
 }
 
+// TODO: try to remove code duplication with `try_execute_reaction_attacks`
+fn check_reaction_attacks_at(state: &mut State, target_id: ObjId, pos: PosHex) -> bool {
+    let initial_player_id = state.player_id;
+    let ids: Vec<_> = state.obj_iter().collect();
+    let mut result = false;
+    for obj_id in ids {
+        let unit_player_id = match state.unit_opt(obj_id) {
+            Some(unit) => unit.player_id,
+            None => continue,
+        };
+        if unit_player_id == initial_player_id {
+            continue;
+        }
+        let command_attack = command::Attack {
+            attacker_id: obj_id,
+            target_id,
+        };
+        state.player_id = unit_player_id;
+        if check_attack_at(state, &command_attack, pos).is_ok() {
+            result = true;
+            break;
+        }
+    }
+    state.player_id = initial_player_id;
+    result
+}
+
 fn execute_create<F>(state: &mut State, cb: &mut F, command: &command::Create)
 where
     F: FnMut(&mut State, &Event),
 {
-    let active_event = event::ActiveEvent::Create(event::Create {
+    let active_event = ActiveEvent::Create(event::Create {
         id: command.id,
         unit: command.unit.clone(),
     });
-    let event = event::Event {
+    let event = Event {
         active_event,
         effects: HashMap::new(),
     };
     do_event(state, cb, &event);
+}
+
+#[derive(PartialEq, Clone, Debug)]
+enum AttackStatus {
+    Hit,
+    Miss,
 }
 
 fn execute_attack_internal<F>(
@@ -70,10 +122,11 @@ fn execute_attack_internal<F>(
     cb: &mut F,
     command: &command::Attack,
     mode: event::AttackMode,
-) where
+) -> AttackStatus
+where
     F: FnMut(&mut State, &Event),
 {
-    let active_event = event::ActiveEvent::Attack(event::Attack {
+    let active_event = ActiveEvent::Attack(event::Attack {
         attacker_id: command.attacker_id,
         target_id: command.target_id,
         mode,
@@ -88,18 +141,24 @@ fn execute_attack_internal<F>(
     } else {
         Effect::Miss
     };
+    let status = match effect {
+        Effect::Kill | Effect::Wound(_) => AttackStatus::Hit,
+        Effect::Miss => AttackStatus::Miss,
+    };
     effects.insert(command.target_id, vec![effect.clone()]);
-    let event = event::Event {
+    let event = Event {
         active_event,
         effects,
     };
     do_event(state, cb, &event);
+    status
 }
 
-fn try_execute_reaction_attacks<F>(state: &mut State, cb: &mut F, target_id: ObjId)
+fn try_execute_reaction_attacks<F>(state: &mut State, cb: &mut F, target_id: ObjId) -> AttackStatus
 where
     F: FnMut(&mut State, &Event),
 {
+    let mut status = AttackStatus::Miss;
     let initial_player_id = state.player_id;
     let ids: Vec<_> = state.obj_iter().collect();
     for obj_id in ids {
@@ -119,9 +178,14 @@ where
         if check(state, &command).is_err() {
             continue;
         }
-        execute_attack_internal(state, cb, &command_attack, event::AttackMode::Reactive);
+        let mode = event::AttackMode::Reactive;
+        let this_attack_status = execute_attack_internal(state, cb, &command_attack, mode);
+        if this_attack_status != AttackStatus::Miss {
+            status = this_attack_status;
+        }
     }
     state.player_id = initial_player_id;
+    status
 }
 
 fn execute_attack<F>(state: &mut State, cb: &mut F, command: &command::Attack)
@@ -138,18 +202,18 @@ where
 {
     let player_id_old = state.player_id();
     let player_id_new = next_player_id(state);
-    let event_end_turn = event::ActiveEvent::EndTurn(event::EndTurn {
+    let event_end_turn = ActiveEvent::EndTurn(event::EndTurn {
         player_id: player_id_old,
     });
-    let event_end_turn = event::Event {
+    let event_end_turn = Event {
         active_event: event_end_turn,
         effects: HashMap::new(),
     };
     do_event(state, cb, &event_end_turn);
-    let event_begin_turn = event::ActiveEvent::BeginTurn(event::BeginTurn {
+    let event_begin_turn = ActiveEvent::BeginTurn(event::BeginTurn {
         player_id: player_id_new,
     });
-    let event_begin_turn = event::Event {
+    let event_begin_turn = Event {
         active_event: event_begin_turn,
         effects: HashMap::new(),
     };
@@ -173,7 +237,7 @@ where
     for &player_index in &[0, 1] {
         for i in 0..5 {
             let id = state.alloc_id();
-            let active_event = event::ActiveEvent::Create(event::Create {
+            let active_event = ActiveEvent::Create(event::Create {
                 id,
                 unit: Unit {
                     // TODO: really random positions
@@ -193,7 +257,7 @@ where
                     strength: Strength(3),
                 },
             });
-            let event = event::Event {
+            let event = Event {
                 active_event,
                 effects: HashMap::new(),
             };

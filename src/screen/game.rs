@@ -280,16 +280,17 @@ impl Game {
                         target_id: id,
                     });
                     self.do_command(context, command_attack);
-                    if self.state.unit_opt(selected_unit_id).is_some() {
-                        let selected_unit = self.state.unit(selected_unit_id);
-                        self.pathfinder.fill_map(&self.state, selected_unit);
+                    if let Some(unit) = self.state.unit_opt(selected_unit_id) {
+                        self.pathfinder.fill_map(&self.state, unit);
                     }
                 }
             } else if let Some(id) = self.selected_unit_id {
                 let path = self.pathfinder.path(hex_pos).unwrap();
                 let command_move = command::Command::MoveTo(command::MoveTo { id, path });
                 self.do_command(context, command_move);
-                self.pathfinder.fill_map(&self.state, self.state.unit(id));
+                if let Some(unit) = self.state.unit_opt(id) {
+                    self.pathfinder.fill_map(&self.state, unit);
+                }
             } else {
                 let id = self.state.alloc_id();
                 println!("new id = {:?}", id);

@@ -1,7 +1,7 @@
 use core::State;
 use core::command::{self, Command};
 use core::movement;
-use core::map;
+use core::map::{self, PosHex};
 use core::{Attacks, Moves};
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
@@ -58,6 +58,14 @@ fn check_create(state: &State, command: &command::Create) -> Result<(), Error> {
 }
 
 fn check_attack(state: &State, command: &command::Attack) -> Result<(), Error> {
+    let target = match state.unit_opt(command.target_id) {
+        Some(unit) => unit,
+        None => return Err(Error::BadTargetId),
+    };
+    check_attack_at(state, command, target.pos)
+}
+
+pub fn check_attack_at(state: &State, command: &command::Attack, at: PosHex) -> Result<(), Error> {
     let attacker = match state.unit_opt(command.attacker_id) {
         Some(unit) => unit,
         None => return Err(Error::BadActorId),
@@ -65,14 +73,13 @@ fn check_attack(state: &State, command: &command::Attack) -> Result<(), Error> {
     if attacker.player_id != state.player_id() {
         return Err(Error::CanNotCommandEnemyUnits);
     }
-    let target = match state.unit_opt(command.target_id) {
-        Some(unit) => unit,
-        None => return Err(Error::BadTargetId),
+    if state.unit_opt(command.target_id).is_none() {
+        return Err(Error::BadTargetId);
     };
     if attacker.attacks == Attacks(0) {
         return Err(Error::NotEnoughAttacks);
     }
-    let dist = map::distance_hex(attacker.pos, target.pos);
+    let dist = map::distance_hex(attacker.pos, at);
     let max_dist = 1;
     if dist > max_dist {
         return Err(Error::DistanceIsTooBig);

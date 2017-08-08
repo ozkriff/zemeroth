@@ -24,7 +24,8 @@ pub fn message(view: &mut GameView, context: &mut Context, pos: PosHex, text: &s
         Box::new(action::Show::new(&view.layers().text, &sprite)),
         Box::new(action::ChangeColorTo::new(&sprite, visible, Time(0.3))),
         Box::new(action::Sleep::new(Time(1.0))),
-        Box::new(action::ChangeColorTo::new(&sprite, invisible, Time(1.0))), // TODO: read the time from Config
+        // TODO: read the time from Config:
+        Box::new(action::ChangeColorTo::new(&sprite, invisible, Time(1.0))),
         Box::new(action::Hide::new(&view.layers().text, &sprite)),
     ]));
     let time = action_show_hide.duration();
