@@ -302,6 +302,7 @@ impl Game {
                         move_points: MovePoints(3),
                         attacks: Attacks(2),
                         moves: Moves(2),
+                        strength: core::Strength(3),
                     },
                 });
                 self.do_command(context, command_create);

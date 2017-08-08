@@ -8,7 +8,7 @@ use core::{ObjId, PlayerId, State};
 use core::event::{ActiveEvent, Event};
 use core::map::PosHex;
 use core::event;
-use core::effect::Effect;
+use core::effect::{self, Effect};
 use game_view::GameView;
 use map;
 
@@ -181,6 +181,9 @@ pub fn visualize_effect(
 ) -> Box<Action> {
     match *effect {
         Effect::Kill => visualize_effect_kill(state, view, context, target_id),
+        Effect::Wound(ref effect) => {
+            visualize_effect_wound(state, view, context, target_id, effect)
+        }
         Effect::Miss => visualize_effect_miss(state, view, context, target_id),
     }
 }
@@ -194,12 +197,33 @@ fn visualize_effect_kill(
     let pos = state.unit(target_id).pos;
     let sprite = view.id_to_sprite(target_id).clone();
     view.remove_object(target_id);
-    let color = [1.0, 1.0, 1.0, 0.0];
+    let dark = [0.1, 0.1, 0.1, 1.0];
+    let invisible = [0.1, 0.1, 0.1, 0.0];
     Box::new(action::Sequence::new(vec![
         message(view, context, pos, "killed"),
         Box::new(action::Sleep::new(Time(0.25))),
-        Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.1))),
+        Box::new(action::ChangeColorTo::new(&sprite, dark, Time(0.2))),
+        Box::new(action::ChangeColorTo::new(&sprite, invisible, Time(0.2))),
         Box::new(action::Hide::new(&view.layers().fg, &sprite)),
+    ]))
+}
+
+fn visualize_effect_wound(
+    state: &State,
+    view: &mut GameView,
+    context: &mut Context,
+    target_id: ObjId,
+    effect: &effect::Wound,
+) -> Box<Action> {
+    let pos = state.unit(target_id).pos;
+    let damage = effect.0;
+    let sprite = view.id_to_sprite(target_id).clone();
+    let color_normal = sprite.color();
+    let color_dark = [0.1, 0.1, 0.1, 1.0];
+    Box::new(action::Sequence::new(vec![
+        message(view, context, pos, &format!("wounded - {}", damage.0)),
+        Box::new(action::ChangeColorTo::new(&sprite, color_dark, Time(0.2))),
+        Box::new(action::ChangeColorTo::new(&sprite, color_normal, Time(0.2))),
     ]))
 }
 

@@ -21,6 +21,9 @@ pub struct PlayerId(pub i32); // TODO: make field private
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ObjId(i32);
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Strength(pub i32);
+
 #[derive(Clone, Debug)]
 pub struct Unit {
     pub pos: PosHex,
@@ -29,6 +32,7 @@ pub struct Unit {
     pub attacks: Attacks,
     // TODO: pub jokers: Jokers, /// Can be used as Attack or Move
     pub move_points: MovePoints,
+    pub strength: Strength,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]

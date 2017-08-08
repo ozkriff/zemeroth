@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
-use core::{Attacks, Moves, ObjId, PlayerId, State, Unit};
+use core::{self, Attacks, Moves, ObjId, PlayerId, State, Strength, Unit};
 use core::command;
 use core::command::Command;
 use core::event;
 use core::event::Event;
-use core::effect::Effect;
+use core::effect::{self, Effect};
 use core::check::check;
 use core::movement::MovePoints;
 
@@ -80,7 +80,11 @@ fn execute_attack_internal<F>(
     });
     let mut effects = HashMap::new();
     let effect = if thread_rng().gen_range(0, 6) < 3 {
-        Effect::Kill
+        if state.unit(command.target_id).strength.0 > 1 {
+            Effect::Wound(effect::Wound(core::Strength(1)))
+        } else {
+            Effect::Kill
+        }
     } else {
         Effect::Miss
     };
@@ -186,6 +190,7 @@ where
                     move_points: MovePoints(3),
                     attacks: Attacks(2),
                     moves: Moves(2),
+                    strength: Strength(3),
                 },
             });
             let event = event::Event {
