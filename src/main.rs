@@ -1,6 +1,6 @@
 extern crate hate;
 extern crate cgmath;
-extern crate toml;
+extern crate ron;
 extern crate rand;
 
 mod screen;
@@ -12,7 +12,7 @@ mod ai;
 
 pub fn main() {
     enable_backtrace();
-    let settings = toml::from_slice(&hate::fs::load("settings.toml")).unwrap();
+    let settings = ron::de::from_str(&hate::fs::load_as_string("settings.ron")).unwrap();
     let mut visualizer = hate::Visualizer::new(settings);
     let start_screen = Box::new(screen::MainMenu::new(visualizer.context_mut()));
     visualizer.run(start_screen);
