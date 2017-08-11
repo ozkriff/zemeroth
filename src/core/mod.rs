@@ -3,7 +3,7 @@ use std::collections::{hash_map, HashMap};
 use core::map::{HexMap, PosHex};
 use core::movement::MovePoints;
 
-pub use core::execute::{create_objects, execute};
+pub use core::execute::{create_objects, execute, make_unit};
 pub use core::check::check;
 
 pub mod command;

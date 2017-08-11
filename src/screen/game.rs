@@ -6,9 +6,9 @@ use visualize;
 use map;
 use game_view::GameView;
 use ai::Ai;
-use core::{self, check, Attacks, Moves, ObjId, PlayerId, State, Unit};
+use core::{self, check, Moves, ObjId, PlayerId, State};
 use core::command;
-use core::movement::{MovePoints, Pathfinder};
+use core::movement::Pathfinder;
 
 #[derive(Copy, Clone, Debug)]
 enum GuiCommand {
@@ -259,14 +259,14 @@ impl Game {
         self.show_attackable_tiles(context, id);
     }
 
-    fn handle_event_click(&mut self, context: &mut Context, pos: Point) {
-        let hex_pos = map::point_to_hex(self.view.tile_size(), pos);
-        self.gui.click(pos);
+    fn handle_event_click(&mut self, context: &mut Context, point: Point) {
+        let pos = map::point_to_hex(self.view.tile_size(), point);
+        self.gui.click(point);
         if self.block_timer.is_some() {
             return;
         }
-        if self.state.map().is_inboard(hex_pos) {
-            let object_ids = self.state.object_ids_at(hex_pos);
+        if self.state.map().is_inboard(pos) {
+            let object_ids = self.state.object_ids_at(pos);
             println!("object_ids: {:?}", object_ids);
             if !object_ids.is_empty() {
                 assert_eq!(object_ids.len(), 1);
@@ -285,7 +285,7 @@ impl Game {
                     }
                 }
             } else if let Some(id) = self.selected_unit_id {
-                let path = self.pathfinder.path(hex_pos).unwrap();
+                let path = self.pathfinder.path(pos).unwrap();
                 let command_move = command::Command::MoveTo(command::MoveTo { id, path });
                 self.do_command(context, command_move);
                 if let Some(unit) = self.state.unit_opt(id) {
@@ -294,19 +294,9 @@ impl Game {
             } else {
                 let id = self.state.alloc_id();
                 println!("new id = {:?}", id);
-                let command_create = command::Command::Create(command::Create {
-                    id,
-                    unit: Unit {
-                        pos: hex_pos,
-                        player_id: PlayerId(0),
-                        // TODO: remove code duplication
-                        move_points: MovePoints(3),
-                        attacks: Attacks(2),
-                        moves: Moves(2),
-                        strength: core::Strength(3),
-                    },
-                });
-                self.do_command(context, command_create);
+                let unit = core::make_unit(self.state.player_id(), pos);
+                let command = command::Command::Create(command::Create { id, unit });
+                self.do_command(context, command);
             }
         }
     }

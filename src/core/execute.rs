@@ -229,6 +229,17 @@ fn next_player_id(state: &State) -> PlayerId {
     }
 }
 
+pub fn make_unit(player_id: PlayerId, pos: PosHex) -> Unit {
+    Unit {
+        pos,
+        player_id,
+        move_points: MovePoints(3),
+        attacks: Attacks(2),
+        moves: Moves(2),
+        strength: Strength(3),
+    }
+}
+
 // TODO: improve the API
 pub fn create_objects<F>(state: &mut State, cb: &mut F)
 where
@@ -237,26 +248,15 @@ where
     for &player_index in &[0, 1] {
         for i in 0..5 {
             let id = state.alloc_id();
-            let active_event = ActiveEvent::Create(event::Create {
-                id,
-                unit: Unit {
-                    // TODO: really random positions
-                    pos: PosHex {
-                        q: thread_rng().gen_range(-1, 2) + match player_index {
-                            0 => -2,
-                            _ => 2,
-                        },
-                        r: -2 + i,
-                    },
-                    player_id: PlayerId(player_index),
-
-                    // TODO: remove code duplication:
-                    move_points: MovePoints(3),
-                    attacks: Attacks(2),
-                    moves: Moves(2),
-                    strength: Strength(3),
+            let pos = PosHex {
+                q: thread_rng().gen_range(-1, 2) + match player_index {
+                    0 => -2,
+                    _ => 2,
                 },
-            });
+                r: -2 + i,
+            };
+            let unit = make_unit(PlayerId(player_index), pos);
+            let active_event = ActiveEvent::Create(event::Create { id, unit });
             let event = Event {
                 active_event,
                 effects: HashMap::new(),
