@@ -38,7 +38,7 @@ fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> 
         return Err(Error::NotEnoughMoves);
     }
     let cost = movement::path_cost(state, unit, &command.path);
-    if cost > unit.move_points {
+    if cost > unit.unit_type.move_points {
         return Err(Error::NotEnoughMovePoints);
     }
     Ok(())
@@ -80,7 +80,7 @@ pub fn check_attack_at(state: &State, command: &command::Attack, at: PosHex) -> 
         return Err(Error::NotEnoughAttacks);
     }
     let dist = map::distance_hex(attacker.pos, at);
-    let max_dist = 1;
+    let max_dist = attacker.unit_type.attack_distance;
     if dist > max_dist {
         return Err(Error::DistanceIsTooBig);
     }

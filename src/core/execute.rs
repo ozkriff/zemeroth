@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
-use core::{self, Attacks, Moves, ObjId, PlayerId, State, Strength, Unit};
+use core::{self, Attacks, Moves, ObjId, PlayerId, State, Strength, Unit, UnitType};
 use core::command;
 use core::command::Command;
 use core::event::{self, ActiveEvent, Event};
@@ -229,14 +229,35 @@ fn next_player_id(state: &State) -> PlayerId {
     }
 }
 
-pub fn make_unit(player_id: PlayerId, pos: PosHex) -> Unit {
+pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
+    let unit_type = match type_name {
+        "swordsman" => {
+            UnitType {
+                name: type_name.into(),
+                moves: Moves(1),
+                attacks: Attacks(2),
+                reactive_attacks: Attacks(1),
+                attack_distance: 1, // TODO: Distance(1)
+                move_points: MovePoints(3),
+            }
+        }
+        "imp" => UnitType {
+            name: type_name.into(),
+            moves: Moves(2),
+            attacks: Attacks(2),
+            reactive_attacks: Attacks(1),
+            attack_distance: 1,
+            move_points: MovePoints(3),
+        },
+        _ => unimplemented!(),
+    };
     Unit {
         pos,
         player_id,
-        move_points: MovePoints(3),
-        attacks: Attacks(2),
-        moves: Moves(2),
+        attacks: unit_type.attacks,
+        moves: unit_type.moves,
         strength: Strength(3),
+        unit_type,
     }
 }
 
@@ -245,23 +266,32 @@ pub fn create_objects<F>(state: &mut State, cb: &mut F)
 where
     F: FnMut(&mut State, &Event),
 {
-    for &player_index in &[0, 1] {
-        for i in 0..5 {
-            let id = state.alloc_id();
-            let pos = PosHex {
-                q: thread_rng().gen_range(-1, 2) + match player_index {
-                    0 => -2,
-                    _ => 2,
-                },
-                r: -2 + i,
-            };
-            let unit = make_unit(PlayerId(player_index), pos);
-            let active_event = ActiveEvent::Create(event::Create { id, unit });
-            let event = Event {
-                active_event,
-                effects: HashMap::new(),
-            };
-            do_event(state, cb, &event);
-        }
+    for &(player_index, (q, r), typename) in &[
+        // player 0
+        (0, (-2, 2), "swordsman"),
+        (0, (-2, 1), "swordsman"),
+        (0, (-2, 0), "swordsman"),
+        (0, (-2, -1), "swordsman"),
+        (0, (-2, -2), "swordsman"),
+        // player 1
+        (1, (2, -2), "imp"),
+        (1, (2, -1), "imp"),
+        (1, (2, 0), "imp"),
+        (1, (2, 1), "imp"),
+        (1, (2, 2), "imp"),
+    ] {
+        let pos = PosHex {
+            q: q + thread_rng().gen_range(-1, 2),
+            r,
+        };
+        let player_id = PlayerId(player_index);
+        let unit = make_unit(player_id, pos, typename);
+        let id = state.alloc_id();
+        let active_event = ActiveEvent::Create(event::Create { id, unit });
+        let event = Event {
+            active_event,
+            effects: HashMap::new(),
+        };
+        do_event(state, cb, &event);
     }
 }

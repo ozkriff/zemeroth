@@ -34,7 +34,7 @@ pub fn truncate_path(state: &State, path: &[PosHex], unit: &Unit) -> Option<Vec<
     let mut new_path = Vec::new();
     let mut cost = MovePoints(0);
     new_path.push(path[0]);
-    let move_points = unit.move_points;
+    let move_points = unit.unit_type.move_points;
     for window in path.windows(2) {
         let from = window[0];
         let to = window[1];

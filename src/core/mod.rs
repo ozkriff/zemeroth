@@ -25,14 +25,25 @@ pub struct ObjId(i32);
 pub struct Strength(pub i32);
 
 #[derive(Clone, Debug)]
+pub struct UnitType {
+    pub name: String,
+    pub attack_distance: i32, // TODO: i32 -> Distance?
+    pub move_points: MovePoints,
+    pub moves: Moves,
+    pub attacks: Attacks,
+    // pub jokers: Jokers, // TODO
+    pub reactive_attacks: Attacks,
+}
+
+#[derive(Clone, Debug)]
 pub struct Unit {
     pub pos: PosHex,
     pub player_id: PlayerId,
     pub moves: Moves,
     pub attacks: Attacks,
     // TODO: pub jokers: Jokers, /// Can be used as Attack or Move
-    pub move_points: MovePoints,
     pub strength: Strength,
+    pub unit_type: UnitType,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]

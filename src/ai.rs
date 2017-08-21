@@ -82,7 +82,7 @@ impl Ai {
                     None => continue,
                 };
                 let cost = path_cost(state, unit, &path);
-                if unit.move_points < cost {
+                if unit.unit_type.move_points < cost {
                     continue;
                 }
                 let command = command::Command::MoveTo(command::MoveTo { id: unit_id, path });

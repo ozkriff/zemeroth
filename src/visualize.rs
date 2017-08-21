@@ -75,9 +75,9 @@ fn visualize_event_create(
     event: &event::Create,
 ) -> Box<Action> {
     let point = map::hex_to_point(view.tile_size(), event.unit.pos);
-    let sprite_name = match event.unit.player_id {
-        PlayerId(0) => "swordsman.png",
-        PlayerId(1) => "imp.png",
+    let sprite_name = match event.unit.unit_type.name.as_str() {
+        "swordsman" => "swordsman.png",
+        "imp" => "imp.png",
         _ => unimplemented!(),
     };
     let mut sprite = Sprite::from_path(context, sprite_name, 0.2);

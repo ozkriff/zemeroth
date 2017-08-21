@@ -198,7 +198,7 @@ impl Game {
         let map = self.pathfinder.map();
         for pos in map.iter() {
             let tile = map.tile(pos);
-            if tile.cost() <= unit.move_points {
+            if tile.cost() <= unit.unit_type.move_points {
                 let mut sprite = Sprite::from_path(context, "tile.png", 0.2);
                 self.sprites_walkable_tiles.push(sprite.clone());
                 let mut color_from = WALKBALE_TILE_COLOR;
@@ -294,7 +294,8 @@ impl Game {
             } else {
                 let id = self.state.alloc_id();
                 println!("new id = {:?}", id);
-                let unit = core::make_unit(self.state.player_id(), pos);
+                let player_id = self.state.player_id();
+                let unit = core::make_unit(player_id, pos, "swordsman");
                 let command = command::Command::Create(command::Create { id, unit });
                 self.do_command(context, command);
             }

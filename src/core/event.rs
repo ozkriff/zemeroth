@@ -105,9 +105,9 @@ fn apply_event_begin_turn(state: &mut State, event: &BeginTurn) {
     state.player_id = event.player_id;
     for unit in state.units.values_mut() {
         if unit.player_id == event.player_id {
-            // TODO: get values from unit's type
-            unit.moves = Moves(2);
-            unit.attacks = Attacks(2);
+            // TODO: get values from the real unit's type
+            unit.moves = unit.unit_type.moves;
+            unit.attacks = unit.unit_type.attacks;
         }
     }
 }
