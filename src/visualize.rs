@@ -77,6 +77,7 @@ fn visualize_event_create(
     let point = map::hex_to_point(view.tile_size(), event.unit.pos);
     let sprite_name = match event.unit.unit_type.name.as_str() {
         "swordsman" => "swordsman.png",
+        "spearman" => "spearman.png",
         "imp" => "imp.png",
         _ => unimplemented!(),
     };
