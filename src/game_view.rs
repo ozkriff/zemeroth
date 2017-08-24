@@ -11,6 +11,7 @@ use core::{ObjId, State, TileType};
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
     pub bg: Layer,
+    pub blood: Layer,
     pub grass: Layer,
     pub walkable_tiles: Layer,
     pub attackable_tiles: Layer,
@@ -23,6 +24,7 @@ impl Layers {
     fn sorted(self) -> Vec<Layer> {
         vec![
             self.bg,
+            self.blood,
             self.grass,
             self.walkable_tiles,
             self.attackable_tiles,
