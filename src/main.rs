@@ -1,7 +1,7 @@
-extern crate hate;
 extern crate cgmath;
-extern crate ron;
+extern crate hate;
 extern crate rand;
+extern crate ron;
 
 mod screen;
 mod map;
