@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use core::{Attacks, Moves, ObjId, PlayerId, State, Unit};
 use core::effect::{self, Effect};
-use core::map::PosHex;
+use core::movement::Path;
 
 #[derive(Clone, Debug)]
 pub struct Event {
@@ -27,7 +27,7 @@ pub struct Create {
 
 #[derive(Debug, Clone)]
 pub struct MoveTo {
-    pub path: Vec<PosHex>,
+    pub path: Path,
     pub cost: Moves,
     pub id: ObjId,
 }
@@ -82,7 +82,7 @@ fn apply_event_create(state: &mut State, event: &Create) {
 
 fn apply_event_move_to(state: &mut State, event: &MoveTo) {
     let unit = state.units.get_mut(&event.id).unwrap();
-    unit.pos = *event.path.last().unwrap();
+    unit.pos = *event.path.tiles().last().unwrap();
     unit.moves.0 -= event.cost.0;
     assert!(unit.moves >= Moves(0));
 }

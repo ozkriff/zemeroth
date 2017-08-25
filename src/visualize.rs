@@ -103,11 +103,9 @@ fn visualize_event_move_to(
 ) -> Box<Action> {
     let sprite = view.id_to_sprite(event.id).clone();
     let mut actions: Vec<Box<Action>> = Vec::new();
-    // TODO: add Path struct with `iter` method returning
-    // special `Edge{from, to}` iterator
-    for window in event.path.windows(2) {
-        let from = map::hex_to_point(view.tile_size(), window[0]);
-        let to = map::hex_to_point(view.tile_size(), window[1]);
+    for step in event.path.steps() {
+        let from = map::hex_to_point(view.tile_size(), step.from);
+        let to = map::hex_to_point(view.tile_size(), step.to);
         let diff = Point(to.0 - from.0);
         actions.push(Box::new(action::MoveBy::new(&sprite, diff, Time(0.3))));
     }

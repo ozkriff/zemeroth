@@ -1,5 +1,5 @@
 use core::{ObjId, Unit};
-use core::map::PosHex;
+use core::movement::Path;
 
 #[derive(Debug, Clone)]
 pub enum Command {
@@ -25,7 +25,7 @@ pub struct Attack {
 #[derive(Debug, Clone)]
 pub struct MoveTo {
     pub id: ObjId,
-    pub path: Vec<PosHex>,
+    pub path: Path,
 }
 
 #[derive(Debug, Clone)]

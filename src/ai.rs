@@ -1,7 +1,7 @@
 use core::command::{self, Command};
 use core::{check, ObjId, PlayerId, State};
-use core::movement::{self, path_cost, truncate_path, Pathfinder};
-use core::map::{self, PosHex};
+use core::movement::{self, Path, Pathfinder};
+use core::map;
 
 #[derive(Debug, Clone)]
 pub struct Ai {
@@ -18,7 +18,7 @@ impl Ai {
         }
     }
 
-    fn get_best_path(&mut self, state: &State, unit_id: ObjId) -> Option<Vec<PosHex>> {
+    fn get_best_path(&mut self, state: &State, unit_id: ObjId) -> Option<Path> {
         let unit = state.unit(unit_id);
         self.pathfinder.fill_map(state, unit);
         let mut best_path = None;
@@ -37,7 +37,7 @@ impl Ai {
                     Some(path) => path,
                     None => continue,
                 };
-                let cost = path_cost(state, state.unit(unit_id), &path);
+                let cost = path.cost_for(state, state.unit(unit_id));
                 if best_cost > cost {
                     best_cost = cost;
                     best_path = Some(path);
@@ -77,11 +77,11 @@ impl Ai {
                     None => continue,
                 };
                 let unit = state.unit(unit_id);
-                let path = match truncate_path(state, &path, unit) {
+                let path = match path.truncate(state, unit) {
                     Some(path) => path,
                     None => continue,
                 };
-                let cost = path_cost(state, unit, &path);
+                let cost = path.cost_for(state, unit);
                 if unit.unit_type.move_points < cost {
                     continue;
                 }

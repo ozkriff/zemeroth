@@ -1,4 +1,5 @@
 use std::collections::{HashMap, VecDeque};
+use std::iter::FromIterator;
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
 use core::{self, Attacks, Moves, ObjId, PlayerId, State, Strength, Unit, UnitType};
@@ -7,7 +8,7 @@ use core::command::Command;
 use core::event::{self, ActiveEvent, Event};
 use core::effect::{self, Effect};
 use core::check::{check, check_attack_at};
-use core::movement::MovePoints;
+use core::movement::{MovePoints, Path};
 
 pub fn execute<F>(state: &mut State, command: &Command, cb: &mut F)
 where
@@ -41,11 +42,17 @@ where
     let id = command.id;
     let mut cost = Some(Moves(1));
     let mut current_path = Vec::new();
-    let mut remainder = VecDeque::from(command.path.clone());
+    let mut remainder = VecDeque::from_iter(command.path.tiles().iter().cloned());
     while let Some(pos) = remainder.pop_front() {
         if check_reaction_attacks_at(state, id, pos) {
             current_path.push(pos);
-            do_move(state, cb, id, cost.take(), current_path.split_off(0));
+            do_move(
+                state,
+                cb,
+                id,
+                cost.take(),
+                Path::new(current_path.split_off(0)),
+            );
             let attack_status = try_execute_reaction_attacks(state, cb, id);
             if attack_status == AttackStatus::Hit {
                 return;
@@ -53,10 +60,10 @@ where
         }
         current_path.push(pos);
     }
-    do_move(state, cb, command.id, cost.take(), current_path);
+    do_move(state, cb, command.id, cost.take(), Path::new(current_path));
 }
 
-fn do_move<F>(state: &mut State, cb: &mut F, id: ObjId, cost: Option<Moves>, path: Vec<PosHex>)
+fn do_move<F>(state: &mut State, cb: &mut F, id: ObjId, cost: Option<Moves>, path: Path)
 where
     F: FnMut(&mut State, &Event),
 {

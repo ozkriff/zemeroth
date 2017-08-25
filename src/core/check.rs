@@ -1,6 +1,5 @@
 use core::State;
 use core::command::{self, Command};
-use core::movement;
 use core::map::{self, PosHex};
 use core::{Attacks, Moves};
 
@@ -37,7 +36,7 @@ fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> 
     if unit.moves == Moves(0) {
         return Err(Error::NotEnoughMoves);
     }
-    let cost = movement::path_cost(state, unit, &command.path);
+    let cost = command.path.cost_for(state, unit);
     if cost > unit.unit_type.move_points {
         return Err(Error::NotEnoughMovePoints);
     }
