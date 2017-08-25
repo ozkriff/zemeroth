@@ -7,22 +7,6 @@ use context::Context;
 use settings::Settings;
 use screen_stack::Screens;
 
-#[cfg(not(target_os = "android"))]
-fn check_assets_dir() {
-    use std::fs;
-    use std::process;
-
-    // TODO: check assets version
-    if let Err(e) = fs::metadata("assets") {
-        println!("Can`t find 'assets' dir: {}", e);
-        println!("Note: see 'Assets' section of README.rst");
-        process::exit(1);
-    }
-}
-
-#[cfg(target_os = "android")]
-fn check_assets_dir() {}
-
 fn max_frame_time(context: &Context) -> Time {
     Time(1.0 / context.settings().max_fps)
 }
@@ -35,7 +19,6 @@ pub struct Visualizer {
 
 impl Visualizer {
     pub fn new(settings: Settings) -> Self {
-        check_assets_dir();
         let (tx, rx) = mpsc::channel();
         let context = Context::new(tx, settings);
         let screens = Screens::new(rx);
