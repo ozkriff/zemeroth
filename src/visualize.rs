@@ -37,6 +37,19 @@ pub fn message(view: &mut GameView, context: &mut Context, pos: PosHex, text: &s
     ]))))
 }
 
+pub fn show_blood_spot(view: &mut GameView, context: &mut Context, at: PosHex) -> Box<Action> {
+    let mut blood = Sprite::from_path(context, "blood.png", view.tile_size() * 2.0);
+    blood.set_color([1.0, 1.0, 1.0, 0.0]);
+    let mut point = map::hex_to_point(view.tile_size(), at);
+    point.0.y -= view.tile_size() * 0.5;
+    blood.set_pos(point);
+    let color_final = [1.0, 1.0, 1.0, 0.3];
+    Box::new(action::Sequence::new(vec![
+        Box::new(action::Show::new(&view.layers().blood, &blood)),
+        Box::new(action::ChangeColorTo::new(&blood, color_final, Time(0.3))),
+    ]))
+}
+
 pub fn visualize(
     state: &State,
     view: &mut GameView,
@@ -199,15 +212,10 @@ fn visualize_effect_kill(
     view.remove_object(target_id);
     let dark = [0.1, 0.1, 0.1, 1.0];
     let invisible = [0.1, 0.1, 0.1, 0.0];
-    let mut blood = Sprite::from_path(context, "blood.png", view.tile_size() * 2.0);
-    blood.set_color([1.0, 1.0, 1.0, 0.0]);
-    blood.set_pos(sprite.pos());
-    let blood_color = [1.0, 1.0, 1.0, 0.6];
     Box::new(action::Sequence::new(vec![
         message(view, context, pos, "killed"),
         Box::new(action::Sleep::new(Time(0.25))),
-        Box::new(action::Show::new(&view.layers().blood, &blood)),
-        Box::new(action::ChangeColorTo::new(&blood, blood_color, Time(0.3))),
+        show_blood_spot(view, context, pos),
         Box::new(action::ChangeColorTo::new(&sprite, dark, Time(0.2))),
         Box::new(action::ChangeColorTo::new(&sprite, invisible, Time(0.2))),
         Box::new(action::Hide::new(&view.layers().fg, &sprite)),
@@ -230,6 +238,7 @@ fn visualize_effect_wound(
         message(view, context, pos, &format!("wounded - {}", damage.0)),
         Box::new(action::ChangeColorTo::new(&sprite, color_dark, Time(0.2))),
         Box::new(action::ChangeColorTo::new(&sprite, color_normal, Time(0.2))),
+        show_blood_spot(view, context, pos),
     ]))
 }
 
