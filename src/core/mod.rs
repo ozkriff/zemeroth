@@ -33,6 +33,7 @@ pub struct UnitType {
     pub attacks: Attacks,
     pub jokers: Jokers,
     pub reactive_attacks: Attacks,
+    pub strength: Strength,
 }
 
 #[derive(Clone, Debug)]

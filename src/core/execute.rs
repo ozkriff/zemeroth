@@ -246,6 +246,7 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
             reactive_attacks: Attacks(1),
             attack_distance: 1, // TODO: Distance(1)
             move_points: MovePoints(3),
+            strength: Strength(4),
         },
         "spearman" => UnitType {
             name: type_name.into(),
@@ -255,15 +256,17 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
             reactive_attacks: Attacks(2),
             attack_distance: 2,
             move_points: MovePoints(3),
+            strength: Strength(4),
         },
         "imp" => UnitType {
             name: type_name.into(),
             moves: Moves(1),
             attacks: Attacks(1),
             jokers: Jokers(1),
-            reactive_attacks: Attacks(1),
+            reactive_attacks: Attacks(0),
             attack_distance: 1,
             move_points: MovePoints(3),
+            strength: Strength(2),
         },
         _ => unimplemented!(),
     };
@@ -273,7 +276,7 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
         attacks: unit_type.attacks,
         moves: unit_type.moves,
         jokers: unit_type.jokers,
-        strength: Strength(3),
+        strength: unit_type.strength,
         unit_type,
     }
 }
@@ -285,17 +288,18 @@ where
 {
     for &(player_index, (q, r), typename) in &[
         // player 0
-        (0, (-2, 2), "swordsman"),
-        (0, (-2, 1), "swordsman"),
-        (0, (-2, 0), "spearman"),
-        (0, (-2, -1), "spearman"),
-        (0, (-2, -2), "spearman"),
+        (0, (-3, 2), "swordsman"),
+        (0, (-3, 1), "spearman"),
+        (0, (-3, 0), "swordsman"),
+        (0, (-3, -1), "spearman"),
         // player 1
-        (1, (2, -2), "imp"),
         (1, (2, -1), "imp"),
         (1, (2, 0), "imp"),
         (1, (2, 1), "imp"),
         (1, (2, 2), "imp"),
+        (1, (1, -1), "imp"),
+        (1, (1, 0), "imp"),
+        (1, (1, 1), "imp"),
     ] {
         let pos = PosHex {
             q: q + thread_rng().gen_range(-1, 2),
