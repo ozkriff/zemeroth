@@ -26,7 +26,7 @@ pub enum Effect {
 pub struct Wound(pub Strength);
 
 pub fn apply(state: &mut State, id: ObjId, effect: &Effect) {
-    println!("effect::apply: {:?}", effect);
+    debug!("effect::apply: {:?}", effect);
     match *effect {
         Effect::Kill => apply_kill(state, id),
         Effect::Wound(ref effect) => apply_wound(state, id, effect),

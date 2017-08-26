@@ -14,9 +14,9 @@ pub fn execute<F>(state: &mut State, command: &Command, cb: &mut F)
 where
     F: FnMut(&mut State, &Event),
 {
-    println!("Simulator: do_command: {:?}", command);
+    debug!("Simulator: do_command: {:?}", command);
     if let Err(err) = check(state, command) {
-        println!("Error: {:?}", err);
+        debug!("Error: {:?}", err);
         return;
     }
     match *command {

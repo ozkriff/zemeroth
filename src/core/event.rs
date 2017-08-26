@@ -56,7 +56,7 @@ pub struct BeginTurn {
 }
 
 pub fn apply(state: &mut State, event: &Event) {
-    println!("event::apply: {:?}", event);
+    debug!("event::apply: {:?}", event);
     for (&obj_id, effects) in &event.effects {
         for effect in effects {
             effect::apply(state, obj_id, effect);

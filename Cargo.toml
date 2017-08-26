@@ -12,6 +12,8 @@ hate = { path = "hate" }
 cgmath = "0.14"
 ron = "0.1"
 rand = "0.3"
+log = "0.3"
+env_logger = "0.4"
 
 [package.metadata.android]
 assets = "assets"

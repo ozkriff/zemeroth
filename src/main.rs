@@ -1,3 +1,7 @@
+#[macro_use]
+extern crate log;
+
+extern crate env_logger;
 extern crate cgmath;
 extern crate hate;
 extern crate rand;
@@ -11,6 +15,7 @@ mod visualize;
 mod ai;
 
 pub fn main() {
+    env_logger::init().expect("Can't initialize logging");
     enable_backtrace();
     let settings = ron::de::from_str(&hate::fs::load_as_string("settings.ron")).unwrap();
     let mut visualizer = hate::Visualizer::new(settings);

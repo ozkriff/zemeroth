@@ -103,14 +103,14 @@ impl Game {
     }
 
     fn do_ai(&mut self, context: &mut Context) {
-        println!("AI: <");
+        debug!("AI: <");
         let mut actions: Vec<Box<Action>> = Vec::new();
         // TODO: This sleep is needed to compensate the computational
         // slowdowns in the debug build. Fix the slowdowns, remove this:
         actions.push(Box::new(action::Sleep::new(Time(0.5))));
         loop {
             let command = self.ai.command(&self.state).unwrap();
-            println!("AI: command = {:?}", command);
+            debug!("AI: command = {:?}", command);
             let view = &mut self.view;
             core::execute(&mut self.state, &command, &mut |state, event| {
                 actions.push(visualize::visualize(state, view, context, event));
@@ -122,7 +122,7 @@ impl Game {
             }
         }
         self.add_actions(actions);
-        println!("AI: >");
+        debug!("AI: >");
     }
 
     fn handle_commands(&mut self, context: &mut Context) {
@@ -136,7 +136,7 @@ impl Game {
     }
 
     fn do_command(&mut self, context: &mut Context, command: command::Command) {
-        println!("Game: do_command: {:?}", command);
+        debug!("Game: do_command: {:?}", command);
         let mut actions = Vec::new();
         {
             let view = &mut self.view;
@@ -267,7 +267,7 @@ impl Game {
         }
         if self.state.map().is_inboard(pos) {
             let object_ids = self.state.object_ids_at(pos);
-            println!("object_ids: {:?}", object_ids);
+            debug!("object_ids: {:?}", object_ids);
             if !object_ids.is_empty() {
                 assert_eq!(object_ids.len(), 1);
                 let id = object_ids[0];
@@ -293,7 +293,7 @@ impl Game {
                 }
             } else {
                 let id = self.state.alloc_id();
-                println!("new id = {:?}", id);
+                debug!("new id = {:?}", id);
                 let player_id = self.state.player_id();
                 let unit = core::make_unit(player_id, pos, "swordsman");
                 let command = command::Command::Create(command::Create { id, unit });
