@@ -10,6 +10,7 @@ enum GuiCommand {
     D,
     E,
     F,
+    NextMap,
     Exit,
 }
 
@@ -17,11 +18,16 @@ enum GuiCommand {
 pub struct GuiTest {
     gui: Gui<GuiCommand>,
     button_f_id: gui::Id,
+    button_id_next_map: gui::Id,
+    map_names: Vec<&'static str>,
+    selected_map_index: usize,
 }
 
 impl GuiTest {
     pub fn new(context: &mut Context) -> Self {
         let mut gui = Gui::new(context);
+        let map_names = vec!["map01", "map02", "map03"];
+        let selected_map_index = 0;
 
         let _ /*layout_a_id*/ = {
             let sprite_a = Sprite::from_path(context, "tile.png", 0.2);
@@ -64,12 +70,16 @@ impl GuiTest {
             ])
         };
 
+        let button_id_next_map;
         let _ /*layout_c_id*/ = {
             let sprite_a = gui::text_sprite(context, "move: A", 0.1);
             let sprite_b = gui::text_sprite(context, "attack: B", 0.1);
             let sprite_exit = gui::text_sprite(context, "exit", 0.1);
+            let label_next_map = format!("map: {}", map_names[selected_map_index]);
+            let sprite_next_map = gui::text_sprite(context, &label_next_map, 0.1);
             let sprite_a_id = gui.add_button(context, sprite_a, GuiCommand::A);
             let sprite_b_id = gui.add_button(context, sprite_b, GuiCommand::B);
+            button_id_next_map = gui.add_button(context, sprite_next_map, GuiCommand::NextMap);
             let sprite_id_exit = gui.add_button(context, sprite_exit, GuiCommand::Exit);
             let anchor = gui::Anchor {
                 vertical: gui::VAnchor::Middle,
@@ -79,6 +89,7 @@ impl GuiTest {
             gui.add_layout(anchor, direction, vec![
                 sprite_a_id,
                 sprite_b_id,
+                button_id_next_map,
                 sprite_id_exit,
             ])
         };
@@ -86,11 +97,28 @@ impl GuiTest {
         let mut sprite_selection_marker = Sprite::from_path(context, "selection.png", 0.2);
         sprite_selection_marker.set_color([0.0, 0.0, 1.0, 0.8]);
 
-        Self { gui, button_f_id }
+        Self {
+            gui,
+            button_f_id,
+            map_names,
+            selected_map_index,
+            button_id_next_map,
+        }
     }
 
     fn exit(&mut self, context: &mut Context) {
         context.add_command(hate::screen::Command::Pop);
+    }
+
+    fn select_next_map(&mut self, context: &mut Context) {
+        self.selected_map_index += 1;
+        if self.selected_map_index == self.map_names.len() {
+            self.selected_map_index = 0;
+        }
+        let text = &format!("map: {}", self.map_names[self.selected_map_index]);
+        let new_sprite = gui::text_sprite(context, text, 0.1);
+        let button_id = self.button_id_next_map;
+        self.gui.update_sprite(context, button_id, new_sprite);
     }
 
     fn handle_commands(&mut self, context: &mut Context) {
@@ -107,6 +135,7 @@ impl GuiTest {
                     self.gui
                         .update_sprite(context, self.button_f_id, new_sprite);
                 }
+                GuiCommand::NextMap => self.select_next_map(context),
                 GuiCommand::Exit => self.exit(context),
             }
         }
