@@ -244,6 +244,25 @@ impl<Message: Clone> Gui<Message> {
         self.backgrounds.insert(id, bg);
     }
 
+    pub fn remove(&mut self, id: Id) -> Result<(), ()> {
+        let mut other_things_to_remove = Vec::new();
+        self.sprites.remove(&id);
+        self.backgrounds.remove(&id);
+        self.clickables.remove(&id);
+        if let Some(layout) = self.layouts.get(&id) {
+            other_things_to_remove.extend(layout.children.clone());
+        }
+        self.layouts.remove(&id);
+        for layout in self.layouts.values_mut() {
+            layout.children.retain(|&e| e != id);
+        }
+        self.update_sprite_positions();
+        for id in other_things_to_remove {
+            self.remove(id).unwrap();
+        }
+        Ok(())
+    }
+
     pub fn add_layout(&mut self, anchor: Anchor, direction: Direction, children: Vec<Id>) -> Id {
         let id = self.alloc_id();
         let layout = Layout {
