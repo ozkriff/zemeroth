@@ -20,6 +20,7 @@ use geom::{Point, Size};
 use pipeline::pipe;
 use mesh::Mesh;
 use texture::{self, Texture};
+use text;
 
 fn shader_version_string(api: Api) -> String {
     match api {
@@ -121,6 +122,7 @@ pub struct Context {
     events: Vec<Event>,
     settings: Settings,
     texture_cache: HashMap<PathBuf, Texture>,
+    text_texture_cache: HashMap<String, Texture>,
 }
 
 impl Context {
@@ -148,7 +150,7 @@ impl Context {
         let data = pipe::Data {
             basic_color: [1.0, 1.0, 1.0, 1.0],
             vbuf: factory.create_vertex_buffer(&fake_mesh),
-            texture: (fake_texture.0, sampler),
+            texture: (fake_texture.raw, sampler),
             out,
             out_depth,
             mvp: Matrix4::identity().into(),
@@ -177,6 +179,7 @@ impl Context {
             start_time: time::Instant::now(),
             events: Vec::new(),
             texture_cache: HashMap::new(),
+            text_texture_cache: HashMap::new(),
         }
     }
 
@@ -192,6 +195,20 @@ impl Context {
         }
         let texture = texture::load(self, &fs::load(&path));
         self.texture_cache.insert(path, texture.clone());
+        texture
+    }
+
+
+    pub(crate) fn text_texture(&mut self, label: &str) -> Texture {
+        if let Some(texture) = self.text_texture_cache.get(label) {
+            return texture.clone();
+        }
+        let text_texture_height = self.settings().text_texture_height;
+        let (texture_size, texture_data) =
+            text::text_to_texture(self.font(), text_texture_height, label);
+        let texture = texture::load_raw(self.factory_mut(), texture_size, &texture_data);
+        self.text_texture_cache
+            .insert(label.to_owned(), texture.clone());
         texture
     }
 
@@ -233,7 +250,7 @@ impl Context {
 
     pub(crate) fn draw_mesh(&mut self, mvp: Matrix4<f32>, mesh: &Mesh) {
         self.data.mvp = mvp.into();
-        self.data.texture.0 = mesh.texture().0.clone();
+        self.data.texture.0 = mesh.texture().raw.clone();
         self.data.vbuf = mesh.vertex_buffer().clone();
         self.encoder.draw(mesh.slice(), &self.pso, &self.data);
     }

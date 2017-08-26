@@ -2,8 +2,6 @@ use cgmath::Vector2;
 use std::collections::HashMap;
 use sprite::Sprite;
 use context::Context;
-use texture;
-use text;
 use mesh::RMesh;
 use geom::{Point, Size};
 
@@ -16,12 +14,9 @@ pub fn text_sprite(context: &mut Context, label: &str, height: f32) -> Sprite {
 }
 
 fn text_mesh(context: &mut Context, label: &str, height: f32) -> RMesh {
-    let text_texture_height = context.settings().text_texture_height;
-    let (texture_size, texture_data) =
-        text::text_to_texture(context.font(), text_texture_height, label);
-    let texture = texture::load_raw(context.factory_mut(), texture_size, &texture_data);
+    let texture = context.text_texture(label);
     let size = Size {
-        w: height / (texture_size.h as f32 / texture_size.w as f32),
+        w: height / (texture.size.h as f32 / texture.size.w as f32),
         h: height,
     };
     RMesh::new(context, texture, size)
