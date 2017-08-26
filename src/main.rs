@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate log;
 
-extern crate env_logger;
 extern crate cgmath;
+extern crate env_logger;
 extern crate hate;
 extern crate rand;
 extern crate ron;
