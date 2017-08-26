@@ -1,7 +1,7 @@
 use core::State;
 use core::command::{self, Command};
 use core::map::{self, PosHex};
-use core::{Attacks, Moves};
+use core::{Attacks, Jokers, Moves};
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
     match *command {
@@ -33,7 +33,7 @@ fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> 
     if unit.player_id != state.player_id() {
         return Err(Error::CanNotCommandEnemyUnits);
     }
-    if unit.moves == Moves(0) {
+    if unit.moves == Moves(0) && unit.jokers == Jokers(0) {
         return Err(Error::NotEnoughMoves);
     }
     let cost = command.path.cost_for(state, unit);
@@ -75,7 +75,7 @@ pub fn check_attack_at(state: &State, command: &command::Attack, at: PosHex) -> 
     if state.unit_opt(command.target_id).is_none() {
         return Err(Error::BadTargetId);
     };
-    if attacker.attacks == Attacks(0) {
+    if attacker.attacks == Attacks(0) && attacker.jokers == Jokers(0) {
         return Err(Error::NotEnoughAttacks);
     }
     let dist = map::distance_hex(attacker.pos, at);

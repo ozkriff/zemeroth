@@ -6,7 +6,7 @@ use visualize;
 use map;
 use game_view::GameView;
 use ai::Ai;
-use core::{self, check, Moves, ObjId, PlayerId, State};
+use core::{self, check, Jokers, Moves, ObjId, PlayerId, State};
 use core::command;
 use core::movement::Pathfinder;
 
@@ -192,7 +192,7 @@ impl Game {
 
     fn show_walkable_tiles(&mut self, context: &mut Context, id: ObjId) {
         let unit = self.state.unit(id);
-        if unit.moves == Moves(0) {
+        if unit.moves == Moves(0) && unit.jokers == Jokers(0) {
             return;
         }
         let map = self.pathfinder.map();

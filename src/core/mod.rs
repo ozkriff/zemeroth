@@ -31,7 +31,7 @@ pub struct UnitType {
     pub move_points: MovePoints,
     pub moves: Moves,
     pub attacks: Attacks,
-    // pub jokers: Jokers, // TODO
+    pub jokers: Jokers,
     pub reactive_attacks: Attacks,
 }
 
@@ -41,7 +41,7 @@ pub struct Unit {
     pub player_id: PlayerId,
     pub moves: Moves,
     pub attacks: Attacks,
-    // TODO: pub jokers: Jokers, /// Can be used as Attack or Move
+    pub jokers: Jokers,
     pub strength: Strength,
     pub unit_type: UnitType,
 }
@@ -51,6 +51,10 @@ pub struct Attacks(pub i32);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Moves(pub i32);
+
+/// Move or Attack
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Jokers(pub i32);
 
 #[derive(Clone, Copy, Debug)]
 pub enum TileType {

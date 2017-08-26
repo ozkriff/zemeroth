@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use core::{Attacks, Moves, ObjId, PlayerId, State, Unit};
+use core::{Attacks, Jokers, Moves, ObjId, PlayerId, State, Unit};
 use core::effect::{self, Effect};
 use core::movement::Path;
 
@@ -83,14 +83,24 @@ fn apply_event_create(state: &mut State, event: &Create) {
 fn apply_event_move_to(state: &mut State, event: &MoveTo) {
     let unit = state.units.get_mut(&event.id).unwrap();
     unit.pos = *event.path.tiles().last().unwrap();
-    unit.moves.0 -= event.cost.0;
+    if unit.moves.0 > 0 {
+        unit.moves.0 -= event.cost.0;
+    } else {
+        unit.jokers.0 -= event.cost.0;
+    }
     assert!(unit.moves >= Moves(0));
+    assert!(unit.jokers >= Jokers(0));
 }
 
 fn apply_event_attack(state: &mut State, event: &Attack) {
     let attacker = state.units.get_mut(&event.attacker_id).unwrap();
-    attacker.attacks.0 -= 1;
+    if attacker.attacks.0 > 0 {
+        attacker.attacks.0 -= 1;
+    } else {
+        attacker.jokers.0 -= 1;
+    }
     assert!(attacker.attacks >= Attacks(0));
+    assert!(attacker.jokers >= Jokers(0));
 }
 
 fn apply_event_end_turn(state: &mut State, event: &EndTurn) {
@@ -108,6 +118,7 @@ fn apply_event_begin_turn(state: &mut State, event: &BeginTurn) {
             // TODO: get values from the real unit's type
             unit.moves = unit.unit_type.moves;
             unit.attacks = unit.unit_type.attacks;
+            unit.jokers = unit.unit_type.jokers;
         }
     }
 }

@@ -2,7 +2,7 @@ use std::collections::{HashMap, VecDeque};
 use std::iter::FromIterator;
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
-use core::{self, Attacks, Moves, ObjId, PlayerId, State, Strength, Unit, UnitType};
+use core::{self, Attacks, Jokers, Moves, ObjId, PlayerId, State, Strength, Unit, UnitType};
 use core::command;
 use core::command::Command;
 use core::event::{self, ActiveEvent, Event};
@@ -242,7 +242,8 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
             UnitType {
                 name: type_name.into(),
                 moves: Moves(1),
-                attacks: Attacks(2),
+                attacks: Attacks(1),
+                jokers: Jokers(1),
                 reactive_attacks: Attacks(1),
                 attack_distance: 1, // TODO: Distance(1)
                 move_points: MovePoints(3),
@@ -252,14 +253,16 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
             name: type_name.into(),
             moves: Moves(1),
             attacks: Attacks(1),
+            jokers: Jokers(0),
             reactive_attacks: Attacks(2),
             attack_distance: 2,
             move_points: MovePoints(3),
         },
         "imp" => UnitType {
             name: type_name.into(),
-            moves: Moves(2),
-            attacks: Attacks(2),
+            moves: Moves(1),
+            attacks: Attacks(1),
+            jokers: Jokers(1),
             reactive_attacks: Attacks(1),
             attack_distance: 1,
             move_points: MovePoints(3),
@@ -271,6 +274,7 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
         player_id,
         attacks: unit_type.attacks,
         moves: unit_type.moves,
+        jokers: unit_type.jokers,
         strength: Strength(3),
         unit_type,
     }
