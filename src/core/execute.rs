@@ -251,7 +251,7 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
         "spearman" => UnitType {
             name: type_name.into(),
             moves: Moves(0),
-            attacks: Attacks(1),
+            attacks: Attacks(0),
             jokers: Jokers(1),
             reactive_attacks: Attacks(2),
             attack_distance: 2,

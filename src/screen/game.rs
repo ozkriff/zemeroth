@@ -6,7 +6,7 @@ use visualize;
 use map;
 use game_view::GameView;
 use ai::Ai;
-use core::{self, check, Jokers, Moves, ObjId, PlayerId, State};
+use core::{self, check, Jokers, Moves, ObjId, PlayerId, State, Unit};
 use core::command;
 use core::movement::Pathfinder;
 
@@ -18,6 +18,33 @@ enum GuiCommand {
 }
 
 const WALKBALE_TILE_COLOR: [f32; 4] = [0.4, 1.0, 0.4, 0.8];
+
+fn build_unit_info_panel(context: &mut Context, gui: &mut Gui<GuiCommand>, unit: &Unit) -> gui::Id {
+    let anchor = gui::Anchor {
+        vertical: gui::VAnchor::Bottom,
+        horizontal: gui::HAnchor::Left,
+    };
+    let line_height = 0.08;
+    let mut ids = Vec::new();
+    let t = &unit.unit_type;
+    {
+        let mut line = |s: &str| {
+            let sprite = gui::text_sprite(context, s, line_height);
+            let id = gui.add_sprite(sprite);
+            ids.push(id);
+        };
+        line(&format!("move points: {}", t.move_points.0));
+        line(&format!("attack distance: {}", t.attack_distance));
+        line(&format!("reactive attacks: {}", t.reactive_attacks.0));
+        line(&format!("moves: {}/{}", unit.moves.0, t.moves.0,));
+        line(&format!("attacks: {}/{}", unit.attacks.0, t.attacks.0,));
+        line(&format!("jokers: {}/{}", unit.jokers.0, t.jokers.0,));
+        line(&format!("strength: {}/{}", unit.strength.0, t.strength.0));
+        line(&format!("[{}]", t.name));
+    }
+    // TODO: Direction::Down
+    gui.add_layout(anchor, gui::Direction::Up, ids)
+}
 
 fn build_gui(context: &mut Context) -> Gui<GuiCommand> {
     let mut gui = Gui::new(context);
@@ -35,8 +62,8 @@ fn build_gui(context: &mut Context) -> Gui<GuiCommand> {
         let sprite_deselect = gui::text_sprite(context, "deselect", 0.1);
         let sprite_id_deselect = gui.add_button(context, sprite_deselect, GuiCommand::Deselect);
         let anchor = gui::Anchor {
-            vertical: gui::VAnchor::Bottom,
-            horizontal: gui::HAnchor::Left,
+            vertical: gui::VAnchor::Top,
+            horizontal: gui::HAnchor::Right,
         };
         gui.add_layout(anchor, direction, vec![sprite_id_deselect]);
     }
@@ -64,6 +91,7 @@ pub struct Game {
     sprites_walkable_tiles: Vec<Sprite>,
     sprites_attackable_tiles: Vec<Sprite>,
     ai: Ai,
+    layout_id_info: Option<gui::Id>,
 }
 
 impl Game {
@@ -89,6 +117,7 @@ impl Game {
             sprites_walkable_tiles: Vec::new(),
             sprites_attackable_tiles: Vec::new(),
             ai: Ai::new(PlayerId(1), radius),
+            layout_id_info: None,
         }
     }
 
@@ -224,6 +253,9 @@ impl Game {
     }
 
     fn deselect(&mut self, _: &mut Context) {
+        if let Some(layout_id_info) = self.layout_id_info.take() {
+            self.gui.remove(layout_id_info).unwrap();
+        }
         if self.selected_unit_id.is_some() {
             let action_hide = Box::new(action::Hide::new(
                 &self.view.layers().selection_marker,
@@ -260,6 +292,12 @@ impl Game {
         self.show_selection_marker(id);
         self.show_walkable_tiles(context, id);
         self.show_attackable_tiles(context, id);
+        {
+            let gui = &mut self.gui;
+            let unit = self.state.unit(id);
+            let layout_id_info = build_unit_info_panel(context, gui, unit);
+            self.layout_id_info = Some(layout_id_info);
+        }
     }
 
     fn handle_event_click(&mut self, context: &mut Context, point: Point) {
@@ -275,6 +313,7 @@ impl Game {
                 assert_eq!(object_ids.len(), 1);
                 let id = object_ids[0];
                 let other_unit_player_id = self.state.unit(id).player_id;
+                // TODO: I need a way to select enemy units!
                 if other_unit_player_id == self.state.player_id() {
                     self.select_unit(context, id);
                 } else if let Some(selected_unit_id) = self.selected_unit_id {
@@ -295,6 +334,7 @@ impl Game {
                     self.pathfinder.fill_map(&self.state, unit);
                 }
             } else {
+                // TODO: delete all this!
                 let id = self.state.alloc_id();
                 debug!("new id = {:?}", id);
                 let player_id = self.state.player_id();

@@ -228,6 +228,12 @@ impl<Message: Clone> Gui<Message> {
         id
     }
 
+    pub fn add_sprite(&mut self, sprite: Sprite) -> Id {
+        let id = self.alloc_id();
+        self.sprites.insert(id, sprite);
+        id
+    }
+
     // TODO: is it a good idea?
     pub fn update_sprite(&mut self, context: &mut Context, id: Id, sprite: Sprite) {
         self.sprites.insert(id, sprite);
