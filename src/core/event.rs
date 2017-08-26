@@ -96,7 +96,7 @@ fn apply_event_attack(state: &mut State, event: &Attack) {
 fn apply_event_end_turn(state: &mut State, event: &EndTurn) {
     for unit in state.units.values_mut() {
         if unit.player_id == event.player_id {
-            unit.attacks.0 += 1; // TODO: get inc value from unit's type
+            unit.attacks.0 += unit.unit_type.reactive_attacks.0;
         }
     }
 }
