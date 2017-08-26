@@ -44,11 +44,11 @@ impl GuiTest {
                 horizontal: gui::HAnchor::Left,
             };
             let direction = gui::Direction::Right;
-            gui.add_layout(anchor, direction, vec![
-                sprite_a_id,
-                sprite_b_id,
-                sprite_c_id,
-            ])
+            gui.add_layout(
+                anchor,
+                direction,
+                vec![sprite_a_id, sprite_b_id, sprite_c_id],
+            )
         };
 
         let button_f_id;
@@ -81,8 +81,10 @@ impl GuiTest {
             let sprite_exit = gui::text_sprite(context, "exit", 0.1);
             let label_next_map = format!("map: {}", map_names[selected_map_index]);
             let sprite_next_map = gui::text_sprite(context, &label_next_map, 0.1);
-            button_id_will_be_removed = gui.add_button(context, sprite_will_be_removed, GuiCommand::A);
-            let button_id_remove_button = gui.add_button(context, sprite_remove_next, GuiCommand::RemoveButton);
+            button_id_will_be_removed = gui.add_button(
+                context, sprite_will_be_removed, GuiCommand::A);
+            let button_id_remove_button = gui.add_button(
+                context, sprite_remove_next, GuiCommand::RemoveButton);
             button_id_next_map = gui.add_button(context, sprite_next_map, GuiCommand::NextMap);
             let sprite_id_exit = gui.add_button(context, sprite_exit, GuiCommand::Exit);
             let anchor = gui::Anchor {
