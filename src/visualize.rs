@@ -94,7 +94,8 @@ fn visualize_event_create(
         "imp" => "imp.png",
         _ => unimplemented!(),
     };
-    let mut sprite = Sprite::from_path(context, sprite_name, 0.2);
+    let size = view.tile_size() * 2.0;
+    let mut sprite = Sprite::from_path(context, sprite_name, size);
     sprite.set_color([1.0, 1.0, 1.0, 0.0]);
     sprite.set_pos(point);
     view.add_object(event.id, &sprite);

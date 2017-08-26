@@ -75,7 +75,8 @@ impl Game {
             let action = visualize::visualize(state, &mut view, context, event);
             view.add_action(action);
         });
-        let mut sprite_selection_marker = Sprite::from_path(context, "selection.png", 0.2);
+        let size = view.tile_size() * 2.0;
+        let mut sprite_selection_marker = Sprite::from_path(context, "selection.png", size);
         sprite_selection_marker.set_color([0.0, 0.0, 1.0, 0.8]);
         Self {
             gui: build_gui(context),
@@ -178,7 +179,8 @@ impl Game {
             if check(&self.state, &command_attack).is_err() {
                 continue;
             }
-            let mut sprite = Sprite::from_path(context, "tile.png", 0.2);
+            let size = self.view.tile_size() * 2.0;
+            let mut sprite = Sprite::from_path(context, "tile.png", size);
             self.sprites_attackable_tiles.push(sprite.clone());
             sprite.set_color([1.0, 0.3, 0.3, 0.8]);
             sprite.set_pos(map::hex_to_point(self.view.tile_size(), target.pos));
@@ -199,7 +201,8 @@ impl Game {
         for pos in map.iter() {
             let tile = map.tile(pos);
             if tile.cost() <= unit.unit_type.move_points {
-                let mut sprite = Sprite::from_path(context, "tile.png", 0.2);
+                let size = self.view.tile_size() * 2.0;
+                let mut sprite = Sprite::from_path(context, "tile.png", size);
                 self.sprites_walkable_tiles.push(sprite.clone());
                 let mut color_from = WALKBALE_TILE_COLOR;
                 color_from[3] = 0.0;

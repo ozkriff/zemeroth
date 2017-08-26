@@ -48,7 +48,7 @@ impl GameView {
         let obj_to_sprite_map = HashMap::new();
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
-        let tile_size = 0.1;
+        let tile_size = 0.11;
         let mut this = Self {
             scene,
             tile_size,
