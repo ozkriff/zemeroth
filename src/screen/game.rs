@@ -1,3 +1,5 @@
+use rand::{thread_rng, Rng};
+use cgmath::Vector2;
 use hate::{self, Context, Event, Screen, Sprite, Time};
 use hate::geom::Point;
 use hate::gui::{self, Gui};
@@ -6,8 +8,9 @@ use visualize;
 use map;
 use game_view::GameView;
 use ai::Ai;
-use core::{self, check, Jokers, Moves, ObjId, PlayerId, State, Unit};
+use core::{self, check, Jokers, Moves, ObjId, PlayerId, State, TileType, Unit};
 use core::command;
+use core::map::PosHex;
 use core::movement::Pathfinder;
 
 #[derive(Copy, Clone, Debug)]
@@ -18,6 +21,45 @@ enum GuiCommand {
 }
 
 const WALKBALE_TILE_COLOR: [f32; 4] = [0.4, 1.0, 0.4, 0.8];
+
+fn make_action_show_tile(
+    context: &mut Context,
+    state: &State,
+    view: &GameView,
+    at: PosHex,
+) -> Box<Action> {
+    let screen_pos = map::hex_to_point(view.tile_size(), at);
+    let mut sprite = Sprite::from_path(context, "tile.png", view.tile_size() * 2.0);
+    match state.map().tile(at) {
+        TileType::Floor => sprite.set_color([1.0, 1.0, 1.0, 1.0]),
+        TileType::Lava => sprite.set_color([1.0, 0.7, 0.7, 1.0]),
+    }
+    sprite.set_pos(screen_pos);
+    Box::new(action::Show::new(&view.layers().bg, &sprite))
+}
+
+fn make_action_grass(context: &mut Context, view: &GameView, at: PosHex) -> Box<Action> {
+    let screen_pos = map::hex_to_point(view.tile_size(), at);
+    let mut sprite = Sprite::from_path(context, "grass.png", view.tile_size() * 2.0);
+    let n = view.tile_size() * 0.5;
+    let screen_pos_grass = Point(Vector2 {
+        x: screen_pos.0.x + thread_rng().gen_range(-n, n),
+        y: screen_pos.0.y + thread_rng().gen_range(-n, n),
+    });
+    sprite.set_pos(screen_pos_grass);
+    Box::new(action::Show::new(&view.layers().grass, &sprite))
+}
+
+fn make_action_create_map(state: &State, view: &GameView, context: &mut Context) -> Box<Action> {
+    let mut actions: Vec<Box<Action>> = Vec::new();
+    for hex_pos in state.map().iter() {
+        actions.push(make_action_show_tile(context, state, view, hex_pos));
+        if thread_rng().gen_range(0, 10) < 2 {
+            actions.push(make_action_grass(context, view, hex_pos));
+        }
+    }
+    Box::new(action::Sequence::new(actions))
+}
 
 fn build_unit_info_panel(context: &mut Context, gui: &mut Gui<GuiCommand>, unit: &Unit) -> gui::Id {
     let anchor = gui::Anchor {
@@ -98,7 +140,9 @@ impl Game {
     pub fn new(context: &mut Context) -> Self {
         let mut state = State::new();
         let radius = state.map().radius();
-        let mut view = GameView::new(&state, context);
+        let mut view = GameView::new();
+        let action_create_map = make_action_create_map(&state, &view, context);
+        view.add_action(action_create_map);
         core::create_objects(&mut state, &mut |state: &mut State, event| {
             let action = visualize::visualize(state, &mut view, context, event);
             view.add_action(action);
