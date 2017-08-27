@@ -20,7 +20,7 @@ enum GuiCommand {
     EndTurn,
 }
 
-const WALKBALE_TILE_COLOR: [f32; 4] = [0.4, 1.0, 0.4, 0.8];
+const WALKBALE_TILE_COLOR: [f32; 4] = [0.2, 1.0, 0.2, 0.5];
 
 fn make_action_show_tile(
     context: &mut Context,
