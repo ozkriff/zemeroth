@@ -71,6 +71,7 @@ where
     let active_event = ActiveEvent::MoveTo(event::MoveTo { id, path, cost });
     let event = Event {
         active_event,
+        actor_ids: vec![id],
         effects: HashMap::new(),
     };
     do_event(state, cb, &event);
@@ -113,6 +114,7 @@ where
     });
     let event = Event {
         active_event,
+        actor_ids: vec![command.id],
         effects: HashMap::new(),
     };
     do_event(state, cb, &event);
@@ -155,6 +157,7 @@ where
     effects.insert(command.target_id, vec![effect.clone()]);
     let event = Event {
         active_event,
+        actor_ids: vec![command.attacker_id],
         effects,
     };
     do_event(state, cb, &event);
@@ -207,24 +210,38 @@ fn execute_end_turn<F>(state: &mut State, cb: &mut F, _: &command::EndTurn)
 where
     F: FnMut(&State, &Event),
 {
-    let player_id_old = state.player_id();
-    let player_id_new = next_player_id(state);
-    let event_end_turn = ActiveEvent::EndTurn(event::EndTurn {
-        player_id: player_id_old,
-    });
-    let event_end_turn = Event {
-        active_event: event_end_turn,
-        effects: HashMap::new(),
-    };
-    do_event(state, cb, &event_end_turn);
-    let event_begin_turn = ActiveEvent::BeginTurn(event::BeginTurn {
-        player_id: player_id_new,
-    });
-    let event_begin_turn = Event {
-        active_event: event_begin_turn,
-        effects: HashMap::new(),
-    };
-    do_event(state, cb, &event_begin_turn);
+    {
+        let player_id_old = state.player_id();
+        let active_event = ActiveEvent::EndTurn(event::EndTurn {
+            player_id: player_id_old,
+        });
+        let actor_ids = state
+            .obj_iter()
+            .filter(|&id| state.unit(id).player_id == player_id_old)
+            .collect();
+        let event = Event {
+            active_event,
+            actor_ids,
+            effects: HashMap::new(),
+        };
+        do_event(state, cb, &event);
+    }
+    {
+        let player_id_new = next_player_id(state);
+        let active_event = ActiveEvent::BeginTurn(event::BeginTurn {
+            player_id: player_id_new,
+        });
+        let actor_ids = state
+            .obj_iter()
+            .filter(|&id| state.unit(id).player_id == player_id_new)
+            .collect();
+        let event_begin_turn = Event {
+            active_event,
+            actor_ids,
+            effects: HashMap::new(),
+        };
+        do_event(state, cb, &event_begin_turn);
+    }
 }
 
 fn next_player_id(state: &State) -> PlayerId {
@@ -311,6 +328,7 @@ where
         let active_event = ActiveEvent::Create(event::Create { id, unit });
         let event = Event {
             active_event,
+            actor_ids: vec![id],
             effects: HashMap::new(),
         };
         do_event(state, cb, &event);

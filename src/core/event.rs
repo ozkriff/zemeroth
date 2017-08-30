@@ -6,6 +6,7 @@ use core::movement::Path;
 #[derive(Clone, Debug)]
 pub struct Event {
     pub active_event: ActiveEvent,
+    pub actor_ids: Vec<ObjId>,
     pub effects: HashMap<ObjId, Vec<Effect>>,
 }
 
