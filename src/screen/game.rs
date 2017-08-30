@@ -122,6 +122,17 @@ fn build_gui(context: &mut Context) -> Gui<GuiCommand> {
     gui
 }
 
+fn prepare_map_and_state(context: &mut Context, state: &mut State, view: &mut GameView) {
+    let mut actions = Vec::new();
+    actions.push(make_action_create_map(&state, &view, context));
+    execute::create_objects(state, &mut |state, event| {
+        let action = visualize::visualize(state, view, context, event);
+        let action = Box::new(action::Fork::new(action));
+        actions.push(action);
+    });
+    view.add_action(Box::new(action::Sequence::new(actions)));
+}
+
 #[derive(Debug)]
 pub struct Game {
     gui: Gui<GuiCommand>,
@@ -142,12 +153,7 @@ impl Game {
         let mut state = State::new();
         let radius = state.map().radius();
         let mut view = GameView::new();
-        let action_create_map = make_action_create_map(&state, &view, context);
-        view.add_action(action_create_map);
-        execute::create_objects(&mut state, &mut |state: &mut State, event| {
-            let action = visualize::visualize(state, &mut view, context, event);
-            view.add_action(action);
-        });
+        prepare_map_and_state(context, &mut state, &mut view);
         let size = view.tile_size() * 2.0;
         let mut sprite_selection_marker = Sprite::from_path(context, "selection.png", size);
         sprite_selection_marker.set_color([0.0, 0.0, 1.0, 0.8]);
