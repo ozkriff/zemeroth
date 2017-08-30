@@ -12,7 +12,7 @@ use core::movement::{MovePoints, Path};
 
 pub fn execute<F>(state: &mut State, command: &Command, cb: &mut F)
 where
-    F: FnMut(&mut State, &Event),
+    F: FnMut(&State, &Event),
 {
     debug!("Simulator: do_command: {:?}", command);
     if let Err(err) = check(state, command) {
@@ -29,7 +29,7 @@ where
 
 fn do_event<F>(state: &mut State, cb: &mut F, event: &Event)
 where
-    F: FnMut(&mut State, &Event),
+    F: FnMut(&State, &Event),
 {
     cb(state, event);
     event::apply(state, event);
@@ -37,7 +37,7 @@ where
 
 fn execute_move_to<F>(state: &mut State, cb: &mut F, command: &command::MoveTo)
 where
-    F: FnMut(&mut State, &Event),
+    F: FnMut(&State, &Event),
 {
     let id = command.id;
     let mut cost = Some(Moves(1));
@@ -65,7 +65,7 @@ where
 
 fn do_move<F>(state: &mut State, cb: &mut F, id: ObjId, cost: Option<Moves>, path: Path)
 where
-    F: FnMut(&mut State, &Event),
+    F: FnMut(&State, &Event),
 {
     let cost = cost.unwrap_or(Moves(0));
     let active_event = ActiveEvent::MoveTo(event::MoveTo { id, path, cost });
@@ -105,7 +105,7 @@ fn check_reaction_attacks_at(state: &mut State, target_id: ObjId, pos: PosHex) -
 
 fn execute_create<F>(state: &mut State, cb: &mut F, command: &command::Create)
 where
-    F: FnMut(&mut State, &Event),
+    F: FnMut(&State, &Event),
 {
     let active_event = ActiveEvent::Create(event::Create {
         id: command.id,
@@ -131,7 +131,7 @@ fn execute_attack_internal<F>(
     mode: event::AttackMode,
 ) -> AttackStatus
 where
-    F: FnMut(&mut State, &Event),
+    F: FnMut(&State, &Event),
 {
     let active_event = ActiveEvent::Attack(event::Attack {
         attacker_id: command.attacker_id,
@@ -163,7 +163,7 @@ where
 
 fn try_execute_reaction_attacks<F>(state: &mut State, cb: &mut F, target_id: ObjId) -> AttackStatus
 where
-    F: FnMut(&mut State, &Event),
+    F: FnMut(&State, &Event),
 {
     let mut status = AttackStatus::Miss;
     let initial_player_id = state.player_id;
@@ -197,7 +197,7 @@ where
 
 fn execute_attack<F>(state: &mut State, cb: &mut F, command: &command::Attack)
 where
-    F: FnMut(&mut State, &Event),
+    F: FnMut(&State, &Event),
 {
     execute_attack_internal(state, cb, command, event::AttackMode::Active);
     try_execute_reaction_attacks(state, cb, command.attacker_id);
@@ -205,7 +205,7 @@ where
 
 fn execute_end_turn<F>(state: &mut State, cb: &mut F, _: &command::EndTurn)
 where
-    F: FnMut(&mut State, &Event),
+    F: FnMut(&State, &Event),
 {
     let player_id_old = state.player_id();
     let player_id_new = next_player_id(state);
@@ -284,7 +284,7 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
 // TODO: improve the API
 pub fn create_objects<F>(state: &mut State, cb: &mut F)
 where
-    F: FnMut(&mut State, &Event),
+    F: FnMut(&State, &Event),
 {
     for &(player_index, (q, r), typename) in &[
         // player 0
