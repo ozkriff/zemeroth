@@ -10,6 +10,7 @@ use game_view::GameView;
 use ai::Ai;
 use core::{self, check, Jokers, Moves, ObjId, PlayerId, State, TileType, Unit};
 use core::command;
+use core::execute;
 use core::map::PosHex;
 use core::movement::Pathfinder;
 
@@ -143,7 +144,7 @@ impl Game {
         let mut view = GameView::new();
         let action_create_map = make_action_create_map(&state, &view, context);
         view.add_action(action_create_map);
-        core::create_objects(&mut state, &mut |state: &mut State, event| {
+        execute::create_objects(&mut state, &mut |state: &mut State, event| {
             let action = visualize::visualize(state, &mut view, context, event);
             view.add_action(action);
         });
@@ -380,7 +381,7 @@ impl Game {
                 let id = self.state.alloc_id();
                 debug!("new id = {:?}", id);
                 let player_id = self.state.player_id();
-                let unit = core::make_unit(player_id, pos, "swordsman");
+                let unit = execute::make_unit(player_id, pos, "swordsman");
                 let command = command::Command::Create(command::Create { id, unit });
                 self.do_command(context, command);
             }

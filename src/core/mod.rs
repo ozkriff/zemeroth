@@ -3,7 +3,7 @@ use std::collections::{hash_map, HashMap};
 use core::map::{HexMap, PosHex};
 use core::movement::MovePoints;
 
-pub use core::execute::{create_objects, execute, make_unit};
+pub use core::execute::execute;
 pub use core::check::check;
 
 pub mod command;
@@ -11,8 +11,8 @@ pub mod event;
 pub mod movement;
 pub mod effect;
 pub mod map;
+pub mod execute;
 
-mod execute;
 mod check;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
