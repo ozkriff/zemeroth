@@ -11,7 +11,7 @@ pub struct Layers {
     pub walkable_tiles: Layer,
     pub attackable_tiles: Layer,
     pub selection_marker: Layer,
-    pub fg: Layer,
+    pub fg: Layer, // TODO: rename `units`?
     pub text: Layer,
 }
 
@@ -36,6 +36,7 @@ pub struct GameView {
     layers: Layers,
     obj_to_sprite_map: HashMap<ObjId, Sprite>,
     scene: Scene,
+    sprites_unit_info: HashMap<ObjId, Vec<Sprite>>,
 }
 
 impl GameView {
@@ -49,6 +50,7 @@ impl GameView {
             tile_size,
             layers,
             obj_to_sprite_map,
+            sprites_unit_info: HashMap::new(),
         }
     }
 
@@ -79,5 +81,17 @@ impl GameView {
 
     pub fn id_to_sprite(&mut self, id: ObjId) -> &Sprite {
         &self.obj_to_sprite_map[&id]
+    }
+
+    pub fn unit_info_check(&self, id: ObjId) -> bool {
+        self.sprites_unit_info.get(&id).is_some()
+    }
+
+    pub fn unit_info_get(&mut self, id: ObjId) -> Vec<Sprite> {
+        self.sprites_unit_info.remove(&id).unwrap()
+    }
+
+    pub fn unit_info_set(&mut self, id: ObjId, sprites: Vec<Sprite>) {
+        self.sprites_unit_info.insert(id, sprites);
     }
 }

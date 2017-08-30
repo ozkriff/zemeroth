@@ -52,7 +52,7 @@ fn make_action_grass(context: &mut Context, view: &GameView, at: PosHex) -> Box<
 }
 
 fn make_action_create_map(state: &State, view: &GameView, context: &mut Context) -> Box<Action> {
-    let mut actions: Vec<Box<Action>> = Vec::new();
+    let mut actions = Vec::new();
     for hex_pos in state.map().iter() {
         actions.push(make_action_show_tile(context, state, view, hex_pos));
         if thread_rng().gen_range(0, 10) < 2 {
@@ -125,8 +125,8 @@ fn build_gui(context: &mut Context) -> Gui<GuiCommand> {
 fn prepare_map_and_state(context: &mut Context, state: &mut State, view: &mut GameView) {
     let mut actions = Vec::new();
     actions.push(make_action_create_map(&state, &view, context));
-    execute::create_objects(state, &mut |state, event| {
-        let action = visualize::visualize(state, view, context, event);
+    execute::create_objects(state, &mut |state, event, phase| {
+        let action = visualize::visualize(state, view, context, event, phase);
         let action = Box::new(action::Fork::new(action));
         actions.push(action);
     });
@@ -142,8 +142,8 @@ pub struct Game {
     pathfinder: Pathfinder,
     sprite_selection_marker: Sprite,
     block_timer: Option<Time>,
-    sprites_walkable_tiles: Vec<Sprite>,
-    sprites_attackable_tiles: Vec<Sprite>,
+    sprites_walkable_tiles: Vec<Sprite>, // TODO: move to GameView
+    sprites_attackable_tiles: Vec<Sprite>, // TODO: move to GameView
     ai: Ai,
     layout_id_info: Option<gui::Id>,
 }
@@ -179,31 +179,26 @@ impl Game {
     fn end_turn(&mut self, context: &mut Context) {
         self.deselect(context);
         let command = command::Command::EndTurn(command::EndTurn);
-        self.do_command(context, command);
-        self.do_ai(context);
+        let mut actions = Vec::new();
+        actions.push(self.do_command_inner(context, command));
+        actions.push(self.do_ai(context));
+        self.add_actions(actions);
     }
 
-    fn do_ai(&mut self, context: &mut Context) {
+    fn do_ai(&mut self, context: &mut Context) -> Box<Action> {
         debug!("AI: <");
-        let mut actions: Vec<Box<Action>> = Vec::new();
-        // TODO: This sleep is needed to compensate the computational
-        // slowdowns in the debug build. Fix the slowdowns, remove this:
-        actions.push(Box::new(action::Sleep::new(Time(0.5))));
+        let mut actions = Vec::new();
         loop {
             let command = self.ai.command(&self.state).unwrap();
             debug!("AI: command = {:?}", command);
-            let view = &mut self.view;
-            core::execute(&mut self.state, &command, &mut |state, event| {
-                actions.push(visualize::visualize(state, view, context, event));
-                actions.push(Box::new(action::Sleep::new(Time(0.1))));
-            });
-            actions.push(Box::new(action::Sleep::new(Time(0.3))));
+            actions.push(self.do_command_inner(context, command.clone()));
+            actions.push(Box::new(action::Sleep::new(Time(0.3)))); // ??
             if let command::Command::EndTurn(_) = command {
                 break;
             }
         }
-        self.add_actions(actions);
         debug!("AI: >");
+        Box::new(action::Sequence::new(actions))
     }
 
     fn handle_commands(&mut self, context: &mut Context) {
@@ -216,22 +211,32 @@ impl Game {
         }
     }
 
-    fn do_command(&mut self, context: &mut Context, command: command::Command) {
-        debug!("Game: do_command: {:?}", command);
+    fn do_command_inner(
+        &mut self,
+        context: &mut Context,
+        command: command::Command,
+    ) -> Box<Action> {
         let mut actions = Vec::new();
-        {
-            let view = &mut self.view;
-            core::execute(&mut self.state, &command, &mut |state, event| {
-                actions.push(visualize::visualize(state, view, context, event));
-            });
-        }
-        self.add_actions(actions);
+        let state = &mut self.state;
+        let view = &mut self.view;
+        core::execute(state, &command, &mut |state, event, phase| {
+            actions.push(visualize::visualize(state, view, context, event, phase));
+        });
+        Box::new(action::Sequence::new(actions))
+    }
+
+    fn do_command(&mut self, context: &mut Context, command: command::Command) {
+        let action = self.do_command_inner(context, command);
+        self.add_action(action);
     }
 
     fn add_actions(&mut self, actions: Vec<Box<Action>>) {
-        let action_sequence = Box::new(action::Sequence::new(actions));
-        self.block_timer = Some(action_sequence.duration());
-        self.view.add_action(action_sequence);
+        self.add_action(Box::new(action::Sequence::new(actions)));
+    }
+
+    fn add_action(&mut self, action: Box<Action>) {
+        self.block_timer = Some(action.duration());
+        self.view.add_action(action);
     }
 
     fn show_selection_marker(&mut self, id: ObjId) {

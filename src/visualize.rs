@@ -9,6 +9,7 @@ use core::event::{ActiveEvent, Event};
 use core::map::PosHex;
 use core::event;
 use core::effect::{self, Effect};
+use core::execute::Phase;
 use game_view::GameView;
 use map;
 
@@ -50,7 +51,97 @@ pub fn show_blood_spot(view: &mut GameView, context: &mut Context, at: PosHex) -
     ]))
 }
 
+fn remove_brief_unit_info(view: &mut GameView, id: ObjId) -> Box<Action> {
+    let mut actions: Vec<Box<Action>> = Vec::new();
+    let sprites = view.unit_info_get(id);
+    for sprite in sprites {
+        let mut color = sprite.color();
+        color[3] = 0.0;
+        actions.push(Box::new(
+            action::Fork::new(Box::new(action::Sequence::new(vec![
+                Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.4))),
+                Box::new(action::Hide::new(&view.layers().text, &sprite)),
+            ]))),
+        ));
+    }
+    let action = Box::new(action::Sequence::new(actions));
+    action
+}
+
+fn generate_brief_unit_info(
+    state: &State,
+    view: &mut GameView,
+    context: &mut Context,
+    id: ObjId,
+) -> Box<Action> {
+    let mut actions: Vec<Box<Action>> = Vec::new();
+    let unit = state.unit(id);
+    let size = 0.02;
+    let mut point = map::hex_to_point(view.tile_size(), unit.pos);
+    point.0.x += view.tile_size() * 0.8;
+    point.0.y += view.tile_size() * 0.6;
+    let mut dots = Vec::new();
+    let base_x = point.0.x;
+    for &(color, n) in &[
+        ([0.0, 0.4, 0.0, 1.0], unit.strength.0),
+        ([1.0, 0.1, 1.0, 1.0], unit.jokers.0),
+        ([1.0, 0.0, 0.0, 1.0], unit.attacks.0),
+        ([0.0, 0.0, 1.0, 1.0], unit.moves.0),
+    ] {
+        for _ in 0..n {
+            dots.push((color, point));
+            point.0.x -= size;
+        }
+        point.0.x = base_x;
+        point.0.y -= size;
+    }
+    let mut sprites = Vec::new();
+    for &(color, point) in &dots {
+        let mut sprite = Sprite::from_path(context, "white_hex.png", size);
+        sprite.set_pos(point);
+        sprite.set_color([color[0], color[1], color[2], 0.0]);
+        let action = Box::new(action::Fork::new(Box::new(action::Sequence::new(vec![
+            Box::new(action::Show::new(&view.layers().text, &sprite)),
+            Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.1))),
+        ]))));
+        sprites.push(sprite);
+        actions.push(action);
+    }
+    view.unit_info_set(id, sprites);
+    let action = Box::new(action::Sequence::new(actions));
+    action
+}
+
+pub fn showhide_brief_unit_info(
+    state: &State,
+    view: &mut GameView,
+    context: &mut Context,
+    id: ObjId,
+) -> Box<Action> {
+    let mut actions = Vec::new();
+    if view.unit_info_check(id) {
+        actions.push(remove_brief_unit_info(view, id));
+    }
+    if state.unit_opt(id).is_some() {
+        actions.push(generate_brief_unit_info(state, view, context, id));
+    }
+    Box::new(action::Sequence::new(actions))
+}
+
 pub fn visualize(
+    state: &State,
+    view: &mut GameView,
+    context: &mut Context,
+    event: &Event,
+    phase: Phase,
+) -> Box<Action> {
+    match phase {
+        Phase::Pre => visualize_pre(state, view, context, event),
+        Phase::Post => visualize_post(state, view, context, event),
+    }
+}
+
+pub fn visualize_pre(
     state: &State,
     view: &mut GameView,
     context: &mut Context,
@@ -62,6 +153,22 @@ pub fn visualize(
         for effect in effects {
             actions.push(visualize_effect(state, view, context, target_id, effect));
         }
+    }
+    Box::new(action::Sequence::new(actions))
+}
+
+pub fn visualize_post(
+    state: &State,
+    view: &mut GameView,
+    context: &mut Context,
+    event: &Event,
+) -> Box<Action> {
+    let mut actions = Vec::new();
+    for &id in &event.actor_ids {
+        actions.push(showhide_brief_unit_info(state, view, context, id));
+    }
+    for &id in event.effects.keys() {
+        actions.push(showhide_brief_unit_info(state, view, context, id));
     }
     Box::new(action::Sequence::new(actions))
 }
