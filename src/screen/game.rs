@@ -281,12 +281,10 @@ impl Game {
                 color_from[3] = 0.0;
                 sprite.set_color(color_from);
                 sprite.set_pos(map::hex_to_point(self.view.tile_size(), pos));
-                let sleep_time = Time(0.05 * tile.cost().0 as f32);
                 let color_to = WALKBALE_TILE_COLOR;
                 let action = {
                     let layer = &self.view.layers().walkable_tiles;
                     Box::new(action::Sequence::new(vec![
-                        Box::new(action::Sleep::new(sleep_time)),
                         Box::new(action::Show::new(layer, &sprite)),
                         Box::new(action::ChangeColorTo::new(&sprite, color_to, Time(0.2))),
                     ]))
