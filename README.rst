@@ -19,9 +19,14 @@ Overview
 
 Zemeroth is a turn-based hexagonal tactical game written in Rust_.
 
-.. image:: http://i.imgur.com/EEtIxGp.png
+.. image:: http://i.imgur.com/myVVfUW.png
 
-.. image:: https://i.imgur.com/x84lNey.gif
+.. image:: http://i.imgur.com/oXpIvb9.png
+
+.. image:: http://i.imgur.com/ovrTxqy.gif
+
+.. image:: http://i.imgur.com/VJaXQEJ.gif
+
 
 Assets
 ------
