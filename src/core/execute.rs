@@ -312,6 +312,7 @@ pub fn create_objects<F>(state: &mut State, cb: &mut F)
 where
     F: FnMut(&State, &Event, Phase),
 {
+    let player_id_initial = state.player_id;
     for &(player_index, (q, r), typename) in &[
         // player 0
         (0, (-3, 2), "swordsman"),
@@ -334,12 +335,9 @@ where
         let player_id = PlayerId(player_index);
         let unit = make_unit(player_id, pos, typename);
         let id = state.alloc_id();
-        let active_event = ActiveEvent::Create(event::Create { id, unit });
-        let event = Event {
-            active_event,
-            actor_ids: vec![id],
-            effects: HashMap::new(),
-        };
-        do_event(state, cb, &event);
+        let command = command::Command::Create(command::Create { id, unit });
+        state.player_id = player_id;
+        execute(state, &command, cb);
     }
+    state.player_id = player_id_initial;
 }
