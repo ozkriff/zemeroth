@@ -22,7 +22,7 @@ where
 {
     debug!("Simulator: do_command: {:?}", command);
     if let Err(err) = check(state, command) {
-        debug!("Error: {:?}", err);
+        error!("Check failed: {:?}", err);
         return;
     }
     match *command {
