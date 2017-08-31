@@ -367,10 +367,18 @@ impl Game {
                 assert_eq!(object_ids.len(), 1);
                 let id = object_ids[0];
                 let other_unit_player_id = self.state.unit(id).player_id;
-                // TODO: I need a way to select enemy units!
-                if other_unit_player_id == self.state.player_id() {
-                    self.select_unit(context, id);
-                } else if let Some(selected_unit_id) = self.selected_unit_id {
+                if let Some(selected_unit_id) = self.selected_unit_id {
+                    let selected_unit_player_id = self.state.unit(selected_unit_id).player_id;
+                    if selected_unit_id == id {
+                        self.deselect(context);
+                        return;
+                    }
+                    if other_unit_player_id == selected_unit_player_id
+                        || other_unit_player_id == self.state.player_id()
+                    {
+                        self.select_unit(context, id);
+                        return;
+                    }
                     let command_attack = command::Command::Attack(command::Attack {
                         attacker_id: selected_unit_id,
                         target_id: id,
@@ -382,6 +390,8 @@ impl Game {
                     if let Some(unit) = self.state.unit_opt(selected_unit_id) {
                         self.pathfinder.fill_map(&self.state, unit);
                     }
+                } else {
+                    self.select_unit(context, id);
                 }
             } else if let Some(id) = self.selected_unit_id {
                 let path = self.pathfinder.path(pos).unwrap();
