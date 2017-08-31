@@ -64,8 +64,7 @@ fn remove_brief_unit_info(view: &mut GameView, id: ObjId) -> Box<Action> {
             ]))),
         ));
     }
-    let action = Box::new(action::Sequence::new(actions));
-    action
+    Box::new(action::Sequence::new(actions))
 }
 
 fn generate_brief_unit_info(
@@ -108,8 +107,7 @@ fn generate_brief_unit_info(
         actions.push(action);
     }
     view.unit_info_set(id, sprites);
-    let action = Box::new(action::Sequence::new(actions));
-    action
+    Box::new(action::Sequence::new(actions))
 }
 
 pub fn showhide_brief_unit_info(

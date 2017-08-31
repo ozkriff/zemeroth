@@ -36,8 +36,7 @@ impl Layer {
         let data = self.data.borrow();
         data.sprites
             .iter()
-            .find(|other| other.is_same(sprite))
-            .is_some()
+            .any(|other| other.is_same(sprite))
     }
 }
 

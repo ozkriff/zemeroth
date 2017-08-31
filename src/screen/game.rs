@@ -124,7 +124,7 @@ fn build_gui(context: &mut Context) -> Gui<GuiCommand> {
 
 fn prepare_map_and_state(context: &mut Context, state: &mut State, view: &mut GameView) {
     let mut actions = Vec::new();
-    actions.push(make_action_create_map(&state, &view, context));
+    actions.push(make_action_create_map(state, view, context));
     execute::create_objects(state, &mut |state, event, phase| {
         let action = visualize::visualize(state, view, context, event, phase);
         let action = Box::new(action::Fork::new(action));
