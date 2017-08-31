@@ -393,14 +393,6 @@ impl Game {
                 if let Some(unit) = self.state.unit_opt(id) {
                     self.pathfinder.fill_map(&self.state, unit);
                 }
-            } else {
-                // TODO: delete all this!
-                let id = self.state.alloc_id();
-                debug!("new id = {:?}", id);
-                let player_id = self.state.player_id();
-                let unit = execute::make_unit(player_id, pos, "swordsman");
-                let command = command::Command::Create(command::Create { id, unit });
-                self.do_command(context, command);
             }
         }
     }
