@@ -375,6 +375,9 @@ impl Game {
                         attacker_id: selected_unit_id,
                         target_id: id,
                     });
+                    if check(&self.state, &command_attack).is_err() {
+                        return;
+                    }
                     self.do_command(context, command_attack);
                     if let Some(unit) = self.state.unit_opt(selected_unit_id) {
                         self.pathfinder.fill_map(&self.state, unit);
@@ -383,6 +386,9 @@ impl Game {
             } else if let Some(id) = self.selected_unit_id {
                 let path = self.pathfinder.path(pos).unwrap();
                 let command_move = command::Command::MoveTo(command::MoveTo { id, path });
+                if check(&self.state, &command_move).is_err() {
+                    return;
+                }
                 self.do_command(context, command_move);
                 if let Some(unit) = self.state.unit_opt(id) {
                     self.pathfinder.fill_map(&self.state, unit);
