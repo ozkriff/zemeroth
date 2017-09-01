@@ -42,6 +42,11 @@ fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> 
             return Err(Error::BadPos);
         }
     }
+    for step in command.path.steps() {
+        if !state.units_at(step.to).is_empty() {
+            return Err(Error::TileIsOccupied);
+        }
+    }
     let cost = command.path.cost_for(state, unit);
     if cost > unit.unit_type.move_points {
         return Err(Error::NotEnoughMovePoints);
