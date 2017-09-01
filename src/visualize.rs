@@ -205,7 +205,7 @@ fn visualize_event_create(
     sprite.set_pos(point);
     view.add_object(event.id, &sprite);
     Box::new(action::Sequence::new(vec![
-        Box::new(action::Show::new(&view.layers().fg, &sprite)),
+        Box::new(action::Show::new(&view.layers().units, &sprite)),
         Box::new(action::ChangeColorTo::new(
             &sprite,
             [1.0, 1.0, 1.0, 1.0],
@@ -324,7 +324,7 @@ fn visualize_effect_kill(
         show_blood_spot(view, context, pos),
         Box::new(action::ChangeColorTo::new(&sprite, dark, Time(0.2))),
         Box::new(action::ChangeColorTo::new(&sprite, invisible, Time(0.2))),
-        Box::new(action::Hide::new(&view.layers().fg, &sprite)),
+        Box::new(action::Hide::new(&view.layers().units, &sprite)),
     ]))
 }
 

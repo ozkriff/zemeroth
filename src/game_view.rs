@@ -11,7 +11,7 @@ pub struct Layers {
     pub walkable_tiles: Layer,
     pub attackable_tiles: Layer,
     pub selection_marker: Layer,
-    pub fg: Layer, // TODO: rename `units`?
+    pub units: Layer,
     pub text: Layer,
 }
 
@@ -24,7 +24,7 @@ impl Layers {
             self.walkable_tiles,
             self.attackable_tiles,
             self.selection_marker,
-            self.fg,
+            self.units,
             self.text,
         ]
     }
