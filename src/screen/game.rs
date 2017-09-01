@@ -216,12 +216,13 @@ impl Game {
         context: &mut Context,
         command: command::Command,
     ) -> Box<Action> {
+        debug!("do_command_inner: {:?}", command);
         let mut actions = Vec::new();
         let state = &mut self.state;
         let view = &mut self.view;
         core::execute(state, &command, &mut |state, event, phase| {
             actions.push(visualize::visualize(state, view, context, event, phase));
-        });
+        }).expect("Can't execute command");
         Box::new(action::Sequence::new(actions))
     }
 

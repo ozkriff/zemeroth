@@ -7,7 +7,7 @@ use core::command;
 use core::command::Command;
 use core::event::{self, ActiveEvent, Event};
 use core::effect::{self, Effect};
-use core::check::{check, check_attack_at};
+use core::check::{check, check_attack_at, Error};
 use core::movement::{MovePoints, Path};
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -16,14 +16,14 @@ pub enum Phase {
     Post,
 }
 
-pub fn execute<F>(state: &mut State, command: &Command, cb: &mut F)
+pub fn execute<F>(state: &mut State, command: &Command, cb: &mut F) -> Result<(), Error>
 where
     F: FnMut(&State, &Event, Phase),
 {
     debug!("Simulator: do_command: {:?}", command);
     if let Err(err) = check(state, command) {
         error!("Check failed: {:?}", err);
-        return;
+        return Err(err);
     }
     match *command {
         Command::Create(ref command) => execute_create(state, cb, command),
@@ -31,6 +31,7 @@ where
         Command::Attack(ref command) => execute_attack(state, cb, command),
         Command::EndTurn(ref command) => execute_end_turn(state, cb, command),
     }
+    Ok(())
 }
 
 fn do_event<F>(state: &mut State, cb: &mut F, event: &Event)
@@ -337,7 +338,7 @@ where
         let id = state.alloc_id();
         let command = command::Command::Create(command::Create { id, unit });
         state.player_id = player_id;
-        execute(state, &command, cb);
+        execute(state, &command, cb).expect("Can't create object");
     }
     state.player_id = player_id_initial;
 }
