@@ -47,7 +47,7 @@ Building
 Running
 -------
 
-``cargo run``
+``cargo run``.
 
 
 Android
