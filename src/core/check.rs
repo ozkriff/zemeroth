@@ -23,6 +23,7 @@ pub enum Error {
     CanNotCommandEnemyUnits,
     NotEnoughMoves,
     NotEnoughAttacks,
+    BadPos,
 }
 
 fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> {
@@ -35,6 +36,11 @@ fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> 
     }
     if unit.moves == Moves(0) && unit.jokers == Jokers(0) {
         return Err(Error::NotEnoughMoves);
+    }
+    for &pos in command.path.tiles() {
+        if !state.map().is_inboard(pos) {
+            return Err(Error::BadPos);
+        }
     }
     let cost = command.path.cost_for(state, unit);
     if cost > unit.unit_type.move_points {
@@ -49,6 +55,9 @@ fn check_create(state: &State, command: &command::Create) -> Result<(), Error> {
     }
     if command.unit.player_id != state.player_id() {
         return Err(Error::CanNotCommandEnemyUnits);
+    }
+    if !state.map().is_inboard(command.unit.pos) {
+        return Err(Error::BadPos);
     }
     if !state.units_at(command.unit.pos).is_empty() {
         return Err(Error::TileIsOccupied);
@@ -75,6 +84,9 @@ pub fn check_attack_at(state: &State, command: &command::Attack, at: PosHex) -> 
     if state.unit_opt(command.target_id).is_none() {
         return Err(Error::BadTargetId);
     };
+    if !state.map().is_inboard(at) {
+        return Err(Error::BadPos);
+    }
     if attacker.attacks == Attacks(0) && attacker.jokers == Jokers(0) {
         return Err(Error::NotEnoughAttacks);
     }
