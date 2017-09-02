@@ -45,6 +45,4 @@ pub fn apply_wound(state: &mut State, id: ObjId, effect: &Wound) {
     assert!(unit.strength.0 > 0);
 }
 
-pub fn apply_miss(_: &mut State, _: ObjId) {
-    // TODO: ?
-}
+pub fn apply_miss(_: &mut State, _: ObjId) {}

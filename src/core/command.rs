@@ -9,7 +9,6 @@ pub enum Command {
     EndTurn(EndTurn),
 }
 
-// TODO: this is a test command, remove it later
 #[derive(Debug, Clone)]
 pub struct Create {
     pub id: ObjId,
