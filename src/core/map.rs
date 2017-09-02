@@ -1,6 +1,9 @@
 use std::iter::repeat;
 use std::fmt::Debug;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Distance(pub i32);
+
 /// Cube coordinates
 /// http://www.redblobgames.com/grids/hexagons/#coordinates-cube
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -71,15 +74,16 @@ pub fn cube_round(cube: PosCube<f32>) -> PosCube {
     }
 }
 
-pub fn distance_cube(a: PosCube, b: PosCube) -> i32 {
-    ((a.x - b.x).abs() + (a.y - b.y).abs() + (a.z - b.z).abs()) / 2
+pub fn distance_cube(a: PosCube, b: PosCube) -> Distance {
+    let n = ((a.x - b.x).abs() + (a.y - b.y).abs() + (a.z - b.z).abs()) / 2;
+    Distance(n)
 }
 
-pub fn distance_hex(a: PosHex, b: PosHex) -> i32 {
+pub fn distance_hex(a: PosHex, b: PosHex) -> Distance {
     distance_cube(hex_to_cube(a), hex_to_cube(b))
 }
 
-fn is_inboard(radius: i32, pos: PosHex) -> bool {
+fn is_inboard(radius: Distance, pos: PosHex) -> bool {
     let origin = PosHex { q: 0, r: 0 };
     distance_hex(origin, pos) <= radius
 }
@@ -87,15 +91,15 @@ fn is_inboard(radius: i32, pos: PosHex) -> bool {
 #[derive(Clone, Debug)]
 pub struct HexIter {
     cursor: PosHex,
-    radius: i32,
+    radius: Distance,
 }
 
 impl HexIter {
-    fn new(radius: i32) -> Self {
+    fn new(radius: Distance) -> Self {
         let mut iter = Self {
             cursor: PosHex {
-                q: -radius,
-                r: -radius,
+                q: -radius.0,
+                r: -radius.0,
             },
             radius,
         };
@@ -105,15 +109,15 @@ impl HexIter {
 
     fn inc_cursor(&mut self) {
         self.cursor.q += 1;
-        if self.cursor.q > self.radius {
-            self.cursor.q = -self.radius;
+        if self.cursor.q > self.radius.0 {
+            self.cursor.q = -self.radius.0;
             self.cursor.r += 1;
         }
     }
 
     fn inc_cursor_with_hex_bounds(&mut self) {
         self.inc_cursor();
-        while !is_inboard(self.radius, self.cursor) && self.cursor.r < self.radius + 1 {
+        while !is_inboard(self.radius, self.cursor) && self.cursor.r < self.radius.0 + 1 {
             self.inc_cursor();
         }
     }
@@ -123,7 +127,7 @@ impl Iterator for HexIter {
     type Item = PosHex;
 
     fn next(&mut self) -> Option<PosHex> {
-        if self.cursor.r >= self.radius + 1 {
+        if self.cursor.r >= self.radius.0 + 1 {
             None
         } else {
             let current = self.cursor;
@@ -141,14 +145,14 @@ impl Iterator for HexIter {
 #[derive(Debug, Clone)]
 pub struct HexMap<T: Copy + Debug> {
     tiles: Vec<T>,
-    size: i32,
-    radius: i32,
+    size: Distance,
+    radius: Distance,
 }
 
 impl<T: Copy + Default + Debug> HexMap<T> {
-    pub fn new(radius: i32) -> Self {
-        let size = radius * 2 + 1;
-        let tiles_count = (size * size) as usize;
+    pub fn new(radius: Distance) -> Self {
+        let size = Distance(radius.0 * 2 + 1);
+        let tiles_count = (size.0 * size.0) as usize;
         let tiles = repeat(Default::default()).take(tiles_count).collect();
         Self {
             tiles,
@@ -157,7 +161,7 @@ impl<T: Copy + Default + Debug> HexMap<T> {
         }
     }
 
-    pub fn radius(&self) -> i32 {
+    pub fn radius(&self) -> Distance {
         self.radius
     }
 
@@ -170,7 +174,7 @@ impl<T: Copy + Default + Debug> HexMap<T> {
     }
 
     fn hex_to_index(&self, hex: PosHex) -> usize {
-        let i = (hex.r + self.radius) + (hex.q + self.radius) * self.size;
+        let i = (hex.r + self.radius.0) + (hex.q + self.radius.0) * self.size.0;
         i as usize
     }
 
@@ -232,7 +236,7 @@ impl Dir {
     */
 
     pub fn get_dir_from_to(from: PosHex, to: PosHex) -> Dir {
-        assert_eq!(distance_hex(from, to), 1);
+        assert_eq!(distance_hex(from, to), Distance(1));
         let diff = [to.q - from.q, to.r - from.r];
         for dir in dirs() {
             if diff == DIR_TO_POS_DIFF[dir.to_int() as usize] {

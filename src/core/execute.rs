@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 use std::iter::FromIterator;
 use rand::{thread_rng, Rng};
-use core::map::PosHex;
+use core::map::{Distance, PosHex};
 use core::{self, Attacks, Jokers, Moves, ObjId, PlayerId, State, Strength, Unit, UnitType};
 use core::command;
 use core::command::Command;
@@ -271,7 +271,7 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
             attacks: Attacks(1),
             jokers: Jokers(1),
             reactive_attacks: Attacks(1),
-            attack_distance: 1, // TODO: Distance(1)
+            attack_distance: Distance(1),
             move_points: MovePoints(3),
             strength: Strength(4),
         },
@@ -281,7 +281,7 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
             attacks: Attacks(0),
             jokers: Jokers(1),
             reactive_attacks: Attacks(2),
-            attack_distance: 2,
+            attack_distance: Distance(2),
             move_points: MovePoints(3),
             strength: Strength(4),
         },
@@ -291,7 +291,7 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
             attacks: Attacks(1),
             jokers: Jokers(1),
             reactive_attacks: Attacks(0),
-            attack_distance: 1,
+            attack_distance: Distance(1),
             move_points: MovePoints(3),
             strength: Strength(2),
         },

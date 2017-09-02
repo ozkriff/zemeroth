@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 use std::slice::Windows;
-use core::map::{dirs, Dir, HexMap, PosHex};
+use core::map::{dirs, Dir, Distance, HexMap, PosHex};
 use core::{State, TileType, Unit};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -123,7 +123,7 @@ pub struct Pathfinder {
 }
 
 impl Pathfinder {
-    pub fn new(map_radius: i32) -> Pathfinder {
+    pub fn new(map_radius: Distance) -> Pathfinder {
         Pathfinder {
             queue: VecDeque::new(),
             map: HexMap::new(map_radius),
@@ -145,7 +145,7 @@ impl Pathfinder {
         let tile_cost = tile_cost(state, unit, original_pos, neighbor_pos);
         let new_cost = MovePoints(old_cost.0 + tile_cost.0);
         let tile = self.map.tile(neighbor_pos);
-        if tile.cost.0 > new_cost.0 {
+        if tile.cost > new_cost {
             let parent_dir = Dir::get_dir_from_to(neighbor_pos, original_pos);
             let updated_tile = Tile {
                 cost: new_cost,

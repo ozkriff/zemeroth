@@ -27,7 +27,7 @@ pub struct Strength(pub i32);
 #[derive(Clone, Debug)]
 pub struct UnitType {
     pub name: String,
-    pub attack_distance: i32, // TODO: i32 -> Distance?
+    pub attack_distance: map::Distance,
     pub move_points: MovePoints,
     pub moves: Moves,
     pub attacks: Attacks,
@@ -93,7 +93,7 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
-        let radius = 5; // TODO: pass `Options` struct
+        let radius = map::Distance(5); // TODO: pass `Options` struct
         let mut map = HexMap::new(radius);
         {
             // TODO: load\generate maps

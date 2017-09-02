@@ -77,7 +77,7 @@ fn build_unit_info_panel(context: &mut Context, gui: &mut Gui<GuiCommand>, unit:
             ids.push(id);
         };
         line(&format!("move points: {}", t.move_points.0));
-        line(&format!("attack distance: {}", t.attack_distance));
+        line(&format!("attack distance: {}", t.attack_distance.0));
         line(&format!("reactive attacks: {}", t.reactive_attacks.0));
         line(&format!("moves: {}/{}", unit.moves.0, t.moves.0,));
         line(&format!("attacks: {}/{}", unit.attacks.0, t.attacks.0,));

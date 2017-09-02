@@ -10,8 +10,7 @@ pub struct Ai {
 }
 
 impl Ai {
-    // TODO: i32 -> ?
-    pub fn new(id: PlayerId, map_radius: i32) -> Self {
+    pub fn new(id: PlayerId, map_radius: map::Distance) -> Self {
         Self {
             id,
             pathfinder: Pathfinder::new(map_radius),
