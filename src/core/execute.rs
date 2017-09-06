@@ -308,32 +308,50 @@ pub fn make_unit(player_id: PlayerId, pos: PosHex, type_name: &str) -> Unit {
     }
 }
 
+fn random_free_pos(state: &State, player_id: PlayerId) -> Option<PosHex> {
+    let attempts = 30;
+    let radius = state.map().radius();
+    let start_sector_width = radius.0;
+    for _ in 0..attempts {
+        let q = radius.0 - thread_rng().gen_range(0, start_sector_width);
+        let pos = PosHex {
+            q: match player_id.0 {
+                0 => -q,
+                1 => q,
+                _ => unimplemented!(),
+            },
+            r: thread_rng().gen_range(-radius.0, radius.0),
+        };
+        if state.map().is_inboard(pos) && state.units_at(pos).is_empty() {
+            return Some(pos);
+        }
+    }
+    None
+}
+
 // TODO: improve the API
 pub fn create_objects<F>(state: &mut State, cb: &mut F)
 where
     F: FnMut(&State, &Event, Phase),
 {
     let player_id_initial = state.player_id;
-    for &(player_index, (q, r), typename) in &[
+    for &(player_index, typename) in &[
         // player 0
-        (0, (-3, 2), "swordsman"),
-        (0, (-3, 1), "spearman"),
-        (0, (-3, 0), "swordsman"),
-        (0, (-3, -1), "spearman"),
+        (0, "swordsman"),
+        (0, "spearman"),
+        (0, "swordsman"),
+        (0, "spearman"),
         // player 1
-        (1, (2, -4), "imp"),
-        (1, (2, -3), "imp"),
-        (1, (2, -2), "imp"),
-        (1, (2, -1), "imp"),
-        (1, (2, 0), "imp"),
-        (1, (2, 1), "imp"),
-        (1, (2, 2), "imp"),
+        (1, "imp"),
+        (1, "imp"),
+        (1, "imp"),
+        (1, "imp"),
+        (1, "imp"),
+        (1, "imp"),
+        (1, "imp"),
     ] {
-        let pos = PosHex {
-            q: q + thread_rng().gen_range(-1, 2),
-            r,
-        };
         let player_id = PlayerId(player_index);
+        let pos = random_free_pos(state, player_id).unwrap();
         let unit = make_unit(player_id, pos, typename);
         let id = state.alloc_id();
         let command = command::Command::Create(command::Create { id, unit });
