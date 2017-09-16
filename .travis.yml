@@ -1,5 +1,8 @@
 language: rust
 
+env:
+    - zipname="zemeroth-$TRAVIS_OS_NAME.tar.gz"
+
 cache: cargo
 
 rust:
@@ -18,4 +21,21 @@ os:
 sudo: false
 
 script:
-    - cargo build && cargo test
+    - cargo build
+    - cargo test
+    - cargo build --release
+
+before_deploy:
+    - git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
+    - mv target/release/zemeroth .
+    - tar -zcvf $zipname assets zemeroth
+
+deploy:
+    provider: releases
+    skip_cleanup: true
+    overwrite: true
+    file: $zipname
+    api_key:
+        secure: sn8NPGcybxiRAIDp5Tk5nhvg89PTgm75VjkyjYfufKmuk3KDOhW2b2CYC6VvlM88a4FAMSWDaYXKi0N3yEYFC2RmqrvtpocBGKsom2fSmvRv/4YWIWCOK7Zpw7IBhRfTn/2dHkLa3Uy+7dyO96LW8qtiuEsotyJCrWaXuLr1+wYdWXWL6oeGsw41sB22Umc4WZJP/SryjGb+5b349WNCipf0rMLdU0sqW7fOJfIg0cv9W1k9FiuHLfw3Li1JzU2qo5TWX3oxv8MPFQ9/lVEHAYkI8tvxaSheN/L3xlpWV1Qjrk9vxN1bIVygyCaARJhzTgTAZ+OH4B1h1Mkwc0emY6ITRbcN4khko599E17AvmhVrB7xE0wNtJtVS9z2coWqcC4MO1yLIFGyC8hxH6BubmGTQln1q7KRy48l8uNJczfW+vi6lwj8Sni0HungZZBzyfv6eNPzU0IZE6rh+FN2pmdfaqAxjo8BPfyZvJFuJqJcTNvUkdT9fXyILgHuzdEmQBOVZhzqn3jOJfv3kHpaEF7prywEEzRr0A4S1RvMCyYN9PH7XvcGKGq1dJNEwCHmgnUfuCkROBKBnsa9PvJTPy3tHY7Z0EhveoQYXMnfhlqN3LTBb3l6Gwg2GK1lajLuLB/Q6tGKuGgRI1r5sLwqPFioIjuL71LecnAgyMilm5c=
+    on:
+        tags: true

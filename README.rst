@@ -14,6 +14,12 @@ News: https://twitter.com/ozkriff
 Devlog album: http://imgur.com/a/SMVqO
 
 
+Downloads
+---------
+
+Precompiled binaries for linux, win, osx and android: https://github.com/ozkriff/zemeroth/releases
+
+
 Overview
 --------
 

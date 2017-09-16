@@ -1,16 +1,33 @@
 version: 2
 
 jobs:
-  test:
-    working_directory: ~/tgst
+  build:
     docker:
       - image: tomaka/cargo-apk
     steps:
       - checkout
       - run: cargo apk build
 
+  deploy:
+    docker:
+      - image: tomaka/cargo-apk
+    steps:
+      - checkout
+      - run: git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
+      - run: cargo apk build
+      - run: ./.circleci/upload_apk_to_github_releases.sh
+
 workflows:
   version: 2
-  build-test-and-deploy:
+  build-and-deploy:
     jobs:
-      - test
+      - build:
+          filters:
+            tags:
+              ignore: /.*/
+      - deploy:
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/

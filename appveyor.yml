@@ -1,4 +1,6 @@
 environment:
+    global:
+        PROJECT_NAME: zemeroth
     matrix:
         - TARGET: i686-pc-windows-gnu
           CHANNEL: stable
@@ -28,8 +30,28 @@ install:
 build: false
 
 test_script:
-    - cmd: 'cargo build && cargo test'
+    - cmd: 'cargo build && cargo test && cargo build --release'
 
 cache:
     - target
     - C:\Users\appveyor\.cargo\registry
+
+before_deploy:
+    - mkdir staging
+    - mkdir staging\assets
+    - copy target\release\zemeroth.exe staging
+    - cd staging
+    - git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
+    - 7z a ../%PROJECT_NAME%-%TARGET%.zip *
+    - appveyor PushArtifact ../%PROJECT_NAME%-%TARGET%.zip
+
+deploy:
+    provider: GitHub
+    artifact: /.*\.zip/
+    auth_token:
+        secure: ENk8Tp+3wU90QF5utTGj5QM3bYyXHRtWm+mMgH+SotiCbIRc6mf0DsoKQgA1F/64
+    on:
+        CHANNEL: stable
+        appveyor_repo_tag: true
+        branch:
+            - master
