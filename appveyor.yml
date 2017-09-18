@@ -32,9 +32,9 @@ build: false
 test_script:
     - cmd: 'cargo build && cargo test && cargo build --release'
 
-cache:
-    - target
-    - C:\Users\appveyor\.cargo\registry
+# cache:
+#     - target
+#     - C:\Users\appveyor\.cargo\registry
 
 before_deploy:
     - mkdir staging
