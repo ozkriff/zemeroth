@@ -17,7 +17,6 @@ extern crate gfx_window_glutin;
 extern crate glutin;
 extern crate png;
 extern crate rusttype;
-extern crate serde;
 
 pub mod gui;
 pub mod geom;
