@@ -8,6 +8,7 @@ enum Command {
     Exit,
     Start,
     GuiTest,
+    ActionsTest,
 }
 
 #[derive(Debug)]
@@ -23,9 +24,12 @@ impl MainMenu {
             let sprite_exit = gui::text_sprite(context, "exit", 0.1);
             let sprite_start = gui::text_sprite(context, "start", 0.1);
             let sprite_gui_test = gui::text_sprite(context, "gui test", 0.1);
+            let sprite_actions_test = gui::text_sprite(context, "actions test", 0.1);
             let button_id_exit = gui.add_button(context, sprite_exit, Command::Exit);
             let button_id_start = gui.add_button(context, sprite_start, Command::Start);
             let button_id_gui_test = gui.add_button(context, sprite_gui_test, Command::GuiTest);
+            let button_id_actions_test =
+                gui.add_button(context, sprite_actions_test, Command::ActionsTest);
             let anchor = gui::Anchor {
                 vertical: gui::VAnchor::Middle,
                 horizontal: gui::HAnchor::Middle,
@@ -34,7 +38,12 @@ impl MainMenu {
             let _ = gui.add_layout(
                 anchor,
                 direction,
-                vec![button_id_exit, button_id_gui_test, button_id_start],
+                vec![
+                    button_id_exit,
+                    button_id_actions_test,
+                    button_id_gui_test,
+                    button_id_start,
+                ],
             );
         }
         let mut sprite_imp = Sprite::from_path(context, "imp.png", 2.0);
@@ -47,6 +56,11 @@ impl MainMenu {
 
     fn open_screen_gui_test(&mut self, context: &mut Context) {
         let screen = Box::new(screen::GuiTest::new(context));
+        context.add_command(hate::screen::Command::Push(screen));
+    }
+
+    fn open_screen_actions_test(&mut self, context: &mut Context) {
+        let screen = Box::new(screen::ActionsTest::new(context));
         context.add_command(hate::screen::Command::Push(screen));
     }
 
@@ -64,6 +78,7 @@ impl MainMenu {
         while let Some(command) = self.gui.try_recv() {
             match command {
                 Command::GuiTest => self.open_screen_gui_test(context),
+                Command::ActionsTest => self.open_screen_actions_test(context),
                 Command::Start => self.start_new_game(context),
                 Command::Exit => self.exit(context),
             }
