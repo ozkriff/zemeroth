@@ -374,8 +374,8 @@ impl Game {
                         self.deselect(context);
                         return;
                     }
-                    if other_unit_player_id == selected_unit_player_id ||
-                        other_unit_player_id == self.state.player_id()
+                    if other_unit_player_id == selected_unit_player_id
+                        || other_unit_player_id == self.state.player_id()
                     {
                         self.select_unit(context, id);
                         return;

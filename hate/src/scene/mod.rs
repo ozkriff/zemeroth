@@ -34,9 +34,7 @@ impl Layer {
 
     pub fn has_sprite(&self, sprite: &Sprite) -> bool {
         let data = self.data.borrow();
-        data.sprites
-            .iter()
-            .any(|other| other.is_same(sprite))
+        data.sprites.iter().any(|other| other.is_same(sprite))
     }
 }
 
