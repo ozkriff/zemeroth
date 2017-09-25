@@ -9,7 +9,7 @@ members = ["hate"]
 
 [dependencies]
 hate = { path = "hate" }
-cgmath = "0.14"
+cgmath = "0.15"
 ron = "0.1"
 rand = "0.3"
 log = "0.3"
