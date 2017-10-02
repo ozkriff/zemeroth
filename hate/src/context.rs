@@ -81,8 +81,8 @@ fn new_pso(
     pso.unwrap()
 }
 
-fn new_font<P: AsRef<Path>>(path: P) -> rusttype::Font<'static> {
-    let collection = rusttype::FontCollection::from_bytes(fs::load(path));
+fn new_font_from_vec(data: Vec<u8>) -> rusttype::Font<'static> {
+    let collection = rusttype::FontCollection::from_bytes(data);
     collection.into_font().unwrap()
 }
 
@@ -179,7 +179,12 @@ impl Context {
             last_press_pos: Point(Vector2::zero()),
             pos: Point(Vector2::zero()),
         };
-        let font = new_font(&settings.font);
+        let font = if let Some(ref fontpath) = settings.font {
+            new_font_from_vec(fs::load(fontpath))
+        } else {
+            let data = include_bytes!("Karla-Regular.ttf");
+            new_font_from_vec(data.to_vec())
+        };
         Context {
             settings,
             events_loop,
