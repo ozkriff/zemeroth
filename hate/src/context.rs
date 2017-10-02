@@ -30,7 +30,18 @@ fn shader_version_string(api: Api) -> String {
 }
 
 fn vertex_shader(api: Api) -> String {
-    shader_version_string(api) + &fs::load_as_string("shader/v.glsl")
+    let shader = r#"
+        uniform mat4 u_ModelViewProj;
+        attribute vec2 a_Pos;
+        attribute vec2 a_Uv;
+        varying vec2 v_Uv;
+
+        void main() {
+            v_Uv = a_Uv;
+            gl_Position = u_ModelViewProj * vec4(a_Pos, 0.0, 1.0);
+        }
+    "#;
+    shader_version_string(api) + shader
 }
 
 fn fragment_shader(api: Api) -> String {
@@ -38,7 +49,16 @@ fn fragment_shader(api: Api) -> String {
     if api == Api::OpenGlEs || api == Api::WebGl {
         text += "precision mediump float;\n";
     }
-    text + &fs::load_as_string("shader/f.glsl")
+    let shader = r#"
+        uniform vec4 u_Basic_color;
+        uniform sampler2D t_Tex;
+        varying vec2 v_Uv;
+
+        void main() {
+            gl_FragColor = u_Basic_color * texture2D(t_Tex, v_Uv);
+        }
+    "#;
+    text + shader
 }
 
 fn new_shader(
