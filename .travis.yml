@@ -24,6 +24,7 @@ script:
     - cargo build
     - cargo test
     - cargo build --release
+    - cargo build --examples --manifest-path hate/Cargo.toml
 
 before_deploy:
     - git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
