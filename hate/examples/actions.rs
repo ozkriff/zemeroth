@@ -1,5 +1,5 @@
-extern crate hate;
 extern crate cgmath;
+extern crate hate;
 
 use cgmath::vec2;
 use hate::{Context, Event, Scene, Screen, Time};

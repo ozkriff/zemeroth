@@ -34,11 +34,7 @@ impl MainMenu {
             let _ = gui.add_layout(
                 anchor,
                 direction,
-                vec![
-                    button_id_exit,
-                    button_id_gui_test,
-                    button_id_start,
-                ],
+                vec![button_id_exit, button_id_gui_test, button_id_start],
             );
         }
         let mut sprite_imp = Sprite::from_path(context, "imp.png", 2.0);
