@@ -179,11 +179,12 @@ impl Context {
             last_press_pos: Point(Vector2::zero()),
             pos: Point(Vector2::zero()),
         };
-        let font = if let Some(ref fontpath) = settings.font {
-            new_font_from_vec(fs::load(fontpath))
-        } else {
+        // Blame https://github.com/ron-rs/ron/issues/55 for this hack:
+        let font = if settings.font == Path::new("<embedded>") {
             let data = include_bytes!("Karla-Regular.ttf");
             new_font_from_vec(data.to_vec())
+        } else {
+            new_font_from_vec(fs::load(&settings.font))
         };
         Context {
             settings,
