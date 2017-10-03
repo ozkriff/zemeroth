@@ -73,12 +73,7 @@ impl Screen for ActionsScreen {
 }
 
 fn main() {
-    let settings = hate::Settings {
-        text_texture_height: 80.0,
-        tap_tolerance: 0.05,
-        font: None,
-        max_fps: 60.0,
-    };
+    let settings = hate::Settings::default();
     let mut visualizer = hate::Visualizer::new(settings);
     let screen = Box::new(ActionsScreen::new(visualizer.context_mut()));
     visualizer.run(screen);
