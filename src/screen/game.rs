@@ -177,6 +177,9 @@ impl Game {
     }
 
     fn end_turn(&mut self, context: &mut Context) {
+        if self.block_timer.is_some() {
+            return;
+        }
         self.deselect(context);
         let command = command::Command::EndTurn(command::EndTurn);
         let mut actions = Vec::new();
