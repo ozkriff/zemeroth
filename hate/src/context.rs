@@ -224,7 +224,6 @@ impl Context {
         texture
     }
 
-
     pub(crate) fn text_texture(&mut self, label: &str) -> Texture {
         if let Some(texture) = self.text_texture_cache.get(label) {
             return texture.clone();
