@@ -1,7 +1,7 @@
 use std::iter::repeat;
 use std::fmt::Debug;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Distance(pub i32);
 
 /// Cube coordinates
@@ -15,7 +15,7 @@ pub struct PosCube<T: Debug + Copy = i32> {
 
 /// Axial coordinates
 /// http://www.redblobgames.com/grids/hexagons/#coordinates-axial
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct PosHex<T: Debug + Copy = i32> {
     /// column
     pub q: T,

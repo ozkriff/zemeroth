@@ -1,9 +1,10 @@
 use std::collections::VecDeque;
 use std::slice::Windows;
+use core;
 use core::map::{dirs, Dir, Distance, HexMap, PosHex};
-use core::{State, TileType, Unit};
+use core::{ObjId, State, TileType};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MovePoints(pub i32);
 
 #[derive(Clone, Copy, Debug)]
@@ -36,7 +37,7 @@ pub fn max_cost() -> MovePoints {
     MovePoints(i32::max_value())
 }
 
-pub fn tile_cost(state: &State, _: &Unit, _: PosHex, pos: PosHex) -> MovePoints {
+pub fn tile_cost(state: &State, _: ObjId, _: PosHex, pos: PosHex) -> MovePoints {
     match state.map().tile(pos) {
         TileType::Floor => MovePoints(1),
         TileType::Lava => MovePoints(3),
@@ -57,13 +58,14 @@ impl Path {
         &self.tiles
     }
 
-    pub fn truncate(&self, state: &State, unit: &Unit) -> Option<Path> {
+    pub fn truncate(&self, state: &State, id: ObjId) -> Option<Path> {
+        let agent = state.parts().agent.get(id);
         let mut new_path = Vec::new();
         let mut cost = MovePoints(0);
         new_path.push(self.tiles[0]);
-        let move_points = unit.unit_type.move_points;
+        let move_points = agent.move_points;
         for Step { from, to } in self.steps() {
-            cost.0 += tile_cost(state, unit, from, to).0;
+            cost.0 += tile_cost(state, id, from, to).0;
             if cost > move_points {
                 break;
             }
@@ -76,10 +78,10 @@ impl Path {
         }
     }
 
-    pub fn cost_for(&self, state: &State, unit: &Unit) -> MovePoints {
+    pub fn cost_for(&self, state: &State, id: ObjId) -> MovePoints {
         let mut cost = MovePoints(0);
         for step in self.steps() {
-            cost.0 += tile_cost(state, unit, step.from, step.to).0;
+            cost.0 += tile_cost(state, id, step.from, step.to).0;
         }
         cost
     }
@@ -137,12 +139,12 @@ impl Pathfinder {
     fn process_neighbor_pos(
         &mut self,
         state: &State,
-        unit: &Unit,
+        id: ObjId,
         original_pos: PosHex,
         neighbor_pos: PosHex,
     ) {
         let old_cost = self.map.tile(original_pos).cost;
-        let tile_cost = tile_cost(state, unit, original_pos, neighbor_pos);
+        let tile_cost = tile_cost(state, id, original_pos, neighbor_pos);
         let new_cost = MovePoints(old_cost.0 + tile_cost.0);
         let tile = self.map.tile(neighbor_pos);
         if tile.cost > new_cost {
@@ -166,15 +168,15 @@ impl Pathfinder {
         }
     }
 
-    fn try_to_push_neighbors(&mut self, state: &State, unit: &Unit, pos: PosHex) {
+    fn try_to_push_neighbors(&mut self, state: &State, id: ObjId, pos: PosHex) {
         assert!(self.map.is_inboard(pos));
         for dir in dirs() {
             let neighbor_pos = Dir::get_neighbor_pos(pos, dir);
-            if !state.units_at(neighbor_pos).is_empty() {
+            if !core::object_ids_at(state, neighbor_pos).is_empty() {
                 continue;
             }
             if self.map.is_inboard(neighbor_pos) {
-                self.process_neighbor_pos(state, unit, pos, neighbor_pos);
+                self.process_neighbor_pos(state, id, pos, neighbor_pos);
             }
         }
     }
@@ -185,12 +187,13 @@ impl Pathfinder {
         self.queue.push_back(start_pos);
     }
 
-    pub fn fill_map(&mut self, state: &State, unit: &Unit) {
+    pub fn fill_map(&mut self, state: &State, id: ObjId) {
+        let unit_pos = state.parts().pos.get(id).0;
         assert!(self.queue.is_empty());
         self.clean_map();
-        self.push_start_pos_to_queue(unit.pos);
+        self.push_start_pos_to_queue(unit_pos);
         while let Some(pos) = self.queue.pop_front() {
-            self.try_to_push_neighbors(state, unit, pos);
+            self.try_to_push_neighbors(state, id, pos);
         }
     }
 

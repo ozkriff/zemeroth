@@ -1,0 +1,6 @@
+[package]
+name = "rancor"
+version = "0.1.0"
+authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Rancör (Rancor) is a stupid component storage"

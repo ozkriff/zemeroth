@@ -67,25 +67,27 @@ fn remove_brief_unit_info(view: &mut GameView, id: ObjId) -> Box<Action> {
     Box::new(action::Sequence::new(actions))
 }
 
-fn generate_brief_unit_info(
+fn generate_brief_obj_info(
     state: &State,
     view: &mut GameView,
     context: &mut Context,
     id: ObjId,
 ) -> Box<Action> {
     let mut actions: Vec<Box<Action>> = Vec::new();
-    let unit = state.unit(id);
+    let agent = state.parts().agent.get(id);
+    let obj_pos = state.parts().pos.get(id).0;
+    let strength = state.parts().strength.get(id);
     let size = 0.02;
-    let mut point = map::hex_to_point(view.tile_size(), unit.pos);
+    let mut point = map::hex_to_point(view.tile_size(), obj_pos);
     point.0.x += view.tile_size() * 0.8;
     point.0.y += view.tile_size() * 0.6;
     let mut dots = Vec::new();
     let base_x = point.0.x;
     for &(color, n) in &[
-        ([0.0, 0.4, 0.0, 1.0], unit.strength.0),
-        ([1.0, 0.1, 1.0, 1.0], unit.jokers.0),
-        ([1.0, 0.0, 0.0, 1.0], unit.attacks.0),
-        ([0.0, 0.0, 1.0, 1.0], unit.moves.0),
+        ([0.0, 0.4, 0.0, 1.0], strength.strength.0),
+        ([1.0, 0.1, 1.0, 1.0], agent.jokers.0),
+        ([1.0, 0.0, 0.0, 1.0], agent.attacks.0),
+        ([0.0, 0.0, 1.0, 1.0], agent.moves.0),
     ] {
         for _ in 0..n {
             dots.push((color, point));
@@ -120,8 +122,8 @@ pub fn showhide_brief_unit_info(
     if view.unit_info_check(id) {
         actions.push(remove_brief_unit_info(view, id));
     }
-    if state.unit_opt(id).is_some() {
-        actions.push(generate_brief_unit_info(state, view, context, id));
+    if state.parts().agent.get_opt(id).is_some() {
+        actions.push(generate_brief_obj_info(state, view, context, id));
     }
     Box::new(action::Sequence::new(actions))
 }
@@ -192,8 +194,8 @@ fn visualize_event_create(
     context: &mut Context,
     event: &event::Create,
 ) -> Box<Action> {
-    let point = map::hex_to_point(view.tile_size(), event.unit.pos);
-    let sprite_name = match event.unit.unit_type.name.as_str() {
+    let point = map::hex_to_point(view.tile_size(), event.pos);
+    let sprite_name = match event.prototype.as_str() {
         "swordsman" => "swordsman.png",
         "spearman" => "spearman.png",
         "imp" => "imp.png",
@@ -238,9 +240,9 @@ fn visualize_event_attack(
     event: &event::Attack,
 ) -> Box<Action> {
     let sprite = view.id_to_sprite(event.attacker_id).clone();
-    let map_to = state.unit(event.target_id).pos;
+    let map_to = state.parts().pos.get(event.target_id).0;
     let to = map::hex_to_point(view.tile_size(), map_to);
-    let map_from = state.unit(event.attacker_id).pos;
+    let map_from = state.parts().pos.get(event.attacker_id).0;
     let from = map::hex_to_point(view.tile_size(), map_from);
     let diff = Point((to.0 - from.0) / 2.0);
     let mut actions: Vec<Box<Action>> = Vec::new();
@@ -313,7 +315,7 @@ fn visualize_effect_kill(
     context: &mut Context,
     target_id: ObjId,
 ) -> Box<Action> {
-    let pos = state.unit(target_id).pos;
+    let pos = state.parts().pos.get(target_id).0;
     let sprite = view.id_to_sprite(target_id).clone();
     view.remove_object(target_id);
     let dark = [0.1, 0.1, 0.1, 1.0];
@@ -335,7 +337,7 @@ fn visualize_effect_wound(
     target_id: ObjId,
     effect: &effect::Wound,
 ) -> Box<Action> {
-    let pos = state.unit(target_id).pos;
+    let pos = state.parts().pos.get(target_id).0;
     let damage = effect.0;
     let sprite = view.id_to_sprite(target_id).clone();
     let color_normal = sprite.color();
@@ -354,6 +356,6 @@ fn visualize_effect_miss(
     context: &mut Context,
     target_id: ObjId,
 ) -> Box<Action> {
-    let pos = state.unit(target_id).pos;
+    let pos = state.parts().pos.get(target_id).0;
     message(view, context, pos, "missed")
 }

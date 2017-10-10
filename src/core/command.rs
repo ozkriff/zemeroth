@@ -1,4 +1,5 @@
-use core::{ObjId, Unit};
+use core::{ObjId, PlayerId};
+use core::map::PosHex;
 use core::movement::Path;
 
 #[derive(Debug, Clone)]
@@ -11,8 +12,9 @@ pub enum Command {
 
 #[derive(Debug, Clone)]
 pub struct Create {
-    pub id: ObjId,
-    pub unit: Unit,
+    pub owner: PlayerId,
+    pub pos: PosHex,
+    pub prototype: String,
 }
 
 #[derive(Debug, Clone)]

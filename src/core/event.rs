@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use core::{Attacks, Jokers, Moves, ObjId, PlayerId, State, Unit};
+use core::{Attacks, Jokers, Moves, ObjId, PlayerId, PosHex, State};
+use core::component::Component;
 use core::effect::{self, Effect};
 use core::movement::Path;
 
@@ -21,9 +22,10 @@ pub enum ActiveEvent {
 
 #[derive(Debug, Clone)]
 pub struct Create {
-    // pos: PosHex,
-    pub unit: Unit,
     pub id: ObjId,
+    pub pos: PosHex,
+    pub prototype: String,
+    pub components: Vec<Component>,
 }
 
 #[derive(Debug, Clone)]
@@ -77,49 +79,63 @@ pub fn apply_event(state: &mut State, event: &Event) {
 }
 
 fn apply_event_create(state: &mut State, event: &Create) {
-    let unit = event.unit.clone();
-    state.units.insert(event.id, unit);
+    let id = event.id;
+    for component in &event.components {
+        match component.clone() {
+            Component::Pos(c) => state.parts.pos.insert(id, c),
+            Component::Strength(c) => state.parts.strength.insert(id, c),
+            Component::Meta(c) => state.parts.meta.insert(id, c),
+            Component::BelongsTo(c) => state.parts.belongs_to.insert(id, c),
+            Component::Agent(c) => state.parts.agent.insert(id, c),
+        }
+    }
 }
 
 fn apply_event_move_to(state: &mut State, event: &MoveTo) {
-    let unit = state.units.get_mut(&event.id).unwrap();
-    unit.pos = *event.path.tiles().last().unwrap();
-    if unit.moves.0 > 0 {
-        unit.moves.0 -= event.cost.0;
+    let agent = state.parts.agent.get_mut(event.id);
+    let pos = state.parts.pos.get_mut(event.id);
+    pos.0 = *event.path.tiles().last().unwrap();
+    if agent.moves.0 > 0 {
+        agent.moves.0 -= event.cost.0;
     } else {
-        unit.jokers.0 -= event.cost.0;
+        agent.jokers.0 -= event.cost.0;
     }
-    assert!(unit.moves >= Moves(0));
-    assert!(unit.jokers >= Jokers(0));
+    assert!(agent.moves >= Moves(0));
+    assert!(agent.jokers >= Jokers(0));
 }
 
 fn apply_event_attack(state: &mut State, event: &Attack) {
-    let attacker = state.units.get_mut(&event.attacker_id).unwrap();
-    if attacker.attacks.0 > 0 {
-        attacker.attacks.0 -= 1;
+    let agent = state.parts.agent.get_mut(event.attacker_id);
+    if agent.attacks.0 > 0 {
+        agent.attacks.0 -= 1;
     } else {
-        attacker.jokers.0 -= 1;
+        agent.jokers.0 -= 1;
     }
-    assert!(attacker.attacks >= Attacks(0));
-    assert!(attacker.jokers >= Jokers(0));
+    assert!(agent.attacks >= Attacks(0));
+    assert!(agent.jokers >= Jokers(0));
 }
 
 fn apply_event_end_turn(state: &mut State, event: &EndTurn) {
-    for unit in state.units.values_mut() {
-        if unit.player_id == event.player_id {
-            unit.attacks.0 += unit.unit_type.reactive_attacks.0;
+    let ids: Vec<_> = state.parts.agent.ids().collect();
+    for id in ids {
+        let agent = state.parts.agent.get_mut(id);
+        let player_id = state.parts.belongs_to.get(id).0;
+        if player_id == event.player_id {
+            agent.attacks.0 += agent.reactive_attacks.0;
         }
     }
 }
 
 fn apply_event_begin_turn(state: &mut State, event: &BeginTurn) {
     state.player_id = event.player_id;
-    for unit in state.units.values_mut() {
-        if unit.player_id == event.player_id {
-            // TODO: get values from the real unit's type
-            unit.moves = unit.unit_type.moves;
-            unit.attacks = unit.unit_type.attacks;
-            unit.jokers = unit.unit_type.jokers;
+    let ids: Vec<_> = state.parts.agent.ids().collect();
+    for id in ids {
+        let agent = state.parts.agent.get_mut(id);
+        let player_id = state.parts.belongs_to.get(id).0;
+        if player_id == event.player_id {
+            agent.moves = agent.base_moves;
+            agent.attacks = agent.base_attacks;
+            agent.jokers = agent.base_jokers;
         }
     }
 }

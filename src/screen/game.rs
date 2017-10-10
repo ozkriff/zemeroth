@@ -1,3 +1,4 @@
+use ron;
 use rand::{thread_rng, Rng};
 use cgmath::Vector2;
 use hate::{self, Context, Event, Screen, Sprite, Time};
@@ -8,7 +9,7 @@ use visualize;
 use map;
 use game_view::GameView;
 use ai::Ai;
-use core::{self, check, Jokers, Moves, ObjId, PlayerId, State, TileType, Unit};
+use core::{self, check, Jokers, Moves, ObjId, PlayerId, State, TileType};
 use core::command;
 use core::execute;
 use core::map::PosHex;
@@ -62,28 +63,40 @@ fn make_action_create_map(state: &State, view: &GameView, context: &mut Context)
     Box::new(action::Sequence::new(actions))
 }
 
-fn build_unit_info_panel(context: &mut Context, gui: &mut Gui<GuiCommand>, unit: &Unit) -> gui::Id {
+fn build_unit_info_panel(
+    context: &mut Context,
+    gui: &mut Gui<GuiCommand>,
+    state: &State,
+    id: ObjId,
+) -> gui::Id {
+    let parts = state.parts();
+    let st = parts.strength.get(id);
+    let meta = parts.meta.get(id);
+    let a = parts.agent.get(id);
     let anchor = gui::Anchor {
         vertical: gui::VAnchor::Bottom,
         horizontal: gui::HAnchor::Left,
     };
     let line_height = 0.08;
     let mut ids = Vec::new();
-    let t = &unit.unit_type;
     {
         let mut line = |s: &str| {
             let sprite = gui::text_sprite(context, s, line_height);
             let id = gui.add_sprite(sprite);
             ids.push(id);
         };
-        line(&format!("move points: {}", t.move_points.0));
-        line(&format!("attack distance: {}", t.attack_distance.0));
-        line(&format!("reactive attacks: {}", t.reactive_attacks.0));
-        line(&format!("moves: {}/{}", unit.moves.0, t.moves.0,));
-        line(&format!("attacks: {}/{}", unit.attacks.0, t.attacks.0,));
-        line(&format!("jokers: {}/{}", unit.jokers.0, t.jokers.0,));
-        line(&format!("strength: {}/{}", unit.strength.0, t.strength.0));
-        line(&format!("[{}]", t.name));
+        line(&format!("move points: {}", a.move_points.0));
+        line(&format!("attack distance: {}", a.attack_distance.0));
+        line(&format!("reactive attacks: {}", a.reactive_attacks.0));
+        line(&format!("moves: {}/{}", a.moves.0, a.base_moves.0,));
+        line(&format!("attacks: {}/{}", a.attacks.0, a.base_attacks.0,));
+        line(&format!("jokers: {}/{}", a.jokers.0, a.base_jokers.0,));
+        line(&format!(
+            "strength: {}/{}",
+            st.strength.0,
+            st.base_strength.0
+        ));
+        line(&format!("[{}]", meta.name));
     }
     // TODO: Direction::Down
     gui.add_layout(anchor, gui::Direction::Up, ids)
@@ -150,7 +163,10 @@ pub struct Game {
 
 impl Game {
     pub fn new(context: &mut Context) -> Self {
-        let mut state = State::new();
+        let prototypes_str = hate::fs::load_as_string("objects.ron");
+        let prototypes = ron::de::from_str(&prototypes_str).unwrap();
+        debug!("{:?}", prototypes);
+        let mut state = State::new(prototypes);
         let radius = state.map().radius();
         let mut view = GameView::new();
         prepare_map_and_state(context, &mut state, &mut view);
@@ -244,7 +260,7 @@ impl Game {
     }
 
     fn show_selection_marker(&mut self, id: ObjId) {
-        let pos = self.state.unit(id).pos;
+        let pos = self.state.parts().pos.get(id).0;
         let point = map::hex_to_point(self.view.tile_size(), pos);
         self.sprite_selection_marker.set_pos(point);
         let action = Box::new(action::Show::new(
@@ -255,10 +271,12 @@ impl Game {
     }
 
     fn show_attackable_tiles(&mut self, context: &mut Context, id: ObjId) {
-        let selected_unit = self.state.unit(id);
-        for target_id in self.state.obj_iter() {
-            let target = self.state.unit(target_id);
-            if target.player_id == selected_unit.player_id {
+        let parts = self.state.parts();
+        let selected_unit_player_id = parts.belongs_to.get(id).0;
+        for target_id in parts.agent.ids() {
+            let target_pos = parts.pos.get(target_id).0;
+            let target_player_id = parts.belongs_to.get(target_id).0;
+            if target_player_id == selected_unit_player_id {
                 continue;
             }
             let command_attack = command::Command::Attack(command::Attack {
@@ -272,7 +290,7 @@ impl Game {
             let mut sprite = Sprite::from_path(context, "tile.png", size);
             self.sprites_attackable_tiles.push(sprite.clone());
             sprite.set_color([1.0, 0.3, 0.3, 0.8]);
-            sprite.set_pos(map::hex_to_point(self.view.tile_size(), target.pos));
+            sprite.set_pos(map::hex_to_point(self.view.tile_size(), target_pos));
             let action = Box::new(action::Show::new(
                 &self.view.layers().attackable_tiles,
                 &sprite,
@@ -282,14 +300,14 @@ impl Game {
     }
 
     fn show_walkable_tiles(&mut self, context: &mut Context, id: ObjId) {
-        let unit = self.state.unit(id);
-        if unit.moves == Moves(0) && unit.jokers == Jokers(0) {
+        let agent = self.state.parts().agent.get(id);
+        if agent.moves == Moves(0) && agent.jokers == Jokers(0) {
             return;
         }
         let map = self.pathfinder.map();
         for pos in map.iter() {
             let tile = map.tile(pos);
-            if tile.cost() <= unit.unit_type.move_points {
+            if tile.cost() <= agent.move_points {
                 let size = self.view.tile_size() * 2.0;
                 let mut sprite = Sprite::from_path(context, "tile.png", size);
                 self.sprites_walkable_tiles.push(sprite.clone());
@@ -346,14 +364,13 @@ impl Game {
     fn select_unit(&mut self, context: &mut Context, id: ObjId) {
         self.deselect(context);
         self.selected_unit_id = Some(id);
-        self.pathfinder.fill_map(&self.state, self.state.unit(id));
+        self.pathfinder.fill_map(&self.state, id);
         self.show_selection_marker(id);
         self.show_walkable_tiles(context, id);
         self.show_attackable_tiles(context, id);
         {
             let gui = &mut self.gui;
-            let unit = self.state.unit(id);
-            let layout_id_info = build_unit_info_panel(context, gui, unit);
+            let layout_id_info = build_unit_info_panel(context, gui, &self.state, id);
             self.layout_id_info = Some(layout_id_info);
         }
     }
@@ -365,14 +382,15 @@ impl Game {
             return;
         }
         if self.state.map().is_inboard(pos) {
-            let object_ids = self.state.object_ids_at(pos);
+            let object_ids = core::object_ids_at(&self.state, pos);
             debug!("object_ids: {:?}", object_ids);
             if !object_ids.is_empty() {
                 assert_eq!(object_ids.len(), 1);
                 let id = object_ids[0];
-                let other_unit_player_id = self.state.unit(id).player_id;
+                let other_unit_player_id = self.state.parts().belongs_to.get(id).0;
                 if let Some(selected_unit_id) = self.selected_unit_id {
-                    let selected_unit_player_id = self.state.unit(selected_unit_id).player_id;
+                    let selected_unit_player_id =
+                        self.state.parts().belongs_to.get(selected_unit_id).0;
                     if selected_unit_id == id {
                         self.deselect(context);
                         return;
@@ -391,8 +409,9 @@ impl Game {
                         return;
                     }
                     self.do_command(context, command_attack);
-                    if let Some(unit) = self.state.unit_opt(selected_unit_id) {
-                        self.pathfinder.fill_map(&self.state, unit);
+                    let parts = self.state.parts();
+                    if parts.agent.get_opt(selected_unit_id).is_some() {
+                        self.pathfinder.fill_map(&self.state, selected_unit_id);
                     }
                 } else {
                     self.select_unit(context, id);
@@ -404,8 +423,8 @@ impl Game {
                     return;
                 }
                 self.do_command(context, command_move);
-                if let Some(unit) = self.state.unit_opt(id) {
-                    self.pathfinder.fill_map(&self.state, unit);
+                if self.state.parts().agent.get_opt(id).is_some() {
+                    self.pathfinder.fill_map(&self.state, id);
                 }
             }
         }
@@ -417,7 +436,7 @@ impl Game {
             if time <= Time(0.0) {
                 self.block_timer = None;
                 if let Some(id) = self.selected_unit_id {
-                    if self.state.unit_opt(id).is_some() {
+                    if self.state.parts().agent.get_opt(id).is_some() {
                         self.select_unit(context, id);
                     } else {
                         self.deselect(context);

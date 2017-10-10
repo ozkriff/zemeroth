@@ -1,7 +1,7 @@
 use core::State;
 use core::command::{self, Command};
 use core::map::{self, PosHex};
-use core::{Attacks, Jokers, Moves};
+use core::{self, Attacks, Jokers, Moves};
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
     match *command {
@@ -17,7 +17,6 @@ pub enum Error {
     NotEnoughMovePoints,
     BadActorId,
     BadTargetId,
-    ObjectAlreadyExists,
     TileIsOccupied,
     DistanceIsTooBig,
     CanNotCommandEnemyUnits,
@@ -27,14 +26,15 @@ pub enum Error {
 }
 
 fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> {
-    let unit = match state.unit_opt(command.id) {
-        Some(unit) => unit,
+    let agent = match state.parts.agent.get_opt(command.id) {
+        Some(agent) => agent,
         None => return Err(Error::BadActorId),
     };
-    if unit.player_id != state.player_id() {
+    let unit_player_id = state.parts().belongs_to.get(command.id).0;
+    if unit_player_id != state.player_id() {
         return Err(Error::CanNotCommandEnemyUnits);
     }
-    if unit.moves == Moves(0) && unit.jokers == Jokers(0) {
+    if agent.moves == Moves(0) && agent.jokers == Jokers(0) {
         return Err(Error::NotEnoughMoves);
     }
     for &pos in command.path.tiles() {
@@ -43,61 +43,57 @@ fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> 
         }
     }
     for step in command.path.steps() {
-        if !state.units_at(step.to).is_empty() {
+        if !core::object_ids_at(state, step.to).is_empty() {
             return Err(Error::TileIsOccupied);
         }
     }
-    let cost = command.path.cost_for(state, unit);
-    if cost > unit.unit_type.move_points {
+    let cost = command.path.cost_for(state, command.id);
+    if cost > agent.move_points {
         return Err(Error::NotEnoughMovePoints);
     }
     Ok(())
 }
 
 fn check_create(state: &State, command: &command::Create) -> Result<(), Error> {
-    if state.unit_opt(command.id).is_some() {
-        return Err(Error::ObjectAlreadyExists);
-    }
-    if command.unit.player_id != state.player_id() {
-        return Err(Error::CanNotCommandEnemyUnits);
-    }
-    if !state.map().is_inboard(command.unit.pos) {
+    if !state.map().is_inboard(command.pos) {
         return Err(Error::BadPos);
     }
-    if !state.units_at(command.unit.pos).is_empty() {
+    if !core::object_ids_at(state, command.pos).is_empty() {
         return Err(Error::TileIsOccupied);
     }
     Ok(())
 }
 
 fn check_attack(state: &State, command: &command::Attack) -> Result<(), Error> {
-    let target = match state.unit_opt(command.target_id) {
-        Some(unit) => unit,
+    let target_pos = match state.parts.pos.get_opt(command.target_id) {
+        Some(pos) => pos.0,
         None => return Err(Error::BadTargetId),
     };
-    check_attack_at(state, command, target.pos)
+    check_attack_at(state, command, target_pos)
 }
 
 pub fn check_attack_at(state: &State, command: &command::Attack, at: PosHex) -> Result<(), Error> {
-    let attacker = match state.unit_opt(command.attacker_id) {
-        Some(unit) => unit,
+    let parts = state.parts();
+    let attacker_agent = match parts.agent.get_opt(command.attacker_id) {
+        Some(agent) => agent,
         None => return Err(Error::BadActorId),
     };
-    if attacker.player_id != state.player_id() {
+    let attacker_pos = parts.pos.get(command.attacker_id).0;
+    let attacker_player_id = parts.belongs_to.get(command.attacker_id).0;
+    if attacker_player_id != state.player_id() {
         return Err(Error::CanNotCommandEnemyUnits);
     }
-    if state.unit_opt(command.target_id).is_none() {
+    if parts.agent.get_opt(command.target_id).is_none() {
         return Err(Error::BadTargetId);
     };
     if !state.map().is_inboard(at) {
         return Err(Error::BadPos);
     }
-    if attacker.attacks == Attacks(0) && attacker.jokers == Jokers(0) {
+    if attacker_agent.attacks == Attacks(0) && attacker_agent.jokers == Jokers(0) {
         return Err(Error::NotEnoughAttacks);
     }
-    let dist = map::distance_hex(attacker.pos, at);
-    let max_dist = attacker.unit_type.attack_distance;
-    if dist > max_dist {
+    let dist = map::distance_hex(attacker_pos, at);
+    if dist > attacker_agent.attack_distance {
         return Err(Error::DistanceIsTooBig);
     }
     Ok(())
