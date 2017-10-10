@@ -122,6 +122,13 @@ pub struct MouseState {
     pub pos: Point,
 }
 
+fn gl_version() -> glutin::GlRequest {
+    glutin::GlRequest::GlThenGles {
+        opengles_version: (2, 0),
+        opengl_version: (2, 1),
+    }
+}
+
 // TODO: use gfx-rs generics, not gfx_device_gl types
 pub struct Context {
     events_loop: glutin::EventsLoop,
@@ -147,13 +154,9 @@ pub struct Context {
 
 impl Context {
     pub(crate) fn new(tx: Sender<screen::Command>, settings: Settings) -> Context {
-        let gl_version = glutin::GlRequest::GlThenGles {
-            opengles_version: (2, 0),
-            opengl_version: (2, 1),
-        };
         let window_builder = glutin::WindowBuilder::new().with_title("Zemeroth".to_string());
         let context_builder = glutin::ContextBuilder::new()
-            .with_gl(gl_version)
+            .with_gl(gl_version())
             .with_pixel_format(24, 8);
         let events_loop = glutin::EventsLoop::new();
         let (window, device, mut factory, out, out_depth) =
