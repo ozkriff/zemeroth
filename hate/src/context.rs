@@ -45,9 +45,9 @@ fn vertex_shader(api: Api) -> String {
 }
 
 fn fragment_shader(api: Api) -> String {
-    let mut text = shader_version_string(api);
+    let mut header = shader_version_string(api);
     if api == Api::OpenGlEs || api == Api::WebGl {
-        text += "precision mediump float;\n";
+        header += "precision mediump float;\n";
     }
     let shader = r#"
         uniform vec4 u_Basic_color;
@@ -58,7 +58,7 @@ fn fragment_shader(api: Api) -> String {
             gl_FragColor = u_Basic_color * texture2D(t_Tex, v_Uv);
         }
     "#;
-    text + shader
+    header + shader
 }
 
 fn new_shader(
