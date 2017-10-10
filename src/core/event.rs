@@ -87,6 +87,7 @@ fn apply_event_create(state: &mut State, event: &Create) {
             Component::Meta(c) => state.parts.meta.insert(id, c),
             Component::BelongsTo(c) => state.parts.belongs_to.insert(id, c),
             Component::Agent(c) => state.parts.agent.insert(id, c),
+            Component::Blocker(c) => state.parts.blocker.insert(id, c),
         }
     }
 }

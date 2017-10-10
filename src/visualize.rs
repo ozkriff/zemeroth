@@ -195,10 +195,12 @@ fn visualize_event_create(
     event: &event::Create,
 ) -> Box<Action> {
     let point = map::hex_to_point(view.tile_size(), event.pos);
+    // TODO: Move to some .ron config:
     let sprite_name = match event.prototype.as_str() {
         "swordsman" => "swordsman.png",
         "spearman" => "spearman.png",
         "imp" => "imp.png",
+        "boulder" => "boulder.png",
         _ => unimplemented!(),
     };
     let size = view.tile_size() * 2.0;

@@ -363,6 +363,7 @@ impl Game {
 
     fn select_unit(&mut self, context: &mut Context, id: ObjId) {
         self.deselect(context);
+        assert!(self.state.parts().agent.get_opt(id).is_some());
         self.selected_unit_id = Some(id);
         self.pathfinder.fill_map(&self.state, id);
         self.show_selection_marker(id);
@@ -387,6 +388,10 @@ impl Game {
             if !object_ids.is_empty() {
                 assert_eq!(object_ids.len(), 1);
                 let id = object_ids[0];
+                if self.state.parts().agent.get_opt(id).is_none() {
+                    // only agents can be selected
+                    return;
+                }
                 let other_unit_player_id = self.state.parts().belongs_to.get(id).0;
                 if let Some(selected_unit_id) = self.selected_unit_id {
                     let selected_unit_player_id =

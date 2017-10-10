@@ -12,7 +12,7 @@ pub enum Command {
 
 #[derive(Debug, Clone)]
 pub struct Create {
-    pub owner: PlayerId,
+    pub owner: Option<PlayerId>,
     pub pos: PosHex,
     pub prototype: String,
 }

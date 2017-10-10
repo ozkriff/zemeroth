@@ -4,6 +4,9 @@ use core::{self, map, Attacks, Jokers, MovePoints, Moves, PlayerId};
 pub struct Pos(pub map::PosHex);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Blocker;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Strength {
     pub base_strength: core::Strength,
     pub strength: core::Strength,
@@ -40,4 +43,5 @@ pub enum Component {
     Meta(Meta),
     BelongsTo(BelongsTo),
     Agent(Agent),
+    Blocker(Blocker),
 }

@@ -172,7 +172,7 @@ impl Pathfinder {
         assert!(self.map.is_inboard(pos));
         for dir in dirs() {
             let neighbor_pos = Dir::get_neighbor_pos(pos, dir);
-            if !core::object_ids_at(state, neighbor_pos).is_empty() {
+            if core::is_tile_blocked(state, neighbor_pos) {
                 continue;
             }
             if self.map.is_inboard(neighbor_pos) {

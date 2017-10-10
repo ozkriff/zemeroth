@@ -17,7 +17,7 @@ pub enum Error {
     NotEnoughMovePoints,
     BadActorId,
     BadTargetId,
-    TileIsOccupied,
+    TileIsBlocked,
     DistanceIsTooBig,
     CanNotCommandEnemyUnits,
     NotEnoughMoves,
@@ -43,8 +43,8 @@ fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> 
         }
     }
     for step in command.path.steps() {
-        if !core::object_ids_at(state, step.to).is_empty() {
-            return Err(Error::TileIsOccupied);
+        if core::is_tile_blocked(state, step.to) {
+            return Err(Error::TileIsBlocked);
         }
     }
     let cost = command.path.cost_for(state, command.id);
@@ -58,8 +58,8 @@ fn check_create(state: &State, command: &command::Create) -> Result<(), Error> {
     if !state.map().is_inboard(command.pos) {
         return Err(Error::BadPos);
     }
-    if !core::object_ids_at(state, command.pos).is_empty() {
-        return Err(Error::TileIsOccupied);
+    if core::is_tile_blocked(state, command.pos) {
+        return Err(Error::TileIsBlocked);
     }
     Ok(())
 }

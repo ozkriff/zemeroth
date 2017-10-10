@@ -115,8 +115,10 @@ where
     F: FnMut(&State, &Event, Phase),
 {
     let mut components = state.prototypes.0[&command.prototype].clone();
+    if let Some(player_id) = command.owner {
+        components.push(Component::BelongsTo(component::BelongsTo(player_id)));
+    }
     components.extend_from_slice(&[
-        Component::BelongsTo(component::BelongsTo(command.owner)),
         Component::Pos(component::Pos(command.pos)),
         Component::Meta(component::Meta {
             name: command.prototype.clone(),
@@ -278,7 +280,22 @@ fn next_player_id(state: &State) -> PlayerId {
     }
 }
 
-fn random_free_pos(state: &State, player_id: PlayerId) -> Option<PosHex> {
+fn random_free_pos(state: &State) -> Option<PosHex> {
+    let attempts = 30;
+    let radius = state.map().radius();
+    for _ in 0..attempts {
+        let pos = PosHex {
+            q: thread_rng().gen_range(-radius.0, radius.0),
+            r: thread_rng().gen_range(-radius.0, radius.0),
+        };
+        if state.map().is_inboard(pos) && !core::is_tile_blocked(state, pos) {
+            return Some(pos);
+        }
+    }
+    None
+}
+
+fn random_free_sector_pos(state: &State, player_id: PlayerId) -> Option<PosHex> {
     let attempts = 30;
     let radius = state.map().radius();
     let start_sector_width = radius.0;
@@ -292,7 +309,7 @@ fn random_free_pos(state: &State, player_id: PlayerId) -> Option<PosHex> {
             },
             r: thread_rng().gen_range(-radius.0, radius.0),
         };
-        if state.map().is_inboard(pos) && core::object_ids_at(state, pos).is_empty() {
+        if state.map().is_inboard(pos) && !core::is_tile_blocked(state, pos) {
             return Some(pos);
         }
     }
@@ -305,30 +322,27 @@ where
     F: FnMut(&State, &Event, Phase),
 {
     let player_id_initial = state.player_id;
-    for &(player_index, typename) in &[
-        // player 0
-        (0, "swordsman"),
-        (0, "spearman"),
-        (0, "swordsman"),
-        (0, "spearman"),
-        // player 1
-        (1, "imp"),
-        (1, "imp"),
-        (1, "imp"),
-        (1, "imp"),
-        (1, "imp"),
-        (1, "imp"),
-        (1, "imp"),
+    for &(owner, typename, count) in &[
+        (None, "boulder", 10),
+        (Some(PlayerId(0)), "swordsman", 2),
+        (Some(PlayerId(0)), "spearman", 2),
+        (Some(PlayerId(1)), "imp", 9),
     ] {
-        let player_id = PlayerId(player_index);
-        let pos = random_free_pos(state, player_id).unwrap();
-        let command = Command::Create(command::Create {
-            prototype: typename.into(),
-            pos,
-            owner: player_id,
-        });
-        state.player_id = player_id;
-        execute(state, &command, cb).expect("Can't create object");
+        if let Some(player_id) = owner {
+            state.player_id = player_id;
+        }
+        for _ in 0..count {
+            let pos = match owner {
+                Some(player_id) => random_free_sector_pos(state, player_id),
+                None => random_free_pos(state),
+            }.unwrap();
+            let command = Command::Create(command::Create {
+                prototype: typename.into(),
+                pos,
+                owner,
+            });
+            execute(state, &command, cb).expect("Can't create object");
+        }
     }
     state.player_id = player_id_initial;
 }

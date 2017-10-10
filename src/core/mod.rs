@@ -58,6 +58,7 @@ rancor_storage!(Parts<ObjId>: {
     meta: component::Meta,
     belongs_to: component::BelongsTo,
     agent: component::Agent,
+    blocker: component::Blocker,
 });
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -121,4 +122,13 @@ pub fn object_ids_at(state: &State, pos: PosHex) -> Vec<ObjId> {
         }
     }
     ids
+}
+
+pub fn is_tile_blocked(state: &State, pos: PosHex) -> bool {
+    for id in state.parts.blocker.ids() {
+        if state.parts.pos.get(id).0 == pos {
+            return true;
+        }
+    }
+    false
 }
