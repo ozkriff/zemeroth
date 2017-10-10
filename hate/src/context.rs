@@ -81,9 +81,19 @@ fn new_pso(
     pso.unwrap()
 }
 
-fn new_font_from_vec(data: Vec<u8>) -> rusttype::Font<'static> {
+fn load_font_from_vec(data: Vec<u8>) -> rusttype::Font<'static> {
     let collection = rusttype::FontCollection::from_bytes(data);
     collection.into_font().unwrap()
+}
+
+fn load_font(settings: &Settings) -> rusttype::Font<'static> {
+    // Blame https://github.com/ron-rs/ron/issues/55 for this '<embedded>' hack:
+    if settings.font == Path::new("<embedded>") {
+        let data = include_bytes!("Karla-Regular.ttf");
+        load_font_from_vec(data.to_vec())
+    } else {
+        load_font_from_vec(fs::load(&settings.font))
+    }
 }
 
 fn get_win_size(window: &glutin::Window) -> Size<i32> {
@@ -120,6 +130,15 @@ pub fn projection_matrix(win_size: Size<i32>) -> Matrix4<f32> {
 pub struct MouseState {
     pub last_press_pos: Point,
     pub pos: Point,
+}
+
+impl Default for MouseState {
+    fn default() -> Self {
+        Self {
+            last_press_pos: Point(Vector2::zero()),
+            pos: Point(Vector2::zero()),
+        }
+    }
 }
 
 fn gl_version() -> glutin::GlRequest {
@@ -178,17 +197,7 @@ impl Context {
             out_depth,
             mvp: Matrix4::identity().into(),
         };
-        let mouse = MouseState {
-            last_press_pos: Point(Vector2::zero()),
-            pos: Point(Vector2::zero()),
-        };
-        // Blame https://github.com/ron-rs/ron/issues/55 for this hack:
-        let font = if settings.font == Path::new("<embedded>") {
-            let data = include_bytes!("Karla-Regular.ttf");
-            new_font_from_vec(data.to_vec())
-        } else {
-            new_font_from_vec(fs::load(&settings.font))
-        };
+        let font = load_font(&settings);
         Context {
             settings,
             events_loop,
@@ -204,7 +213,7 @@ impl Context {
             should_close: false,
             commands_tx: tx,
             font,
-            mouse,
+            mouse: MouseState::default(),
             start_time: time::Instant::now(),
             events: Vec::new(),
             texture_cache: HashMap::new(),
