@@ -1,5 +1,5 @@
 use core::command::{self, Command};
-use core::{belongs_to, check, ObjId, PlayerId, State};
+use core::{self, belongs_to, check, ObjId, PlayerId, State};
 use core::movement::{self, Path, Pathfinder};
 use core::map;
 
@@ -44,12 +44,8 @@ impl Ai {
     }
 
     fn try_to_attack(&self, state: &State, unit_id: ObjId) -> Option<Command> {
-        // TODO: Use 'filter' on ids
-        for target_id in state.parts().agent.ids() {
-            let target_player_id = state.parts().belongs_to.get(target_id).0;
-            if target_player_id == self.id {
-                continue;
-            }
+        let ids = state.parts().agent.ids();
+        for target_id in ids.filter(|&id| !belongs_to(state, self.id, id)) {
             let command = command::Command::Attack(command::Attack {
                 attacker_id: unit_id,
                 target_id: target_id,
@@ -83,12 +79,7 @@ impl Ai {
     }
 
     pub fn command(&mut self, state: &State) -> Option<Command> {
-        // TODO: Use 'filter' on ids
-        for unit_id in state.parts().agent.ids() {
-            let unit_player_id = state.parts().belongs_to.get(unit_id).0;
-            if unit_player_id != self.id {
-                continue;
-            }
+        for unit_id in core::players_agent_ids(state, self.id) {
             if let Some(attack_command) = self.try_to_attack(state, unit_id) {
                 return Some(attack_command);
             }

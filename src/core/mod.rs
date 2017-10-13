@@ -124,6 +124,11 @@ pub fn object_ids_at(state: &State, pos: PosHex) -> Vec<ObjId> {
     ids
 }
 
+pub fn players_agent_ids(state: &State, player_id: PlayerId) -> Vec<ObjId> {
+    let ids = state.parts().agent.ids();
+    ids.filter(|&id| belongs_to(state, player_id, id)).collect()
+}
+
 pub fn is_tile_blocked(state: &State, pos: PosHex) -> bool {
     for id in state.parts.blocker.ids() {
         if state.parts.pos.get(id).0 == pos {
