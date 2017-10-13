@@ -2,7 +2,7 @@ use std::collections::{HashMap, VecDeque};
 use std::iter::FromIterator;
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
-use core::{self, belongs_to, Moves, ObjId, PlayerId, State};
+use core::{self, Moves, ObjId, PlayerId, State};
 use core::command;
 use core::component::{self, Component};
 use core::command::Command;
@@ -236,12 +236,7 @@ where
         let active_event = ActiveEvent::EndTurn(event::EndTurn {
             player_id: player_id_old,
         });
-        let actor_ids = state
-            .parts
-            .agent
-            .ids()
-            .filter(|&id| belongs_to(state, player_id_old, id))
-            .collect();
+        let actor_ids = core::players_agent_ids(state, player_id_old);
         let effects = HashMap::new();
         let event = Event {
             active_event,
@@ -255,12 +250,7 @@ where
         let active_event = ActiveEvent::BeginTurn(event::BeginTurn {
             player_id: player_id_new,
         });
-        let actor_ids = state
-            .parts
-            .agent
-            .ids()
-            .filter(|&id| belongs_to(state, player_id_new, id))
-            .collect();
+        let actor_ids = core::players_agent_ids(state, player_id_new);
         let effects = HashMap::new();
         let event = Event {
             active_event,
