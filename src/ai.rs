@@ -43,48 +43,57 @@ impl Ai {
         best_path
     }
 
+    fn try_to_attack(&self, state: &State, unit_id: ObjId) -> Option<Command> {
+        // TODO: Use 'filter' on ids
+        for target_id in state.parts().agent.ids() {
+            let target_player_id = state.parts().belongs_to.get(target_id).0;
+            if target_player_id == self.id {
+                continue;
+            }
+            let command = command::Command::Attack(command::Attack {
+                attacker_id: unit_id,
+                target_id: target_id,
+            });
+            if check(state, &command).is_ok() {
+                return Some(command);
+            }
+        }
+        None
+    }
+
+    fn try_to_move(&mut self, state: &State, unit_id: ObjId) -> Option<Command> {
+        let path = match self.get_best_path(state, unit_id) {
+            Some(path) => path,
+            None => return None,
+        };
+        let path = match path.truncate(state, unit_id) {
+            Some(path) => path,
+            None => return None,
+        };
+        let cost = path.cost_for(state, unit_id);
+        let agent = state.parts().agent.get(unit_id);
+        if agent.move_points < cost {
+            return None;
+        }
+        let command = command::Command::MoveTo(command::MoveTo { id: unit_id, path });
+        if check(state, &command).is_ok() {
+            return Some(command);
+        }
+        None
+    }
+
     pub fn command(&mut self, state: &State) -> Option<Command> {
+        // TODO: Use 'filter' on ids
         for unit_id in state.parts().agent.ids() {
-            let agent = state.parts().agent.get(unit_id);
             let unit_player_id = state.parts().belongs_to.get(unit_id).0;
             if unit_player_id != self.id {
                 continue;
             }
-            // move to `try_to_attack` method
-            {
-                for target_id in state.parts().agent.ids() {
-                    let target_player_id = state.parts().belongs_to.get(target_id).0;
-                    if target_player_id == self.id {
-                        continue;
-                    }
-                    let command = command::Command::Attack(command::Attack {
-                        attacker_id: unit_id,
-                        target_id: target_id,
-                    });
-                    if check(state, &command).is_ok() {
-                        return Some(command);
-                    }
-                }
+            if let Some(attack_command) = self.try_to_attack(state, unit_id) {
+                return Some(attack_command);
             }
-
-            // move to `try_to_move` method
-            {
-                let path = match self.get_best_path(state, unit_id) {
-                    Some(path) => path,
-                    None => continue,
-                };
-                let path = match path.truncate(state, unit_id) {
-                    Some(path) => path,
-                    None => continue,
-                };
-                let cost = path.cost_for(state, unit_id);
-                if agent.move_points < cost {
-                    continue;
-                }
-                let command = command::Command::MoveTo(command::MoveTo { id: unit_id, path });
-                if check(state, &command).is_ok() {
-                    return Some(command);
-                }
+            if let Some(move_command) = self.try_to_move(state, unit_id) {
+                return Some(move_command);
             }
         }
         Some(Command::EndTurn(command::EndTurn))
