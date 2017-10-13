@@ -107,21 +107,9 @@ pub fn belongs_to(state: &State, player_id: PlayerId, id: ObjId) -> bool {
     state.parts.belongs_to.get(id).0 == player_id
 }
 
-pub fn is_object_at(state: &State, pos: PosHex, id: ObjId) -> bool {
-    match state.parts.pos.get_opt(id) {
-        Some(p) => p.0 == pos,
-        None => false,
-    }
-}
-
 pub fn object_ids_at(state: &State, pos: PosHex) -> Vec<ObjId> {
-    let mut ids = Vec::new();
-    for id in state.parts.ids() {
-        if is_object_at(state, pos, id) {
-            ids.push(id);
-        }
-    }
-    ids
+    let ids = state.parts().agent.ids();
+    ids.filter(|&id| state.parts.pos.get(id).0 == pos).collect()
 }
 
 pub fn players_agent_ids(state: &State, player_id: PlayerId) -> Vec<ObjId> {
