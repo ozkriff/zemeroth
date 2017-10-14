@@ -86,21 +86,15 @@ where
     do_event(state, cb, &event);
 }
 
-// TODO: try to remove code duplication with `try_execute_reaction_attacks`
 fn check_reaction_attacks_at(state: &mut State, target_id: ObjId, pos: PosHex) -> bool {
     let initial_player_id = state.player_id;
-    let ids: Vec<_> = state.parts.agent.ids().collect();
     let mut result = false;
-    for obj_id in ids {
-        let unit_player_id = state.parts.belongs_to.get(obj_id).0;
-        if unit_player_id == initial_player_id {
-            continue;
-        }
+    for obj_id in core::enemy_agent_ids(state, initial_player_id) {
         let command_attack = command::Attack {
             attacker_id: obj_id,
             target_id,
         };
-        state.player_id = unit_player_id;
+        state.player_id = state.parts.belongs_to.get(obj_id).0;
         if check_attack_at(state, &command_attack, pos).is_ok() {
             result = true;
             break;
@@ -190,14 +184,9 @@ where
 {
     let mut status = AttackStatus::Miss;
     let initial_player_id = state.player_id;
-    let ids: Vec<_> = state.parts.agent.ids().collect();
-    for obj_id in ids {
+    for obj_id in core::enemy_agent_ids(state, initial_player_id) {
         if state.parts.agent.get_opt(obj_id).is_none() {
             // check if target is killed
-            continue;
-        }
-        let unit_player_id = state.parts.belongs_to.get(obj_id).0;
-        if unit_player_id == initial_player_id {
             continue;
         }
         let command_attack = command::Attack {
@@ -205,7 +194,7 @@ where
             target_id,
         };
         let command = command::Command::Attack(command_attack.clone());
-        state.player_id = unit_player_id;
+        state.player_id = state.parts.belongs_to.get(obj_id).0;
         if check(state, &command).is_err() {
             continue;
         }
