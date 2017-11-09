@@ -2,7 +2,7 @@
 name = "zemeroth"
 version = "0.1.0"
 authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
-license = "MIT OR Apache-2.0"
+license = "MIT/Apache-2.0"
 
 [workspace]
 members = ["hate", "rancor"]
