@@ -77,7 +77,7 @@ fn generate_brief_obj_info(
     let agent = state.parts().agent.get(id);
     let obj_pos = state.parts().pos.get(id).0;
     let strength = state.parts().strength.get(id);
-    let size = 0.02;
+    let size = 0.2 * view.tile_size();
     let mut point = map::hex_to_point(view.tile_size(), obj_pos);
     point.0.x += view.tile_size() * 0.8;
     point.0.y += view.tile_size() * 0.6;
