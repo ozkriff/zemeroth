@@ -119,7 +119,8 @@ pub fn players_agent_ids(state: &State, player_id: PlayerId) -> Vec<ObjId> {
 
 pub fn enemy_agent_ids(state: &State, player_id: PlayerId) -> Vec<ObjId> {
     let ids = state.parts().agent.ids();
-    ids.filter(|&id| !belongs_to(state, player_id, id)).collect()
+    ids.filter(|&id| !belongs_to(state, player_id, id))
+        .collect()
 }
 
 pub fn is_tile_blocked(state: &State, pos: PosHex) -> bool {

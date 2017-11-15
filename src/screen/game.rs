@@ -263,7 +263,8 @@ impl Game {
         assert!(self.state.parts().agent.get_opt(id).is_some());
         self.selected_unit_id = Some(id);
         self.pathfinder.fill_map(&self.state, id);
-        self.view.select_unit(&self.state, self.pathfinder.map(), context, id);
+        let map = self.pathfinder.map();
+        self.view.select_unit(&self.state, map, context, id);
         {
             let gui = &mut self.gui;
             let layout_id_info = build_unit_info_panel(context, gui, &self.state, id);

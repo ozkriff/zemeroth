@@ -28,11 +28,7 @@ impl MainMenu {
                 horizontal: gui::HAnchor::Middle,
             };
             let direction = gui::Direction::Up;
-            let _ = gui.add_layout(
-                anchor,
-                direction,
-                vec![button_id_exit, button_id_start],
-            );
+            let _ = gui.add_layout(anchor, direction, vec![button_id_exit, button_id_start]);
         }
         let mut sprite_imp = Sprite::from_path(context, "imp.png", 2.0);
         sprite_imp.set_color([0.0, 0.0, 1.0, 0.2]);

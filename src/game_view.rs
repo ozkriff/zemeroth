@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use hate::{Context, Scene, Sprite, Time};
 use hate::scene::Layer;
 use hate::scene::action::{self, Action};
-use core::{Jokers, Moves, State, check};
+use core::{check, Jokers, Moves, State};
 use core::ObjId;
 use core::map::HexMap;
 use core::movement::Tile;
@@ -189,10 +189,7 @@ impl GameView {
             self.sprites.attackable_tiles.push(sprite.clone());
             sprite.set_color([1.0, 0.3, 0.3, 0.8]);
             sprite.set_pos(hex_to_point(self.tile_size(), target_pos));
-            let action = Box::new(action::Show::new(
-                &self.layers().attackable_tiles,
-                &sprite,
-            ));
+            let action = Box::new(action::Show::new(&self.layers().attackable_tiles, &sprite));
             self.add_action(action);
         }
     }
