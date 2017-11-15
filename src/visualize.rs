@@ -13,7 +13,7 @@ use core::execute::Phase;
 use game_view::GameView;
 use map;
 
-pub fn message(view: &mut GameView, context: &mut Context, pos: PosHex, text: &str) -> Box<Action> {
+fn message(view: &mut GameView, context: &mut Context, pos: PosHex, text: &str) -> Box<Action> {
     let visible = [0.0, 0.0, 0.0, 1.0];
     let invisible = [0.0, 0.0, 0.0, 0.0];
     let mut sprite = gui::text_sprite(context, text, 0.1);
@@ -38,7 +38,7 @@ pub fn message(view: &mut GameView, context: &mut Context, pos: PosHex, text: &s
     ]))))
 }
 
-pub fn show_blood_spot(view: &mut GameView, context: &mut Context, at: PosHex) -> Box<Action> {
+fn show_blood_spot(view: &mut GameView, context: &mut Context, at: PosHex) -> Box<Action> {
     let mut blood = Sprite::from_path(context, "blood.png", view.tile_size() * 2.0);
     blood.set_color([1.0, 1.0, 1.0, 0.0]);
     let mut point = map::hex_to_point(view.tile_size(), at);
@@ -112,7 +112,7 @@ fn generate_brief_obj_info(
     Box::new(action::Sequence::new(actions))
 }
 
-pub fn showhide_brief_unit_info(
+fn showhide_brief_unit_info(
     state: &State,
     view: &mut GameView,
     context: &mut Context,
@@ -141,7 +141,7 @@ pub fn visualize(
     }
 }
 
-pub fn visualize_pre(
+fn visualize_pre(
     state: &State,
     view: &mut GameView,
     context: &mut Context,
@@ -157,7 +157,7 @@ pub fn visualize_pre(
     Box::new(action::Sequence::new(actions))
 }
 
-pub fn visualize_post(
+fn visualize_post(
     state: &State,
     view: &mut GameView,
     context: &mut Context,
@@ -173,7 +173,7 @@ pub fn visualize_post(
     Box::new(action::Sequence::new(actions))
 }
 
-pub fn visualize_event(
+fn visualize_event(
     state: &State,
     view: &mut GameView,
     context: &mut Context,
@@ -295,7 +295,7 @@ fn visualize_event_begin_turn(
     ]))
 }
 
-pub fn visualize_effect(
+fn visualize_effect(
     state: &State,
     view: &mut GameView,
     context: &mut Context,
