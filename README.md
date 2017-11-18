@@ -7,11 +7,11 @@
 [![][img_appveyor-ci]][appveyor-ci]
 [![][img_circle-ci]][circle-ci]
 
-[img_license]: https://img.shields.io/badge/license-MIT_or_Apache_2.0-blue.svg
+[img_license]: https://img.shields.io/badge/License-MIT_or_Apache_2.0-blue.svg
 [img_loc]: https://tokei.rs/b1/github/ozkriff/zemeroth
-[img_travis-ci]: https://travis-ci.org/ozkriff/zemeroth.svg?branch=master
-[img_appveyor-ci]: https://ci.appveyor.com/api/projects/status/rsxn9wh9xbpey26m/branch/master?svg=true
-[img_circle-ci]: https://circleci.com/gh/ozkriff/zemeroth/tree/master.svg?style=svg
+[img_travis-ci]: https://img.shields.io/travis/ozkriff/zemeroth/master.svg?label=Linux|OSX
+[img_appveyor-ci]: https://img.shields.io/appveyor/ci/ozkriff/zemeroth.svg?label=Windows
+[img_circle-ci]: https://img.shields.io/circleci/project/github/ozkriff/zemeroth/master.svg?label=Android
 
 [loc]: https://github.com/Aaronepower/tokei
 [travis-ci]: https://travis-ci.org/ozkriff/zemeroth
