@@ -28,13 +28,13 @@ pub fn load<P: AsRef<Path>>(path: P) -> Vec<u8> {
     let mut file = match File::open(&fullpath) {
         Ok(file) => file,
         Err(err) => {
-            panic!("Can`t open file '{}' ({})", fullpath.display(), err);
+            panic!("Can`t open file '{}' ({})", fullpath.display(), err)
         }
     };
     match file.read_to_end(&mut buf) {
         Ok(_) => buf,
         Err(err) => {
-            panic!("Can`t read file '{}' ({})", fullpath.display(), err);
+            panic!("Can`t read file '{}' ({})", fullpath.display(), err)
         }
     }
 }

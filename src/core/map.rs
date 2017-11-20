@@ -5,7 +5,7 @@ use std::fmt::Debug;
 pub struct Distance(pub i32);
 
 /// Cube coordinates
-/// http://www.redblobgames.com/grids/hexagons/#coordinates-cube
+/// <http://www.redblobgames.com/grids/hexagons/#coordinates-cube>
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PosCube<T: Debug + Copy = i32> {
     pub x: T,
@@ -14,7 +14,7 @@ pub struct PosCube<T: Debug + Copy = i32> {
 }
 
 /// Axial coordinates
-/// http://www.redblobgames.com/grids/hexagons/#coordinates-axial
+/// <http://www.redblobgames.com/grids/hexagons/#coordinates-axial>
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct PosHex<T: Debug + Copy = i32> {
     /// column
@@ -52,7 +52,7 @@ pub fn hex_round(hex: PosHex<f32>) -> PosHex {
     cube_to_hex(cube_round(hex_to_cube_f(hex)))
 }
 
-/// http://www.redblobgames.com/grids/hexagons/#rounding
+/// <http://www.redblobgames.com/grids/hexagons/#rounding>
 pub fn cube_round(cube: PosCube<f32>) -> PosCube {
     let mut rx = cube.x.round();
     let mut ry = cube.y.round();
@@ -200,7 +200,7 @@ pub enum Dir {
     SouthWest,
 }
 
-/// http://www.redblobgames.com/grids/hexagons/#neighbors-axial
+/// <http://www.redblobgames.com/grids/hexagons/#neighbors-axial>
 const DIR_TO_POS_DIFF: [[i32; 2]; 6] = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
 
 impl Dir {

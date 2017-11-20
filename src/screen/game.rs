@@ -188,7 +188,7 @@ impl Game {
         self.deselect();
         let command = command::Command::EndTurn(command::EndTurn);
         let mut actions = Vec::new();
-        actions.push(self.do_command_inner(context, command));
+        actions.push(self.do_command_inner(context, &command));
         actions.push(self.do_ai(context));
         self.add_actions(actions);
     }
@@ -199,7 +199,7 @@ impl Game {
         loop {
             let command = self.ai.command(&self.state).unwrap();
             debug!("AI: command = {:?}", command);
-            actions.push(self.do_command_inner(context, command.clone()));
+            actions.push(self.do_command_inner(context, &command));
             actions.push(Box::new(action::Sleep::new(Time(0.3)))); // ??
             if let command::Command::EndTurn(_) = command {
                 break;
@@ -222,19 +222,19 @@ impl Game {
     fn do_command_inner(
         &mut self,
         context: &mut Context,
-        command: command::Command,
+        command: &command::Command,
     ) -> Box<Action> {
         debug!("do_command_inner: {:?}", command);
         let mut actions = Vec::new();
         let state = &mut self.state;
         let view = &mut self.view;
-        core::execute(state, &command, &mut |state, event, phase| {
+        core::execute(state, command, &mut |state, event, phase| {
             actions.push(visualize::visualize(state, view, context, event, phase));
         }).expect("Can't execute command");
         Box::new(action::Sequence::new(actions))
     }
 
-    fn do_command(&mut self, context: &mut Context, command: command::Command) {
+    fn do_command(&mut self, context: &mut Context, command: &command::Command) {
         let action = self.do_command_inner(context, command);
         self.add_action(action);
     }
@@ -309,7 +309,7 @@ impl Game {
                     if check(&self.state, &command_attack).is_err() {
                         return;
                     }
-                    self.do_command(context, command_attack);
+                    self.do_command(context, &command_attack);
                     let parts = self.state.parts();
                     if parts.agent.get_opt(selected_unit_id).is_some() {
                         self.pathfinder.fill_map(&self.state, selected_unit_id);
@@ -323,7 +323,7 @@ impl Game {
                 if check(&self.state, &command_move).is_err() {
                     return;
                 }
-                self.do_command(context, command_move);
+                self.do_command(context, &command_move);
                 if self.state.parts().agent.get_opt(id).is_some() {
                     self.pathfinder.fill_map(&self.state, id);
                 }
