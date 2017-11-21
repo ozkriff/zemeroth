@@ -4,6 +4,7 @@ use sprite::Sprite;
 use context::Context;
 use mesh::RMesh;
 use geom::{Point, Size};
+use texture;
 
 // TODO: Make private? Move to other file?
 pub fn text_sprite(context: &mut Context, label: &str, height: f32) -> Sprite {
@@ -77,10 +78,15 @@ pub struct Gui<Message: Clone> {
     backgrounds: HashMap<Id, Sprite>,
     clickables: HashMap<Id, Clickable<Message>>,
     layouts: HashMap<Id, Layout>,
+    bg_texture: texture::Texture,
 }
 
 impl<Message: Clone> Gui<Message> {
-    pub fn new(context: &Context) -> Self {
+    pub fn new(context: &mut Context) -> Self {
+        let bg_texture = {
+            let data = include_bytes!("test_button_bg.png");
+            texture::load(context, data)
+        };
         Self {
             aspect_ratio: context.aspect_ratio(),
             next_id: Id(0),
@@ -89,6 +95,7 @@ impl<Message: Clone> Gui<Message> {
             layouts: HashMap::new(),
             sprites: HashMap::new(),
             backgrounds: HashMap::new(),
+            bg_texture,
         }
     }
 
@@ -240,7 +247,8 @@ impl<Message: Clone> Gui<Message> {
         let sprite = self.sprites.get(&id).expect("Can't add bg without Sprite");
         let mut sprite_size = sprite.size();
         sprite_size.w += SPACING / 2.0;
-        let mut bg = Sprite::from_path_rect(context, "test_button_bg.png", sprite_size);
+        let mesh = RMesh::new(context, self.bg_texture.clone(), sprite_size);
+        let mut bg = Sprite::from_mesh(mesh);
         bg.set_color([0.0, 0.0, 0.0, 0.5]);
         self.backgrounds.insert(id, bg);
     }
