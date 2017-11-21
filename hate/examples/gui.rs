@@ -1,7 +1,5 @@
 extern crate hate;
 
-use std::env;
-
 use hate::{Context, Event, Screen, Sprite, Time};
 use hate::geom::Point;
 use hate::gui::{self, Gui};
@@ -179,9 +177,6 @@ impl Screen for GuiTest {
 }
 
 pub fn main() {
-    // so that assets can be accessed correctly
-    env::set_current_dir(env::current_dir().unwrap().parent().unwrap()).unwrap();
-
     let settings = hate::Settings::default();
     let mut visualizer = hate::Visualizer::new(settings);
     let start_screen = Box::new(GuiTest::new(visualizer.context_mut()));
