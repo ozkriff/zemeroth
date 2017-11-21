@@ -40,7 +40,7 @@ Precompiled binaries for Linux, Windows, OS X and Android:
 ![](https://i.imgur.com/oXpIvb9.png)
 
 
-## Gameplay gifs
+## Gifs
 
 ![](https://i.imgur.com/ovrTxqy.gif)
 
