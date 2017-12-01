@@ -110,8 +110,8 @@ fn window_to_screen(context: &Context, x: f32, y: f32) -> Point {
     let h = context.win_size.h as f32;
     let aspect_ratio = w / h;
     Point(Vector2 {
-        x: (2.0 * (x/dpi) / w - 1.0) * aspect_ratio,
-        y: 1.0 - 2.0 * (y/dpi) / h,
+        x: (2.0 * (x / dpi) / w - 1.0) * aspect_ratio,
+        y: 1.0 - 2.0 * (y / dpi) / h,
     })
 }
 
