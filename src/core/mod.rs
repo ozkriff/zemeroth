@@ -42,13 +42,13 @@ pub struct Jokers(pub i32);
 
 #[derive(Clone, Copy, Debug)]
 pub enum TileType {
-    Floor,
-    Lava,
+    Plain,
+    Rocks,
 }
 
 impl Default for TileType {
     fn default() -> Self {
-        TileType::Floor
+        TileType::Plain
     }
 }
 
@@ -76,13 +76,8 @@ pub struct State {
 impl State {
     pub fn new(prototypes: Prototypes) -> Self {
         let radius = map::Distance(5); // TODO: pass `Options` struct
-        let mut map = HexMap::new(radius);
-        {
-            // TODO: load\generate maps
-            map.set_tile(PosHex { q: 0, r: 0 }, TileType::Lava);
-        }
         Self {
-            map,
+            map: HexMap::new(radius),
             player_id: PlayerId(0),
             players_count: 2, // TODO: Read from the `Options` struct
             parts: Parts::new(),

@@ -31,8 +31,8 @@ fn make_action_show_tile(
     let screen_pos = map::hex_to_point(view.tile_size(), at);
     let mut sprite = Sprite::from_path(context, "tile.png", view.tile_size() * 2.0);
     match state.map().tile(at) {
-        TileType::Floor => sprite.set_color([1.0, 1.0, 1.0, 1.0]),
-        TileType::Lava => sprite.set_color([1.0, 0.7, 0.7, 1.0]),
+        TileType::Plain => sprite.set_color([1.0, 1.0, 1.0, 1.0]),
+        TileType::Rocks => sprite.set_color([0.7, 0.7, 0.7, 1.0]),
     }
     sprite.set_pos(screen_pos);
     Box::new(action::Show::new(&view.layers().bg, &sprite))
@@ -135,6 +135,7 @@ fn build_gui(context: &mut Context) -> Gui<GuiCommand> {
 
 fn prepare_map_and_state(context: &mut Context, state: &mut State, view: &mut GameView) {
     let mut actions = Vec::new();
+    execute::create_terrain(state);
     actions.push(make_action_create_map(state, view, context));
     execute::create_objects(state, &mut |state, event, phase| {
         let action = visualize::visualize(state, view, context, event, phase);

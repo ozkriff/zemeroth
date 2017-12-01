@@ -39,8 +39,8 @@ pub fn max_cost() -> MovePoints {
 
 pub fn tile_cost(state: &State, _: ObjId, _: PosHex, pos: PosHex) -> MovePoints {
     match state.map().tile(pos) {
-        TileType::Floor => MovePoints(1),
-        TileType::Lava => MovePoints(3),
+        TileType::Plain => MovePoints(1),
+        TileType::Rocks => MovePoints(3),
     }
 }
 

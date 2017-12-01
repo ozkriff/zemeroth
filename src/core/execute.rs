@@ -2,7 +2,7 @@ use std::collections::{HashMap, VecDeque};
 use std::iter::FromIterator;
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
-use core::{self, Moves, ObjId, PlayerId, State};
+use core::{self, Moves, ObjId, PlayerId, State, TileType};
 use core::command;
 use core::component::{self, Component};
 use core::command::Command;
@@ -293,6 +293,16 @@ fn random_free_sector_pos(state: &State, player_id: PlayerId) -> Option<PosHex> 
         }
     }
     None
+}
+
+pub fn create_terrain(state: &mut State) {
+    for _ in 0..15 {
+        let pos = match random_free_pos(state) {
+            Some(pos) => pos,
+            None => continue,
+        };
+        state.map.set_tile(pos, TileType::Rocks);
+    }
 }
 
 // TODO: improve the API
