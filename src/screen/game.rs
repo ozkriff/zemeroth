@@ -29,11 +29,12 @@ fn make_action_show_tile(
     at: PosHex,
 ) -> Box<Action> {
     let screen_pos = map::hex_to_point(view.tile_size(), at);
-    let mut sprite = Sprite::from_path(context, "tile.png", view.tile_size() * 2.0);
-    match state.map().tile(at) {
-        TileType::Plain => sprite.set_color([1.0, 1.0, 1.0, 1.0]),
-        TileType::Rocks => sprite.set_color([0.7, 0.7, 0.7, 1.0]),
-    }
+    let texture_name = match state.map().tile(at) {
+        TileType::Plain => "tile.png",
+        TileType::Rocks => "tile_rocks.png",
+    };
+    let size = view.tile_size() * 2.0;
+    let mut sprite = Sprite::from_path(context, texture_name, size);
     sprite.set_pos(screen_pos);
     Box::new(action::Show::new(&view.layers().bg, &sprite))
 }
