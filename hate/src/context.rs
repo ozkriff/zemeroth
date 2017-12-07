@@ -333,7 +333,7 @@ impl Context {
             } => {
                 self.mouse.last_press_pos = self.mouse.pos;
             }
-            glutin::WindowEvent::MouseMoved {
+            glutin::WindowEvent::CursorMoved {
                 position: (x, y), ..
             } => {
                 self.mouse.pos = window_to_screen(self, x as f32, y as f32);
