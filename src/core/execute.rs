@@ -112,11 +112,10 @@ where
     if let Some(player_id) = command.owner {
         components.push(Component::BelongsTo(component::BelongsTo(player_id)));
     }
+    let name = command.prototype.clone();
     components.extend_from_slice(&[
         Component::Pos(component::Pos(command.pos)),
-        Component::Meta(component::Meta {
-            name: command.prototype.clone(),
-        }),
+        Component::Meta(component::Meta { name }),
     ]);
     let id = state.parts.alloc_id();
     let active_event = ActiveEvent::Create(event::Create {
