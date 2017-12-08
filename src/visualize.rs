@@ -180,10 +180,10 @@ fn visualize_event(
     event: &ActiveEvent,
 ) -> Box<Action> {
     match *event {
-        ActiveEvent::Create(ref event) => visualize_event_create(state, view, context, event),
-        ActiveEvent::MoveTo(ref event) => visualize_event_move_to(state, view, context, event),
-        ActiveEvent::Attack(ref event) => visualize_event_attack(state, view, context, event),
-        ActiveEvent::EndTurn(ref event) => visualize_event_end_turn(state, view, context, event),
+        ActiveEvent::Create(ref ev) => visualize_event_create(state, view, context, ev),
+        ActiveEvent::MoveTo(ref ev) => visualize_event_move_to(state, view, context, ev),
+        ActiveEvent::Attack(ref ev) => visualize_event_attack(state, view, context, ev),
+        ActiveEvent::EndTurn(ref ev) => visualize_event_end_turn(state, view, context, ev),
         ActiveEvent::BeginTurn(ref ev) => visualize_event_begin_turn(state, view, context, ev),
     }
 }
