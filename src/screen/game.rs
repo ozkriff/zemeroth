@@ -320,7 +320,10 @@ impl Game {
                     self.select_unit(context, id);
                 }
             } else if let Some(id) = self.selected_unit_id {
-                let path = self.pathfinder.path(pos).unwrap();
+                let path = match self.pathfinder.path(pos) {
+                    Some(path) => path,
+                    None => return,
+                };
                 let command_move = command::Command::MoveTo(command::MoveTo { id, path });
                 if check(&self.state, &command_move).is_err() {
                     return;
