@@ -165,7 +165,7 @@ impl Game {
         debug!("{:?}", prototypes);
         let mut state = State::new(prototypes);
         let radius = state.map().radius();
-        let mut view = GameView::new(context);
+        let mut view = GameView::new(&state, context);
         prepare_map_and_state(context, &mut state, &mut view);
         Self {
             gui: build_gui(context),

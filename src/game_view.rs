@@ -56,10 +56,11 @@ pub struct GameView {
 }
 
 impl GameView {
-    pub fn new(context: &mut Context) -> Self {
+    pub fn new(state: &State, context: &mut Context) -> Self {
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
-        let tile_size = 0.11; // TODO: Read from the config?
+        let map_height = state.map().radius().0 * 2 + 1;
+        let tile_size = 1.0 / ((map_height + 1) as f32 * 0.75);
         let mut selection_marker = Sprite::from_path(context, "selection.png", tile_size * 2.0);
         selection_marker.set_color([0.0, 0.0, 1.0, 0.8]);
         let sprites = Sprites {
