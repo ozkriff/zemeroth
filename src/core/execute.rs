@@ -17,10 +17,10 @@ pub enum Phase {
     Post,
 }
 
-pub fn execute<F>(state: &mut State, command: &Command, cb: &mut F) -> Result<(), Error>
-where
-    F: FnMut(&State, &Event, Phase),
-{
+/// A callback for visualization of the events/effects with the correct state.
+type Cb<'c> = &'c mut FnMut(&State, &Event, Phase);
+
+pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error> {
     debug!("Simulator: do_command: {:?}", command);
     if let Err(err) = check(state, command) {
         error!("Check failed: {:?}", err);
@@ -35,19 +35,13 @@ where
     Ok(())
 }
 
-fn do_event<F>(state: &mut State, cb: &mut F, event: &Event)
-where
-    F: FnMut(&State, &Event, Phase),
-{
+fn do_event(state: &mut State, cb: Cb, event: &Event) {
     cb(state, event, Phase::Pre);
     event::apply(state, event);
     cb(state, event, Phase::Post);
 }
 
-fn execute_move_to<F>(state: &mut State, cb: &mut F, command: &command::MoveTo)
-where
-    F: FnMut(&State, &Event, Phase),
-{
+fn execute_move_to(state: &mut State, cb: Cb, command: &command::MoveTo) {
     let id = command.id;
     let mut cost = Some(Moves(1));
     let mut current_path = Vec::new();
@@ -72,10 +66,7 @@ where
     do_move(state, cb, command.id, cost.take(), Path::new(current_path));
 }
 
-fn do_move<F>(state: &mut State, cb: &mut F, id: ObjId, cost: Option<Moves>, path: Path)
-where
-    F: FnMut(&State, &Event, Phase),
-{
+fn do_move(state: &mut State, cb: Cb, id: ObjId, cost: Option<Moves>, path: Path) {
     let cost = cost.unwrap_or(Moves(0));
     let active_event = ActiveEvent::MoveTo(event::MoveTo { id, path, cost });
     let event = Event {
@@ -104,10 +95,7 @@ fn check_reaction_attacks_at(state: &mut State, target_id: ObjId, pos: PosHex) -
     result
 }
 
-fn execute_create<F>(state: &mut State, cb: &mut F, command: &command::Create)
-where
-    F: FnMut(&State, &Event, Phase),
-{
+fn execute_create(state: &mut State, cb: Cb, command: &command::Create) {
     let mut components = state.prototypes.0[&command.prototype].clone();
     if let Some(player_id) = command.owner {
         components.push(Component::BelongsTo(component::BelongsTo(player_id)));
@@ -138,15 +126,12 @@ enum AttackStatus {
     Miss,
 }
 
-fn execute_attack_internal<F>(
+fn execute_attack_internal(
     state: &mut State,
-    cb: &mut F,
+    cb: Cb,
     command: &command::Attack,
     mode: event::AttackMode,
-) -> AttackStatus
-where
-    F: FnMut(&State, &Event, Phase),
-{
+) -> AttackStatus {
     let active_event = ActiveEvent::Attack(event::Attack {
         attacker_id: command.attacker_id,
         target_id: command.target_id,
@@ -177,10 +162,7 @@ where
     status
 }
 
-fn try_execute_reaction_attacks<F>(state: &mut State, cb: &mut F, target_id: ObjId) -> AttackStatus
-where
-    F: FnMut(&State, &Event, Phase),
-{
+fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: ObjId) -> AttackStatus {
     let mut status = AttackStatus::Miss;
     let initial_player_id = state.player_id;
     for obj_id in core::enemy_agent_ids(state, initial_player_id) {
@@ -207,18 +189,12 @@ where
     status
 }
 
-fn execute_attack<F>(state: &mut State, cb: &mut F, command: &command::Attack)
-where
-    F: FnMut(&State, &Event, Phase),
-{
+fn execute_attack(state: &mut State, cb: Cb, command: &command::Attack) {
     execute_attack_internal(state, cb, command, event::AttackMode::Active);
     try_execute_reaction_attacks(state, cb, command.attacker_id);
 }
 
-fn execute_end_turn<F>(state: &mut State, cb: &mut F, _: &command::EndTurn)
-where
-    F: FnMut(&State, &Event, Phase),
-{
+fn execute_end_turn(state: &mut State, cb: Cb, _: &command::EndTurn) {
     {
         let player_id_old = state.player_id();
         let active_event = ActiveEvent::EndTurn(event::EndTurn {
@@ -305,10 +281,7 @@ pub fn create_terrain(state: &mut State) {
 }
 
 // TODO: improve the API
-pub fn create_objects<F>(state: &mut State, cb: &mut F)
-where
-    F: FnMut(&State, &Event, Phase),
-{
+pub fn create_objects(state: &mut State, cb: Cb) {
     let player_id_initial = state.player_id;
     for &(owner, typename, count) in &[
         (None, "boulder", 10),
