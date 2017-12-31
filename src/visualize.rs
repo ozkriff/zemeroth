@@ -253,7 +253,7 @@ fn visualize_event_attack(
         actions.push(Box::new(action::Sleep::new(Time(0.3)))); // TODO: ??
         actions.push(message(view, context, map_from, "reaction"));
     }
-    actions.push(Box::new(action::MoveBy::new(&sprite, diff, Time(0.15))));
+    actions.push(Box::new(action::MoveBy::new(&sprite, diff, Time(0.1))));
     actions.push(Box::new(
         action::MoveBy::new(&sprite, Point(-diff.0), Time(0.15)),
     ));
