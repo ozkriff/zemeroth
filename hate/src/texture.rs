@@ -33,8 +33,9 @@ where
         size.h as gfx::texture::Size,
         gfx::texture::AaMode::Single,
     );
+    let mipmap = gfx::texture::Mipmap::Provided;
     let (_, view) = factory
-        .create_texture_immutable_u8::<ColorFormat>(kind, &[data])
+        .create_texture_immutable_u8::<ColorFormat>(kind, mipmap, &[data])
         .unwrap();
     Texture { raw: view, size }
 }
