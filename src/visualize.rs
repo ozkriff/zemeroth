@@ -51,6 +51,25 @@ fn show_blood_spot(view: &mut GameView, context: &mut Context, at: PosHex) -> Bo
     ]))
 }
 
+fn up_and_down_move(
+    _: &mut GameView,
+    sprite: &Sprite,
+    height: f32,
+    time: Time,
+) -> Box<Action> {
+    let duration_0_25 = Time(time.0 * 0.25);
+    let up_fast = Point(vec2(0.0, height * 0.75));
+    let up_slow = Point(vec2(0.0, height * 0.25));
+    let down_slow = Point(vec2(0.0, -height * 0.25));
+    let down_fast = Point(vec2(0.0, -height * 0.75));
+    Box::new(action::Sequence::new(vec![
+        Box::new(action::MoveBy::new(sprite, up_fast, duration_0_25)),
+        Box::new(action::MoveBy::new(sprite, up_slow, duration_0_25)),
+        Box::new(action::MoveBy::new(sprite, down_slow, duration_0_25)),
+        Box::new(action::MoveBy::new(sprite, down_fast, duration_0_25)),
+    ]))
+}
+
 fn remove_brief_unit_info(view: &mut GameView, id: ObjId) -> Box<Action> {
     let mut actions: Vec<Box<Action>> = Vec::new();
     let sprites = view.unit_info_get(id);
@@ -230,7 +249,15 @@ fn visualize_event_move_to(
         let from = map::hex_to_point(view.tile_size(), step.from);
         let to = map::hex_to_point(view.tile_size(), step.to);
         let diff = Point(to.0 - from.0);
-        actions.push(Box::new(action::MoveBy::new(&sprite, diff, Time(0.3))));
+        let step_height = 0.025;
+        let step_time = Time(0.13);
+        let main_move = Box::new(action::MoveBy::new(&sprite, diff, Time(0.3)));
+        let action = Box::new(action::Sequence::new(vec![
+            Box::new(action::Fork::new(main_move)),
+            up_and_down_move(view, &sprite, step_height, step_time),
+            up_and_down_move(view, &sprite, step_height, step_time),
+        ]));
+        actions.push(action);
     }
     Box::new(action::Sequence::new(actions))
 }
