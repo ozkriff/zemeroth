@@ -12,8 +12,8 @@ hate = { path = "hate" }
 rancor = { path = "rancor" }
 cgmath = "0.15"
 ron = "0.1"
-rand = "0.3"
-log = "0.3"
+rand = "0.4"
+log = "0.4"
 env_logger = "0.4"
 serde = "1.0"
 serde_derive = "1.0"
