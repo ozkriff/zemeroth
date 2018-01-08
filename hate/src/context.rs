@@ -177,6 +177,7 @@ impl Context {
         let window_builder = glutin::WindowBuilder::new().with_title("Zemeroth".to_string());
         let context_builder = glutin::ContextBuilder::new()
             .with_gl(gl_version())
+            .with_gl_profile(glutin::GlProfile::Compatibility)
             .with_pixel_format(24, 8);
         let events_loop = glutin::EventsLoop::new();
         let (window, device, mut factory, out, out_depth) =
