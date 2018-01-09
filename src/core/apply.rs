@@ -5,12 +5,12 @@ use core::event::{self, ActiveEvent, Event};
 
 pub fn apply(state: &mut State, event: &Event) {
     debug!("apply: {:?}", event);
+    apply_event(state, event);
     for (&obj_id, effects) in &event.effects {
         for effect in effects {
             apply_effect(state, obj_id, effect);
         }
     }
-    apply_event(state, event);
 }
 
 pub fn apply_event(state: &mut State, event: &Event) {
