@@ -16,6 +16,7 @@ pub mod component;
 
 mod check;
 mod state;
+mod apply;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PlayerId(pub i32); // TODO: make field private

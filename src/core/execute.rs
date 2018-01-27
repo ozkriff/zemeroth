@@ -3,13 +3,13 @@ use std::iter::FromIterator;
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
 use core::{self, Moves, ObjId, PlayerId, State, TileType};
-use core::command;
 use core::component::{self, Component};
-use core::command::Command;
+use core::command::{self, Command};
 use core::event::{self, ActiveEvent, Event};
 use core::effect::{self, Effect};
 use core::check::{check, check_attack_at, Error};
 use core::movement::Path;
+use core::apply::apply;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Phase {
@@ -37,7 +37,7 @@ pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error
 
 fn do_event(state: &mut State, cb: Cb, event: &Event) {
     cb(state, event, Phase::Pre);
-    event::apply(state, event);
+    apply(state, event);
     cb(state, event, Phase::Post);
 }
 
