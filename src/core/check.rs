@@ -26,7 +26,7 @@ pub enum Error {
 }
 
 fn check_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> {
-    let agent = match state.parts.agent.get_opt(command.id) {
+    let agent = match state.parts().agent.get_opt(command.id) {
         Some(agent) => agent,
         None => return Err(Error::BadActorId),
     };
@@ -65,7 +65,7 @@ fn check_create(state: &State, command: &command::Create) -> Result<(), Error> {
 }
 
 fn check_attack(state: &State, command: &command::Attack) -> Result<(), Error> {
-    let target_pos = match state.parts.pos.get_opt(command.target_id) {
+    let target_pos = match state.parts().pos.get_opt(command.target_id) {
         Some(pos) => pos.0,
         None => return Err(Error::BadTargetId),
     };

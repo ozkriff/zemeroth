@@ -35,12 +35,12 @@ pub fn apply(state: &mut State, id: ObjId, effect: &Effect) {
 }
 
 pub fn apply_kill(state: &mut State, id: ObjId) {
-    state.parts.remove(id);
+    state.parts_mut().remove(id);
 }
 
 pub fn apply_wound(state: &mut State, id: ObjId, effect: &Wound) {
     let damage = effect.0;
-    let strength = state.parts.strength.get_mut(id);
+    let strength = state.parts_mut().strength.get_mut(id);
     strength.strength.0 -= damage.0;
     assert!(strength.strength.0 > 0);
 }

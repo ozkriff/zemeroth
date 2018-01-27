@@ -79,22 +79,24 @@ pub fn apply_event(state: &mut State, event: &Event) {
 }
 
 fn apply_event_create(state: &mut State, event: &Create) {
+    let parts = state.parts_mut();
     let id = event.id;
     for component in &event.components {
         match component.clone() {
-            Component::Pos(c) => state.parts.pos.insert(id, c),
-            Component::Strength(c) => state.parts.strength.insert(id, c),
-            Component::Meta(c) => state.parts.meta.insert(id, c),
-            Component::BelongsTo(c) => state.parts.belongs_to.insert(id, c),
-            Component::Agent(c) => state.parts.agent.insert(id, c),
-            Component::Blocker(c) => state.parts.blocker.insert(id, c),
+            Component::Pos(c) => parts.pos.insert(id, c),
+            Component::Strength(c) => parts.strength.insert(id, c),
+            Component::Meta(c) => parts.meta.insert(id, c),
+            Component::BelongsTo(c) => parts.belongs_to.insert(id, c),
+            Component::Agent(c) => parts.agent.insert(id, c),
+            Component::Blocker(c) => parts.blocker.insert(id, c),
         }
     }
 }
 
 fn apply_event_move_to(state: &mut State, event: &MoveTo) {
-    let agent = state.parts.agent.get_mut(event.id);
-    let pos = state.parts.pos.get_mut(event.id);
+    let parts = state.parts_mut();
+    let agent = parts.agent.get_mut(event.id);
+    let pos = parts.pos.get_mut(event.id);
     pos.0 = *event.path.tiles().last().unwrap();
     if agent.moves.0 > 0 {
         agent.moves.0 -= event.cost.0;
@@ -106,7 +108,8 @@ fn apply_event_move_to(state: &mut State, event: &MoveTo) {
 }
 
 fn apply_event_attack(state: &mut State, event: &Attack) {
-    let agent = state.parts.agent.get_mut(event.attacker_id);
+    let parts = state.parts_mut();
+    let agent = parts.agent.get_mut(event.attacker_id);
     if agent.attacks.0 > 0 {
         agent.attacks.0 -= 1;
     } else {
@@ -117,10 +120,11 @@ fn apply_event_attack(state: &mut State, event: &Attack) {
 }
 
 fn apply_event_end_turn(state: &mut State, event: &EndTurn) {
-    let ids: Vec<_> = state.parts.agent.ids().collect();
+    let parts = state.parts_mut();
+    let ids: Vec<_> = parts.agent.ids().collect();
     for id in ids {
-        let agent = state.parts.agent.get_mut(id);
-        let player_id = state.parts.belongs_to.get(id).0;
+        let agent = parts.agent.get_mut(id);
+        let player_id = parts.belongs_to.get(id).0;
         if player_id == event.player_id {
             agent.attacks.0 += agent.reactive_attacks.0;
         }
@@ -128,11 +132,12 @@ fn apply_event_end_turn(state: &mut State, event: &EndTurn) {
 }
 
 fn apply_event_begin_turn(state: &mut State, event: &BeginTurn) {
-    state.player_id = event.player_id;
-    let ids: Vec<_> = state.parts.agent.ids().collect();
+    state.set_player_id(event.player_id);
+    let parts = state.parts_mut();
+    let ids: Vec<_> = parts.agent.ids().collect();
     for id in ids {
-        let agent = state.parts.agent.get_mut(id);
-        let player_id = state.parts.belongs_to.get(id).0;
+        let agent = parts.agent.get_mut(id);
+        let player_id = parts.belongs_to.get(id).0;
         if player_id == event.player_id {
             agent.moves = agent.base_moves;
             agent.attacks = agent.base_attacks;
