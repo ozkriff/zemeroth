@@ -1,9 +1,10 @@
 use std::default::Default;
-use core::map::{HexMap, PosHex};
+use core::map::PosHex;
 use core::movement::MovePoints;
 
 pub use core::execute::execute;
 pub use core::check::check;
+pub use core::state::State;
 
 pub mod command;
 pub mod event;
@@ -14,6 +15,8 @@ pub mod execute;
 pub mod component;
 
 mod check;
+mod state;
+mod apply;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PlayerId(pub i32); // TODO: make field private
@@ -64,47 +67,14 @@ rancor_storage!(Parts<ObjId>: {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Prototypes(pub HashMap<String, Vec<component::Component>>);
 
-#[derive(Clone, Debug)]
-pub struct State {
-    parts: Parts,
-    map: HexMap<TileType>,
-    player_id: PlayerId,
-    players_count: i32,
-    prototypes: Prototypes,
-}
-
-impl State {
-    pub fn new(prototypes: Prototypes) -> Self {
-        let radius = map::Distance(5); // TODO: pass `Options` struct
-        Self {
-            map: HexMap::new(radius),
-            player_id: PlayerId(0),
-            players_count: 2, // TODO: Read from the `Options` struct
-            parts: Parts::new(),
-            prototypes,
-        }
-    }
-
-    pub fn player_id(&self) -> PlayerId {
-        self.player_id
-    }
-
-    pub fn parts(&self) -> &Parts {
-        &self.parts
-    }
-
-    pub fn map(&self) -> &HexMap<TileType> {
-        &self.map
-    }
-}
-
 pub fn belongs_to(state: &State, player_id: PlayerId, id: ObjId) -> bool {
-    state.parts.belongs_to.get(id).0 == player_id
+    state.parts().belongs_to.get(id).0 == player_id
 }
 
 pub fn object_ids_at(state: &State, pos: PosHex) -> Vec<ObjId> {
     let ids = state.parts().agent.ids();
-    ids.filter(|&id| state.parts.pos.get(id).0 == pos).collect()
+    ids.filter(|&id| state.parts().pos.get(id).0 == pos)
+        .collect()
 }
 
 pub fn players_agent_ids(state: &State, player_id: PlayerId) -> Vec<ObjId> {
@@ -119,8 +89,8 @@ pub fn enemy_agent_ids(state: &State, player_id: PlayerId) -> Vec<ObjId> {
 }
 
 pub fn is_tile_blocked(state: &State, pos: PosHex) -> bool {
-    for id in state.parts.blocker.ids() {
-        if state.parts.pos.get(id).0 == pos {
+    for id in state.parts().blocker.ids() {
+        if state.parts().pos.get(id).0 == pos {
             return true;
         }
     }

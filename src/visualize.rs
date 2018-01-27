@@ -51,12 +51,7 @@ fn show_blood_spot(view: &mut GameView, context: &mut Context, at: PosHex) -> Bo
     ]))
 }
 
-fn up_and_down_move(
-    _: &mut GameView,
-    sprite: &Sprite,
-    height: f32,
-    time: Time,
-) -> Box<Action> {
+fn up_and_down_move(_: &mut GameView, sprite: &Sprite, height: f32, time: Time) -> Box<Action> {
     let duration_0_25 = Time(time.0 * 0.25);
     let up_fast = Point(vec2(0.0, height * 0.75));
     let up_slow = Point(vec2(0.0, height * 0.25));
@@ -76,12 +71,12 @@ fn remove_brief_unit_info(view: &mut GameView, id: ObjId) -> Box<Action> {
     for sprite in sprites {
         let mut color = sprite.color();
         color[3] = 0.0;
-        actions.push(Box::new(
-            action::Fork::new(Box::new(action::Sequence::new(vec![
+        actions.push(Box::new(action::Fork::new(Box::new(
+            action::Sequence::new(vec![
                 Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.4))),
                 Box::new(action::Hide::new(&view.layers().text, &sprite)),
-            ]))),
-        ));
+            ]),
+        ))));
     }
     Box::new(action::Sequence::new(actions))
 }
@@ -281,9 +276,11 @@ fn visualize_event_attack(
         actions.push(message(view, context, map_from, "reaction"));
     }
     actions.push(Box::new(action::MoveBy::new(&sprite, diff, Time(0.1))));
-    actions.push(Box::new(
-        action::MoveBy::new(&sprite, Point(-diff.0), Time(0.15)),
-    ));
+    actions.push(Box::new(action::MoveBy::new(
+        &sprite,
+        Point(-diff.0),
+        Time(0.15),
+    )));
     actions.push(Box::new(action::Sleep::new(Time(0.1)))); // TODO: ??
     Box::new(action::Sequence::new(actions))
 }

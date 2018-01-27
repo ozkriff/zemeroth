@@ -3,13 +3,13 @@ use std::iter::FromIterator;
 use rand::{thread_rng, Rng};
 use core::map::PosHex;
 use core::{self, Moves, ObjId, PlayerId, State, TileType};
-use core::command;
 use core::component::{self, Component};
-use core::command::Command;
+use core::command::{self, Command};
 use core::event::{self, ActiveEvent, Event};
 use core::effect::{self, Effect};
 use core::check::{check, check_attack_at, Error};
 use core::movement::Path;
+use core::apply::apply;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Phase {
@@ -37,7 +37,7 @@ pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error
 
 fn do_event(state: &mut State, cb: Cb, event: &Event) {
     cb(state, event, Phase::Pre);
-    event::apply(state, event);
+    apply(state, event);
     cb(state, event, Phase::Post);
 }
 
@@ -78,25 +78,26 @@ fn do_move(state: &mut State, cb: Cb, id: ObjId, cost: Option<Moves>, path: Path
 }
 
 fn check_reaction_attacks_at(state: &mut State, target_id: ObjId, pos: PosHex) -> bool {
-    let initial_player_id = state.player_id;
+    let initial_player_id = state.player_id();
     let mut result = false;
     for obj_id in core::enemy_agent_ids(state, initial_player_id) {
         let command_attack = command::Attack {
             attacker_id: obj_id,
             target_id,
         };
-        state.player_id = state.parts.belongs_to.get(obj_id).0;
+        let tmp_player_id = state.parts().belongs_to.get(obj_id).0;
+        state.set_player_id(tmp_player_id);
         if check_attack_at(state, &command_attack, pos).is_ok() {
             result = true;
             break;
         }
     }
-    state.player_id = initial_player_id;
+    state.set_player_id(initial_player_id);
     result
 }
 
 fn execute_create(state: &mut State, cb: Cb, command: &command::Create) {
-    let mut components = state.prototypes.0[&command.prototype].clone();
+    let mut components = state.prototype_for(&command.prototype);
     if let Some(player_id) = command.owner {
         components.push(Component::BelongsTo(component::BelongsTo(player_id)));
     }
@@ -105,7 +106,7 @@ fn execute_create(state: &mut State, cb: Cb, command: &command::Create) {
         Component::Pos(component::Pos(command.pos)),
         Component::Meta(component::Meta { name }),
     ]);
-    let id = state.parts.alloc_id();
+    let id = state.alloc_id();
     let active_event = ActiveEvent::Create(event::Create {
         pos: command.pos,
         id,
@@ -139,7 +140,7 @@ fn execute_attack_internal(
     });
     let mut effects = HashMap::new();
     let effect = if thread_rng().gen_range(0, 6) < 3 {
-        let strength = state.parts.strength.get(command.target_id);
+        let strength = state.parts().strength.get(command.target_id);
         if strength.strength.0 > 1 {
             Effect::Wound(effect::Wound(core::Strength(1)))
         } else {
@@ -164,9 +165,9 @@ fn execute_attack_internal(
 
 fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: ObjId) -> AttackStatus {
     let mut status = AttackStatus::Miss;
-    let initial_player_id = state.player_id;
+    let initial_player_id = state.player_id();
     for obj_id in core::enemy_agent_ids(state, initial_player_id) {
-        if state.parts.agent.get_opt(obj_id).is_none() {
+        if state.parts().agent.get_opt(obj_id).is_none() {
             // check if target is killed
             continue;
         }
@@ -175,7 +176,8 @@ fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: ObjId) -> 
             target_id,
         };
         let command = command::Command::Attack(command_attack.clone());
-        state.player_id = state.parts.belongs_to.get(obj_id).0;
+        let tmp_player_id = state.parts().belongs_to.get(obj_id).0;
+        state.set_player_id(tmp_player_id);
         if check(state, &command).is_err() {
             continue;
         }
@@ -185,7 +187,7 @@ fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: ObjId) -> 
             status = this_attack_status;
         }
     }
-    state.player_id = initial_player_id;
+    state.set_player_id(initial_player_id);
     status
 }
 
@@ -210,7 +212,7 @@ fn execute_end_turn(state: &mut State, cb: Cb, _: &command::EndTurn) {
         do_event(state, cb, &event);
     }
     {
-        let player_id_new = next_player_id(state);
+        let player_id_new = state.next_player_id();
         let active_event = ActiveEvent::BeginTurn(event::BeginTurn {
             player_id: player_id_new,
         });
@@ -222,15 +224,6 @@ fn execute_end_turn(state: &mut State, cb: Cb, _: &command::EndTurn) {
             effects,
         };
         do_event(state, cb, &event);
-    }
-}
-
-fn next_player_id(state: &State) -> PlayerId {
-    let current_player_id = PlayerId(state.player_id().0 + 1);
-    if current_player_id.0 < state.players_count {
-        current_player_id
-    } else {
-        PlayerId(0)
     }
 }
 
@@ -270,19 +263,21 @@ fn random_free_sector_pos(state: &State, player_id: PlayerId) -> Option<PosHex> 
     None
 }
 
+// TODO: move to `apply.rs`? (mutates the state)
 pub fn create_terrain(state: &mut State) {
     for _ in 0..15 {
         let pos = match random_free_pos(state) {
             Some(pos) => pos,
             None => continue,
         };
-        state.map.set_tile(pos, TileType::Rocks);
+        state.map_mut().set_tile(pos, TileType::Rocks);
     }
 }
 
 // TODO: improve the API
+// TODO: move to `apply.rs`? (mutates the state)
 pub fn create_objects(state: &mut State, cb: Cb) {
-    let player_id_initial = state.player_id;
+    let player_id_initial = state.player_id();
     for &(owner, typename, count) in &[
         (None, "boulder", 10),
         (Some(PlayerId(0)), "swordsman", 2),
@@ -290,7 +285,7 @@ pub fn create_objects(state: &mut State, cb: Cb) {
         (Some(PlayerId(1)), "imp", 9),
     ] {
         if let Some(player_id) = owner {
-            state.player_id = player_id;
+            state.set_player_id(player_id);
         }
         for _ in 0..count {
             let pos = match owner {
@@ -305,5 +300,5 @@ pub fn create_objects(state: &mut State, cb: Cb) {
             execute(state, &command, cb).expect("Can't create object");
         }
     }
-    state.player_id = player_id_initial;
+    state.set_player_id(player_id_initial);
 }

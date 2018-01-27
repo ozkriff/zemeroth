@@ -92,8 +92,7 @@ fn build_unit_info_panel(
         line(&format!("jokers: {}/{}", a.jokers.0, a.base_jokers.0,));
         line(&format!(
             "strength: {}/{}",
-            st.strength.0,
-            st.base_strength.0
+            st.strength.0, st.base_strength.0
         ));
         line(&format!("[{}]", meta.name));
     }
