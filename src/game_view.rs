@@ -20,6 +20,7 @@ pub struct Layers {
     pub attackable_tiles: Layer,
     pub selection_marker: Layer,
     pub units: Layer,
+    pub dots: Layer,
     pub text: Layer,
 }
 
@@ -33,6 +34,7 @@ impl Layers {
             self.attackable_tiles,
             self.selection_marker,
             self.units,
+            self.dots,
             self.text,
         ]
     }
