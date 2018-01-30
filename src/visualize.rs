@@ -74,7 +74,7 @@ fn remove_brief_unit_info(view: &mut GameView, id: ObjId) -> Box<Action> {
         actions.push(Box::new(action::Fork::new(Box::new(
             action::Sequence::new(vec![
                 Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.4))),
-                Box::new(action::Hide::new(&view.layers().text, &sprite)),
+                Box::new(action::Hide::new(&view.layers().dots, &sprite)),
             ]),
         ))));
     }
@@ -116,7 +116,7 @@ fn generate_brief_obj_info(
         sprite.set_pos(point);
         sprite.set_color([color[0], color[1], color[2], 0.0]);
         let action = Box::new(action::Fork::new(Box::new(action::Sequence::new(vec![
-            Box::new(action::Show::new(&view.layers().text, &sprite)),
+            Box::new(action::Show::new(&view.layers().dots, &sprite)),
             Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.1))),
         ]))));
         sprites.push(sprite);
