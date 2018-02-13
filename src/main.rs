@@ -21,7 +21,7 @@ mod visualize;
 mod ai;
 
 pub fn main() {
-    env_logger::init().expect("Can't initialize logging");
+    env_logger::init();
     enable_backtrace();
     let settings = ron::de::from_str(&hate::fs::load_as_string("settings.ron")).unwrap();
     let mut visualizer = hate::Visualizer::new(settings);
