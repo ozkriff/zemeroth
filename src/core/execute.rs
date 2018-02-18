@@ -50,7 +50,7 @@ fn execute_move_to(state: &mut State, cb: Cb, command: &command::MoveTo) {
     let tie_up_attack_status = try_execute_reaction_attacks(state, cb, id);
     if tie_up_attack_status == AttackStatus::Hit && state.parts().agent.get_opt(id).is_some() {
         // A degenerate move event just to spend agent's move point
-        let path = Path::new(vec![command.path.tiles()[0]]);
+        let path = Path::new(vec![command.path.from()]);
         do_move(state, cb, id, cost.take(), path);
         return;
     }

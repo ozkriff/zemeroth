@@ -58,6 +58,14 @@ impl Path {
         &self.tiles
     }
 
+    pub fn from(&self) -> PosHex {
+        self.tiles[0]
+    }
+
+    pub fn to(&self) -> PosHex {
+        *self.tiles().last().unwrap()
+    }
+
     pub fn truncate(&self, state: &State, id: ObjId) -> Option<Path> {
         let agent = state.parts().agent.get(id);
         let mut new_path = Vec::new();

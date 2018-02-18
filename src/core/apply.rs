@@ -44,7 +44,7 @@ fn apply_event_move_to(state: &mut State, event: &event::MoveTo) {
     let parts = state.parts_mut();
     let agent = parts.agent.get_mut(event.id);
     let pos = parts.pos.get_mut(event.id);
-    pos.0 = *event.path.tiles().last().unwrap();
+    pos.0 = event.path.to();
     if agent.moves.0 > 0 {
         agent.moves.0 -= event.cost.0;
     } else {
