@@ -20,7 +20,7 @@ mod game_view;
 mod visualize;
 mod ai;
 
-pub fn main() {
+fn main() {
     env_logger::init();
     enable_backtrace();
     let settings = ron::de::from_str(&hate::fs::load_as_string("settings.ron")).unwrap();
