@@ -11,7 +11,7 @@ members = ["hate", "rancor"]
 hate = { path = "hate" }
 rancor = { path = "rancor" }
 cgmath = "0.16"
-ron = "0.1"
+ron = "0.2"
 rand = "0.4"
 log = "0.4"
 env_logger = "0.5"
