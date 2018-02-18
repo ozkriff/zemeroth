@@ -13,13 +13,25 @@ pub mod effect;
 pub mod map;
 pub mod execute;
 pub mod component;
+pub mod ability;
+pub mod utils;
+pub mod state;
 
 mod check;
-mod state;
 mod apply;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct PlayerId(pub i32); // TODO: make field private
+pub struct PlayerId(pub i32);
+
+/// An index of player's turn.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Phase(i32);
+
+impl Phase {
+    pub fn from_player_id(player_id: PlayerId) -> Self {
+        Phase(player_id.0 as _)
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ObjId(i32);
@@ -30,20 +42,20 @@ impl Default for ObjId {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Strength(pub i32);
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Attacks(pub i32);
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Moves(pub i32);
 
 /// Move or Attack
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Jokers(pub i32);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Hash)]
 pub enum TileType {
     Plain,
     Rocks,
@@ -53,46 +65,4 @@ impl Default for TileType {
     fn default() -> Self {
         TileType::Plain
     }
-}
-
-rancor_storage!(Parts<ObjId>: {
-    strength: component::Strength,
-    pos: component::Pos,
-    meta: component::Meta,
-    belongs_to: component::BelongsTo,
-    agent: component::Agent,
-    blocker: component::Blocker,
-});
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Prototypes(pub HashMap<String, Vec<component::Component>>);
-
-pub fn belongs_to(state: &State, player_id: PlayerId, id: ObjId) -> bool {
-    state.parts().belongs_to.get(id).0 == player_id
-}
-
-pub fn object_ids_at(state: &State, pos: PosHex) -> Vec<ObjId> {
-    let ids = state.parts().agent.ids();
-    ids.filter(|&id| state.parts().pos.get(id).0 == pos)
-        .collect()
-}
-
-pub fn players_agent_ids(state: &State, player_id: PlayerId) -> Vec<ObjId> {
-    let ids = state.parts().agent.ids();
-    ids.filter(|&id| belongs_to(state, player_id, id)).collect()
-}
-
-pub fn enemy_agent_ids(state: &State, player_id: PlayerId) -> Vec<ObjId> {
-    let ids = state.parts().agent.ids();
-    ids.filter(|&id| !belongs_to(state, player_id, id))
-        .collect()
-}
-
-pub fn is_tile_blocked(state: &State, pos: PosHex) -> bool {
-    for id in state.parts().blocker.ids() {
-        if state.parts().pos.get(id).0 == pos {
-            return true;
-        }
-    }
-    false
 }

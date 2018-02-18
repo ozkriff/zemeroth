@@ -7,19 +7,21 @@ use hate::gui::{self, Gui};
 use hate::scene::action::{self, Action};
 use visualize;
 use map;
-use game_view::GameView;
+use game_view::{GameView, SelectionMode};
 use ai::Ai;
-use core::{self, check, ObjId, PlayerId, State, TileType};
-use core::command;
-use core::execute;
+use core::{check, ObjId, PlayerId, State, TileType};
+use core::{self, command, execute, state};
 use core::map::PosHex;
 use core::movement::Pathfinder;
+use core::effect::Duration;
+use core::ability::{self, Ability};
 
 #[derive(Copy, Clone, Debug)]
 enum GuiCommand {
     Exit,
     Deselect,
     EndTurn,
+    Ability(Ability),
 }
 
 fn make_action_show_tile(
@@ -62,6 +64,10 @@ fn make_action_create_map(state: &State, view: &GameView, context: &mut Context)
     Box::new(action::Sequence::new(actions))
 }
 
+fn line_height() -> f32 {
+    0.08
+}
+
 fn build_unit_info_panel(
     context: &mut Context,
     gui: &mut Gui<GuiCommand>,
@@ -76,20 +82,56 @@ fn build_unit_info_panel(
         vertical: gui::VAnchor::Bottom,
         horizontal: gui::HAnchor::Left,
     };
-    let line_height = 0.08;
     let mut ids = Vec::new();
     {
         let mut line = |s: &str| {
-            let sprite = gui::text_sprite(context, s, line_height);
+            let sprite = gui::text_sprite(context, s, line_height());
             let id = gui.add_sprite(sprite);
             ids.push(id);
         };
+        if let Some(effects) = parts.effects.get_opt(id) {
+            if !effects.0.is_empty() {
+                for effect in &effects.0 {
+                    let s = effect.effect.to_str();
+                    match effect.duration {
+                        Duration::Forever => line(&format!("'{}'", s)),
+                        Duration::Rounds(n) => line(&format!("'{}' ({})", s, n)),
+                    }
+                }
+                line("[effects]:");
+            }
+        }
+        if let Some(abilities) = parts.abilities.get_opt(id) {
+            if !abilities.0.is_empty() {
+                for ability in &abilities.0 {
+                    let s = ability.ability.to_str();
+                    line(&format!("'{}'", s));
+                }
+                line("[abilities]:");
+            }
+        }
+        if let Some(abilities) = parts.passive_abilities.get_opt(id) {
+            if !abilities.0.is_empty() {
+                for ability in &abilities.0 {
+                    let s = ability.to_str();
+                    line(&format!("'{}'", s));
+                }
+                line("[passive abilities]:");
+            }
+        }
         line(&format!("move points: {}", a.move_points.0));
-        line(&format!("attack distance: {}", a.attack_distance.0));
-        line(&format!("reactive attacks: {}", a.reactive_attacks.0));
-        line(&format!("moves: {}/{}", a.moves.0, a.base_moves.0,));
-        line(&format!("attacks: {}/{}", a.attacks.0, a.base_attacks.0,));
-        line(&format!("jokers: {}/{}", a.jokers.0, a.base_jokers.0,));
+        line(&format!("attack strength: {}", a.attack_strength.0));
+        if a.attack_distance.0 != 1 {
+            line(&format!("attack distance: {}", a.attack_distance.0));
+        }
+        if a.reactive_attacks.0 != 0 {
+            line(&format!("reactive attacks: {}", a.reactive_attacks.0));
+        }
+        line(&format!("moves: {}/{}", a.moves.0, a.base_moves.0));
+        line(&format!("attacks: {}/{}", a.attacks.0, a.base_attacks.0));
+        if a.jokers.0 != 0 || a.base_jokers.0 != 0 {
+            line(&format!("jokers: {}/{}", a.jokers.0, a.base_jokers.0));
+        }
         line(&format!(
             "strength: {}/{}",
             st.strength.0, st.base_strength.0
@@ -98,6 +140,38 @@ fn build_unit_info_panel(
     }
     // TODO: Direction::Down
     gui.add_layout(anchor, gui::Direction::Up, ids)
+}
+
+fn build_unit_abilities_panel(
+    context: &mut Context,
+    gui: &mut Gui<GuiCommand>,
+    state: &State,
+    id: ObjId,
+) -> Option<gui::Id> {
+    let parts = state.parts();
+    let abilities = match parts.abilities.get_opt(id) {
+        Some(abilities) => &abilities.0,
+        None => return None,
+    };
+    let agent = parts.agent.get(id);
+    if agent.attacks <= core::Attacks(0) && agent.jokers <= core::Jokers(0) {
+        return None;
+    }
+    let mut ids = Vec::new();
+    let anchor = gui::Anchor {
+        vertical: gui::VAnchor::Middle,
+        horizontal: gui::HAnchor::Right,
+    };
+    for &ability in abilities {
+        let text = match ability.status {
+            ability::Status::Ready => format!("{}", ability.ability.to_str()),
+            ability::Status::Cooldown(n) => format!("{} ({})", ability.ability.to_str(), n),
+        };
+        let sprite = gui::text_sprite(context, &text, line_height());
+        let id = gui.add_button(context, sprite, GuiCommand::Ability(ability.ability));
+        ids.push(id);
+    }
+    Some(gui.add_layout(anchor, gui::Direction::Up, ids))
 }
 
 fn build_gui(context: &mut Context) -> Gui<GuiCommand> {
@@ -149,12 +223,14 @@ fn prepare_map_and_state(context: &mut Context, state: &mut State, view: &mut Ga
 pub struct Game {
     gui: Gui<GuiCommand>,
     state: State,
+    mode: SelectionMode,
     view: GameView,
     selected_unit_id: Option<ObjId>,
     pathfinder: Pathfinder,
     block_timer: Option<Time>,
     ai: Ai,
     layout_id_info: Option<gui::Id>,
+    layout_id_abilities: Option<gui::Id>,
 }
 
 impl Game {
@@ -167,6 +243,7 @@ impl Game {
         let mut view = GameView::new(&state, context);
         prepare_map_and_state(context, &mut state, &mut view);
         Self {
+            mode: SelectionMode::Normal,
             gui: build_gui(context),
             state,
             view,
@@ -175,6 +252,7 @@ impl Game {
             block_timer: None,
             ai: Ai::new(PlayerId(1), radius),
             layout_id_info: None,
+            layout_id_abilities: None,
         }
     }
 
@@ -210,12 +288,25 @@ impl Game {
         Box::new(action::Sequence::new(actions))
     }
 
+    fn use_ability(&mut self, context: &mut Context, ability: Ability) {
+        // TODO: code duplication (see check.rs and event.rs)
+        let id = self.selected_unit_id.unwrap(); // TODO: Extract to some specific method
+        for rechargeable in &self.state.parts().abilities.get(id).0 {
+            if rechargeable.ability == ability && rechargeable.status != ability::Status::Ready {
+                debug!("ability isn't ready yet");
+                return;
+            }
+        }
+        self.set_mode(context, id, SelectionMode::Ability(ability));
+    }
+
     fn handle_commands(&mut self, context: &mut Context) {
         while let Some(command) = self.gui.try_recv() {
             match command {
                 GuiCommand::Exit => self.exit(context),
                 GuiCommand::Deselect => self.deselect(),
                 GuiCommand::EndTurn => self.end_turn(context),
+                GuiCommand::Ability(ability) => self.use_ability(context, ability),
             }
         }
     }
@@ -253,23 +344,90 @@ impl Game {
         if let Some(layout_id_info) = self.layout_id_info.take() {
             self.gui.remove(layout_id_info).unwrap();
         }
+        if let Some(layout_id_abilities) = self.layout_id_abilities.take() {
+            self.gui.remove(layout_id_abilities).unwrap();
+        }
         if self.selected_unit_id.is_some() {
             self.view.deselect();
         }
         self.selected_unit_id = None;
+        self.mode = SelectionMode::Normal;
     }
 
-    fn select_unit(&mut self, context: &mut Context, id: ObjId) {
+    fn set_mode(&mut self, context: &mut Context, id: ObjId, mode: SelectionMode) {
         self.deselect();
         assert!(self.state.parts().agent.get_opt(id).is_some());
         self.selected_unit_id = Some(id);
-        self.pathfinder.fill_map(&self.state, id);
+        let state = &self.state;
+        let gui = &mut self.gui;
+        match mode {
+            SelectionMode::Ability(_) => {
+                // TODO: Update the GUI here: explain how to use or cancel the ability.
+                // 'Select target tile'
+            }
+            SelectionMode::Normal => {
+                self.pathfinder.fill_map(state, id);
+                self.layout_id_info = Some(build_unit_info_panel(context, gui, state, id));
+                self.layout_id_abilities = build_unit_abilities_panel(context, gui, state, id);
+            }
+        }
         let map = self.pathfinder.map();
-        self.view.select_unit(&self.state, map, context, id);
-        {
-            let gui = &mut self.gui;
-            let layout_id_info = build_unit_info_panel(context, gui, &self.state, id);
-            self.layout_id_info = Some(layout_id_info);
+        self.view.set_mode(state, map, context, id, &mode);
+        self.mode = mode;
+    }
+
+    fn handle_unit_click(&mut self, context: &mut Context, id: ObjId) {
+        if self.state.parts().agent.get_opt(id).is_none() {
+            // only agents can be selected
+            return;
+        }
+        let other_unit_player_id = self.state.parts().belongs_to.get(id).0;
+        if let Some(selected_unit_id) = self.selected_unit_id {
+            let selected_unit_player_id = self.state.parts().belongs_to.get(selected_unit_id).0;
+            if selected_unit_id == id {
+                self.deselect();
+                return;
+            }
+            if other_unit_player_id == selected_unit_player_id
+                || other_unit_player_id == self.state.player_id()
+            {
+                self.set_mode(context, id, SelectionMode::Normal);
+                return;
+            }
+            let command_attack = command::Command::Attack(command::Attack {
+                attacker_id: selected_unit_id,
+                target_id: id,
+            });
+            if check(&self.state, &command_attack).is_err() {
+                return;
+            }
+            self.do_command(context, &command_attack);
+            self.fill_map();
+        } else {
+            self.set_mode(context, id, SelectionMode::Normal);
+        }
+    }
+
+    fn fill_map(&mut self) {
+        let selected_unit_id = self.selected_unit_id.unwrap();
+        let parts = self.state.parts();
+        if parts.agent.get_opt(selected_unit_id).is_some() {
+            self.pathfinder.fill_map(&self.state, selected_unit_id);
+        }
+    }
+
+    fn try_move_selected_unit(&mut self, context: &mut Context, pos: PosHex) {
+        if let Some(id) = self.selected_unit_id {
+            let path = match self.pathfinder.path(pos) {
+                Some(path) => path,
+                None => return,
+            };
+            let command_move = command::Command::MoveTo(command::MoveTo { id, path });
+            if check(&self.state, &command_move).is_err() {
+                return;
+            }
+            self.do_command(context, &command_move);
+            self.fill_map();
         }
     }
 
@@ -280,57 +438,23 @@ impl Game {
             return;
         }
         if self.state.map().is_inboard(pos) {
-            let object_ids = core::object_ids_at(&self.state, pos);
-            debug!("object_ids: {:?}", object_ids);
-            if !object_ids.is_empty() {
-                assert_eq!(object_ids.len(), 1);
-                let id = object_ids[0];
-                if self.state.parts().agent.get_opt(id).is_none() {
-                    // only agents can be selected
-                    return;
-                }
-                let other_unit_player_id = self.state.parts().belongs_to.get(id).0;
-                if let Some(selected_unit_id) = self.selected_unit_id {
-                    let selected_unit_player_id =
-                        self.state.parts().belongs_to.get(selected_unit_id).0;
-                    if selected_unit_id == id {
-                        self.deselect();
-                        return;
-                    }
-                    if other_unit_player_id == selected_unit_player_id
-                        || other_unit_player_id == self.state.player_id()
-                    {
-                        self.select_unit(context, id);
-                        return;
-                    }
-                    let command_attack = command::Command::Attack(command::Attack {
-                        attacker_id: selected_unit_id,
-                        target_id: id,
-                    });
-                    if check(&self.state, &command_attack).is_err() {
-                        return;
-                    }
-                    self.do_command(context, &command_attack);
-                    let parts = self.state.parts();
-                    if parts.agent.get_opt(selected_unit_id).is_some() {
-                        self.pathfinder.fill_map(&self.state, selected_unit_id);
-                    }
+            if let SelectionMode::Ability(ability) = self.mode {
+                let selected_id = self.selected_unit_id.unwrap();
+                let command = command::Command::UseAbility(command::UseAbility {
+                    id: selected_id,
+                    pos,
+                    ability,
+                });
+                if check(&self.state, &command).is_ok() {
+                    self.do_command(context, &command);
                 } else {
-                    self.select_unit(context, id);
+                    self.view.message(context, pos, "cancelled");
                 }
-            } else if let Some(id) = self.selected_unit_id {
-                let path = match self.pathfinder.path(pos) {
-                    Some(path) => path,
-                    None => return,
-                };
-                let command_move = command::Command::MoveTo(command::MoveTo { id, path });
-                if check(&self.state, &command_move).is_err() {
-                    return;
-                }
-                self.do_command(context, &command_move);
-                if self.state.parts().agent.get_opt(id).is_some() {
-                    self.pathfinder.fill_map(&self.state, id);
-                }
+                self.set_mode(context, selected_id, SelectionMode::Normal);
+            } else if let Some(id) = state::agent_id_at_opt(&self.state, pos) {
+                self.handle_unit_click(context, id);
+            } else {
+                self.try_move_selected_unit(context, pos);
             }
         }
     }
@@ -342,7 +466,7 @@ impl Game {
                 self.block_timer = None;
                 if let Some(id) = self.selected_unit_id {
                     if self.state.parts().agent.get_opt(id).is_some() {
-                        self.select_unit(context, id);
+                        self.set_mode(context, id, SelectionMode::Normal);
                     } else {
                         self.deselect();
                     }

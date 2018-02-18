@@ -2,25 +2,33 @@ use std::collections::HashMap;
 use hate::{Context, Scene, Sprite, Time};
 use hate::scene::Layer;
 use hate::scene::action::{self, Action};
-use core::{check, Jokers, Moves, State};
-use core::ObjId;
-use core::map::HexMap;
-use core::movement::Tile;
-use core::command;
+use core::map::{HexMap, PosHex};
+use core::{self, command, movement};
+use core::ability::Ability;
+use core::{Jokers, Moves, ObjId, State};
 use map::hex_to_point;
+use visualize;
 
-const WALKBALE_TILE_COLOR: [f32; 4] = [0.2, 1.0, 0.2, 0.5];
+#[derive(Debug, PartialEq)]
+pub enum SelectionMode {
+    Normal,
+    Ability(Ability),
+}
+
+const WALKABLE_TILE_COLOR: [f32; 4] = [0.1, 0.6, 0.1, 0.5];
+const ATTACKABLE_TILE_COLOR: [f32; 4] = [0.8, 0.0, 0.0, 0.6];
+const ABILITY_TILE_COLOR: [f32; 4] = [0.0, 0.0, 0.9, 0.5];
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
     pub bg: Layer,
     pub blood: Layer,
     pub grass: Layer,
-    pub walkable_tiles: Layer,
-    pub attackable_tiles: Layer,
+    pub highlighted_tiles: Layer,
     pub selection_marker: Layer,
     pub units: Layer,
     pub dots: Layer,
+    pub flares: Layer,
     pub text: Layer,
 }
 
@@ -30,11 +38,11 @@ impl Layers {
             self.bg,
             self.blood,
             self.grass,
-            self.walkable_tiles,
-            self.attackable_tiles,
+            self.highlighted_tiles,
             self.selection_marker,
             self.units,
             self.dots,
+            self.flares,
             self.text,
         ]
     }
@@ -43,8 +51,7 @@ impl Layers {
 #[derive(Debug)]
 struct Sprites {
     selection_marker: Sprite,
-    walkable_tiles: Vec<Sprite>,
-    attackable_tiles: Vec<Sprite>,
+    highlighted_tiles: Vec<Sprite>,
     id_to_sprite_map: HashMap<ObjId, Sprite>,
     unit_info: HashMap<ObjId, Vec<Sprite>>,
 }
@@ -67,8 +74,7 @@ impl GameView {
         selection_marker.set_color([0.0, 0.0, 1.0, 0.8]);
         let sprites = Sprites {
             selection_marker,
-            walkable_tiles: Vec::new(),
-            attackable_tiles: Vec::new(),
+            highlighted_tiles: Vec::new(),
             id_to_sprite_map: HashMap::new(),
             unit_info: HashMap::new(),
         };
@@ -78,6 +84,11 @@ impl GameView {
             layers,
             sprites,
         }
+    }
+
+    pub fn message(&mut self, context: &mut Context, pos: PosHex, text: &str) {
+        let action = visualize::message(self, context, pos, text);
+        self.add_action(action);
     }
 
     pub fn tick(&mut self, context: &mut Context, dtime: Time) {
@@ -121,37 +132,48 @@ impl GameView {
         self.sprites.unit_info.insert(id, sprites);
     }
 
-    pub fn deselect(&mut self) {
-        let action_hide = Box::new(action::Hide::new(
-            &self.layers.selection_marker,
-            &self.sprites.selection_marker,
-        ));
-        self.add_action(action_hide);
-        for sprite in self.sprites.walkable_tiles.split_off(0) {
-            let mut color = WALKBALE_TILE_COLOR;
+    pub fn set_mode(
+        &mut self,
+        state: &State,
+        map: &HexMap<movement::Tile>,
+        context: &mut Context,
+        selected_id: ObjId,
+        mode: &SelectionMode,
+    ) {
+        match *mode {
+            SelectionMode::Normal => {
+                self.select_normal(state, map, context, selected_id);
+            }
+            SelectionMode::Ability(ability) => {
+                self.select_ability(state, context, selected_id, ability);
+            }
+        }
+    }
+
+    fn remove_highlights(&mut self) {
+        for sprite in self.sprites.highlighted_tiles.split_off(0) {
+            let mut color = sprite.color();
             color[3] = 0.0;
             let action = {
-                let layer = &self.layers().walkable_tiles;
+                let layer = &self.layers().highlighted_tiles;
                 Box::new(action::Sequence::new(vec![
-                    Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.2))),
+                    Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.3))),
                     Box::new(action::Hide::new(layer, &sprite)),
                 ]))
             };
             self.add_action(action);
         }
-        for sprite in self.sprites.attackable_tiles.split_off(0) {
-            let action = {
-                let layer = &self.layers().attackable_tiles;
-                Box::new(action::Hide::new(layer, &sprite))
-            };
-            self.add_action(action);
-        }
     }
 
-    pub fn select_unit(
+    pub fn deselect(&mut self) {
+        self.hide_selection_marker();
+        self.remove_highlights();
+    }
+
+    fn select_normal(
         &mut self,
         state: &State,
-        map: &HexMap<Tile>,
+        map: &HexMap<movement::Tile>,
         context: &mut Context,
         id: ObjId,
     ) {
@@ -160,15 +182,44 @@ impl GameView {
         self.show_attackable_tiles(state, context, id);
     }
 
+    fn select_ability(
+        &mut self,
+        state: &State,
+        context: &mut Context,
+        selected_id: ObjId,
+        ability: Ability,
+    ) {
+        self.remove_highlights();
+        let positions = state.map().iter();
+        for pos in positions {
+            let command = command::Command::UseAbility(command::UseAbility {
+                id: selected_id,
+                ability,
+                pos,
+            });
+            if core::check(state, &command).is_ok() {
+                self.highlight(context, pos, ABILITY_TILE_COLOR);
+            }
+        }
+    }
+
     fn show_selection_marker(&mut self, state: &State, id: ObjId) {
         let pos = state.parts().pos.get(id).0;
         let point = hex_to_point(self.tile_size(), pos);
-        self.sprites.selection_marker.set_pos(point);
-        let action = Box::new(action::Show::new(
-            &self.layers().selection_marker,
-            &self.sprites.selection_marker,
-        ));
-        self.add_action(action);
+        let layer = &self.layers.selection_marker;
+        let sprite = &mut self.sprites.selection_marker;
+        sprite.set_pos(point);
+        let action = Box::new(action::Show::new(layer, sprite));
+        self.scene.add_action(action);
+    }
+
+    fn hide_selection_marker(&mut self) {
+        let layer = &self.layers.selection_marker;
+        let sprite = &self.sprites.selection_marker;
+        if layer.has_sprite(sprite) {
+            let hide_marker = Box::new(action::Hide::new(layer, sprite));
+            self.scene.add_action(hide_marker);
+        }
     }
 
     fn show_attackable_tiles(&mut self, state: &State, context: &mut Context, id: ObjId) {
@@ -184,23 +235,17 @@ impl GameView {
                 attacker_id: id,
                 target_id: target_id,
             });
-            if check(state, &command_attack).is_err() {
+            if core::check(state, &command_attack).is_err() {
                 continue;
             }
-            let size = self.tile_size() * 2.0;
-            let mut sprite = Sprite::from_path(context, "tile.png", size);
-            self.sprites.attackable_tiles.push(sprite.clone());
-            sprite.set_color([1.0, 0.3, 0.3, 0.8]);
-            sprite.set_pos(hex_to_point(self.tile_size(), target_pos));
-            let action = Box::new(action::Show::new(&self.layers().attackable_tiles, &sprite));
-            self.add_action(action);
+            self.highlight(context, target_pos, ATTACKABLE_TILE_COLOR);
         }
     }
 
     fn show_walkable_tiles(
         &mut self,
         state: &State,
-        map: &HexMap<Tile>,
+        map: &HexMap<movement::Tile>,
         context: &mut Context,
         id: ObjId,
     ) {
@@ -212,19 +257,24 @@ impl GameView {
             if map.tile(pos).cost() > agent.move_points {
                 continue;
             }
-            let size = self.tile_size() * 2.0;
-            let mut sprite = Sprite::from_path(context, "tile.png", size);
-            self.sprites.walkable_tiles.push(sprite.clone());
-            let mut color_from = WALKBALE_TILE_COLOR;
-            color_from[3] = 0.0;
-            sprite.set_color(color_from);
-            sprite.set_pos(hex_to_point(self.tile_size(), pos));
-            let color_to = WALKBALE_TILE_COLOR;
-            let action = Box::new(action::Sequence::new(vec![
-                Box::new(action::Show::new(&self.layers().walkable_tiles, &sprite)),
-                Box::new(action::ChangeColorTo::new(&sprite, color_to, Time(0.2))),
-            ]));
-            self.add_action(action);
+            self.highlight(context, pos, WALKABLE_TILE_COLOR);
         }
+    }
+
+    fn highlight(&mut self, context: &mut Context, pos: PosHex, color: [f32; 4]) {
+        let size = self.tile_size() * 2.0;
+        let mut sprite = Sprite::from_path(context, "white_hex.png", size);
+        let mut color_from = color;
+        color_from[3] = 0.0;
+        sprite.set_color(color_from);
+        sprite.set_pos(hex_to_point(self.tile_size(), pos));
+        let time = Time(0.3);
+        let layer = &self.layers.highlighted_tiles;
+        let action = Box::new(action::Sequence::new(vec![
+            Box::new(action::Show::new(layer, &sprite)),
+            Box::new(action::ChangeColorTo::new(&sprite, color, time)),
+        ]));
+        self.scene.add_action(action);
+        self.sprites.highlighted_tiles.push(sprite);
     }
 }

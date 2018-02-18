@@ -1,6 +1,7 @@
 use core::{ObjId, PlayerId};
 use core::map::PosHex;
 use core::movement::Path;
+use core::ability::Ability;
 
 #[derive(Debug, Clone)]
 pub enum Command {
@@ -8,6 +9,7 @@ pub enum Command {
     Attack(Attack),
     MoveTo(MoveTo),
     EndTurn(EndTurn),
+    UseAbility(UseAbility),
 }
 
 #[derive(Debug, Clone)]
@@ -31,3 +33,10 @@ pub struct MoveTo {
 
 #[derive(Debug, Clone)]
 pub struct EndTurn;
+
+#[derive(Debug, Clone)]
+pub struct UseAbility {
+    pub id: ObjId,
+    pub pos: PosHex,
+    pub ability: Ability,
+}
