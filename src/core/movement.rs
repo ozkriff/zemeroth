@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 use std::slice::Windows;
-use core;
+use core::state;
 use core::map::{dirs, Dir, Distance, HexMap, PosHex};
 use core::{ObjId, State, TileType};
 
@@ -172,10 +172,7 @@ impl Pathfinder {
         assert!(self.map.is_inboard(pos));
         for dir in dirs() {
             let neighbor_pos = Dir::get_neighbor_pos(pos, dir);
-            if core::is_tile_blocked(state, neighbor_pos) {
-                continue;
-            }
-            if self.map.is_inboard(neighbor_pos) {
+            if self.map.is_inboard(neighbor_pos) && !state::is_tile_blocked(state, neighbor_pos) {
                 self.process_neighbor_pos(state, id, pos, neighbor_pos);
             }
         }

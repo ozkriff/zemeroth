@@ -1,7 +1,7 @@
 use std::iter::repeat;
 use std::fmt::Debug;
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Distance(pub i32);
 
 /// Cube coordinates
