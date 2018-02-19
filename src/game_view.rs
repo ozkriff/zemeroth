@@ -15,9 +15,9 @@ pub enum SelectionMode {
     Ability(Ability),
 }
 
-const WALKABLE_TILE_COLOR: [f32; 4] = [0.1, 0.6, 0.1, 0.5];
-const ATTACKABLE_TILE_COLOR: [f32; 4] = [0.8, 0.0, 0.0, 0.6];
-const ABILITY_TILE_COLOR: [f32; 4] = [0.0, 0.0, 0.9, 0.5];
+const TILE_COLOR_WALKABLE: [f32; 4] = [0.1, 0.6, 0.1, 0.5];
+const TILE_COLOR_ATTACKABLE: [f32; 4] = [0.8, 0.0, 0.0, 0.6];
+const TILE_COLOR_ABILITY: [f32; 4] = [0.0, 0.0, 0.9, 0.5];
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
@@ -198,7 +198,7 @@ impl GameView {
                 pos,
             });
             if core::check(state, &command).is_ok() {
-                self.highlight(context, pos, ABILITY_TILE_COLOR);
+                self.highlight(context, pos, TILE_COLOR_ABILITY);
             }
         }
     }
@@ -238,7 +238,7 @@ impl GameView {
             if core::check(state, &command_attack).is_err() {
                 continue;
             }
-            self.highlight(context, target_pos, ATTACKABLE_TILE_COLOR);
+            self.highlight(context, target_pos, TILE_COLOR_ATTACKABLE);
         }
     }
 
@@ -257,7 +257,7 @@ impl GameView {
             if map.tile(pos).cost() > agent.move_points {
                 continue;
             }
-            self.highlight(context, pos, WALKABLE_TILE_COLOR);
+            self.highlight(context, pos, TILE_COLOR_WALKABLE);
         }
     }
 
