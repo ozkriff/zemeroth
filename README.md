@@ -37,18 +37,24 @@ Precompiled binaries for Linux, Windows, OS X and Android:
 <https://github.com/ozkriff/zemeroth/releases>
 
 
-## Screenshots
+## Screenshot
 
-![](https://i.imgur.com/myVVfUW.png)
-
-![](https://i.imgur.com/oXpIvb9.png)
+![](https://i.imgur.com/wMG3KkA.png)
 
 
 ## Gifs
 
-![](https://i.imgur.com/ovrTxqy.gif)
+![](https://i.imgur.com/R298zUm.gif)
 
-![](https://i.imgur.com/VJaXQEJ.gif)
+![](https://i.imgur.com/mTTrWHu.gif)
+![](https://i.imgur.com/2dR278L.gif)
+![](https://i.imgur.com/wZZdlXs.gif)
+![](https://i.imgur.com/1shTV2q.gif)
+
+
+## Videos
+
+<https://www.youtube.com/user/ozkriff619/videos>
 
 
 ## Building from Source
