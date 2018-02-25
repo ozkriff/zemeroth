@@ -46,11 +46,9 @@ Precompiled binaries for Linux, Windows, OS X and Android:
 
 ![](https://i.imgur.com/R298zUm.gif)
 
-![](https://i.imgur.com/xFQqjYh.gif)
 ![](https://i.imgur.com/mTTrWHu.gif)
 ![](https://i.imgur.com/2dR278L.gif)
 ![](https://i.imgur.com/wZZdlXs.gif)
-![](https://i.imgur.com/y9I5PUi.gif)
 ![](https://i.imgur.com/1shTV2q.gif)
 
 
