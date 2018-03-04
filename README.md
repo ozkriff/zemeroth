@@ -85,6 +85,17 @@ cargo run
 [android setup]: https://github.com/tomaka/android-rs-glue#setting-up-your-environment
 
 
+## Contribute
+
+If you want to help take a look at issues with `help-wanted` label attached:
+
+<https://github.com/ozkriff/zemeroth/labels/help-wanted>
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license,
+shall be dual licensed as above, without any additional terms or conditions.
+
+
 ## License
 
 Zemeroth is distributed under the terms of both
