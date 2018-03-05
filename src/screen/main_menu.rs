@@ -1,4 +1,5 @@
-use hate::{self, Context, Event, Screen, Sprite, Time};
+use std::time;
+use hate::{self, Context, Event, Screen, Sprite};
 use hate::gui::{self, Gui};
 use hate::geom::Point;
 use screen;
@@ -59,7 +60,7 @@ impl MainMenu {
 }
 
 impl Screen for MainMenu {
-    fn tick(&mut self, context: &mut Context, _: Time) {
+    fn tick(&mut self, context: &mut Context, _: time::Duration) {
         let projection_matrix = context.projection_matrix();
         self.sprite.draw(context, projection_matrix);
         self.gui.draw(context);

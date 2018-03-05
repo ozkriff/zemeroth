@@ -1,32 +1,29 @@
 use std::thread;
 use std::sync::mpsc;
+use std::time::{Instant, Duration};
 use screen;
-use time::Time;
 use screen::Screen;
 use context::Context;
 use settings::Settings;
 use screen_stack::Screens;
 
-fn max_frame_time(context: &Context) -> Time {
-    Time(1.0 / context.settings().max_fps)
+fn max_frame_time(context: &Context) -> Duration {
+    Duration::from_millis((1_000.0 / context.settings().max_fps) as _)
 }
 
 pub struct Visualizer {
     screens: Screens,
-    prev_frame_start: Time,
+    prev_frame_start: Instant,
     context: Context,
 }
 
 impl Visualizer {
     pub fn new(settings: Settings) -> Self {
         let (tx, rx) = mpsc::channel();
-        let context = Context::new(tx, settings);
-        let screens = Screens::new(rx);
-        let prev_frame_start = context.now();
         Self {
-            screens,
-            prev_frame_start,
-            context,
+            screens: Screens::new(rx),
+            prev_frame_start: Instant::now(),
+            context: Context::new(tx, settings),
         }
     }
 
@@ -44,16 +41,16 @@ impl Visualizer {
     }
 
     fn tick(&mut self) {
-        let frame_start = self.context.now();
-        let dtime = frame_start.delta(self.prev_frame_start);
+        let frame_start = Instant::now();
+        let dtime = frame_start.duration_since(self.prev_frame_start);
         self.context.clear();
         self.screens.tick(&mut self.context, dtime);
         self.context.flush();
         self.handle_events();
-        let frame_time = self.context.now().delta(frame_start);
-        let remainder = max_frame_time(&self.context).delta(frame_time);
-        if remainder > Time(0.0) {
-            thread::sleep(remainder.to_duration());
+        let frame_time = Instant::now().duration_since(frame_start);
+        let max_frame_time = max_frame_time(&self.context);
+        if frame_time < max_frame_time {
+            thread::sleep(max_frame_time - frame_time);
         }
         self.prev_frame_start = frame_start;
     }

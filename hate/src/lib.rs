@@ -41,6 +41,5 @@ pub use visualizer::Visualizer;
 pub use sprite::Sprite;
 pub use screen::Screen;
 pub use context::Context;
-pub use time::Time;
 pub use event::Event;
 pub use scene::Scene;

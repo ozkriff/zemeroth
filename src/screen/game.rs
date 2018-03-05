@@ -1,7 +1,8 @@
+use std::time::Duration;
 use ron;
 use rand::{thread_rng, Rng};
 use cgmath::Vector2;
-use hate::{self, Context, Event, Screen, Sprite, Time};
+use hate::{self, Context, Event, Screen, Sprite};
 use hate::geom::Point;
 use hate::gui::{self, Gui};
 use hate::scene::action::{self, Action};
@@ -13,7 +14,7 @@ use core::{check, ObjId, PlayerId, State, TileType};
 use core::{self, command, execute, state};
 use core::map::PosHex;
 use core::movement::Pathfinder;
-use core::effect::Duration;
+use core::effect;
 use core::ability::{self, Ability};
 
 #[derive(Copy, Clone, Debug)]
@@ -94,8 +95,8 @@ fn build_unit_info_panel(
                 for effect in &effects.0 {
                     let s = effect.effect.to_str();
                     match effect.duration {
-                        Duration::Forever => line(&format!("'{}'", s)),
-                        Duration::Rounds(n) => line(&format!("'{}' ({})", s, n)),
+                        effect::Duration::Forever => line(&format!("'{}'", s)),
+                        effect::Duration::Rounds(n) => line(&format!("'{}' ({})", s, n)),
                     }
                 }
                 line("[effects]:");
@@ -227,7 +228,7 @@ pub struct Game {
     view: GameView,
     selected_unit_id: Option<ObjId>,
     pathfinder: Pathfinder,
-    block_timer: Option<Time>,
+    block_timer: Option<Duration>,
     ai: Ai,
     layout_id_info: Option<gui::Id>,
     layout_id_abilities: Option<gui::Id>,
@@ -279,7 +280,7 @@ impl Game {
             let command = self.ai.command(&self.state).unwrap();
             debug!("AI: command = {:?}", command);
             actions.push(self.do_command_inner(context, &command));
-            actions.push(Box::new(action::Sleep::new(Time(0.3)))); // ??
+            actions.push(Box::new(action::Sleep::new(Duration::from_millis(300)))); // ??
             if let command::Command::EndTurn(_) = command {
                 break;
             }
@@ -459,10 +460,9 @@ impl Game {
         }
     }
 
-    fn update_block_timer(&mut self, context: &mut Context, dtime: Time) {
-        self.block_timer.as_mut().map(|t| t.0 -= dtime.0);
+    fn update_block_timer(&mut self, context: &mut Context, dtime: Duration) {
         if let Some(time) = self.block_timer {
-            if time <= Time(0.0) {
+            if time < dtime {
                 self.block_timer = None;
                 if let Some(id) = self.selected_unit_id {
                     if self.state.parts().agent.get_opt(id).is_some() {
@@ -473,11 +473,14 @@ impl Game {
                 }
             }
         }
+        if let Some(ref mut time) = self.block_timer {
+            *time -= dtime;
+        }
     }
 }
 
 impl Screen for Game {
-    fn tick(&mut self, context: &mut Context, dtime: Time) {
+    fn tick(&mut self, context: &mut Context, dtime: Duration) {
         self.view.tick(context, dtime);
         self.update_block_timer(context, dtime);
         self.gui.draw(context);

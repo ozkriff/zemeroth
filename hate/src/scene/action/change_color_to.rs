@@ -1,4 +1,5 @@
-use time::Time;
+use std::time::Duration;
+use time;
 use sprite::Sprite;
 use scene::Action;
 
@@ -7,24 +8,24 @@ pub struct ChangeColorTo {
     sprite: Sprite,
     from: [f32; 4],
     to: [f32; 4],
-    duration: Time,
-    progress: Time,
+    duration: Duration,
+    progress: Duration,
 }
 
 impl ChangeColorTo {
-    pub fn new(sprite: &Sprite, to: [f32; 4], duration: Time) -> Self {
+    pub fn new(sprite: &Sprite, to: [f32; 4], duration: Duration) -> Self {
         Self {
             sprite: sprite.clone(),
             from: sprite.color(),
             to,
             duration,
-            progress: Time(0.0),
+            progress: Duration::new(0, 0),
         }
     }
 }
 
 impl Action for ChangeColorTo {
-    fn duration(&self) -> Time {
+    fn duration(&self) -> Duration {
         self.duration
     }
 
@@ -36,22 +37,23 @@ impl Action for ChangeColorTo {
         self.sprite.set_color(self.to);
     }
 
-    fn update(&mut self, mut dtime: Time) {
-        if dtime.0 + self.progress.0 > self.duration.0 {
-            dtime = Time(self.duration.0 - self.progress.0);
+    fn update(&mut self, mut dtime: Duration) {
+        if dtime + self.progress > self.duration {
+            dtime = self.duration - self.progress;
         }
-        let k = self.progress.0 / self.duration.0;
+        let progress_f = time::duration_to_f32(self.progress);
+        let duration_f = time::duration_to_f32(self.duration);
+        let k = progress_f / duration_f;
         let mut color = [0.0; 4];
         for (i, color_i) in color.iter_mut().enumerate().take(4) {
             let diff = self.to[i] - self.from[i];
             *color_i = self.from[i] + diff * k;
         }
         self.sprite.set_color(color);
-        self.progress.0 += dtime.0;
+        self.progress += dtime;
     }
 
     fn is_finished(&self) -> bool {
-        let eps = 0.00001;
-        self.progress.0 > (self.duration.0 - eps)
+        self.progress >= self.duration
     }
 }

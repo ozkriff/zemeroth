@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::sync::mpsc::Sender;
 use std::path::{Path, PathBuf};
-use std::time;
 use cgmath::{self, InnerSpace, Matrix4, SquareMatrix, Vector2, Zero};
 use glutin::{self, Api, GlContext, MouseButton};
 use glutin::ElementState::{Pressed, Released};
@@ -12,7 +11,6 @@ use gfx;
 use gfx_device_gl;
 use gfx_window_glutin;
 use settings::Settings;
-use time::Time;
 use event::Event;
 use screen;
 use fs;
@@ -165,7 +163,6 @@ pub struct Context {
     pso: gfx::PipelineState<gfx_device_gl::Resources, pipe::Meta>,
     factory: gfx_device_gl::Factory,
     font: rusttype::Font<'static>,
-    start_time: time::Instant,
     events: Vec<Event>,
     settings: Settings,
     texture_cache: HashMap<PathBuf, Texture>,
@@ -216,7 +213,6 @@ impl Context {
             commands_tx: tx,
             font,
             mouse: MouseState::default(),
-            start_time: time::Instant::now(),
             events: Vec::new(),
             texture_cache: HashMap::new(),
             text_texture_cache: HashMap::new(),
@@ -254,10 +250,6 @@ impl Context {
     pub(crate) fn clear(&mut self) {
         self.encoder.clear(&self.data.out, self.clear_color);
         self.encoder.clear_depth(&self.data.out_depth, 1.0);
-    }
-
-    pub fn now(&self) -> Time {
-        Time::from_duration(time::Instant::now() - self.start_time)
     }
 
     pub(crate) fn should_close(&self) -> bool {

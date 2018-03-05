@@ -1,8 +1,8 @@
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::time::Duration;
 use sprite::Sprite;
 use context::Context;
-use time::Time;
 
 pub use scene::action::Action;
 
@@ -71,7 +71,7 @@ impl Scene {
         self.interpreter.add(action);
     }
 
-    pub fn tick(&mut self, dtime: Time) {
+    pub fn tick(&mut self, dtime: Duration) {
         self.interpreter.tick(dtime);
     }
 }
@@ -93,7 +93,7 @@ impl ActionInterpreter {
         self.actions.push(action);
     }
 
-    pub fn tick(&mut self, dtime: Time) {
+    pub fn tick(&mut self, dtime: Duration) {
         let mut forked_actions = Vec::new();
         for action in &mut self.actions {
             action.update(dtime);

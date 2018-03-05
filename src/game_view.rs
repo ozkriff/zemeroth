@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use hate::{Context, Scene, Sprite, Time};
+use std::time::Duration;
+use hate::{Context, Scene, Sprite};
 use hate::scene::Layer;
 use hate::scene::action::{self, Action};
 use core::map::{HexMap, PosHex};
@@ -91,7 +92,7 @@ impl GameView {
         self.add_action(action);
     }
 
-    pub fn tick(&mut self, context: &mut Context, dtime: Time) {
+    pub fn tick(&mut self, context: &mut Context, dtime: Duration) {
         self.scene.tick(dtime);
         self.scene.draw(context);
     }
@@ -157,7 +158,7 @@ impl GameView {
             let action = {
                 let layer = &self.layers().highlighted_tiles;
                 Box::new(action::Sequence::new(vec![
-                    Box::new(action::ChangeColorTo::new(&sprite, color, Time(0.3))),
+                    Box::new(action::ChangeColorTo::new(&sprite, color, Duration::from_millis(300))),
                     Box::new(action::Hide::new(layer, &sprite)),
                 ]))
             };
@@ -268,7 +269,7 @@ impl GameView {
         color_from[3] = 0.0;
         sprite.set_color(color_from);
         sprite.set_pos(hex_to_point(self.tile_size(), pos));
-        let time = Time(0.3);
+        let time = Duration::from_millis(300);
         let layer = &self.layers.highlighted_tiles;
         let action = Box::new(action::Sequence::new(vec![
             Box::new(action::Show::new(layer, &sprite)),

@@ -1,31 +1,31 @@
-use time::Time;
+use std::time::Duration;
 use scene::Action;
 
 #[derive(Debug)]
 pub struct Sleep {
-    duration: Time,
-    time: Time,
+    duration: Duration,
+    time: Duration,
 }
 
 impl Sleep {
-    pub fn new(duration: Time) -> Self {
+    pub fn new(duration: Duration) -> Self {
         Self {
-            duration: duration,
-            time: Time(0.0),
+            duration,
+            time: Duration::new(0, 0),
         }
     }
 }
 
 impl Action for Sleep {
-    fn duration(&self) -> Time {
+    fn duration(&self) -> Duration {
         self.duration
     }
 
     fn is_finished(&self) -> bool {
-        self.time.0 / self.duration.0 > 1.0
+        self.duration < self.time
     }
 
-    fn update(&mut self, dtime: Time) {
-        self.time.0 += dtime.0;
+    fn update(&mut self, dtime: Duration) {
+        self.time += dtime;
     }
 }

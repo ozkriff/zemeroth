@@ -1,6 +1,6 @@
+use std::time;
 use std::sync::mpsc;
 use context::Context;
-use time::Time;
 use event::Event;
 use screen::{Command, Screen};
 
@@ -19,7 +19,7 @@ impl Screens {
         self.screens.is_empty()
     }
 
-    pub fn tick(&mut self, context: &mut Context, dtime: Time) {
+    pub fn tick(&mut self, context: &mut Context, dtime: time::Duration) {
         self.screens.last_mut().unwrap().tick(context, dtime);
         self.handle_commands();
     }

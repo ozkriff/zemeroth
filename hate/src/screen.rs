@@ -1,5 +1,5 @@
+use std::time::Duration;
 use context::Context;
-use time::Time;
 use event::Event;
 
 pub enum Command {
@@ -8,7 +8,7 @@ pub enum Command {
 }
 
 pub trait Screen {
-    fn tick(&mut self, context: &mut Context, dtime: Time);
+    fn tick(&mut self, context: &mut Context, dtime: Duration);
 
     fn handle_event(&mut self, context: &mut Context, event: Event);
 }

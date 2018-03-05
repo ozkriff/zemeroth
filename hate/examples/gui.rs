@@ -1,6 +1,7 @@
 extern crate hate;
 
-use hate::{Context, Event, Screen, Sprite, Time};
+use std::time::Duration;
+use hate::{Context, Event, Screen, Sprite};
 use hate::geom::Point;
 use hate::gui::{self, Gui};
 
@@ -163,7 +164,7 @@ impl GuiTest {
 }
 
 impl Screen for GuiTest {
-    fn tick(&mut self, context: &mut Context, _: Time) {
+    fn tick(&mut self, context: &mut Context, _: Duration) {
         self.gui.draw(context);
     }
 
