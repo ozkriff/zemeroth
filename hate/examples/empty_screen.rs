@@ -1,11 +1,12 @@
 extern crate hate;
 
+use std::time::Duration;
+use hate::{Context, Event, Screen};
+
 pub struct EmptyScreen;
 
-use hate::{Context, Event, Screen, Time};
-
 impl Screen for EmptyScreen {
-    fn tick(&mut self, _: &mut Context, _: Time) {}
+    fn tick(&mut self, _: &mut Context, _: Duration) {}
 
     fn handle_event(&mut self, _: &mut Context, _: Event) {}
 }

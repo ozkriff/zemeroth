@@ -1,4 +1,5 @@
-use time::Time;
+use std::time::Duration;
+use time;
 use sprite::Sprite;
 use scene::Action;
 use geom::Point;
@@ -6,39 +7,40 @@ use geom::Point;
 #[derive(Debug)]
 pub struct MoveBy {
     sprite: Sprite,
-    duration: Time,
+    duration: Duration,
     delta: Point,
-    progress: Time,
+    progress: Duration,
 }
 
 impl MoveBy {
-    pub fn new(sprite: &Sprite, delta: Point, duration: Time) -> Self {
+    pub fn new(sprite: &Sprite, delta: Point, duration: Duration) -> Self {
         Self {
             sprite: sprite.clone(),
             delta,
             duration,
-            progress: Time(0.0),
+            progress: Duration::new(0, 0),
         }
     }
 }
 
 impl Action for MoveBy {
-    fn duration(&self) -> Time {
+    fn duration(&self) -> Duration {
         self.duration
     }
 
-    fn update(&mut self, mut dtime: Time) {
+    fn update(&mut self, mut dtime: Duration) {
         let old_pos = self.sprite.pos();
-        if dtime.0 + self.progress.0 > self.duration.0 {
-            dtime = Time(self.duration.0 - self.progress.0);
+        if dtime + self.progress > self.duration {
+            dtime = self.duration - self.progress;
         }
-        let new_pos = Point(old_pos.0 + dtime.0 * self.delta.0 / self.duration.0);
+        let dtime_f = time::duration_to_f32(dtime);
+        let duration_f = time::duration_to_f32(self.duration);
+        let new_pos = Point(old_pos.0 + dtime_f * self.delta.0 / duration_f);
         self.sprite.set_pos(new_pos);
-        self.progress.0 += dtime.0;
+        self.progress += dtime;
     }
 
     fn is_finished(&self) -> bool {
-        let eps = 0.00001;
-        self.progress.0 > (self.duration.0 - eps)
+        self.progress >= self.duration
     }
 }

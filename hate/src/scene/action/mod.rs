@@ -1,5 +1,5 @@
+use std::time::Duration;
 use std::fmt::Debug;
-use time::Time;
 
 pub use scene::action::sequence::Sequence;
 pub use scene::action::show::Show;
@@ -25,11 +25,11 @@ mod change_color_to;
 
 pub trait Action: Debug {
     fn begin(&mut self) {}
-    fn update(&mut self, _dtime: Time) {}
+    fn update(&mut self, _dtime: Duration) {}
     fn end(&mut self) {}
 
-    fn duration(&self) -> Time {
-        Time(0.0)
+    fn duration(&self) -> Duration {
+        Duration::new(0, 0)
     }
 
     fn try_fork(&mut self) -> Option<Box<Action>> {

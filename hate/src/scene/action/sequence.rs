@@ -1,18 +1,18 @@
 use std::collections::VecDeque;
-use time::Time;
+use std::time::Duration;
 use scene::Action;
 
 #[derive(Debug)]
 pub struct Sequence {
     actions: VecDeque<Box<Action>>,
-    duration: Time,
+    duration: Duration,
 }
 
 impl Sequence {
     pub fn new(actions: Vec<Box<Action>>) -> Self {
-        let mut total_time = Time(0.0);
+        let mut total_time = Duration::new(0, 0);
         for action in &actions {
-            total_time.0 += action.duration().0;
+            total_time += action.duration();
         }
         Self {
             actions: actions.into(),
@@ -37,7 +37,7 @@ impl Sequence {
 }
 
 impl Action for Sequence {
-    fn duration(&self) -> Time {
+    fn duration(&self) -> Duration {
         self.duration
     }
 
@@ -47,7 +47,7 @@ impl Action for Sequence {
         }
     }
 
-    fn update(&mut self, dtime: Time) {
+    fn update(&mut self, dtime: Duration) {
         if self.actions.is_empty() {
             return;
         }
