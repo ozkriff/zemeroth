@@ -307,6 +307,7 @@ fn visualize_create(
         "bomb_poison" => "bomb_poison.png",
         "fire" => "fire.png",
         "poison_cloud" => "poison_cloud.png",
+        "spike_trap" => "spike_trap.png",
         _ => unimplemented!(),
     };
     let size = view.tile_size() * 2.0;
