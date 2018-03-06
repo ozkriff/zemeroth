@@ -496,7 +496,7 @@ fn visualize_event_use_ability(
         _ => Box::new(action::Sleep::new(Duration::from_millis(0))),
     };
     let pos = state.parts().pos.get(event.id).0;
-    let text = event.ability.to_str();
+    let text = event.ability.to_string();
     Box::new(action::Sequence::new(vec![
         action_main,
         message(view, context, pos, &format!("<{}>", text)),

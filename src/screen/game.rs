@@ -105,7 +105,7 @@ fn build_unit_info_panel(
         if let Some(abilities) = parts.abilities.get_opt(id) {
             if !abilities.0.is_empty() {
                 for ability in &abilities.0 {
-                    let s = ability.ability.to_str();
+                    let s = ability.ability.to_string();
                     line(&format!("'{}'", s));
                 }
                 line("[abilities]:");
@@ -114,8 +114,7 @@ fn build_unit_info_panel(
         if let Some(abilities) = parts.passive_abilities.get_opt(id) {
             if !abilities.0.is_empty() {
                 for ability in &abilities.0 {
-                    let s = ability.to_str();
-                    line(&format!("'{}'", s));
+                    line(&format!("'{}'", ability.to_string()));
                 }
                 line("[passive abilities]:");
             }
@@ -165,8 +164,8 @@ fn build_unit_abilities_panel(
     };
     for &ability in abilities {
         let text = match ability.status {
-            ability::Status::Ready => format!("{}", ability.ability.to_str()),
-            ability::Status::Cooldown(n) => format!("{} ({})", ability.ability.to_str(), n),
+            ability::Status::Ready => format!("{}", ability.ability.to_string()),
+            ability::Status::Cooldown(n) => format!("{} ({})", ability.ability.to_string(), n),
         };
         let sprite = gui::text_sprite(context, &text, line_height());
         let id = gui.add_button(context, sprite, GuiCommand::Ability(ability.ability));
