@@ -74,23 +74,23 @@ pub struct RechargeableAbility {
 }
 
 impl Ability {
-    pub fn to_str(&self) -> &str {
+    pub fn to_string(&self) -> String {
         match *self {
-            Ability::Knockback => "Knockback",
-            Ability::Club => "Club",
-            Ability::Jump(_) => "Jump",
-            Ability::Poison => "Poison",
-            Ability::Explode => "Explode",
-            Ability::ExplodeFire => "Explode Fire",
-            Ability::ExplodePoison => "Explode Poison",
-            Ability::Bomb(_) => "Bomb",
-            Ability::BombFire(_) => "Fire bomb",
-            Ability::BombPoison(_) => "Poison bomb",
-            Ability::Vanish => "Vanish",
-            Ability::Summon(_) => "Summon",
-            Ability::Dash => "Dash",
-            Ability::Rage(_) => "Rage",
-            Ability::Heal(_) => "Heal",
+            Ability::Knockback => format!("Knockback"),
+            Ability::Club => format!("Club"),
+            Ability::Jump(a) => format!("Jump-{}", (a.0).0),
+            Ability::Poison => format!("Poison"),
+            Ability::Explode => format!("Explode"),
+            Ability::ExplodeFire => format!("Explode Fire"),
+            Ability::ExplodePoison => format!("Explode Poison"),
+            Ability::Bomb(a) => format!("Bomb-{}", (a.0).0),
+            Ability::BombFire(a) => format!("Fire bomb-{}", (a.0).0),
+            Ability::BombPoison(a) => format!("Poison bomb-{}", (a.0).0),
+            Ability::Vanish => format!("Vanish"),
+            Ability::Summon(a) => format!("Summon-{}", a.0),
+            Ability::Dash => format!("Dash"),
+            Ability::Rage(a) => format!("Rage-{}", (a.0).0),
+            Ability::Heal(a) => format!("Heal-{}", (a.0).0),
         }
     }
 }
@@ -109,14 +109,14 @@ pub enum PassiveAbility {
 pub struct Regenerate(pub Strength);
 
 impl PassiveAbility {
-    pub fn to_str(&self) -> &str {
+    pub fn to_string(&self) -> String {
         match *self {
-            PassiveAbility::HeavyImpact => "Heavy impact",
-            PassiveAbility::SpawnPoisonCloudOnDeath => "Spawn a poison cloud on death",
-            PassiveAbility::Burn => "Burn",
-            PassiveAbility::Poison => "Poison",
-            PassiveAbility::PoisonAttack => "Poison attack",
-            PassiveAbility::Regenerate(_) => "Regenerate",
+            PassiveAbility::HeavyImpact => format!("Heavy impact"),
+            PassiveAbility::SpawnPoisonCloudOnDeath => format!("Spawn a poison cloud on death"),
+            PassiveAbility::Burn => format!("Burn"),
+            PassiveAbility::Poison => format!("Poison"),
+            PassiveAbility::PoisonAttack => format!("Poison attack"),
+            PassiveAbility::Regenerate(a) => format!("Regenerate-{}", (a.0).0),
         }
     }
 }
