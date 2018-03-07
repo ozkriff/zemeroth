@@ -241,6 +241,9 @@ fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: ObjI
         if !state.parts().is_exist(target_id) {
             continue;
         }
+        if state.parts().agent.get_opt(target_id).is_none() {
+            continue;
+        }
         let abilities = state.parts().passive_abilities.get(id).clone();
         let pos = match state.parts().pos.get_opt(id) {
             Some(pos) => pos.0,
@@ -1005,8 +1008,8 @@ pub fn create_terrain(state: &mut State) {
 pub fn create_objects(state: &mut State, cb: Cb) {
     let player_id_initial = state.player_id();
     for &(owner, typename, count) in &[
-        (None, "boulder", 7),
         (None, "spike_trap", 3),
+        (None, "boulder", 7),
         (Some(PlayerId(0)), "swordsman", 1),
         (Some(PlayerId(0)), "hammerman", 1),
         (Some(PlayerId(0)), "spearman", 1),
