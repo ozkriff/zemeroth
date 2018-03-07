@@ -101,6 +101,7 @@ pub enum PassiveAbility {
     SpawnPoisonCloudOnDeath,
     Burn,
     Poison,
+    SpikeTrap,
     PoisonAttack,
     Regenerate(Regenerate),
 }
@@ -115,6 +116,7 @@ impl PassiveAbility {
             PassiveAbility::SpawnPoisonCloudOnDeath => format!("Spawn a poison cloud on death"),
             PassiveAbility::Burn => format!("Burn"),
             PassiveAbility::Poison => format!("Poison"),
+            PassiveAbility::SpikeTrap => format!("SpikeTrap"),
             PassiveAbility::PoisonAttack => format!("Poison attack"),
             PassiveAbility::Regenerate(a) => format!("Regenerate-{}", (a.0).0),
         }

@@ -175,6 +175,14 @@ fn try_execute_passive_ability_burn(state: &mut State, target_id: ObjId) -> Exec
     context
 }
 
+fn try_execute_passive_ability_spike_trap(state: &mut State, target_id: ObjId) -> ExecuteContext {
+    let mut context = ExecuteContext::default();
+    let damage = core::Strength(1);
+    let target_effects = vec![wound_or_kill(state, target_id, damage)];
+    context.instant_effects.insert(target_id, target_effects);
+    context
+}
+
 fn try_execute_passive_ability_poison(state: &mut State, target_id: ObjId) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     if let Some(effects) = state.parts_mut().effects.get_opt_mut(target_id) {
@@ -244,6 +252,10 @@ fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: ObjI
         for &ability in &abilities.0 {
             assert!(state.parts().is_exist(target_id));
             match ability {
+                PassiveAbility::SpikeTrap => {
+                    let context = try_execute_passive_ability_spike_trap(state, target_id);
+                    do_passive_ability(state, cb, id, target_pos, ability, context);
+                }
                 PassiveAbility::Burn => {
                     let context = try_execute_passive_ability_burn(state, target_id);
                     do_passive_ability(state, cb, id, target_pos, ability, context);
@@ -344,6 +356,7 @@ fn try_execute_passive_abilities_on_attack(
                     timed_effects.push(effect);
                 }
                 PassiveAbility::Burn
+                | PassiveAbility::SpikeTrap
                 | PassiveAbility::Poison
                 | PassiveAbility::Regenerate(_)
                 | PassiveAbility::SpawnPoisonCloudOnDeath => (),
@@ -992,7 +1005,8 @@ pub fn create_terrain(state: &mut State) {
 pub fn create_objects(state: &mut State, cb: Cb) {
     let player_id_initial = state.player_id();
     for &(owner, typename, count) in &[
-        (None, "boulder", 10),
+        (None, "boulder", 7),
+        (None, "spike_trap", 3),
         (Some(PlayerId(0)), "swordsman", 1),
         (Some(PlayerId(0)), "hammerman", 1),
         (Some(PlayerId(0)), "spearman", 1),
