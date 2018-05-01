@@ -80,8 +80,7 @@ fn new_pso(
 }
 
 fn load_font_from_vec(data: Vec<u8>) -> rusttype::Font<'static> {
-    let collection = rusttype::FontCollection::from_bytes(data);
-    collection.into_font().unwrap()
+    rusttype::Font::from_bytes(data).unwrap()
 }
 
 fn load_font(settings: &Settings) -> rusttype::Font<'static> {
