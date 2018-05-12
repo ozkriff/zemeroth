@@ -1,9 +1,9 @@
-use core::State;
+use core::ability::{self, Ability};
 use core::command::{self, Command};
 use core::map::{self, Distance, PosHex};
-use core::{self, Attacks, Jokers, Moves, ObjId};
-use core::ability::{self, Ability};
 use core::state;
+use core::State;
+use core::{self, Attacks, Jokers, Moves, ObjId};
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
     match *command {

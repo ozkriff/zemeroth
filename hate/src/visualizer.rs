@@ -1,11 +1,12 @@
-use std::thread;
 use std::sync::mpsc;
-use std::time::{Instant, Duration};
+use std::thread;
+use std::time::{Duration, Instant};
+
+use context::Context;
 use screen;
 use screen::Screen;
-use context::Context;
-use settings::Settings;
 use screen_stack::Screens;
+use settings::Settings;
 
 fn max_frame_time(context: &Context) -> Duration {
     Duration::from_millis((1_000.0 / context.settings().max_fps) as _)

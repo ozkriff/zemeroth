@@ -1,8 +1,9 @@
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 use std::time::Duration;
-use sprite::Sprite;
+
 use context::Context;
+use sprite::Sprite;
 
 pub use scene::action::Action;
 

@@ -1,4 +1,5 @@
 use std::time::Duration;
+
 use context::Context;
 use event::Event;
 

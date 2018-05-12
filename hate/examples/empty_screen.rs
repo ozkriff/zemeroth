@@ -1,6 +1,7 @@
 extern crate hate;
 
 use std::time::Duration;
+
 use hate::{Context, Event, Screen};
 
 pub struct EmptyScreen;

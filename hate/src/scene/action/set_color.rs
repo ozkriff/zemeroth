@@ -1,5 +1,5 @@
-use sprite::Sprite;
 use scene::Action;
+use sprite::Sprite;
 
 #[derive(Debug)]
 pub struct SetColor {

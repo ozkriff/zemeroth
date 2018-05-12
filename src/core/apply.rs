@@ -1,9 +1,9 @@
-use core::{Attacks, Jokers, Moves, ObjId, PlayerId, State};
+use core::ability::{self, Ability};
 use core::component::{self, Component};
 use core::effect::{self, Effect, LastingEffect};
 use core::event::{self, ActiveEvent, Event};
-use core::ability::{self, Ability};
 use core::state;
+use core::{Attacks, Jokers, Moves, ObjId, PlayerId, State};
 
 pub fn apply(state: &mut State, event: &Event) {
     debug!("event::apply: {:?}", event);

@@ -1,9 +1,9 @@
 use core::command::{self, Command};
-use core::{self, check, ObjId, PlayerId, State};
+use core::map;
 use core::movement::{self, Path, Pathfinder};
 use core::state;
-use core::map;
 use core::utils::shuffle_vec;
+use core::{self, check, ObjId, PlayerId, State};
 
 #[derive(Debug, Clone)]
 pub struct Ai {

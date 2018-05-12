@@ -1,8 +1,9 @@
 use std::time::Duration;
-use time;
-use sprite::Sprite;
-use scene::Action;
+
 use geom::Point;
+use scene::Action;
+use sprite::Sprite;
+use time;
 
 #[derive(Debug)]
 pub struct MoveBy {

@@ -1,5 +1,5 @@
-use core::{Attacks, Strength};
 use core::map::Distance;
+use core::{Attacks, Strength};
 
 /// Active ability.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

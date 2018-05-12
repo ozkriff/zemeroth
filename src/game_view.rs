@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 use std::time::Duration;
-use hate::{Context, Scene, Sprite};
-use hate::scene::Layer;
+
 use hate::scene::action::{self, Action};
+use hate::scene::Layer;
+use hate::{Context, Scene, Sprite};
+
+use core::ability::Ability;
 use core::map::{HexMap, PosHex};
 use core::{self, command, movement};
-use core::ability::Ability;
 use core::{Jokers, Moves, ObjId, State};
 use map::hex_to_point;
 use visualize;
@@ -158,7 +160,11 @@ impl GameView {
             let action = {
                 let layer = &self.layers().highlighted_tiles;
                 Box::new(action::Sequence::new(vec![
-                    Box::new(action::ChangeColorTo::new(&sprite, color, Duration::from_millis(300))),
+                    Box::new(action::ChangeColorTo::new(
+                        &sprite,
+                        color,
+                        Duration::from_millis(300),
+                    )),
                     Box::new(action::Hide::new(layer, &sprite)),
                 ]))
             };

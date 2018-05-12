@@ -1,10 +1,12 @@
-use std::rc::Rc;
 use std::cell::RefCell;
 use std::path::Path;
+use std::rc::Rc;
+
 use cgmath::{Matrix4, Vector2, Zero};
+
 use context::Context;
-use mesh::RMesh;
 use geom::{self, Point, Size};
+use mesh::RMesh;
 
 #[derive(Debug, Clone)]
 pub struct Sprite {

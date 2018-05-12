@@ -1,5 +1,5 @@
-use core::{Phase, PosHex, Strength};
 use core::component::Component;
+use core::{Phase, PosHex, Strength};
 
 #[derive(Clone, Debug, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Duration {

@@ -1,24 +1,26 @@
 use std::collections::HashMap;
-use std::sync::mpsc::Sender;
 use std::path::{Path, PathBuf};
+use std::sync::mpsc::Sender;
+
 use cgmath::{self, InnerSpace, Matrix4, SquareMatrix, Vector2, Zero};
-use glutin::{self, Api, GlContext, MouseButton};
-use glutin::ElementState::{Pressed, Released};
-use rusttype;
-use gfx::traits::{Device, FactoryExt};
-use gfx::handle::Program;
 use gfx;
+use gfx::handle::Program;
+use gfx::traits::{Device, FactoryExt};
 use gfx_device_gl;
 use gfx_window_glutin;
-use settings::Settings;
+use glutin::ElementState::{Pressed, Released};
+use glutin::{self, Api, GlContext, MouseButton};
+use rusttype;
+
 use event::Event;
-use screen;
 use fs;
 use geom::{Point, Size};
-use pipeline::pipe;
 use mesh::Mesh;
-use texture::{self, Texture};
+use pipeline::pipe;
+use screen;
+use settings::Settings;
 use text;
+use texture::{self, Texture};
 
 fn shader_version_string(api: Api) -> String {
     match api {
@@ -306,7 +308,7 @@ impl Context {
 
     fn handle_event(&mut self, event: &glutin::WindowEvent) {
         match *event {
-            glutin::WindowEvent::Closed => {
+            glutin::WindowEvent::CloseRequested => {
                 self.should_close = true;
             }
             glutin::WindowEvent::MouseInput {

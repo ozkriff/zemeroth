@@ -1,5 +1,6 @@
 use cgmath::vec2;
 use hate::geom::Point;
+
 use core::map::{hex_round, PosHex};
 
 const SQRT_OF_3: f32 = 1.732050;
