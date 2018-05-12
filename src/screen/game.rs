@@ -1,23 +1,23 @@
 use std::time::Duration;
 
-use ron;
-use rand::{thread_rng, Rng};
 use cgmath::Vector2;
-use hate::{self, Context, Event, Screen, Sprite};
 use hate::geom::Point;
 use hate::gui::{self, Gui};
 use hate::scene::action::{self, Action};
+use hate::{self, Context, Event, Screen, Sprite};
+use rand::{thread_rng, Rng};
+use ron;
 
-use visualize;
-use map;
-use game_view::{GameView, SelectionMode};
 use ai::Ai;
-use core::{check, ObjId, PlayerId, State, TileType};
-use core::{self, command, execute, state};
+use core::ability::{self, Ability};
+use core::effect;
 use core::map::PosHex;
 use core::movement::Pathfinder;
-use core::effect;
-use core::ability::{self, Ability};
+use core::{self, command, execute, state};
+use core::{check, ObjId, PlayerId, State, TileType};
+use game_view::{GameView, SelectionMode};
+use map;
+use visualize;
 
 #[derive(Copy, Clone, Debug)]
 enum GuiCommand {

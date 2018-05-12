@@ -3,9 +3,9 @@ use gfx::traits::FactoryExt;
 use gfx_device_gl;
 
 use context::Context;
-use texture::Texture;
 use geom::Size;
 use pipeline::Vertex;
+use texture::Texture;
 
 pub type VertexIndex = u16;
 

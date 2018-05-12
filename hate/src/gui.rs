@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use cgmath::Vector2;
 
-use sprite::Sprite;
 use context::Context;
-use mesh::RMesh;
 use geom::{Point, Size};
+use mesh::RMesh;
+use sprite::Sprite;
 use texture;
 
 // TODO: Make private? Move to other file?

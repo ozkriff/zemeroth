@@ -1,5 +1,5 @@
-use rusttype::{point, Font, PositionedGlyph, Scale};
 use geom::Size;
+use rusttype::{point, Font, PositionedGlyph, Scale};
 
 fn calc_text_width(glyphs: &[PositionedGlyph]) -> f32 {
     glyphs.last().unwrap().pixel_bounding_box().unwrap().max.x as f32

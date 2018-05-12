@@ -2,17 +2,17 @@ use std::collections::HashMap;
 
 use rand::{thread_rng, Rng};
 
-use core::map::{self, Dir, PosHex};
-use core::{self, Moves, ObjId, Phase, PlayerId, State, TileType};
-use core::component::{self, Component};
-use core::command::{self, Command};
-use core::event::{self, ActiveEvent, Event};
-use core::effect::{self, Duration, Effect, LastingEffect, TimedEffect};
-use core::check::{check, Error};
-use core::movement::Path;
-use core::apply::apply;
 use core::ability::{self, Ability, PassiveAbility};
+use core::apply::apply;
+use core::check::{check, Error};
+use core::command::{self, Command};
+use core::component::{self, Component};
+use core::effect::{self, Duration, Effect, LastingEffect, TimedEffect};
+use core::event::{self, ActiveEvent, Event};
+use core::map::{self, Dir, PosHex};
+use core::movement::Path;
 use core::state;
+use core::{self, Moves, ObjId, Phase, PlayerId, State, TileType};
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum ApplyPhase {
@@ -1045,8 +1045,8 @@ pub fn create_objects(state: &mut State, cb: Cb) {
 mod tests {
     use std::collections::HashMap;
 
-    use core::ObjId;
     use core::effect::Effect;
+    use core::ObjId;
 
     use super::ExecuteContext;
 

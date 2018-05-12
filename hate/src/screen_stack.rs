@@ -1,5 +1,5 @@
-use std::time;
 use std::sync::mpsc;
+use std::time;
 
 use context::Context;
 use event::Event;

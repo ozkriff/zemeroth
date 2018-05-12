@@ -15,12 +15,12 @@ extern crate hate;
 extern crate rand;
 extern crate ron;
 
-mod screen;
-mod map;
+mod ai;
 mod core;
 mod game_view;
+mod map;
+mod screen;
 mod visualize;
-mod ai;
 
 fn main() {
     env_logger::init();

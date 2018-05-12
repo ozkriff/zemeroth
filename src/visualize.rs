@@ -1,19 +1,19 @@
 use std::time::Duration;
 
-use cgmath::{InnerSpace, vec2};
-use hate::{Context, Sprite};
-use hate::scene::Action;
-use hate::scene::action;
+use cgmath::{vec2, InnerSpace};
 use hate::geom::Point;
 use hate::gui;
+use hate::scene::action;
+use hate::scene::Action;
+use hate::{Context, Sprite};
 
-use core::{ObjId, PlayerId, State};
-use core::event::{ActiveEvent, Event};
-use core::map::PosHex;
-use core::event;
-use core::effect::{self, Effect, LastingEffect, TimedEffect};
-use core::execute::ApplyPhase;
 use core::ability::Ability;
+use core::effect::{self, Effect, LastingEffect, TimedEffect};
+use core::event;
+use core::event::{ActiveEvent, Event};
+use core::execute::ApplyPhase;
+use core::map::PosHex;
+use core::{ObjId, PlayerId, State};
 use game_view::GameView;
 use map;
 
@@ -27,10 +27,18 @@ pub fn message(view: &mut GameView, context: &mut Context, pos: PosHex, text: &s
     sprite.set_color(invisible);
     let action_show_hide = Box::new(action::Sequence::new(vec![
         Box::new(action::Show::new(&view.layers().text, &sprite)),
-        Box::new(action::ChangeColorTo::new(&sprite, visible, Duration::from_millis(300))),
+        Box::new(action::ChangeColorTo::new(
+            &sprite,
+            visible,
+            Duration::from_millis(300),
+        )),
         Box::new(action::Sleep::new(Duration::from_millis(1_000))),
         // TODO: read the time from Config:
-        Box::new(action::ChangeColorTo::new(&sprite, invisible, Duration::from_millis(1_000))),
+        Box::new(action::ChangeColorTo::new(
+            &sprite,
+            invisible,
+            Duration::from_millis(1_000),
+        )),
         Box::new(action::Hide::new(&view.layers().text, &sprite)),
     ]));
     let time = action_show_hide.duration();
@@ -51,7 +59,11 @@ fn show_blood_spot(view: &mut GameView, context: &mut Context, at: PosHex) -> Bo
     let color_final = [1.0, 1.0, 1.0, 0.3];
     Box::new(action::Sequence::new(vec![
         Box::new(action::Show::new(&view.layers().blood, &blood)),
-        Box::new(action::ChangeColorTo::new(&blood, color_final, Duration::from_millis(300))),
+        Box::new(action::ChangeColorTo::new(
+            &blood,
+            color_final,
+            Duration::from_millis(300),
+        )),
     ]))
 }
 
@@ -72,8 +84,16 @@ fn show_flare_scale(
     flare.set_color(invisible);
     Box::new(action::Sequence::new(vec![
         Box::new(action::Show::new(&view.layers().flares, &flare)),
-        Box::new(action::ChangeColorTo::new(&flare, visible, Duration::from_millis(100))),
-        Box::new(action::ChangeColorTo::new(&flare, invisible, Duration::from_millis(300))),
+        Box::new(action::ChangeColorTo::new(
+            &flare,
+            visible,
+            Duration::from_millis(100),
+        )),
+        Box::new(action::ChangeColorTo::new(
+            &flare,
+            invisible,
+            Duration::from_millis(300),
+        )),
         Box::new(action::Hide::new(&view.layers().flares, &flare)),
     ]))
 }
@@ -126,8 +146,16 @@ fn vanish(view: &mut GameView, target_id: ObjId) -> Box<Action> {
     let invisible = [0.1, 0.1, 0.1, 0.0];
     Box::new(action::Sequence::new(vec![
         Box::new(action::Sleep::new(Duration::from_millis(250))),
-        Box::new(action::ChangeColorTo::new(&sprite, dark, Duration::from_millis(200))),
-        Box::new(action::ChangeColorTo::new(&sprite, invisible, Duration::from_millis(200))),
+        Box::new(action::ChangeColorTo::new(
+            &sprite,
+            dark,
+            Duration::from_millis(200),
+        )),
+        Box::new(action::ChangeColorTo::new(
+            &sprite,
+            invisible,
+            Duration::from_millis(200),
+        )),
         Box::new(action::Hide::new(&view.layers().units, &sprite)),
     ]))
 }
@@ -140,7 +168,11 @@ fn remove_brief_unit_info(view: &mut GameView, id: ObjId) -> Box<Action> {
         color[3] = 0.0;
         actions.push(Box::new(action::Fork::new(Box::new(
             action::Sequence::new(vec![
-                Box::new(action::ChangeColorTo::new(&sprite, color, Duration::from_millis(400))),
+                Box::new(action::ChangeColorTo::new(
+                    &sprite,
+                    color,
+                    Duration::from_millis(400),
+                )),
                 Box::new(action::Hide::new(&view.layers().dots, &sprite)),
             ]),
         ))));
@@ -184,7 +216,11 @@ fn generate_brief_obj_info(
         sprite.set_color([color[0], color[1], color[2], 0.0]);
         let action = Box::new(action::Fork::new(Box::new(action::Sequence::new(vec![
             Box::new(action::Show::new(&view.layers().dots, &sprite)),
-            Box::new(action::ChangeColorTo::new(&sprite, color, Duration::from_millis(100))),
+            Box::new(action::ChangeColorTo::new(
+                &sprite,
+                color,
+                Duration::from_millis(100),
+            )),
         ]))));
         sprites.push(sprite);
         actions.push(action);
@@ -320,7 +356,11 @@ fn visualize_create(
     let final_color = [1.0, 1.0, 1.0, 1.0];
     Box::new(action::Sequence::new(vec![
         Box::new(action::Show::new(&view.layers().units, &sprite)),
-        Box::new(action::ChangeColorTo::new(&sprite, final_color, Duration::from_millis(250))),
+        Box::new(action::ChangeColorTo::new(
+            &sprite,
+            final_color,
+            Duration::from_millis(250),
+        )),
     ]))
 }
 
@@ -338,7 +378,11 @@ fn visualize_event_move_to(
         let diff = Point(to.0 - from.0);
         let step_height = 0.025;
         let step_time = Duration::from_millis(130);
-        let main_move = Box::new(action::MoveBy::new(&sprite, diff, Duration::from_millis(300)));
+        let main_move = Box::new(action::MoveBy::new(
+            &sprite,
+            diff,
+            Duration::from_millis(300),
+        ));
         let action = Box::new(action::Sequence::new(vec![
             Box::new(action::Fork::new(main_move)),
             up_and_down_move(view, &sprite, step_height, step_time),
@@ -367,7 +411,11 @@ fn visualize_event_attack(
         actions.push(Box::new(action::Sleep::new(Duration::from_millis(300))));
         actions.push(message(view, context, map_from, "reaction"));
     }
-    actions.push(Box::new(action::MoveBy::new(&sprite, diff, Duration::from_millis(100))));
+    actions.push(Box::new(action::MoveBy::new(
+        &sprite,
+        diff,
+        Duration::from_millis(100),
+    )));
     actions.push(Box::new(action::MoveBy::new(
         &sprite,
         Point(-diff.0),
@@ -404,9 +452,17 @@ fn visualize_event_begin_turn(
     sprite.set_color(invisible);
     Box::new(action::Sequence::new(vec![
         Box::new(action::Show::new(&view.layers().text, &sprite)),
-        Box::new(action::ChangeColorTo::new(&sprite, visible, Duration::from_millis(200))),
+        Box::new(action::ChangeColorTo::new(
+            &sprite,
+            visible,
+            Duration::from_millis(200),
+        )),
         Box::new(action::Sleep::new(Duration::from_millis(1_000))),
-        Box::new(action::ChangeColorTo::new(&sprite, invisible, Duration::from_millis(300))),
+        Box::new(action::ChangeColorTo::new(
+            &sprite,
+            invisible,
+            Duration::from_millis(300),
+        )),
         Box::new(action::Hide::new(&view.layers().text, &sprite)),
     ]))
 }
@@ -436,7 +492,11 @@ fn visualize_event_use_ability_dash(
     let from = map::hex_to_point(view.tile_size(), from);
     let to = map::hex_to_point(view.tile_size(), event.pos);
     let diff = Point(to.0 - from.0);
-    Box::new(action::MoveBy::new(&sprite, diff, Duration::from_millis(100)))
+    Box::new(action::MoveBy::new(
+        &sprite,
+        diff,
+        Duration::from_millis(100),
+    ))
 }
 
 fn visualize_event_use_ability_explode(
@@ -655,8 +715,16 @@ fn visualize_effect_wound(
     let color_dark = [0.1, 0.1, 0.1, 1.0];
     Box::new(action::Sequence::new(vec![
         message(view, context, pos, &format!("wounded - {}", damage.0)),
-        Box::new(action::ChangeColorTo::new(&sprite, color_dark, Duration::from_millis(200))),
-        Box::new(action::ChangeColorTo::new(&sprite, color_normal, Duration::from_millis(200))),
+        Box::new(action::ChangeColorTo::new(
+            &sprite,
+            color_dark,
+            Duration::from_millis(200),
+        )),
+        Box::new(action::ChangeColorTo::new(
+            &sprite,
+            color_normal,
+            Duration::from_millis(200),
+        )),
         show_blood_spot(view, context, pos),
     ]))
 }
@@ -674,7 +742,11 @@ fn visualize_effect_knockback(
     let diff = Point(to.0 - from.0);
     Box::new(action::Sequence::new(vec![
         message(view, context, effect.to, "bump"),
-        Box::new(action::MoveBy::new(&sprite, diff, Duration::from_millis(150))),
+        Box::new(action::MoveBy::new(
+            &sprite,
+            diff,
+            Duration::from_millis(150),
+        )),
     ]))
 }
 

@@ -5,11 +5,11 @@ use std::time::Duration;
 
 use cgmath::vec2;
 
-use hate::{Context, Event, Scene, Screen};
 use hate::geom::Point;
-use hate::scene::Layer;
-use hate::scene::action;
 use hate::gui;
+use hate::scene::action;
+use hate::scene::Layer;
+use hate::{Context, Event, Scene, Screen};
 
 #[derive(Debug, Clone, Default)]
 struct Layers {
@@ -44,7 +44,11 @@ impl ActionsScreen {
         let delta = Point(vec2(0.0, 2.0));
         let action = Box::new(action::Sequence::new(vec![
             Box::new(action::Show::new(&self.layers.fg, &sprite)),
-            Box::new(action::MoveBy::new(&sprite, delta, Duration::from_millis(2_000))),
+            Box::new(action::MoveBy::new(
+                &sprite,
+                delta,
+                Duration::from_millis(2_000),
+            )),
             Box::new(action::Hide::new(&self.layers.fg, &sprite)),
         ]));
         self.scene.add_action(action);
@@ -57,9 +61,17 @@ impl ActionsScreen {
         sprite.set_color(invisible);
         let action = Box::new(action::Sequence::new(vec![
             Box::new(action::Show::new(&self.layers.fg, &sprite)),
-            Box::new(action::ChangeColorTo::new(&sprite, visible, Duration::from_millis(300))),
+            Box::new(action::ChangeColorTo::new(
+                &sprite,
+                visible,
+                Duration::from_millis(300),
+            )),
             Box::new(action::Sleep::new(Duration::from_millis(1_000))),
-            Box::new(action::ChangeColorTo::new(&sprite, invisible, Duration::from_millis(1_000))),
+            Box::new(action::ChangeColorTo::new(
+                &sprite,
+                invisible,
+                Duration::from_millis(1_000),
+            )),
             Box::new(action::Hide::new(&self.layers.fg, &sprite)),
         ]));
         self.scene.add_action(action);

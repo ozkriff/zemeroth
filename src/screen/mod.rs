@@ -1,5 +1,5 @@
-mod main_menu;
 mod game;
+mod main_menu;
 
-pub use self::main_menu::MainMenu;
 pub use self::game::Game;
+pub use self::main_menu::MainMenu;

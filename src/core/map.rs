@@ -1,5 +1,5 @@
-use std::iter::repeat;
 use std::fmt::Debug;
+use std::iter::repeat;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Distance(pub i32);

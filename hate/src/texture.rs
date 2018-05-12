@@ -1,8 +1,8 @@
 use std::io;
 
-use png;
 use gfx;
 use gfx_device_gl;
+use png;
 
 use geom::Size;
 use pipeline::ColorFormat;
