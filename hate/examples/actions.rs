@@ -2,7 +2,9 @@ extern crate cgmath;
 extern crate hate;
 
 use std::time::Duration;
+
 use cgmath::vec2;
+
 use hate::{Context, Event, Scene, Screen};
 use hate::geom::Point;
 use hate::scene::Layer;

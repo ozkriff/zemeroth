@@ -1,4 +1,5 @@
 use std::time::Duration;
+
 use ron;
 use rand::{thread_rng, Rng};
 use cgmath::Vector2;
@@ -6,6 +7,7 @@ use hate::{self, Context, Event, Screen, Sprite};
 use hate::geom::Point;
 use hate::gui::{self, Gui};
 use hate::scene::action::{self, Action};
+
 use visualize;
 use map;
 use game_view::{GameView, SelectionMode};

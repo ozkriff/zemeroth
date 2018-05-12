@@ -1,6 +1,7 @@
 extern crate hate;
 
 use std::time::Duration;
+
 use hate::{Context, Event, Screen, Sprite};
 use hate::geom::Point;
 use hate::gui::{self, Gui};

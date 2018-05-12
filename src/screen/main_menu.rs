@@ -1,7 +1,9 @@
 use std::time;
+
 use hate::{self, Context, Event, Screen, Sprite};
 use hate::gui::{self, Gui};
 use hate::geom::Point;
+
 use screen;
 
 #[derive(Copy, Clone, Debug)]

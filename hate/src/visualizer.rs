@@ -1,6 +1,7 @@
 use std::thread;
 use std::sync::mpsc;
 use std::time::{Instant, Duration};
+
 use screen;
 use screen::Screen;
 use context::Context;

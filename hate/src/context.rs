@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::mpsc::Sender;
 use std::path::{Path, PathBuf};
+
 use cgmath::{self, InnerSpace, Matrix4, SquareMatrix, Vector2, Zero};
 use glutin::{self, Api, GlContext, MouseButton};
 use glutin::ElementState::{Pressed, Released};
@@ -10,6 +11,7 @@ use gfx::handle::Program;
 use gfx;
 use gfx_device_gl;
 use gfx_window_glutin;
+
 use settings::Settings;
 use event::Event;
 use screen;

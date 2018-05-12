@@ -1,5 +1,7 @@
-use cgmath::Vector2;
 use std::collections::HashMap;
+
+use cgmath::Vector2;
+
 use sprite::Sprite;
 use context::Context;
 use mesh::RMesh;

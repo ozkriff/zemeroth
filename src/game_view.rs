@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 use std::time::Duration;
+
 use hate::{Context, Scene, Sprite};
 use hate::scene::Layer;
 use hate::scene::action::{self, Action};
+
 use core::map::{HexMap, PosHex};
 use core::{self, command, movement};
 use core::ability::Ability;

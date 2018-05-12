@@ -1,5 +1,7 @@
 use std::collections::HashMap;
+
 use rand::{thread_rng, Rng};
+
 use core::map::{self, Dir, PosHex};
 use core::{self, Moves, ObjId, Phase, PlayerId, State, TileType};
 use core::component::{self, Component};
@@ -1042,8 +1044,10 @@ pub fn create_objects(state: &mut State, cb: Cb) {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+
     use core::ObjId;
     use core::effect::Effect;
+
     use super::ExecuteContext;
 
     #[test]

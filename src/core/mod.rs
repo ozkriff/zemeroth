@@ -1,4 +1,5 @@
 use std::default::Default;
+
 use core::map::PosHex;
 use core::movement::MovePoints;
 

@@ -1,4 +1,5 @@
 use std::time::Duration;
+
 use time;
 use sprite::Sprite;
 use scene::Action;

@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+
 use cgmath::{Matrix4, Vector2};
 
 #[derive(Clone, Copy, Debug)]

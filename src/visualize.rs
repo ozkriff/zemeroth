@@ -1,10 +1,12 @@
 use std::time::Duration;
+
 use cgmath::{InnerSpace, vec2};
 use hate::{Context, Sprite};
 use hate::scene::Action;
 use hate::scene::action;
 use hate::geom::Point;
 use hate::gui;
+
 use core::{ObjId, PlayerId, State};
 use core::event::{ActiveEvent, Event};
 use core::map::PosHex;
