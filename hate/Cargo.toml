@@ -10,9 +10,9 @@ categories = ["game-engines"]
 [dependencies]
 gfx_core = "0.8"
 gfx_device_gl = "0.15"
-gfx_window_glutin = "0.22"
+gfx_window_glutin = "0.23"
 gfx = "0.17"
-glutin = "0.14"
+glutin = "0.15"
 cgmath = "0.16"
 rusttype = "0.5"
 png = "0.12"

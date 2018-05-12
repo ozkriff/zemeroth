@@ -308,7 +308,7 @@ impl Context {
 
     fn handle_event(&mut self, event: &glutin::WindowEvent) {
         match *event {
-            glutin::WindowEvent::Closed => {
+            glutin::WindowEvent::CloseRequested => {
                 self.should_close = true;
             }
             glutin::WindowEvent::MouseInput {
