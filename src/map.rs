@@ -3,7 +3,7 @@ use hate::geom::Point;
 
 use core::map::{hex_round, PosHex};
 
-const SQRT_OF_3: f32 = 1.732050;
+const SQRT_OF_3: f32 = 1.732_05;
 
 /// <http://www.redblobgames.com/grids/hexagons/#hex-to-pixel>
 pub fn hex_to_point(size: f32, hex: PosHex) -> Point {
