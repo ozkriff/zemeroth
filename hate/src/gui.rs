@@ -190,13 +190,17 @@ impl<Message: Clone> Gui<Message> {
                     Direction::Right => {
                         cursor.0.x += sprite.size().w / 2.0;
                         sprite.set_pos(cursor);
-                        self.backgrounds.get_mut(id).map(|bg| bg.set_pos(cursor));
+                        if let Some(bg) = self.backgrounds.get_mut(id) {
+                            bg.set_pos(cursor);
+                        }
                         cursor.0.x += sprite.size().w / 2.0 + SPACING;
                     }
                     Direction::Up => {
                         cursor.0.y += sprite.size().h / 2.0;
                         sprite.set_pos(cursor);
-                        self.backgrounds.get_mut(id).map(|bg| bg.set_pos(cursor));
+                        if let Some(bg) = self.backgrounds.get_mut(id) {
+                            bg.set_pos(cursor);
+                        }
                         cursor.0.y += sprite.size().h / 2.0 + SPACING;
                     }
                 }

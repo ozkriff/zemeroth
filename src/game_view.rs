@@ -240,7 +240,7 @@ impl GameView {
             }
             let command_attack = command::Command::Attack(command::Attack {
                 attacker_id: id,
-                target_id: target_id,
+                target_id,
             });
             if core::check(state, &command_attack).is_err() {
                 continue;

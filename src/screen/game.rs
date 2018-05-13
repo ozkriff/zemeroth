@@ -166,7 +166,7 @@ fn build_unit_abilities_panel(
     };
     for &ability in abilities {
         let text = match ability.status {
-            ability::Status::Ready => format!("{}", ability.ability.to_string()),
+            ability::Status::Ready => ability.ability.to_string(),
             ability::Status::Cooldown(n) => format!("{} ({})", ability.ability.to_string(), n),
         };
         let sprite = gui::text_sprite(context, &text, line_height());

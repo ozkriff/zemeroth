@@ -127,7 +127,7 @@ impl Iterator for HexIter {
     type Item = PosHex;
 
     fn next(&mut self) -> Option<PosHex> {
-        if self.cursor.r >= self.radius.0 + 1 {
+        if self.cursor.r > self.radius.0 {
             None
         } else {
             let current = self.cursor;

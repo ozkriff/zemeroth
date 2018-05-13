@@ -88,7 +88,7 @@ impl Ai {
         for &target_id in &shuffle_vec(state::enemy_agent_ids(state, self.id)) {
             let command = Command::Attack(command::Attack {
                 attacker_id: unit_id,
-                target_id: target_id,
+                target_id,
             });
             if check(state, &command).is_ok() {
                 return Some(command);
