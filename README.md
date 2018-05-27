@@ -16,24 +16,21 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 **Status**:
 [![][img_travis-ci]][travis-ci]
 [![][img_appveyor-ci]][appveyor-ci]
-[![][img_circle-ci]][circle-ci]
 [![dependency status][img_deps-rs]][deps-rs]
 
 [img_travis-ci]: https://img.shields.io/travis/ozkriff/zemeroth/master.svg?label=Linux|OSX
 [img_appveyor-ci]: https://img.shields.io/appveyor/ci/ozkriff/zemeroth.svg?label=Windows
-[img_circle-ci]: https://img.shields.io/circleci/project/github/ozkriff/zemeroth/master.svg?label=Android
 [img_deps-rs]: https://deps.rs/repo/github/ozkriff/zemeroth/status.svg
 
 [loc]: https://github.com/Aaronepower/tokei
 [travis-ci]: https://travis-ci.org/ozkriff/zemeroth
 [appveyor-ci]: https://ci.appveyor.com/project/ozkriff/zemeroth
-[circle-ci]: https://circleci.com/gh/ozkriff/zemeroth
 [deps-rs]: https://deps.rs/repo/github/ozkriff/zemeroth
 
 
 ## Precompiled Binaries
 
-Precompiled binaries for Linux, Windows, OS X and Android:
+Precompiled binaries for Linux, Windows and macOS:
 <https://github.com/ozkriff/zemeroth/releases>
 
 
@@ -74,15 +71,6 @@ cargo build
 # Run it
 cargo run
 ```
-
-
-## Building from Source for Android
-
-[Set up a build environment][android setup] and run `./do_android` script:
-
-![android screenshot](https://i.imgur.com/T9EgPR1.png)
-
-[android setup]: https://github.com/tomaka/android-rs-glue#setting-up-your-environment
 
 
 ## Contribute
