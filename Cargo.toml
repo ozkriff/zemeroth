@@ -5,22 +5,16 @@ authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
 license = "MIT/Apache-2.0"
 
 [workspace]
-members = ["hate", "rancor"]
+members = ["zcomponents", "ggwp-zgui", "ggwp-zscene"]
 
 [dependencies]
-hate = { path = "hate" }
-rancor = { path = "rancor" }
-cgmath = "0.16"
+ggez = "0.4"
 ron = "0.2"
-rand = "0.4"
+rand = "0.5"
 log = "0.4"
 env_logger = "0.5"
 serde = "1.0"
 serde_derive = "1.0"
-
-[package.metadata.android]
-assets = "assets"
-fullscreen = true
-
-[package.metadata.android.activity_attributes]
-"android:screenOrientation" = "sensorLandscape"
+ggwp-zgui = { path="ggwp-zgui" }
+ggwp-zscene = { path="ggwp-zscene" }
+zcomponents = { path = "zcomponents" }

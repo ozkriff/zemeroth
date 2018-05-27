@@ -228,13 +228,6 @@ impl Dir {
         }
     }
 
-    // TODO:
-    /*
-    fn hex_direction(direction: Dir) {
-        return axial_directions[direction]
-    }
-    */
-
     pub fn get_dir_from_to(from: PosHex, to: PosHex) -> Dir {
         assert_eq!(distance_hex(from, to), Distance(1));
         let diff = [to.q - from.q, to.r - from.r];

@@ -21,6 +21,7 @@ pub enum Ability {
     Heal(Heal),
 }
 
+// TODO: use named fields?
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Summon(pub i32); // TODO: i32 -> ???
 

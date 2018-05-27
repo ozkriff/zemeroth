@@ -1,20 +1,21 @@
-use cgmath::vec2;
-use hate::geom::Point;
+// TODO: try to rename the module
+
+use ggez::graphics::Point2;
 
 use core::map::{hex_round, PosHex};
 
 const SQRT_OF_3: f32 = 1.732_05;
 
 /// <http://www.redblobgames.com/grids/hexagons/#hex-to-pixel>
-pub fn hex_to_point(size: f32, hex: PosHex) -> Point {
+pub fn hex_to_point(size: f32, hex: PosHex) -> Point2 {
     let x = size * SQRT_OF_3 * (hex.q as f32 + hex.r as f32 / 2.0);
     let y = size * 3.0 / 2.0 * hex.r as f32;
-    Point(vec2(x, y))
+    Point2::new(x, y)
 }
 
 /// <http://www.redblobgames.com/grids/hexagons/#pixel-to-hex>
-pub fn point_to_hex(size: f32, point: Point) -> PosHex {
-    let q = (point.0.x * SQRT_OF_3 / 3.0 - point.0.y / 3.0) / size;
-    let r = point.0.y * 2.0 / 3.0 / size;
+pub fn point_to_hex(size: f32, point: Point2) -> PosHex {
+    let q = (point.x * SQRT_OF_3 / 3.0 - point.y / 3.0) / size;
+    let r = point.y * 2.0 / 3.0 / size;
     hex_round(PosHex { q, r })
 }

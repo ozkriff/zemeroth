@@ -1,0 +1,6 @@
+[package]
+name = "zcomponents"
+version = "0.1.0"
+authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
+license = "MIT/Apache-2.0"
+description = "ZComponents is a stupid component storage"
