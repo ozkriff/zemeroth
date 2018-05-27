@@ -1,81 +1,86 @@
-use std::time;
+use std::time::Duration;
 
-use hate::geom::Point;
-use hate::gui::{self, Gui};
-use hate::{self, Context, Event, Screen, Sprite};
+use ggez::graphics::{Font, Point2, Text};
+use ggez::Context;
+use scene::{Sprite};
+use ui::{self, Gui};
 
-use screen;
+use screen::{self, Screen, Transition};
+use ZResult;
 
 #[derive(Copy, Clone, Debug)]
-enum Command {
+enum Message {
     Exit,
-    Start,
+    StartInstant,
+    StartCampaign,
+}
+
+fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
+    let mut gui = ui::Gui::new(context);
+    let image_battle = Text::new(context, "[battle]", font)?.into_inner();
+    let image_campaign = Text::new(context, "[campaign]", font)?.into_inner();
+    let image_exit = Text::new(context, "[exit]", font)?.into_inner();
+    let button_battle = ui::Button::new(image_battle, 0.2, gui.sender(), Message::StartInstant);
+    let button_campaign =
+        ui::Button::new(image_campaign, 0.2, gui.sender(), Message::StartCampaign);
+    let button_exit = ui::Button::new(image_exit, 0.2, gui.sender(), Message::Exit);
+    let mut layout = ui::VLayout::new();
+    layout.add(Box::new(button_battle));
+    layout.add(Box::new(button_campaign));
+    layout.add(Box::new(button_exit));
+    let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
+    gui.add(&ui::pack(layout), anchor);
+    Ok(gui)
 }
 
 #[derive(Debug)]
 pub struct MainMenu {
-    gui: Gui<Command>,
-    sprite: Sprite,
+    gui: Gui<Message>,
 }
 
 impl MainMenu {
-    pub fn new(context: &mut Context) -> Self {
-        let mut gui = Gui::new(context);
-        {
-            let sprite_exit = gui::text_sprite(context, "exit", 0.1);
-            let sprite_start = gui::text_sprite(context, "start", 0.1);
-            let button_id_exit = gui.add_button(context, sprite_exit, Command::Exit);
-            let button_id_start = gui.add_button(context, sprite_start, Command::Start);
-            let anchor = gui::Anchor {
-                vertical: gui::VAnchor::Middle,
-                horizontal: gui::HAnchor::Middle,
-            };
-            let direction = gui::Direction::Up;
-            let _ = gui.add_layout(anchor, direction, vec![button_id_exit, button_id_start]);
-        }
-        let mut sprite_imp = Sprite::from_path(context, "imp.png", 2.0);
-        sprite_imp.set_color([0.0, 0.0, 1.0, 0.2]);
-        MainMenu {
+    pub fn new(context: &mut Context) -> ZResult<Self> {
+        let font = Font::new(context, "/OpenSans-Regular.ttf", 32)?;
+        let gui = make_gui(context, &font)?;
+
+        let mut sprite = Sprite::from_path(context, "/tile.png", 0.1)?;
+        sprite.set_centered(true);
+        sprite.set_pos(Point2::new(0.5, 0.5));
+
+        // TODO: create some random unit arc-moving animation
+        Ok(Self {
             gui,
-            sprite: sprite_imp,
-        }
-    }
-
-    fn start_new_game(&mut self, context: &mut Context) {
-        let game_screen = Box::new(screen::Game::new(context));
-        context.add_command(hate::screen::Command::Push(game_screen));
-    }
-
-    fn exit(&mut self, context: &mut Context) {
-        context.add_command(hate::screen::Command::Pop);
-    }
-
-    fn handle_event_click(&mut self, context: &mut Context, pos: Point) {
-        self.gui.click(pos);
-        while let Some(command) = self.gui.try_recv() {
-            match command {
-                Command::Start => self.start_new_game(context),
-                Command::Exit => self.exit(context),
-            }
-        }
+        })
     }
 }
 
 impl Screen for MainMenu {
-    fn tick(&mut self, context: &mut Context, _: time::Duration) {
-        let projection_matrix = context.projection_matrix();
-        self.sprite.draw(context, projection_matrix);
-        self.gui.draw(context);
+    fn update(&mut self, _context: &mut Context, _: Duration) -> ZResult<Transition> {
+        Ok(Transition::None)
     }
 
-    fn handle_event(&mut self, context: &mut Context, event: Event) {
-        match event {
-            Event::Click { pos } => {
-                self.handle_event_click(context, pos);
+    fn draw(&self, context: &mut Context) -> ZResult {
+        self.gui.draw(context)
+    }
+
+    fn resize(&mut self, aspect_ratio: f32) {
+        self.gui.resize(aspect_ratio);
+    }
+
+    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<Transition> {
+        let message = self.gui.click(pos);
+        debug!("MainMenu: click: pos={:?}, message={:?}", pos, message);
+        match message {
+            Some(Message::StartInstant) => {
+                let screen = screen::Battle::new(context)?;
+                Ok(Transition::Push(Box::new(screen)))
             }
-            Event::Resize { aspect_ratio } => {
-                self.gui.resize(aspect_ratio);
+            Some(Message::StartCampaign) => {
+                let screen = screen::CampaignMenu::new(context)?;
+                Ok(Transition::Push(Box::new(screen)))
             }
+            Some(Message::Exit) => Ok(Transition::Pop),
+            None => Ok(Transition::None),
         }
     }
 }

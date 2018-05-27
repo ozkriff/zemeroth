@@ -76,7 +76,7 @@ pub enum Component {
     Schedule(Schedule),
 }
 
-rancor_storage!(Parts<ObjId>: {
+zcomponents_storage!(Parts<ObjId>: {
     strength: Strength,
     pos: Pos,
     meta: Meta,
