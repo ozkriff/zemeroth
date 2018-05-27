@@ -66,10 +66,10 @@ cd zemeroth
 git clone https://github.com/ozkriff/zemeroth_assets assets
 
 # Compile a debug version
-cargo build
+cargo build --release
 
 # Run it
-cargo run
+cargo run --release
 ```
 
 
