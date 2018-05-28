@@ -165,6 +165,10 @@ impl<T: Copy + Default + Debug> HexMap<T> {
         self.radius
     }
 
+    pub fn height(&self) -> i32 {
+        self.radius().0 * 2 + 1
+    }
+
     pub fn iter(&self) -> HexIter {
         HexIter::new(self.radius)
     }
@@ -269,5 +273,17 @@ impl Iterator for DirIter {
         };
         self.index += 1;
         next_dir
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use core::map::{Distance, HexMap};
+
+    #[test]
+    fn test_map_height() {
+        let map: HexMap<u8> = HexMap::new(Distance(3));
+        let height = map.height();
+        assert_eq!(height, 3 + 3 + 1);
     }
 }
