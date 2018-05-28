@@ -24,7 +24,7 @@ use ggez::{Context, ContextBuilder, GameResult};
 mod ai;
 mod battle_view;
 mod core;
-mod map;
+mod geom;
 mod screen;
 mod visualize;
 

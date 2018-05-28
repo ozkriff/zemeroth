@@ -1,5 +1,3 @@
-// TODO: try to rename the module
-
 use ggez::graphics::Point2;
 
 use core::map::{hex_round, PosHex};

@@ -13,7 +13,7 @@ use core::event::{self, ActiveEvent, Event};
 use core::execute::ApplyPhase;
 use core::map::PosHex;
 use core::{ObjId, PlayerId, State};
-use map;
+use geom;
 use ZResult;
 
 // TODO: Move to some other module
@@ -33,7 +33,7 @@ pub fn message(
     let image = Text::new(context, text, view.font())?.into_inner();
     let mut sprite = Sprite::from_image(image, 0.1);
     sprite.set_centered(true);
-    let point = map::hex_to_point(view.tile_size(), pos);
+    let point = geom::hex_to_point(view.tile_size(), pos);
     let point = point - Vector2::new(0.0, view.tile_size());
     sprite.set_pos(point);
     sprite.set_color(invisible);
@@ -64,17 +64,14 @@ fn show_blood_spot(
     let mut sprite = Sprite::from_path(context, "/blood.png", view.tile_size() * 2.0)?;
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
-    let mut point = map::hex_to_point(view.tile_size(), at);
+    let mut point = geom::hex_to_point(view.tile_size(), at);
     point.y += view.tile_size() * 0.5;
     sprite.set_pos(point);
     let color_final = [1.0, 1.0, 1.0, 0.3].into();
+    let time = time_s(0.3);
     Ok(Box::new(action::Sequence::new(vec![
         Box::new(action::Show::new(&view.layers().blood, &sprite)),
-        Box::new(action::ChangeColorTo::new(
-            &sprite,
-            color_final,
-            time_s(0.3),
-        )),
+        Box::new(action::ChangeColorTo::new(&sprite, color_final, time)),
     ])))
 }
 
@@ -89,7 +86,7 @@ fn show_flare_scale(
     let invisible = Color { a: 0.0, ..visible };
     let size = view.tile_size() * 2.0 * scale;
     let mut sprite = Sprite::from_path(context, "/white_hex.png", size)?;
-    let point = map::hex_to_point(view.tile_size(), at);
+    let point = geom::hex_to_point(view.tile_size(), at);
     sprite.set_centered(true);
     sprite.set_pos(point);
     sprite.set_color(invisible);
@@ -190,7 +187,7 @@ fn generate_brief_obj_info(
     let obj_pos = state.parts().pos.get(id).0;
     let strength = state.parts().strength.get(id);
     let size = 0.2 * view.tile_size();
-    let mut point = map::hex_to_point(view.tile_size(), obj_pos);
+    let mut point = geom::hex_to_point(view.tile_size(), obj_pos);
     point.x += view.tile_size() * 0.8;
     point.y -= view.tile_size() * 0.6;
     let mut dots = Vec::new();
@@ -327,7 +324,7 @@ fn visualize_create(
     pos: PosHex,
     prototype: &str,
 ) -> ZResult<Box<Action>> {
-    let point = map::hex_to_point(view.tile_size(), pos);
+    let point = geom::hex_to_point(view.tile_size(), pos);
     // TODO: Move to some .ron config:
     let sprite_name = match prototype {
         "swordsman" => "/swordsman.png",
@@ -369,8 +366,8 @@ fn visualize_event_move_to(
     let sprite = view.id_to_sprite(event.id).clone();
     let mut actions: Vec<Box<Action>> = Vec::new();
     for step in event.path.steps() {
-        let from = map::hex_to_point(view.tile_size(), step.from);
-        let to = map::hex_to_point(view.tile_size(), step.to);
+        let from = geom::hex_to_point(view.tile_size(), step.from);
+        let to = geom::hex_to_point(view.tile_size(), step.to);
         let diff = to - from;
         let step_height = 0.025;
         let step_time = time_s(0.13);
@@ -397,9 +394,9 @@ fn visualize_event_attack(
 ) -> ZResult<Box<Action>> {
     let sprite = view.id_to_sprite(event.attacker_id).clone();
     let map_to = state.parts().pos.get(event.target_id).0;
-    let to = map::hex_to_point(view.tile_size(), map_to);
+    let to = geom::hex_to_point(view.tile_size(), map_to);
     let map_from = state.parts().pos.get(event.attacker_id).0;
-    let from = map::hex_to_point(view.tile_size(), map_from);
+    let from = geom::hex_to_point(view.tile_size(), map_from);
     let diff = Point2::origin() + ((to - from) / 2.0); // TODO: na-hack
     let mut actions: Vec<Box<Action>> = Vec::new();
     actions.push(Box::new(action::Sleep::new(time_s(0.1))));
@@ -456,8 +453,8 @@ fn visualize_event_use_ability_jump(
 ) -> ZResult<Box<Action>> {
     let sprite = view.id_to_sprite(event.id).clone();
     let from = state.parts().pos.get(event.id).0;
-    let from = map::hex_to_point(view.tile_size(), from);
-    let to = map::hex_to_point(view.tile_size(), event.pos);
+    let from = geom::hex_to_point(view.tile_size(), from);
+    let to = geom::hex_to_point(view.tile_size(), event.pos);
     let diff = to - from;
     let diff = Point2::origin() + diff; // TODO: na-hack
     Ok(arc_move(view, &sprite, diff))
@@ -471,8 +468,8 @@ fn visualize_event_use_ability_dash(
 ) -> ZResult<Box<Action>> {
     let sprite = view.id_to_sprite(event.id).clone();
     let from = state.parts().pos.get(event.id).0;
-    let from = map::hex_to_point(view.tile_size(), from);
-    let to = map::hex_to_point(view.tile_size(), event.pos);
+    let from = geom::hex_to_point(view.tile_size(), from);
+    let to = geom::hex_to_point(view.tile_size(), event.pos);
     let diff = to - from;
     let diff = Point2::origin() + diff; // TODO: na-hack
     Ok(Box::new(action::MoveBy::new(&sprite, diff, time_s(0.1))))
@@ -713,8 +710,8 @@ fn visualize_effect_knockback(
     effect: &effect::Knockback,
 ) -> ZResult<Box<Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
-    let from = map::hex_to_point(view.tile_size(), effect.from);
-    let to = map::hex_to_point(view.tile_size(), effect.to);
+    let from = geom::hex_to_point(view.tile_size(), effect.from);
+    let to = geom::hex_to_point(view.tile_size(), effect.to);
     // let diff = Point(to.0 - from.0);
     let diff = Point2::origin() + (to - from); // TODO: na-hack
     Ok(Box::new(action::Sequence::new(vec![
@@ -731,8 +728,8 @@ fn visualize_effect_fly_off(
     effect: &effect::FlyOff,
 ) -> ZResult<Box<Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
-    let from = map::hex_to_point(view.tile_size(), effect.from);
-    let to = map::hex_to_point(view.tile_size(), effect.to);
+    let from = geom::hex_to_point(view.tile_size(), effect.from);
+    let to = geom::hex_to_point(view.tile_size(), effect.to);
     // let diff = Point(to.0 - from.0);
     let diff = Point2::origin() + (to - from); // TODO: na-hack
     let action_move = arc_move(view, &sprite, diff);
@@ -750,8 +747,8 @@ fn visualize_effect_throw(
     effect: &effect::Throw,
 ) -> ZResult<Box<Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
-    let from = map::hex_to_point(view.tile_size(), effect.from);
-    let to = map::hex_to_point(view.tile_size(), effect.to);
+    let from = geom::hex_to_point(view.tile_size(), effect.from);
+    let to = geom::hex_to_point(view.tile_size(), effect.to);
     // let diff = Point(to.0 - from.0);
     let diff = Point2::origin() + (to - from); // TODO: na-hack
     Ok(arc_move(view, &sprite, diff))

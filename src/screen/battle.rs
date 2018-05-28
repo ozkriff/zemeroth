@@ -15,7 +15,7 @@ use core::map::PosHex;
 use core::movement::Pathfinder;
 use core::{self, ability, check, command, execute, state};
 use core::{ObjId, PlayerId, State};
-use map; // TODO: find a better name for this mod
+use geom;
 use screen::{Screen, Transition};
 use visualize;
 use ZResult;
@@ -400,7 +400,7 @@ impl Battle {
     }
 
     fn handle_event_click(&mut self, context: &mut Context, point: Point2) -> ZResult {
-        let pos = map::point_to_hex(self.view.tile_size(), point);
+        let pos = geom::point_to_hex(self.view.tile_size(), point);
         self.gui.click(point);
         if self.block_timer.is_some() {
             return Ok(());

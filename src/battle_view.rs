@@ -11,7 +11,7 @@ use core::ability::Ability;
 use core::map::{HexMap, PosHex};
 use core::{self, command, movement};
 use core::{Jokers, Moves, ObjId, State, TileType};
-use map::{self, hex_to_point};
+use geom::hex_to_point;
 use visualize;
 use ZResult;
 
@@ -317,7 +317,7 @@ fn make_action_show_tile(
     view: &BattleView,
     at: PosHex,
 ) -> ZResult<Box<Action>> {
-    let screen_pos = map::hex_to_point(view.tile_size(), at);
+    let screen_pos = hex_to_point(view.tile_size(), at);
     let texture_name = match state.map().tile(at) {
         TileType::Plain => "/tile.png",
         TileType::Rocks => "/tile_rocks.png",
@@ -330,7 +330,7 @@ fn make_action_show_tile(
 }
 
 fn make_action_grass(context: &mut Context, view: &BattleView, at: PosHex) -> ZResult<Box<Action>> {
-    let screen_pos = map::hex_to_point(view.tile_size(), at);
+    let screen_pos = hex_to_point(view.tile_size(), at);
     let mut sprite = Sprite::from_path(context, "/grass.png", view.tile_size() * 2.0)?;
     let n = view.tile_size() * 0.5;
     let screen_pos_grass = Point2::new(

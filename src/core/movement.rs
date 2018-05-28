@@ -118,7 +118,10 @@ impl<'a> Iterator for Steps<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some([from, to]) = self.windows.next() {
-            Some(Step { from: *from, to: *to })
+            Some(Step {
+                from: *from,
+                to: *to,
+            })
         } else {
             None
         }
