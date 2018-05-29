@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ggez::graphics::{Color, Point2, Text, Vector2};
+use ggez::graphics::{Color, Text, Vector2};
 use ggez::nalgebra;
 use ggez::Context;
 use scene::action;
@@ -46,7 +46,7 @@ pub fn message(
         Box::new(action::Hide::new(&view.layers().text, &sprite)),
     ]));
     let time = action_show_hide.duration();
-    let delta = Point2::new(0.0, -0.3);
+    let delta = -Vector2::new(0.0, 0.3);
     let action_move = Box::new(action::MoveBy::new(&sprite, delta, time));
     Ok(Box::new(action::Fork::new(Box::new(
         action::Sequence::new(vec![
@@ -115,8 +115,8 @@ fn up_and_down_move(
     time: Duration,
 ) -> Box<Action> {
     let duration_0_25 = time / 4;
-    let up_fast = Point2::new(0.0, -height * 0.75);
-    let up_slow = Point2::new(0.0, -height * 0.25);
+    let up_fast = Vector2::new(0.0, -height * 0.75);
+    let up_slow = Vector2::new(0.0, -height * 0.25);
     let down_slow = -up_slow;
     let down_fast = -up_fast;
     Box::new(action::Sequence::new(vec![
@@ -127,9 +127,8 @@ fn up_and_down_move(
     ]))
 }
 
-// TODO: diff2 -> Vector2
-fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Point2) -> Box<Action> {
-    let len = nalgebra::distance(&Point2::origin(), &diff);
+fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<Action> {
+    let len = nalgebra::norm(&diff);
     let min_height = view.tile_size() * 0.5;
     let base_height = view.tile_size() * 2.0;
     let min_time = 0.2;
@@ -371,11 +370,7 @@ fn visualize_event_move_to(
         let diff = to - from;
         let step_height = 0.025;
         let step_time = time_s(0.13);
-        let main_move = Box::new(action::MoveBy::new(
-            &sprite,
-            Point2::origin() + diff, // TODO: ugly hack
-            time_s(0.3),
-        ));
+        let main_move = Box::new(action::MoveBy::new(&sprite, diff, time_s(0.3)));
         let action = Box::new(action::Sequence::new(vec![
             Box::new(action::Fork::new(main_move)),
             up_and_down_move(view, &sprite, step_height, step_time),
@@ -397,7 +392,7 @@ fn visualize_event_attack(
     let to = geom::hex_to_point(view.tile_size(), map_to);
     let map_from = state.parts().pos.get(event.attacker_id).0;
     let from = geom::hex_to_point(view.tile_size(), map_from);
-    let diff = Point2::origin() + ((to - from) / 2.0); // TODO: na-hack
+    let diff = (to - from) / 2.0;
     let mut actions: Vec<Box<Action>> = Vec::new();
     actions.push(Box::new(action::Sleep::new(time_s(0.1))));
     if event.mode == event::AttackMode::Reactive {
@@ -455,9 +450,7 @@ fn visualize_event_use_ability_jump(
     let from = state.parts().pos.get(event.id).0;
     let from = geom::hex_to_point(view.tile_size(), from);
     let to = geom::hex_to_point(view.tile_size(), event.pos);
-    let diff = to - from;
-    let diff = Point2::origin() + diff; // TODO: na-hack
-    Ok(arc_move(view, &sprite, diff))
+    Ok(arc_move(view, &sprite, to - from))
 }
 
 fn visualize_event_use_ability_dash(
@@ -471,7 +464,6 @@ fn visualize_event_use_ability_dash(
     let from = geom::hex_to_point(view.tile_size(), from);
     let to = geom::hex_to_point(view.tile_size(), event.pos);
     let diff = to - from;
-    let diff = Point2::origin() + diff; // TODO: na-hack
     Ok(Box::new(action::MoveBy::new(&sprite, diff, time_s(0.1))))
 }
 
@@ -712,8 +704,7 @@ fn visualize_effect_knockback(
     let sprite = view.id_to_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
     let to = geom::hex_to_point(view.tile_size(), effect.to);
-    // let diff = Point(to.0 - from.0);
-    let diff = Point2::origin() + (to - from); // TODO: na-hack
+    let diff = to - from;
     Ok(Box::new(action::Sequence::new(vec![
         message(view, context, effect.to, "bump")?,
         Box::new(action::MoveBy::new(&sprite, diff, time_s(0.15))),
@@ -730,9 +721,7 @@ fn visualize_effect_fly_off(
     let sprite = view.id_to_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
     let to = geom::hex_to_point(view.tile_size(), effect.to);
-    // let diff = Point(to.0 - from.0);
-    let diff = Point2::origin() + (to - from); // TODO: na-hack
-    let action_move = arc_move(view, &sprite, diff);
+    let action_move = arc_move(view, &sprite, to - from);
     Ok(Box::new(action::Sequence::new(vec![
         message(view, context, effect.to, "fly off")?,
         action_move,
@@ -749,9 +738,7 @@ fn visualize_effect_throw(
     let sprite = view.id_to_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
     let to = geom::hex_to_point(view.tile_size(), effect.to);
-    // let diff = Point(to.0 - from.0);
-    let diff = Point2::origin() + (to - from); // TODO: na-hack
-    Ok(arc_move(view, &sprite, diff))
+    Ok(arc_move(view, &sprite, to - from))
 }
 
 fn visualize_effect_miss(

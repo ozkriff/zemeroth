@@ -1,4 +1,4 @@
-use ggez::graphics::Point2;
+use ggez::graphics::Vector2;
 use ggez::timer;
 use std::time::Duration;
 use {Action, Sprite};
@@ -7,13 +7,12 @@ use {Action, Sprite};
 pub struct MoveBy {
     sprite: Sprite,
     duration: Duration,
-    delta: Point2, // TODO: Vector2
+    delta: Vector2,
     progress: Duration,
 }
 
 impl MoveBy {
-    // TODO: delta: Point2 -> Vector2
-    pub fn new(sprite: &Sprite, delta: Point2, duration: Duration) -> Self {
+    pub fn new(sprite: &Sprite, delta: Vector2, duration: Duration) -> Self {
         Self {
             sprite: sprite.clone(),
             delta,
@@ -29,15 +28,13 @@ impl Action for MoveBy {
     }
 
     fn update(&mut self, mut dtime: Duration) {
-        let old_pos: Point2 = self.sprite.pos();
+        let old_pos = self.sprite.pos();
         if dtime + self.progress > self.duration {
             dtime = self.duration - self.progress;
         }
         let dtime_f = timer::duration_to_f64(dtime) as f32;
         let duration_f = timer::duration_to_f64(self.duration) as f32;
-        // let new_pos = Point(old_pos.0 + dtime_f * self.delta.0 / duration_f);
-        let d: Point2 = self.delta * (dtime_f / duration_f);
-        let new_pos = old_pos + d.coords;
+        let new_pos = old_pos + self.delta * (dtime_f / duration_f);
         self.sprite.set_pos(new_pos);
         self.progress += dtime;
     }
