@@ -2,6 +2,7 @@ use std::fmt::Debug;
 use std::time::Duration;
 
 pub use action::change_color_to::ChangeColorTo;
+pub use action::empty::Empty;
 pub use action::fork::Fork;
 pub use action::hide::Hide;
 pub use action::move_by::MoveBy;
@@ -11,6 +12,7 @@ pub use action::show::Show;
 pub use action::sleep::Sleep;
 
 mod change_color_to;
+mod empty;
 mod fork;
 mod hide;
 mod move_by;
@@ -18,7 +20,6 @@ mod sequence;
 mod set_color;
 mod show;
 mod sleep;
-// TODO: mode `empty`
 
 pub trait Action: Debug {
     fn begin(&mut self) {}

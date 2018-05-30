@@ -301,7 +301,7 @@ fn visualize_event(
 ) -> ZResult<Box<Action>> {
     info!("{:?}", event);
     let action = match *event {
-        ActiveEvent::Create => Box::new(action::Sleep::new(time_s(0.0))),
+        ActiveEvent::UsePassiveAbility(_) | ActiveEvent::Create => Box::new(action::Empty::new()),
         ActiveEvent::MoveTo(ref ev) => visualize_event_move_to(state, view, context, ev)?,
         ActiveEvent::Attack(ref ev) => visualize_event_attack(state, view, context, ev)?,
         ActiveEvent::EndTurn(ref ev) => visualize_event_end_turn(state, view, context, ev),
@@ -309,9 +309,6 @@ fn visualize_event(
         ActiveEvent::EffectTick(ref ev) => visualize_event_effect_tick(state, view, context, ev)?,
         ActiveEvent::EffectEnd(ref ev) => visualize_event_effect_end(state, view, context, ev)?,
         ActiveEvent::UseAbility(ref ev) => visualize_event_use_ability(state, view, context, ev)?,
-        ActiveEvent::UsePassiveAbility(ref ev) => {
-            visualize_event_use_passive_ability(state, view, context, ev)
-        }
     };
     Ok(action)
 }
@@ -528,7 +525,7 @@ fn visualize_event_use_ability(
             visualize_event_use_ability_explode_poison(state, view, context, event)?
         }
         Ability::Summon(_) => visualize_event_use_ability_summon(state, view, context, event)?,
-        _ => Box::new(action::Sleep::new(time_s(0.0))),
+        _ => Box::new(action::Empty::new()),
     };
     let pos = state.parts().pos.get(event.id).0;
     let text = event.ability.to_string();
@@ -536,15 +533,6 @@ fn visualize_event_use_ability(
         action_main,
         message(view, context, pos, &format!("<{}>", text))?,
     ])))
-}
-
-fn visualize_event_use_passive_ability(
-    _: &State,
-    _: &mut BattleView,
-    _: &mut Context,
-    _: &event::UsePassiveAbility,
-) -> Box<Action> {
-    Box::new(action::Sleep::new(time_s(0.0)))
 }
 
 fn visualize_event_effect_tick(

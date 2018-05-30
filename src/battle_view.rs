@@ -54,6 +54,10 @@ impl Layers {
     }
 }
 
+pub fn tile_size(map_height: i32) -> f32 {
+    1.0 / ((map_height + 1) as f32 * 0.75)
+}
+
 #[derive(Debug)]
 struct Sprites {
     selection_marker: Sprite,
@@ -78,8 +82,7 @@ impl BattleView {
         let font = Font::new(context, "/OpenSans-Regular.ttf", 24)?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
-        let map_height = state.map().radius().0 * 2 + 1;
-        let tile_size = 1.0 / ((map_height + 1) as f32 * 0.75);
+        let tile_size = tile_size(state.map().height());
         let mut selection_marker = Sprite::from_path(context, "/selection.png", tile_size * 2.0)?;
         selection_marker.set_centered(true);
         selection_marker.set_color([0.0, 0.0, 1.0, 0.8].into());
