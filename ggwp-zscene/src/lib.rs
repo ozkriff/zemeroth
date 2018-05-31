@@ -8,7 +8,7 @@ use ggez::{Context, GameResult};
 
 // TODO: z-order?
 
-pub use action::Action;
+pub use action::{Action, Boxed};
 pub use sprite::Sprite;
 
 pub mod action;

@@ -4,7 +4,7 @@ use std::time::Duration;
 use ggez::graphics::{self, Font, Point2, Text};
 use ggez::Context;
 use ron;
-use scene::{action, Action};
+use scene::{action, Action, Boxed};
 use ui::{self, Gui};
 
 use ai::Ai;
@@ -180,10 +180,10 @@ fn prepare_map_and_state(
     execute::create_objects(state, &mut |state, event, phase| {
         let action = visualize::visualize(state, view, context, event, phase)
             .expect("Can't visualize the event");
-        let action = Box::new(action::Fork::new(action));
+        let action = action::Fork::new(action).boxed();
         actions.push(action);
     });
-    view.add_action(Box::new(action::Sequence::new(actions)));
+    view.add_action(action::Sequence::new(actions).boxed());
     Ok(())
 }
 
@@ -251,14 +251,14 @@ impl Battle {
             let command = self.ai.command(&self.state).unwrap();
             debug!("AI: command = {:?}", command);
             actions.push(self.do_command_inner(context, &command));
-            // TODO: use `time_s(0.3)`
-            actions.push(Box::new(action::Sleep::new(Duration::from_millis(300)))); // ??
+            let time = Duration::from_millis(300); // TODO: use `time_s(0.3)`
+            actions.push(action::Sleep::new(time).boxed());
             if let command::Command::EndTurn(_) = command {
                 break;
             }
         }
         debug!("AI: >");
-        Box::new(action::Sequence::new(actions))
+        action::Sequence::new(actions).boxed()
     }
 
     fn use_ability(&mut self, context: &mut Context, ability: Ability) -> ZResult {
@@ -287,7 +287,7 @@ impl Battle {
                 .expect("Can't visualize the event");
             actions.push(action);
         }).expect("Can't execute command");
-        Box::new(action::Sequence::new(actions))
+        action::Sequence::new(actions).boxed()
     }
 
     fn do_command(&mut self, context: &mut Context, command: &command::Command) {
@@ -296,7 +296,7 @@ impl Battle {
     }
 
     fn add_actions(&mut self, actions: Vec<Box<Action>>) {
-        self.add_action(Box::new(action::Sequence::new(actions)));
+        self.add_action(action::Sequence::new(actions).boxed());
     }
 
     fn add_action(&mut self, action: Box<Action>) {
