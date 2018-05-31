@@ -513,8 +513,6 @@ fn visualize_event_use_ability(
     context: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<Action>> {
-    use scene::action::Boxed;
-
     let action_main = match event.ability {
         Ability::Jump(_) => visualize_event_use_ability_jump(state, view, context, event)?,
         Ability::Dash => visualize_event_use_ability_dash(state, view, context, event)?,
