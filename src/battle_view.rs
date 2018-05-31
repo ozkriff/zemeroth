@@ -5,7 +5,7 @@ use std::time::Duration;
 use ggez::graphics::{Color, Font, Point2};
 use ggez::Context;
 use scene::action;
-use scene::{Action, Layer, Scene, Sprite};
+use scene::{Action, Boxed, Layer, Scene, Sprite};
 
 use core::ability::Ability;
 use core::map::{HexMap, PosHex};
@@ -178,14 +178,12 @@ impl BattleView {
             };
             let action = {
                 let layer = &self.layers().highlighted_tiles;
-                Box::new(action::Sequence::new(vec![
-                    Box::new(action::ChangeColorTo::new(
-                        &sprite,
-                        color,
-                        Duration::from_millis(300),
-                    )),
-                    Box::new(action::Hide::new(layer, &sprite)),
-                ]))
+                let time = Duration::from_millis(300); // TODO: time_s
+                let actions = vec![
+                    action::ChangeColorTo::new(&sprite, color, time).boxed(),
+                    action::Hide::new(layer, &sprite).boxed(),
+                ];
+                action::Sequence::new(actions).boxed()
             };
             self.add_action(action);
         }
@@ -236,7 +234,7 @@ impl BattleView {
         let layer = &self.layers.selection_marker;
         let sprite = &mut self.sprites.selection_marker;
         sprite.set_pos(point);
-        let action = Box::new(action::Show::new(layer, sprite));
+        let action = action::Show::new(layer, sprite).boxed();
         self.scene.add_action(action);
     }
 
@@ -244,7 +242,7 @@ impl BattleView {
         let layer = &self.layers.selection_marker;
         let sprite = &self.sprites.selection_marker;
         if layer.has_sprite(sprite) {
-            let hide_marker = Box::new(action::Hide::new(layer, sprite));
+            let hide_marker = action::Hide::new(layer, sprite).boxed();
             self.scene.add_action(hide_marker);
         }
     }
@@ -304,10 +302,11 @@ impl BattleView {
         sprite.set_pos(hex_to_point(self.tile_size(), pos));
         let time = Duration::from_millis(300);
         let layer = &self.layers.highlighted_tiles;
-        let action = Box::new(action::Sequence::new(vec![
-            Box::new(action::Show::new(layer, &sprite)),
-            Box::new(action::ChangeColorTo::new(&sprite, color, time)),
-        ]));
+        let actions = vec![
+            action::Show::new(layer, &sprite).boxed(),
+            action::ChangeColorTo::new(&sprite, color, time).boxed(),
+        ];
+        let action = action::Sequence::new(actions).boxed();
         self.scene.add_action(action);
         self.sprites.highlighted_tiles.push(sprite);
         Ok(())
@@ -329,7 +328,7 @@ fn make_action_show_tile(
     let mut sprite = Sprite::from_path(context, texture_name, size)?;
     sprite.set_centered(true);
     sprite.set_pos(screen_pos);
-    Ok(Box::new(action::Show::new(&view.layers().bg, &sprite)))
+    Ok(action::Show::new(&view.layers().bg, &sprite).boxed())
 }
 
 fn make_action_grass(context: &mut Context, view: &BattleView, at: PosHex) -> ZResult<Box<Action>> {
@@ -342,7 +341,7 @@ fn make_action_grass(context: &mut Context, view: &BattleView, at: PosHex) -> ZR
     );
     sprite.set_centered(true);
     sprite.set_pos(screen_pos_grass);
-    Ok(Box::new(action::Show::new(&view.layers().grass, &sprite)))
+    Ok(action::Show::new(&view.layers().grass, &sprite).boxed())
 }
 
 pub fn make_action_create_map(
@@ -357,5 +356,5 @@ pub fn make_action_create_map(
             actions.push(make_action_grass(context, view, hex_pos)?);
         }
     }
-    Ok(Box::new(action::Sequence::new(actions)))
+    Ok(action::Sequence::new(actions).boxed())
 }

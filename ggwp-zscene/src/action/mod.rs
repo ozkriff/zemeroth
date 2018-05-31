@@ -38,3 +38,21 @@ pub trait Action: Debug {
         true
     }
 }
+
+/// Just a helper trait to replace
+/// `Box::new(action::Empty::new())`
+/// with
+/// `action::Empty::new().boxed()`.
+pub trait Boxed {
+    type Out;
+
+    fn boxed(self) -> Self::Out;
+}
+
+impl<T: 'static + Action> Boxed for T {
+    type Out = Box<Action>;
+
+    fn boxed(self) -> Self::Out {
+        Box::new(self)
+    }
+}
