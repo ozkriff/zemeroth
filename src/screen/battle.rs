@@ -321,7 +321,10 @@ impl Battle {
 
     fn set_mode(&mut self, context: &mut Context, id: ObjId, mode: SelectionMode) -> ZResult {
         self.deselect()?;
-        assert!(self.state.parts().agent.get_opt(id).is_some());
+        if self.state.parts().agent.get_opt(id).is_none() {
+            // This object is not an agent or dead.
+            return Ok(());
+        }
         self.selected_unit_id = Some(id);
         let state = &self.state;
         let gui = &mut self.gui;
@@ -433,11 +436,7 @@ impl Battle {
             if time < dtime {
                 self.block_timer = None;
                 if let Some(id) = self.selected_unit_id {
-                    if self.state.parts().agent.get_opt(id).is_some() {
-                        self.set_mode(context, id, SelectionMode::Normal)?;
-                    } else {
-                        self.deselect()?;
-                    }
+                    self.set_mode(context, id, SelectionMode::Normal)?;
                 }
             }
         }
