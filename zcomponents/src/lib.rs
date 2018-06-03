@@ -1,4 +1,88 @@
-// TODO: add debug!() logs everywhere
+//! TODO: that is this?
+//!
+//! ## Example:
+//!
+//! ```rust
+//! #[macro_use]
+//! extern crate zcomponents;
+//!
+//! #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
+//! pub struct Id(i32);
+//!
+//! #[derive(Clone, Debug)]
+//! pub struct A {
+//!     value: i32,
+//! }
+//!
+//! #[derive(Clone, Debug)]
+//! pub struct B {
+//!     value: i32,
+//! }
+//!
+//! #[derive(Clone, Debug)]
+//! pub struct C;
+//!
+//! zcomponents_storage!(Storage<Id>: {
+//!     a: A,
+//!     b: B,
+//!     c: C,
+//! });
+//!
+//! fn main() {
+//!     // Create a new storage instance.
+//!     let mut storage = Storage::new();
+//!
+//!     // It doesn't store anything yet.
+//!     assert_eq!(storage.ids().count(), 0);
+//!
+//!     // Allocate a new id.
+//!     let id0 = storage.alloc_id();
+//!     assert_eq!(storage.ids().count(), 1);
+//!
+//!     // This Entity doesn't have any components assigned.
+//!     assert!(!storage.is_exist(id0));
+//!
+//!     storage.a.insert(id0, A { value: 0 });
+//!
+//!     // Now it has a component.
+//!     assert!(storage.is_exist(id0));
+//!
+//!     // Allocate another id.
+//!     let id1 = storage.alloc_id();
+//!     assert_eq!(storage.ids().count(), 2);
+//!
+//!     storage.a.insert(id1, A { value: 1 });
+//!     storage.b.insert(id1, B { value: 1 });
+//!
+//!     // Iterate over everything.
+//!     for id in storage.ids_collected() {
+//!         // We are not sure that this entity has the component,
+//!         // so we must use `get_opt`/`get_opt_mut` methods.
+//!         if let Some(a) = storage.a.get_opt_mut(id) {
+//!             a.value += 1;
+//!         }
+//!         if let Some(b) = storage.b.get_opt_mut(id) {
+//!             b.value += 1;
+//!             storage.c.insert(id, C);
+//!         }
+//!     }
+//!
+//!     // Iterate over `a` components.
+//!     for id in storage.a.ids_collected() {
+//!         // Since we are sure that component exists,
+//!         // we can just use `get`/`get_mut` version:
+//!         storage.a.get_mut(id).value += 1;
+//!     }
+//!
+//!     // Remove the component
+//!     storage.a.remove(id0);
+//!
+//!     // Remove the whole entity
+//!     storage.remove(id0);
+//!
+//!     assert!(!storage.is_exist(id0));
+//! }
+//! ```
 
 use std::collections::{hash_map, HashMap};
 use std::default::Default;
