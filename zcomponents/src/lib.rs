@@ -51,6 +51,11 @@ impl<Id: Hash + Eq + Copy, V: Clone> ComponentContainer<Id, V> {
     pub fn ids(&self) -> IdIter<Id, V> {
         IdIter::new(&self.data)
     }
+
+    /// Note: Allocates Vec in heap.
+    pub fn ids_collected(&self) -> Vec<Id> {
+        self.ids().collect()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -111,6 +116,10 @@ macro_rules! zcomponents_storage {
 
             pub fn ids(&self) -> $crate::IdIter<$id_type, ()> {
                 $crate::IdIter::new(&self.ids)
+            }
+
+            pub fn ids_collected(&self) -> Vec<$id_type> {
+                self.ids().collect()
             }
 
             pub fn is_exist(&self, id: $id_type) -> bool {
