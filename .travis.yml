@@ -42,5 +42,5 @@ install:
 # TODO: test other crates
 script:
     - cargo build
-    - cargo test
+    - cargo test --all
     - cargo build --examples --manifest-path zcomponents/Cargo.toml
