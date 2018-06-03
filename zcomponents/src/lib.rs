@@ -93,7 +93,6 @@ macro_rules! zcomponents_storage {
         #[allow(dead_code)]
         impl $struct_name {
             pub fn new() -> Self {
-                debug!("$struct_name: new"); // TODO: check if it works as expected
                 Self {
                     $(
                         $component: $crate::ComponentContainer::new(),
@@ -107,7 +106,6 @@ macro_rules! zcomponents_storage {
                 let id = self.next_obj_id;
                 self.next_obj_id.0 += 1;
                 self.ids.insert(id, ());
-                debug!("$struct_name: alloc_id {:?}", id);
                 id
             }
 
@@ -118,16 +116,13 @@ macro_rules! zcomponents_storage {
             pub fn is_exist(&self, id: $id_type) -> bool {
                 $(
                     if self.$component.get_opt(id).is_some() {
-                        debug!("is_exist {:?}: true", id);
                         return true;
                     }
                 )*
-                debug!("is_exist {:?}: false", id);
                 false
             }
 
             pub fn remove(&mut self, id: $id_type) {
-                debug!("remove {:?}", id);
                 $(
                     if self.$component.get_opt(id).is_some() {
                         self.$component.remove(id);
