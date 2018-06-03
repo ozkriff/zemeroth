@@ -26,6 +26,7 @@ impl<Id: Hash + Eq + Copy, V: Clone> ComponentContainer<Id, V> {
         self.data.get(&id)
     }
 
+    /// Note: panics if there's no such entity.
     pub fn get(&self, id: Id) -> &V {
         self.get_opt(id).unwrap()
     }
@@ -34,15 +35,18 @@ impl<Id: Hash + Eq + Copy, V: Clone> ComponentContainer<Id, V> {
         self.data.get_mut(&id)
     }
 
+    /// Note: panics if there's no such entity.
     pub fn get_mut(&mut self, id: Id) -> &mut V {
         self.get_opt_mut(id).unwrap()
     }
 
+    /// Note: panics if there's no such entity.
     pub fn insert(&mut self, id: Id, data: V) {
         assert!(self.get_opt(id).is_none());
         self.data.insert(id, data);
     }
 
+    /// Note: panics if there's no such entity.
     pub fn remove(&mut self, id: Id) {
         assert!(self.get_opt(id).is_some());
         self.data.remove(&id);
