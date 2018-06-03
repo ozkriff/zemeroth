@@ -2,6 +2,7 @@
 
 use std::collections::{hash_map, HashMap};
 use std::default::Default;
+use std::fmt::Debug;
 use std::hash::Hash;
 
 #[derive(Debug, Clone)]
@@ -9,17 +10,16 @@ pub struct ComponentContainer<Id: Hash + Eq, V> {
     data: HashMap<Id, V>,
 }
 
-impl<Id: Hash + Eq + Copy, V: Clone> Default for ComponentContainer<Id, V> {
+impl<Id: Hash + Eq + Copy + Debug, V: Clone> Default for ComponentContainer<Id, V> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<Id: Hash + Eq + Copy, V: Clone> ComponentContainer<Id, V> {
+impl<Id: Hash + Eq + Copy + Debug, V: Clone> ComponentContainer<Id, V> {
     pub fn new() -> Self {
-        Self {
-            data: HashMap::new(),
-        }
+        let data = HashMap::new();
+        Self { data }
     }
 
     pub fn get_opt(&self, id: Id) -> Option<&V> {
@@ -28,7 +28,8 @@ impl<Id: Hash + Eq + Copy, V: Clone> ComponentContainer<Id, V> {
 
     /// Note: panics if there's no such entity.
     pub fn get(&self, id: Id) -> &V {
-        self.get_opt(id).unwrap()
+        self.get_opt(id)
+            .unwrap_or_else(|| panic!("Can't find {:?} id", id))
     }
 
     pub fn get_opt_mut(&mut self, id: Id) -> Option<&mut V> {
@@ -37,7 +38,8 @@ impl<Id: Hash + Eq + Copy, V: Clone> ComponentContainer<Id, V> {
 
     /// Note: panics if there's no such entity.
     pub fn get_mut(&mut self, id: Id) -> &mut V {
-        self.get_opt_mut(id).unwrap()
+        self.get_opt_mut(id)
+            .unwrap_or_else(|| panic!("Can't find {:?} id", id))
     }
 
     /// Note: panics if there's no such entity.
