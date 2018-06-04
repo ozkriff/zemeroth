@@ -12,21 +12,20 @@ addons:
 cache: cargo
 
 rust:
-    - nightly
-    - beta
-    - stable
+  - nightly
+  - beta
+  - stable
 
 matrix:
-    allow_failures:
-        - rust: nightly
+  allow_failures:
+    - rust: nightly
 
 os:
     - linux
     - osx
 
 install:
-    # TODO: fix indentation to 4 space somehow
-    - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         wget http://libsdl.org/release/SDL2-2.0.5.tar.gz
         && tar -xzvf SDL2-2.0.5.tar.gz
         && pushd SDL2-2.0.5
@@ -34,13 +33,12 @@ install:
         && make
         && sudo make install
         && popd;
-      fi
-    - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
-          brew update && brew install sdl2;
-      fi
+    fi
+  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
+        brew update && brew install sdl2;
+    fi
 
-# TODO: test other crates
 script:
-    - cargo build
-    - cargo test --all
-    - cargo build --examples --manifest-path zcomponents/Cargo.toml
+  - cargo build --all
+  - cargo build --examples --all
+  - cargo test --all
