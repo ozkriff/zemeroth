@@ -39,8 +39,7 @@ install:
           brew update && brew install sdl2;
       fi
 
-# TODO: test other crates
 script:
-    - cargo build
+    - cargo build --all
+    - cargo build --examples --all
     - cargo test --all
-    - cargo build --examples --manifest-path zcomponents/Cargo.toml
