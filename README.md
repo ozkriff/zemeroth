@@ -74,6 +74,19 @@ cargo build --release
 cargo run --release
 ```
 
+## Dependencies
+
+The key external dependency of Zemeroth is [ggez] game engine.
+
+This repo contains a bunch of helper crates:
+
+- [zcomponents] is a simple component storage
+- [ggwp-zgui] is a simple and opinionated ggez-based GUI library
+- [ggwp-zscene] is a simple scene and declarative animation manager
+
+[zcomponents]: ./zcomponents
+[ggwp-zscene]: ./ggwp-zscene
+[ggwp-zgui]: ./ggwp-zgui
 
 ## Contribute
 
