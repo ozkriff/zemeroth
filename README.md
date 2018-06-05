@@ -51,6 +51,13 @@ Precompiled binaries for Linux, Windows and macOS:
 
 ## Building from Source
 
+As Zemeroth uses [ggez] game engine,
+you need to have the SDL2 libraries installed on your system.
+The best way to do this is documented [by the SDL2 crate][install sdl2].
+
+[ggez]: https://github.com/ggez/ggez
+[install sdl2]: https://github.com/AngryLawyer/rust-sdl2#user-content-requirements
+
 ```bash
 # Clone this repo
 git clone https://github.com/ozkriff/zemeroth
