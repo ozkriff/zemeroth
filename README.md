@@ -1,4 +1,4 @@
-# Zemeroth [![][img_license]](#license) [![][img_loc]][loc]
+# Zemeroth [![mit license][img_license]](#license) [![line count][img_loc]][loc]
 
 [img_license]: https://img.shields.io/badge/License-MIT_or_Apache_2.0-blue.svg
 [img_loc]: https://tokei.rs/b1/github/ozkriff/zemeroth
@@ -7,15 +7,15 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 
 [Rust]: https://www.rust-lang.org
 
-![](https://i.imgur.com/uOwrmIV.png)
+![tiny screenshot (I don't have any logo yet)](https://i.imgur.com/uOwrmIV.png)
 
 **News**: [@ozkriff on twitter](https://twitter.com/ozkriff) |
 [ozkriff.github.io](https://ozkriff.github.io) |
 [devlog on imgur](https://imgur.com/a/SMVqO)
 
 **Status**:
-[![][img_travis-ci]][travis-ci]
-[![][img_appveyor-ci]][appveyor-ci]
+[![travis status][img_travis-ci]][travis-ci]
+[![appveyor status][img_appveyor-ci]][appveyor-ci]
 [![dependency status][img_deps-rs]][deps-rs]
 
 [img_travis-ci]: https://img.shields.io/travis/ozkriff/zemeroth/master.svg?label=Linux|OSX
@@ -27,32 +27,27 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 [appveyor-ci]: https://ci.appveyor.com/project/ozkriff/zemeroth
 [deps-rs]: https://deps.rs/repo/github/ozkriff/zemeroth
 
-
 ## Precompiled Binaries
 
 Precompiled binaries for Linux, Windows and macOS:
 <https://github.com/ozkriff/zemeroth/releases>
 
-
 ## Screenshot
 
-![](https://i.imgur.com/wMG3KkA.png)
-
+!["big" screenshot](https://i.imgur.com/wMG3KkA.png)
 
 ## Gifs
 
-![](https://i.imgur.com/R298zUm.gif)
+![main gameplay animation](https://i.imgur.com/R298zUm.gif)
 
-![](https://i.imgur.com/mTTrWHu.gif)
-![](https://i.imgur.com/2dR278L.gif)
-![](https://i.imgur.com/wZZdlXs.gif)
-![](https://i.imgur.com/1shTV2q.gif)
-
+![gif: hammerman in action](https://i.imgur.com/mTTrWHu.gif)
+![gif: jump ability](https://i.imgur.com/2dR278L.gif)
+![gif: fire bomb ability](https://i.imgur.com/wZZdlXs.gif)
+![gif: imp summoner in action](https://i.imgur.com/1shTV2q.gif)
 
 ## Videos
 
 <https://www.youtube.com/user/ozkriff619/videos>
-
 
 ## Building from Source
 
@@ -82,7 +77,6 @@ If you want to help take a look at issues with `help-wanted` label attached:
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license,
 shall be dual licensed as above, without any additional terms or conditions.
-
 
 ## License
 
