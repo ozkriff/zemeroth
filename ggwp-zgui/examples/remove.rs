@@ -12,7 +12,7 @@ enum Message {
 }
 
 fn make_label(context: &mut Context) -> ui::RcWidget {
-    let image = Image::new(context, "/dragon1.png").expect("Can't load test image");
+    let image = Image::new(context, "/fire.png").expect("Can't load test image");
     ui::pack(ui::Label::new(image, 0.5))
 }
 
@@ -21,7 +21,7 @@ fn make_gui(context: &mut Context, font: &Font) -> GameResult<ui::Gui<Message>> 
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
     let image = Text::new(context, "[Add/Remove]", &font)?.into_inner();
     let button = ui::Button::new(image, 0.2, gui.sender(), Message::AddOrRemove);
-    gui.add(&ui::pack(button), anchor); // TODO: wtf
+    gui.add(&ui::pack(button), anchor);
     Ok(gui)
 }
 
@@ -68,6 +68,7 @@ impl event::EventHandler for State {
 
     fn draw(&mut self, context: &mut Context) -> GameResult<()> {
         graphics::clear(context);
+        graphics::set_background_color(context, [1.0, 1.0, 1.0, 1.0].into());
         self.gui.draw(context)?;
         graphics::present(context);
         Ok(())
@@ -98,18 +99,17 @@ impl event::EventHandler for State {
     }
 }
 
-fn context() -> ggez::Context {
+fn context() -> GameResult<ggez::Context> {
     let name = "ggwp_zgui example text_button";
     let window_conf = conf::WindowSetup::default().resizable(true).title(name);
     ContextBuilder::new(name, "ozkriff")
         .window_setup(window_conf)
         .add_resource_path("resources")
         .build()
-        .expect("Can't build context")
 }
 
 fn main() -> GameResult<()> {
-    let mut context = context();
-    let mut state = State::new(&mut context).expect("Can't create state");
+    let mut context = context()?;
+    let mut state = State::new(&mut context)?;
     event::run(&mut context, &mut state)
 }
