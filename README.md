@@ -67,7 +67,7 @@ cd zemeroth
 # Zemeroth expects them to be in `assets` directory.
 git clone https://github.com/ozkriff/zemeroth_assets assets
 
-# Compile a debug version
+# Compile a release version (debug builds give low FPS at the moment)
 cargo build --release
 
 # Run it
