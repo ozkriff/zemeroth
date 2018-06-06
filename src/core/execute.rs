@@ -969,7 +969,7 @@ fn random_free_pos(state: &State) -> Option<PosHex> {
             q: thread_rng().gen_range(-radius.0, radius.0),
             r: thread_rng().gen_range(-radius.0, radius.0),
         };
-        if state.map().is_inboard(pos) && !state::is_tile_blocked(state, pos) {
+        if state::is_tile_plain_and_completely_free(state, pos) {
             return Some(pos);
         }
     }
@@ -990,7 +990,7 @@ fn random_free_sector_pos(state: &State, player_id: PlayerId) -> Option<PosHex> 
             },
             r: thread_rng().gen_range(-radius.0, radius.0),
         };
-        if state.map().is_inboard(pos) && !state::is_tile_blocked(state, pos) {
+        if state::is_tile_plain_and_completely_free(state, pos) {
             return Some(pos);
         }
     }

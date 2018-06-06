@@ -1,7 +1,7 @@
 use core::ability::PassiveAbility;
 use core::map::{self, PosHex};
 use core::utils;
-use core::{ObjId, PlayerId};
+use core::{ObjId, PlayerId, TileType};
 
 pub use self::private::State;
 
@@ -92,6 +92,18 @@ pub fn is_tile_blocked(state: &State, pos: PosHex) -> bool {
         }
     }
     false
+}
+
+pub fn is_tile_plain_and_completely_free(state: &State, pos: PosHex) -> bool {
+    if !state.map().is_inboard(pos) || state.map().tile(pos) != TileType::Plain {
+        return false;
+    }
+    for id in state.parts().pos.ids() {
+        if state.parts().pos.get(id).0 == pos {
+            return false;
+        }
+    }
+    true
 }
 
 pub fn ids_at(state: &State, pos: PosHex) -> Vec<ObjId> {

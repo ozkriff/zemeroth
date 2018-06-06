@@ -56,7 +56,7 @@ pub struct Moves(pub i32);
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Jokers(pub i32);
 
-#[derive(Clone, Copy, Debug, Hash)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq)]
 pub enum TileType {
     Plain,
     Rocks,
