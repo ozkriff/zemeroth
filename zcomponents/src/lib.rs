@@ -1,4 +1,8 @@
-//! TODO: that is this?
+//! # ZComponents - a stupid component storage
+//!
+//! I find "serious" ECS to be an overkill for turn-based game logic,
+//! so I've created this simple library that does only one thing:
+//! stores your components.
 //!
 //! ## Example:
 //!
