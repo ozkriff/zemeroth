@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
 license = "MIT/Apache-2.0"
 description = "Tiny and opionated GUI library"
-keywords = ["ggez", "gamedev", "2D", "game", "gui"]
+keywords = ["ggez", "gamedev", "gui"]
 
 [dependencies]
 ggez = "0.4"
