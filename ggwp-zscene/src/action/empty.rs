@@ -1,6 +1,6 @@
 use Action;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Empty;
 
 impl Empty {
