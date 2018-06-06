@@ -21,7 +21,7 @@ enum Message {
 fn make_gui(context: &mut Context, font: &Font) -> GameResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     {
-        let image = Image::new(context, "/dragon1.png")?;
+        let image = Image::new(context, "/fire.png")?;
         let button = ui::Button::new(image, 0.1, gui.sender(), Message::Image);
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Top);
         gui.add(&ui::pack(button), anchor);
@@ -46,7 +46,7 @@ fn make_gui(context: &mut Context, font: &Font) -> GameResult<ui::Gui<Message>> 
         layout
     };
     let v_layout_2 = {
-        let image_i = Image::new(context, "/player.png")?;
+        let image_i = Image::new(context, "/fire.png")?;
         let image_x = Text::new(context, "[X]", font)?.into_inner();
         let image_y = Text::new(context, "[Y]", font)?.into_inner();
         let image_z = Text::new(context, "[Z]", font)?.into_inner();
@@ -64,7 +64,7 @@ fn make_gui(context: &mut Context, font: &Font) -> GameResult<ui::Gui<Message>> 
     {
         let image_a = Text::new(context, "[A]", font)?.into_inner();
         let image_b = Text::new(context, "[B]", font)?.into_inner();
-        let image_i = Image::new(context, "/dragon1.png")?;
+        let image_i = Image::new(context, "/fire.png")?;
         let button_a = ui::Button::new(image_a, 0.1, gui.sender(), Message::A);
         let button_b = ui::Button::new(image_b, 0.1, gui.sender(), Message::B);
         let button_i = ui::Button::new(image_i, 0.2, gui.sender(), Message::Image);
@@ -106,6 +106,7 @@ impl event::EventHandler for State {
 
     fn draw(&mut self, context: &mut Context) -> GameResult<()> {
         graphics::clear(context);
+        graphics::set_background_color(context, [1.0, 1.0, 1.0, 1.0].into());
         self.gui.draw(context)?;
         graphics::present(context);
         Ok(())
@@ -129,18 +130,17 @@ impl event::EventHandler for State {
     }
 }
 
-fn context() -> ggez::Context {
+fn context() -> GameResult<ggez::Context> {
     let name = "ggwp_zgui example nested";
     let window_conf = conf::WindowSetup::default().resizable(true).title(name);
     ContextBuilder::new(name, "ozkriff")
         .window_setup(window_conf)
         .add_resource_path("resources")
         .build()
-        .expect("Can't build context")
 }
 
 fn main() -> GameResult<()> {
-    let mut context = context();
-    let mut state = State::new(&mut context).expect("Can't create state");
+    let mut context = context()?;
+    let mut state = State::new(&mut context)?;
     event::run(&mut context, &mut state)
 }

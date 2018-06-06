@@ -32,8 +32,6 @@ struct State {
 
 impl State {
     fn new(context: &mut Context) -> GameResult<State> {
-        // TODO: try https://docs.rs/ggez/0.4.2/ggez/struct.Context.html#structfield.default_font
-        // IN ALL EXAMPLES
         let font = Font::new(context, "/Karla-Regular.ttf", 32)?;
         let gui = make_gui(context, &font)?;
         Ok(Self { gui })
@@ -51,6 +49,7 @@ impl event::EventHandler for State {
     }
 
     fn draw(&mut self, context: &mut Context) -> GameResult<()> {
+        graphics::set_background_color(context, [1.0, 1.0, 1.0, 1.0].into());
         graphics::clear(context);
         self.gui.draw(context)?;
         graphics::present(context);
@@ -75,18 +74,17 @@ impl event::EventHandler for State {
     }
 }
 
-fn context() -> ggez::Context {
+fn context() -> GameResult<ggez::Context> {
     let name = "ggwp_zgui example layout";
     let window_conf = conf::WindowSetup::default().resizable(true).title(name);
     ContextBuilder::new(name, "ozkriff")
         .window_setup(window_conf)
         .add_resource_path("resources")
         .build()
-        .expect("Can't build context")
 }
 
 fn main() -> GameResult<()> {
-    let mut context = context();
-    let mut state = State::new(&mut context).expect("Can't create state");
+    let mut context = context()?;
+    let mut state = State::new(&mut context)?;
     event::run(&mut context, &mut state)
 }

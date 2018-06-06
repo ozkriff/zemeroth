@@ -62,6 +62,7 @@ impl event::EventHandler for State {
     }
 
     fn draw(&mut self, context: &mut Context) -> GameResult<()> {
+        graphics::set_background_color(context, [1.0, 1.0, 1.0, 1.0].into());
         graphics::clear(context);
         self.draw_scene(context)?;
         self.gui.draw(context)?;
@@ -87,18 +88,17 @@ impl event::EventHandler for State {
     }
 }
 
-fn context() -> ggez::Context {
+fn context() -> GameResult<ggez::Context> {
     let name = "ggwp_zgui example pixel_coordinates";
     let window_conf = conf::WindowSetup::default().resizable(true).title(name);
     ContextBuilder::new(name, "ozkriff")
         .window_setup(window_conf)
         .add_resource_path("resources")
         .build()
-        .expect("Can't build context")
 }
 
 fn main() -> GameResult<()> {
-    let mut context = context();
-    let mut state = State::new(&mut context).expect("Can't create state");
+    let mut context = context()?;
+    let mut state = State::new(&mut context)?;
     event::run(&mut context, &mut state)
 }
