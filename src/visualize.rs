@@ -190,9 +190,10 @@ fn generate_brief_obj_info(
     point.y -= view.tile_size() * 0.6;
     let mut dots = Vec::new();
     let base_x = point.x;
+    // TODO: draw missing health as transparent "ghosty" dots
     for &(color, n) in &[
-        ([0.0, 0.6, 0.0, 1.0], strength.strength.0),
-        ([0.2, 0.2, 0.5, 1.0], agent.jokers.0),
+        ([0.0, 0.7, 0.0, 1.0], strength.strength.0),
+        ([0.9, 0.1, 0.9, 1.0], agent.jokers.0),
         ([1.0, 0.0, 0.0, 1.0], agent.attacks.0),
         ([0.0, 0.0, 1.0, 1.0], agent.moves.0),
     ] {
@@ -206,7 +207,7 @@ fn generate_brief_obj_info(
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
         let color = color.into();
-        let mut sprite = Sprite::from_path(context, "/white_hex.png", size)?;
+        let mut sprite = Sprite::from_path(context, "/dot.png", size)?;
         sprite.set_centered(true);
         sprite.set_pos(point);
         sprite.set_color(Color { a: 0.0, ..color });
