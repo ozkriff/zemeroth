@@ -176,7 +176,7 @@ fn prepare_map_and_state(
 ) -> ZResult {
     let mut actions = Vec::new();
     execute::create_terrain(state);
-    actions.push(make_action_create_map(state, view, context)?);
+    actions.push(make_action_create_map(state, view)?);
     execute::create_objects(state, &mut |state, event, phase| {
         let action = visualize::visualize(state, view, context, event, phase)
             .expect("Can't visualize the event");
@@ -341,7 +341,7 @@ impl Battle {
             }
         }
         let map = self.pathfinder.map();
-        self.view.set_mode(state, map, context, id, &mode)?;
+        self.view.set_mode(state, map, id, &mode)?;
         self.mode = mode;
         Ok(())
     }
