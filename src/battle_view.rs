@@ -2,7 +2,7 @@ use rand::{thread_rng, Rng};
 use std::collections::HashMap;
 use std::time::Duration;
 
-use ggez::graphics::{Color, Font, Point2, Image};
+use ggez::graphics::{Color, Font, Image, Point2};
 use ggez::Context;
 use scene::action;
 use scene::{Action, Boxed, Layer, Scene, Sprite};
@@ -195,9 +195,7 @@ impl BattleView {
     ) -> ZResult {
         match *mode {
             SelectionMode::Normal => self.select_normal(state, map, selected_id),
-            SelectionMode::Ability(ability) => {
-                self.select_ability(state, selected_id, ability)
-            }
+            SelectionMode::Ability(ability) => self.select_ability(state, selected_id, ability),
         }
     }
 
@@ -225,23 +223,13 @@ impl BattleView {
         self.remove_highlights();
     }
 
-    fn select_normal(
-        &mut self,
-        state: &State,
-        map: &HexMap<movement::Tile>,
-        id: ObjId,
-    ) -> ZResult {
+    fn select_normal(&mut self, state: &State, map: &HexMap<movement::Tile>, id: ObjId) -> ZResult {
         self.show_selection_marker(state, id);
         self.show_walkable_tiles(state, map, id)?;
         self.show_attackable_tiles(state, id)
     }
 
-    fn select_ability(
-        &mut self,
-        state: &State,
-        selected_id: ObjId,
-        ability: Ability,
-    ) -> ZResult {
+    fn select_ability(&mut self, state: &State, selected_id: ObjId, ability: Ability) -> ZResult {
         self.remove_highlights();
         let positions = state.map().iter();
         for pos in positions {
@@ -276,11 +264,7 @@ impl BattleView {
         }
     }
 
-    fn show_attackable_tiles(
-        &mut self,
-        state: &State,
-        id: ObjId,
-    ) -> ZResult {
+    fn show_attackable_tiles(&mut self, state: &State, id: ObjId) -> ZResult {
         let parts = state.parts();
         let selected_unit_player_id = parts.belongs_to.get(id).0;
         for target_id in parts.agent.ids() {
@@ -340,11 +324,7 @@ impl BattleView {
     }
 }
 
-fn make_action_show_tile(
-    state: &State,
-    view: &BattleView,
-    at: PosHex,
-) -> ZResult<Box<Action>> {
+fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResult<Box<Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let image = match state.map().tile(at) {
         TileType::Plain => view.images.tile.clone(),
@@ -370,10 +350,7 @@ fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<Action>> {
     Ok(action::Show::new(&view.layers().grass, &sprite).boxed())
 }
 
-pub fn make_action_create_map(
-    state: &State,
-    view: &BattleView,
-) -> ZResult<Box<Action>> {
+pub fn make_action_create_map(state: &State, view: &BattleView) -> ZResult<Box<Action>> {
     let mut actions = Vec::new();
     for hex_pos in state.map().iter() {
         actions.push(make_action_show_tile(state, view, hex_pos)?);

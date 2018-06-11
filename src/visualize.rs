@@ -55,10 +55,7 @@ pub fn message(
     Ok(action::Fork::new(action_sequence.boxed()).boxed())
 }
 
-fn show_blood_spot(
-    view: &mut BattleView,
-    at: PosHex,
-) -> ZResult<Box<Action>> {
+fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<Action>> {
     let mut sprite = Sprite::from_image(view.images().blood.clone(), view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
@@ -95,11 +92,7 @@ fn show_flare_scale(
     ])))
 }
 
-fn show_flare(
-    view: &mut BattleView,
-    at: PosHex,
-    color: Color,
-) -> ZResult<Box<Action>> {
+fn show_flare(view: &mut BattleView, at: PosHex, color: Color) -> ZResult<Box<Action>> {
     let scale = 1.0;
     show_flare_scale(view, at, color, scale)
 }
@@ -270,11 +263,7 @@ fn visualize_pre(
     Ok(action::Sequence::new(actions).boxed())
 }
 
-fn visualize_post(
-    state: &State,
-    view: &mut BattleView,
-    event: &Event,
-) -> ZResult<Box<Action>> {
+fn visualize_post(state: &State, view: &mut BattleView, event: &Event) -> ZResult<Box<Action>> {
     let mut actions = Vec::new();
     for &id in &event.actor_ids {
         actions.push(refresh_brief_unit_info(state, view, id)?);
@@ -509,12 +498,8 @@ fn visualize_event_use_ability(
         Ability::Jump(_) => visualize_event_use_ability_jump(state, view, context, event)?,
         Ability::Dash => visualize_event_use_ability_dash(state, view, context, event)?,
         Ability::Explode => visualize_event_use_ability_explode(state, view, event)?,
-        Ability::ExplodeFire => {
-            visualize_event_use_ability_explode_fire(state, view, event)?
-        }
-        Ability::ExplodePoison => {
-            visualize_event_use_ability_explode_poison(state, view, event)?
-        }
+        Ability::ExplodeFire => visualize_event_use_ability_explode_fire(state, view, event)?,
+        Ability::ExplodePoison => visualize_event_use_ability_explode_poison(state, view, event)?,
         Ability::Summon(_) => visualize_event_use_ability_summon(state, view, event)?,
         _ => action::Empty::new().boxed(),
     };
