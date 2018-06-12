@@ -47,15 +47,23 @@ impl Sprite {
     // TODO: some method to change the image.
 
     pub fn set_centered(&mut self, is_centered: bool) {
-        let mut data = self.data.borrow_mut();
-        let mut r = data.image.get_dimensions();
-        r.scale(data.param.scale.x, data.param.scale.y);
-        if is_centered {
-            data.offset = -Vector2::new(r.w, r.h) * 0.5;
-            data.param.dest += data.offset;
+        let offset = if is_centered {
+            Vector2::new(0.5, 0.5)
         } else {
-            data.offset = Vector2::new(0.0, 0.0);
-        }
+            Vector2::new(0.0, 0.0)
+        };
+        self.set_offset(offset);
+    }
+
+    /// [0.0 .. 1.0]
+    pub fn set_offset(&mut self, offset: Vector2) {
+        let mut data = self.data.borrow_mut();
+        let old_offset = data.offset;
+        let mut dimensions = data.image.get_dimensions();
+        dimensions.scale(data.param.scale.x, data.param.scale.y);
+        data.offset.x = -dimensions.w * offset.x;
+        data.offset.y = -dimensions.h * offset.y;
+        data.param.dest += data.offset - old_offset;
     }
 
     pub fn draw(&self, context: &mut Context) -> GameResult<()> {
