@@ -34,7 +34,7 @@ pub fn message(
     let mut sprite = Sprite::from_image(image, 0.1);
     sprite.set_centered(true);
     let point = geom::hex_to_point(view.tile_size(), pos);
-    let point = point - Vector2::new(0.0, view.tile_size());
+    let point = point - Vector2::new(0.0, view.tile_size() * 1.5);
     sprite.set_pos(point);
     sprite.set_color(invisible);
     let action_show_hide = action::Sequence::new(vec![
@@ -60,7 +60,7 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<Action>> {
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
     let mut point = geom::hex_to_point(view.tile_size(), at);
-    point.y += view.tile_size() * 0.5;
+    point.y += view.tile_size() * 0.1;
     sprite.set_pos(point);
     let color_final = [1.0, 1.0, 1.0, 0.3].into();
     let time = time_s(0.3);
@@ -177,7 +177,7 @@ fn generate_brief_obj_info(
     let size = 0.2 * view.tile_size();
     let mut point = geom::hex_to_point(view.tile_size(), obj_pos);
     point.x += view.tile_size() * 0.8;
-    point.y -= view.tile_size() * 0.6;
+    point.y -= view.tile_size() * 1.6;
     let mut dots = Vec::new();
     let base_x = point.x;
     // TODO: draw missing health as transparent "ghosty" dots
@@ -306,29 +306,29 @@ fn visualize_create(
 ) -> ZResult<Box<Action>> {
     let point = geom::hex_to_point(view.tile_size(), pos);
     // TODO: Move to some .ron config:
-    let sprite_name = match prototype {
-        "swordsman" => "/swordsman.png",
-        "spearman" => "/spearman.png",
-        "hammerman" => "/hammerman.png",
-        "alchemist" => "/alchemist.png",
-        "imp" => "/imp.png",
-        "imp_toxic" => "/imp_toxic.png",
-        "imp_bomber" => "/imp_bomber.png",
-        "imp_summoner" => "/imp_summoner.png",
-        "boulder" => "/boulder.png",
-        "bomb" => "/bomb.png",
-        "bomb_fire" => "/bomb_fire.png",
-        "bomb_poison" => "/bomb_poison.png",
-        "fire" => "/fire.png",
-        "poison_cloud" => "/poison_cloud.png",
-        "spike_trap" => "/spike_trap.png",
+    let (sprite_name, offset) = match prototype {
+        "swordsman" => ("/swordsman.png", 0.2),
+        "spearman" => ("/spearman.png", 0.2),
+        "hammerman" => ("/hammerman.png", 0.2),
+        "alchemist" => ("/alchemist.png", 0.2),
+        "imp" => ("/imp.png", 0.2),
+        "imp_toxic" => ("/imp_toxic.png", 0.2),
+        "imp_bomber" => ("/imp_bomber.png", 0.2),
+        "imp_summoner" => ("/imp_summoner.png", 0.2),
+        "boulder" => ("/boulder.png", 0.4),
+        "bomb" => ("/bomb.png", 0.2),
+        "bomb_fire" => ("/bomb_fire.png", 0.2),
+        "bomb_poison" => ("/bomb_poison.png", 0.2),
+        "fire" => ("/fire.png", 0.2),
+        "poison_cloud" => ("/poison_cloud.png", 0.2),
+        "spike_trap" => ("/spike_trap.png", 0.5),
         _ => unimplemented!("Don't know such object type: {}", prototype),
     };
     let size = view.tile_size() * 2.0;
     let mut sprite = Sprite::from_path(context, sprite_name, size)?;
     let color = [1.0, 1.0, 1.0, 1.0].into();
     sprite.set_color(Color { a: 0.0, ..color });
-    sprite.set_centered(true);
+    sprite.set_offset(Vector2::new(0.5, 1.0 - offset));
     sprite.set_pos(point);
     view.add_object(id, &sprite);
     Ok(Box::new(action::Sequence::new(vec![

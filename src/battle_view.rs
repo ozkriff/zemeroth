@@ -55,7 +55,7 @@ impl Layers {
 }
 
 pub fn tile_size(map_height: i32) -> f32 {
-    1.0 / ((map_height + 1) as f32 * 0.75)
+    1.0 / ((map_height + 2) as f32 * 0.75)
 }
 
 #[derive(Debug)]
