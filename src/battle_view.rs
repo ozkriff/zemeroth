@@ -11,7 +11,7 @@ use core::ability::Ability;
 use core::map::{HexMap, PosHex};
 use core::{self, command, movement};
 use core::{Jokers, Moves, ObjId, State, TileType};
-use geom::hex_to_point;
+use geom::{self, hex_to_point};
 use visualize;
 use ZResult;
 
@@ -55,7 +55,7 @@ impl Layers {
 }
 
 pub fn tile_size(map_height: i32) -> f32 {
-    1.0 / ((map_height + 2) as f32 * 0.75)
+    1.0 / ((map_height) as f32 * 0.75)
 }
 
 #[derive(Debug)]
@@ -109,8 +109,11 @@ impl BattleView {
         let images = Images::new(context)?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
-        let tile_size = tile_size(state.map().height());
-        let mut selection_marker = Sprite::from_image(images.selection.clone(), tile_size * 2.0);
+        let tile_size = tile_size(state.map().height()) * 1.0;
+        let mut selection_marker = Sprite::from_image(
+            images.selection.clone(),
+            tile_size * 2.0 * geom::FLATNESS_COEFFICIENT,
+        );
         selection_marker.set_centered(true);
         selection_marker.set_color([0.0, 0.0, 1.0, 0.8].into());
         let sprites = Sprites {
@@ -305,7 +308,7 @@ impl BattleView {
     }
 
     fn highlight(&mut self, pos: PosHex, color: Color) -> ZResult {
-        let size = self.tile_size() * 2.0;
+        let size = self.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
         let mut sprite = Sprite::from_image(self.images.white_hex.clone(), size);
         let color_from = Color { a: 0.0, ..color };
         sprite.set_centered(true);
@@ -330,7 +333,7 @@ fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResul
         TileType::Plain => view.images.tile.clone(),
         TileType::Rocks => view.images.tile_rocks.clone(),
     };
-    let size = view.tile_size() * 2.0;
+    let size = view.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
     let mut sprite = Sprite::from_image(image, size);
     sprite.set_centered(true);
     sprite.set_pos(screen_pos);
