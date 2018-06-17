@@ -135,6 +135,7 @@ fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<Action
 fn vanish(view: &mut BattleView, target_id: ObjId) -> Box<Action> {
     debug!("vanish target_id={:?}", target_id);
     let sprite = view.id_to_sprite(target_id).clone();
+    let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     view.remove_object(target_id);
     let dark = [0.1, 0.1, 0.1, 1.0].into();
     let invisible = [0.1, 0.1, 0.1, 0.0].into();
@@ -143,6 +144,8 @@ fn vanish(view: &mut BattleView, target_id: ObjId) -> Box<Action> {
         action::ChangeColorTo::new(&sprite, dark, time_s(0.2)).boxed(),
         action::ChangeColorTo::new(&sprite, invisible, time_s(0.2)).boxed(),
         action::Hide::new(&view.layers().units, &sprite).boxed(),
+        action::ChangeColorTo::new(&sprite_shadow, invisible, time_s(0.2)).boxed(),
+        action::Hide::new(&view.layers().shadows, &sprite_shadow).boxed(),
     ]))
 }
 
@@ -304,36 +307,59 @@ fn visualize_create(
     pos: PosHex,
     prototype: &str,
 ) -> ZResult<Box<Action>> {
-    let point = geom::hex_to_point(view.tile_size(), pos);
     // TODO: Move to some .ron config:
-    let (sprite_name, offset) = match prototype {
-        "swordsman" => ("/swordsman.png", 0.2),
-        "spearman" => ("/spearman.png", 0.2),
-        "hammerman" => ("/hammerman.png", 0.2),
-        "alchemist" => ("/alchemist.png", 0.2),
-        "imp" => ("/imp.png", 0.2),
-        "imp_toxic" => ("/imp_toxic.png", 0.2),
-        "imp_bomber" => ("/imp_bomber.png", 0.2),
-        "imp_summoner" => ("/imp_summoner.png", 0.2),
-        "boulder" => ("/boulder.png", 0.4),
-        "bomb" => ("/bomb.png", 0.2),
-        "bomb_fire" => ("/bomb_fire.png", 0.2),
-        "bomb_poison" => ("/bomb_poison.png", 0.2),
-        "fire" => ("/fire.png", 0.2),
-        "poison_cloud" => ("/poison_cloud.png", 0.2),
-        "spike_trap" => ("/spike_trap.png", 0.5),
+    // TODO: At lest, extract this to a separate function
+    let (sprite_name, offset, shadow_size_coefficient) = match prototype {
+        "swordsman" => ("/swordsman.png", 0.2, 1.0),
+        "spearman" => ("/spearman.png", 0.2, 1.0),
+        "hammerman" => ("/hammerman.png", 0.2, 1.0),
+        "alchemist" => ("/alchemist.png", 0.2, 1.0),
+        "imp" => ("/imp.png", 0.2, 1.0),
+        "imp_toxic" => ("/imp_toxic.png", 0.2, 1.0),
+        "imp_bomber" => ("/imp_bomber.png", 0.2, 1.0),
+        "imp_summoner" => ("/imp_summoner.png", 0.2, 1.0),
+        "boulder" => ("/boulder.png", 0.4, 1.5),
+        "bomb" => ("/bomb.png", 0.2, 0.7),
+        "bomb_fire" => ("/bomb_fire.png", 0.2, 0.7),
+        "bomb_poison" => ("/bomb_poison.png", 0.2, 0.7),
+        "fire" => ("/fire.png", 0.2, 0.001),
+        "poison_cloud" => ("/poison_cloud.png", 0.2, 1.0),
+        "spike_trap" => ("/spike_trap.png", 0.5, 1.4),
         _ => unimplemented!("Don't know such object type: {}", prototype),
     };
+    let point = geom::hex_to_point(view.tile_size(), pos);
+    let color_object = [1.0, 1.0, 1.0, 1.0].into();
+    let color_shadow = [0.0, 0.0, 0.0, 0.7].into();
     let size = view.tile_size() * 2.0;
-    let mut sprite = Sprite::from_path(context, sprite_name, size)?;
-    let color = [1.0, 1.0, 1.0, 1.0].into();
-    sprite.set_color(Color { a: 0.0, ..color });
-    sprite.set_offset(Vector2::new(0.5, 1.0 - offset));
-    sprite.set_pos(point);
-    view.add_object(id, &sprite);
+    let sprite_object = {
+        let mut sprite = Sprite::from_path(context, sprite_name, size)?;
+        sprite.set_color(Color {
+            a: 0.0,
+            ..color_object
+        });
+        sprite.set_offset(Vector2::new(0.5, 1.0 - offset));
+        sprite.set_pos(point);
+        sprite
+    };
+    let sprite_shadow = {
+        let image_shadow = view.images().shadow.clone();
+        let mut sprite = Sprite::from_image(image_shadow, size * shadow_size_coefficient);
+        sprite.set_centered(true);
+        sprite.set_color(Color {
+            a: 0.0,
+            ..color_shadow
+        });
+        sprite.set_pos(point);
+        sprite
+    };
+    view.add_object(id, &sprite_object, &sprite_shadow);
+    let action_change_shadow_color =
+        action::ChangeColorTo::new(&sprite_shadow, color_shadow, time_s(0.2)).boxed();
     Ok(Box::new(action::Sequence::new(vec![
-        action::Show::new(&view.layers().units, &sprite).boxed(),
-        action::ChangeColorTo::new(&sprite, color, time_s(0.25)).boxed(),
+        action::Show::new(&view.layers().shadows, &sprite_shadow).boxed(),
+        action::Show::new(&view.layers().units, &sprite_object).boxed(),
+        action::Fork::new(action_change_shadow_color).boxed(),
+        action::ChangeColorTo::new(&sprite_object, color_object, time_s(0.25)).boxed(),
     ])))
 }
 
@@ -344,6 +370,7 @@ fn visualize_event_move_to(
     event: &event::MoveTo,
 ) -> ZResult<Box<Action>> {
     let sprite = view.id_to_sprite(event.id).clone();
+    let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
     let mut actions: Vec<Box<Action>> = Vec::new();
     for step in event.path.steps() {
         let from = geom::hex_to_point(view.tile_size(), step.from);
@@ -351,9 +378,12 @@ fn visualize_event_move_to(
         let diff = to - from;
         let step_height = 0.025;
         let step_time = time_s(0.13);
-        let main_move = action::MoveBy::new(&sprite, diff, time_s(0.3)).boxed();
+        let move_time = time_s(0.3);
+        let main_move = action::MoveBy::new(&sprite, diff, move_time).boxed();
+        let shadow_move = action::MoveBy::new(&sprite_shadow, diff, move_time).boxed();
         let action = Box::new(action::Sequence::new(vec![
             action::Fork::new(main_move).boxed(),
+            action::Fork::new(shadow_move).boxed(),
             up_and_down_move(view, &sprite, step_height, step_time),
             up_and_down_move(view, &sprite, step_height, step_time),
         ]));
@@ -369,6 +399,7 @@ fn visualize_event_attack(
     event: &event::Attack,
 ) -> ZResult<Box<Action>> {
     let sprite = view.id_to_sprite(event.attacker_id).clone();
+    let sprite_shadow = view.id_to_shadow_sprite(event.attacker_id).clone();
     let map_to = state.parts().pos.get(event.target_id).0;
     let to = geom::hex_to_point(view.tile_size(), map_to);
     let map_from = state.parts().pos.get(event.attacker_id).0;
@@ -380,8 +411,16 @@ fn visualize_event_attack(
         actions.push(action::Sleep::new(time_s(0.3)).boxed());
         actions.push(message(view, context, map_from, "reaction")?);
     }
-    actions.push(action::MoveBy::new(&sprite, diff, time_s(0.1)).boxed());
-    actions.push(action::MoveBy::new(&sprite, -diff, time_s(0.15)).boxed());
+    let time_to = time_s(0.1);
+    let time_from = time_s(0.15);
+    let action_sprite_move_to = action::MoveBy::new(&sprite, diff, time_to).boxed();
+    let action_shadow_move_to = action::MoveBy::new(&sprite_shadow, diff, time_to).boxed();
+    let action_sprite_move_from = action::MoveBy::new(&sprite, -diff, time_from).boxed();
+    let action_shadow_move_from = action::MoveBy::new(&sprite_shadow, -diff, time_from).boxed();
+    actions.push(action::Fork::new(action_shadow_move_to).boxed());
+    actions.push(action_sprite_move_to);
+    actions.push(action::Fork::new(action_shadow_move_from).boxed());
+    actions.push(action_sprite_move_from);
     actions.push(action::Sleep::new(time_s(0.1)).boxed());
     Ok(action::Sequence::new(actions).boxed())
 }
@@ -427,11 +466,19 @@ fn visualize_event_use_ability_jump(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<Action>> {
-    let sprite = view.id_to_sprite(event.id).clone();
+    let sprite_object = view.id_to_sprite(event.id).clone();
+    let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
     let from = state.parts().pos.get(event.id).0;
     let from = geom::hex_to_point(view.tile_size(), from);
     let to = geom::hex_to_point(view.tile_size(), event.pos);
-    Ok(arc_move(view, &sprite, to - from))
+    let diff = to - from;
+    let action_arc_move = arc_move(view, &sprite_object, diff);
+    let time = action_arc_move.duration();
+    let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
+    Ok(Box::new(action::Sequence::new(vec![
+        action::Fork::new(action_move_shadow).boxed(),
+        action_arc_move,
+    ])))
 }
 
 fn visualize_event_use_ability_dash(
@@ -440,12 +487,19 @@ fn visualize_event_use_ability_dash(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<Action>> {
-    let sprite = view.id_to_sprite(event.id).clone();
+    let sprite_object = view.id_to_sprite(event.id).clone();
+    let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
     let from = state.parts().pos.get(event.id).0;
     let from = geom::hex_to_point(view.tile_size(), from);
     let to = geom::hex_to_point(view.tile_size(), event.pos);
     let diff = to - from;
-    Ok(action::MoveBy::new(&sprite, diff, time_s(0.1)).boxed())
+    let time = time_s(0.1);
+    let main_move = action::MoveBy::new(&sprite_object, diff, time).boxed();
+    let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
+    Ok(Box::new(action::Sequence::new(vec![
+        action::Fork::new(action_move_shadow).boxed(),
+        main_move,
+    ])))
 }
 
 fn visualize_event_use_ability_explode(
@@ -665,12 +719,17 @@ fn visualize_effect_knockback(
     effect: &effect::Knockback,
 ) -> ZResult<Box<Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
+    let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
     let to = geom::hex_to_point(view.tile_size(), effect.to);
     let diff = to - from;
+    let time = time_s(0.15);
+    let action_main_move = action::MoveBy::new(&sprite, diff, time).boxed();
+    let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
     Ok(Box::new(action::Sequence::new(vec![
         message(view, context, effect.to, "bump")?,
-        action::MoveBy::new(&sprite, diff, time_s(0.15)).boxed(),
+        action::Fork::new(action_move_shadow).boxed(),
+        action_main_move,
     ])))
 }
 
@@ -681,13 +740,18 @@ fn visualize_effect_fly_off(
     target_id: ObjId,
     effect: &effect::FlyOff,
 ) -> ZResult<Box<Action>> {
-    let sprite = view.id_to_sprite(target_id).clone();
+    let sprite_object = view.id_to_sprite(target_id).clone();
+    let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
     let to = geom::hex_to_point(view.tile_size(), effect.to);
-    let action_move = arc_move(view, &sprite, to - from);
+    let diff = to - from;
+    let action_main_move = arc_move(view, &sprite_object, diff);
+    let time = action_main_move.duration();
+    let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
     Ok(Box::new(action::Sequence::new(vec![
         message(view, context, effect.to, "fly off")?,
-        action_move,
+        action::Fork::new(action_move_shadow).boxed(),
+        action_main_move,
     ])))
 }
 
@@ -699,9 +763,16 @@ fn visualize_effect_throw(
     effect: &effect::Throw,
 ) -> ZResult<Box<Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
+    let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
     let to = geom::hex_to_point(view.tile_size(), effect.to);
-    Ok(arc_move(view, &sprite, to - from))
+    let diff = to - from;
+    let arc_move = arc_move(view, &sprite, diff);
+    let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, arc_move.duration()).boxed();
+    Ok(Box::new(action::Sequence::new(vec![
+        action::Fork::new(action_move_shadow).boxed(),
+        arc_move,
+    ])))
 }
 
 fn visualize_effect_miss(
