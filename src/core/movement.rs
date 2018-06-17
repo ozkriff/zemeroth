@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::slice::Windows;
 
+use core::ability::PassiveAbility;
 use core::map::{dirs, Dir, Distance, HexMap, PosHex};
 use core::state;
 use core::{ObjId, State, TileType};
@@ -39,6 +40,21 @@ pub fn max_cost() -> MovePoints {
 }
 
 pub fn tile_cost(state: &State, _: ObjId, _: PosHex, pos: PosHex) -> MovePoints {
+    // taking other dangerous objects in the tile into account
+    for id in state.parts().passive_abilities.ids() {
+        if state.parts().pos.get(id).0 != pos {
+            continue;
+        }
+        for &ability in &state.parts().passive_abilities.get(id).0 {
+            match ability {
+                PassiveAbility::SpikeTrap | PassiveAbility::Burn | PassiveAbility::Poison => {
+                    return MovePoints(4)
+                }
+                _ => {}
+            }
+        }
+    }
+    // just tile's cost
     match state.map().tile(pos) {
         TileType::Plain => MovePoints(1),
         TileType::Rocks => MovePoints(3),
