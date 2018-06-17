@@ -11,7 +11,7 @@ use core::ability::Ability;
 use core::map::{HexMap, PosHex};
 use core::{self, command, movement};
 use core::{Jokers, Moves, ObjId, State, TileType};
-use geom::hex_to_point;
+use geom::{self, hex_to_point};
 use visualize;
 use ZResult;
 
@@ -29,6 +29,7 @@ const TILE_COLOR_ABILITY: [f32; 4] = [0.0, 0.0, 0.9, 0.5];
 pub struct Layers {
     pub bg: Layer,
     pub blood: Layer,
+    pub shadows: Layer,
     pub grass: Layer,
     pub highlighted_tiles: Layer,
     pub selection_marker: Layer,
@@ -43,6 +44,7 @@ impl Layers {
         vec![
             self.bg,
             self.blood,
+            self.shadows,
             self.grass,
             self.highlighted_tiles,
             self.selection_marker,
@@ -55,7 +57,7 @@ impl Layers {
 }
 
 pub fn tile_size(map_height: i32) -> f32 {
-    1.0 / ((map_height + 1) as f32 * 0.75)
+    1.0 / ((map_height) as f32 * 0.75)
 }
 
 #[derive(Debug)]
@@ -63,6 +65,7 @@ struct Sprites {
     selection_marker: Sprite,
     highlighted_tiles: Vec<Sprite>,
     id_to_sprite_map: HashMap<ObjId, Sprite>,
+    id_to_shadow_map: HashMap<ObjId, Sprite>,
     unit_info: HashMap<ObjId, Vec<Sprite>>,
 }
 
@@ -75,6 +78,7 @@ pub struct Images {
     pub grass: Image,
     pub dot: Image,
     pub blood: Image,
+    pub shadow: Image,
 }
 
 impl Images {
@@ -87,6 +91,7 @@ impl Images {
             grass: Image::new(context, "/grass.png")?,
             dot: Image::new(context, "/dot.png")?,
             blood: Image::new(context, "/blood.png")?,
+            shadow: Image::new(context, "/shadow.png")?,
         })
     }
 }
@@ -109,14 +114,18 @@ impl BattleView {
         let images = Images::new(context)?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
-        let tile_size = tile_size(state.map().height());
-        let mut selection_marker = Sprite::from_image(images.selection.clone(), tile_size * 2.0);
+        let tile_size = tile_size(state.map().height()) * 1.0;
+        let mut selection_marker = Sprite::from_image(
+            images.selection.clone(),
+            tile_size * 2.0 * geom::FLATNESS_COEFFICIENT,
+        );
         selection_marker.set_centered(true);
         selection_marker.set_color([0.0, 0.0, 1.0, 0.8].into());
         let sprites = Sprites {
             selection_marker,
             highlighted_tiles: Vec::new(),
             id_to_sprite_map: HashMap::new(),
+            id_to_shadow_map: HashMap::new(),
             unit_info: HashMap::new(),
         };
         Ok(Self {
@@ -154,6 +163,7 @@ impl BattleView {
         self.scene.add_action(action);
     }
 
+    // TODO: return `(f32, f32)`? width and height separately?
     pub fn tile_size(&self) -> f32 {
         self.tile_size
     }
@@ -162,16 +172,24 @@ impl BattleView {
         &self.layers
     }
 
-    pub fn add_object(&mut self, id: ObjId, sprite: &Sprite) {
-        self.sprites.id_to_sprite_map.insert(id, sprite.clone());
+    pub fn add_object(&mut self, id: ObjId, sprite: &Sprite, sprite_shadow: &Sprite) {
+        let sprite_shadow = sprite_shadow.clone();
+        let sprite = sprite.clone();
+        self.sprites.id_to_sprite_map.insert(id, sprite);
+        self.sprites.id_to_shadow_map.insert(id, sprite_shadow);
     }
 
     pub fn remove_object(&mut self, id: ObjId) {
         self.sprites.id_to_sprite_map.remove(&id).unwrap();
+        self.sprites.id_to_shadow_map.remove(&id).unwrap();
     }
 
     pub fn id_to_sprite(&mut self, id: ObjId) -> &Sprite {
         &self.sprites.id_to_sprite_map[&id]
+    }
+
+    pub fn id_to_shadow_sprite(&mut self, id: ObjId) -> &Sprite {
+        &self.sprites.id_to_shadow_map[&id]
     }
 
     pub fn unit_info_check(&self, id: ObjId) -> bool {
@@ -305,7 +323,7 @@ impl BattleView {
     }
 
     fn highlight(&mut self, pos: PosHex, color: Color) -> ZResult {
-        let size = self.tile_size() * 2.0;
+        let size = self.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
         let mut sprite = Sprite::from_image(self.images.white_hex.clone(), size);
         let color_from = Color { a: 0.0, ..color };
         sprite.set_centered(true);
@@ -330,7 +348,7 @@ fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResul
         TileType::Plain => view.images.tile.clone(),
         TileType::Rocks => view.images.tile_rocks.clone(),
     };
-    let size = view.tile_size() * 2.0;
+    let size = view.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
     let mut sprite = Sprite::from_image(image, size);
     sprite.set_centered(true);
     sprite.set_pos(screen_pos);
