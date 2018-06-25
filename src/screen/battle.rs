@@ -264,6 +264,11 @@ impl Battle {
     fn use_ability(&mut self, context: &mut Context, ability: Ability) -> ZResult {
         // TODO: code duplication (see check.rs and event.rs)
         let id = self.selected_unit_id.unwrap(); // TODO: Extract to some specific method
+        let agent_player_id = self.state.parts().belongs_to.get(id).0;
+        if agent_player_id != self.state.player_id() {
+            debug!("Can't command enemy unit");
+            return Ok(()); // TODO: fix error handling
+        }
         for rechargeable in &self.state.parts().abilities.get(id).0 {
             if rechargeable.ability == ability && rechargeable.status != ability::Status::Ready {
                 debug!("ability isn't ready yet");
