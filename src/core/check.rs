@@ -83,6 +83,7 @@ fn check_command_end_turn(_: &State, _: &command::EndTurn) -> Result<(), Error> 
 }
 
 fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Result<(), Error> {
+    check_agent_belongs_to_correct_player(state, command.id)?;
     check_agent_can_attack(state, command.id)?;
     check_agent_ability_ready(state, command.id, command.ability)?;
     match command.ability {
@@ -268,6 +269,14 @@ fn check_agent_ability_ready(
     }
     if !found {
         return Err(Error::NoSuchAbility);
+    }
+    Ok(())
+}
+
+fn check_agent_belongs_to_correct_player(state: &State, id: ObjId) -> Result<(), Error> {
+    let unit_player_id = state.parts().belongs_to.get(id).0;
+    if unit_player_id != state.player_id() {
+        return Err(Error::CanNotCommandEnemyUnits);
     }
     Ok(())
 }
