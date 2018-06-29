@@ -8,8 +8,8 @@ pub enum Duration {
 }
 
 impl Duration {
-    pub fn is_over(&self) -> bool {
-        match *self {
+    pub fn is_over(self) -> bool {
+        match self {
             Duration::Rounds(n) => n <= 0,
             Duration::Forever => false,
         }

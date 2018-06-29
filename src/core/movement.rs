@@ -16,11 +16,11 @@ pub struct Tile {
 }
 
 impl Tile {
-    pub fn parent(&self) -> Option<Dir> {
+    pub fn parent(self) -> Option<Dir> {
         self.parent_dir
     }
 
-    pub fn cost(&self) -> MovePoints {
+    pub fn cost(self) -> MovePoints {
         self.cost
     }
 }
