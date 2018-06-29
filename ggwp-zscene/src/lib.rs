@@ -1,3 +1,5 @@
+#![warn(bare_trait_objects)]
+
 extern crate ggez;
 
 use std::cell::RefCell;
@@ -74,7 +76,7 @@ impl Scene {
         Ok(())
     }
 
-    pub fn add_action(&mut self, action: Box<Action>) {
+    pub fn add_action(&mut self, action: Box<dyn Action>) {
         self.interpreter.add(action);
     }
 
@@ -85,7 +87,7 @@ impl Scene {
 
 #[derive(Debug)]
 struct ActionInterpreter {
-    actions: Vec<Box<Action>>,
+    actions: Vec<Box<dyn Action>>,
 }
 
 impl ActionInterpreter {
@@ -95,7 +97,7 @@ impl ActionInterpreter {
         }
     }
 
-    pub fn add(&mut self, mut action: Box<Action>) {
+    pub fn add(&mut self, mut action: Box<dyn Action>) {
         action.begin();
         self.actions.push(action);
     }

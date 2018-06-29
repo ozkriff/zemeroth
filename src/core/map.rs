@@ -221,8 +221,8 @@ impl Dir {
         dirs[n as usize]
     }
 
-    pub fn to_int(&self) -> i32 {
-        match *self {
+    pub fn to_int(self) -> i32 {
+        match self {
             Dir::SouthEast => 0,
             Dir::East => 1,
             Dir::NorthEast => 2,

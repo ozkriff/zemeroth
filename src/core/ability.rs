@@ -75,8 +75,8 @@ pub struct RechargeableAbility {
 }
 
 impl Ability {
-    pub fn to_string(&self) -> String {
-        match *self {
+    pub fn to_string(self) -> String {
+        match self {
             Ability::Knockback => "Knockback".into(),
             Ability::Club => "Club".into(),
             Ability::Jump(a) => format!("Jump-{}", (a.0).0),
@@ -111,8 +111,8 @@ pub enum PassiveAbility {
 pub struct Regenerate(pub Strength);
 
 impl PassiveAbility {
-    pub fn to_string(&self) -> String {
-        match *self {
+    pub fn to_string(self) -> String {
+        match self {
             PassiveAbility::HeavyImpact => "Heavy impact".into(),
             PassiveAbility::SpawnPoisonCloudOnDeath => "Spawn a poison cloud on death".into(),
             PassiveAbility::Burn => "Burn".into(),

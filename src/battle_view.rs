@@ -159,7 +159,7 @@ impl BattleView {
     pub fn draw(&self, context: &mut Context) -> ZResult {
         self.scene.draw(context)
     }
-    pub fn add_action(&mut self, action: Box<Action>) {
+    pub fn add_action(&mut self, action: Box<dyn Action>) {
         self.scene.add_action(action);
     }
 
@@ -342,7 +342,7 @@ impl BattleView {
     }
 }
 
-fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResult<Box<Action>> {
+fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let image = match state.map().tile(at) {
         TileType::Plain => view.images.tile.clone(),
@@ -355,7 +355,7 @@ fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResul
     Ok(action::Show::new(&view.layers().bg, &sprite).boxed())
 }
 
-fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<Action>> {
+fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let mut sprite = Sprite::from_image(view.images.grass.clone(), view.tile_size() * 2.0);
     let n = view.tile_size() * 0.5;
@@ -368,7 +368,7 @@ fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<Action>> {
     Ok(action::Show::new(&view.layers().grass, &sprite).boxed())
 }
 
-pub fn make_action_create_map(state: &State, view: &BattleView) -> ZResult<Box<Action>> {
+pub fn make_action_create_map(state: &State, view: &BattleView) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for hex_pos in state.map().iter() {
         actions.push(make_action_show_tile(state, view, hex_pos)?);

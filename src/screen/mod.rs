@@ -19,7 +19,7 @@ pub use self::main_menu::MainMenu;
 #[derive(Debug)]
 pub enum Transition {
     None,
-    Push(Box<Screen>),
+    Push(Box<dyn Screen>),
     Pop,
 }
 
@@ -33,11 +33,11 @@ pub trait Screen: Debug {
 const ERR_MSG: &str = "Screen stack is empty";
 
 pub struct Screens {
-    screens: Vec<Box<Screen>>,
+    screens: Vec<Box<dyn Screen>>,
 }
 
 impl Screens {
-    pub fn new(start_screen: Box<Screen>) -> Self {
+    pub fn new(start_screen: Box<dyn Screen>) -> Self {
         Self {
             screens: vec![start_screen],
         }
@@ -88,12 +88,12 @@ impl Screens {
     }
 
     /// Returns a mutable reference to the top screen.
-    fn screen_mut(&mut self) -> &mut Screen {
+    fn screen_mut(&mut self) -> &mut dyn Screen {
         &mut **self.screens.last_mut().expect(ERR_MSG)
     }
 
     /// Returns a reference to the top screen.
-    fn screen(&self) -> &Screen {
+    fn screen(&self) -> &dyn Screen {
         &**self.screens.last().expect(ERR_MSG)
     }
 }

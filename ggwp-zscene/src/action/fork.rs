@@ -2,11 +2,11 @@ use Action;
 
 #[derive(Debug)]
 pub struct Fork {
-    action: Option<Box<Action>>,
+    action: Option<Box<dyn Action>>,
 }
 
 impl Fork {
-    pub fn new(action: Box<Action>) -> Self {
+    pub fn new(action: Box<dyn Action>) -> Self {
         Self {
             action: Some(action),
         }
@@ -14,7 +14,7 @@ impl Fork {
 }
 
 impl Action for Fork {
-    fn try_fork(&mut self) -> Option<Box<Action>> {
+    fn try_fork(&mut self) -> Option<Box<dyn Action>> {
         self.action.take()
     }
 

@@ -88,6 +88,8 @@
 //! }
 //! ```
 
+#![warn(bare_trait_objects)]
+
 use std::collections::{hash_map, HashMap};
 use std::default::Default;
 use std::fmt::Debug;

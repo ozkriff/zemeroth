@@ -27,7 +27,7 @@ pub fn message(
     context: &mut Context,
     pos: PosHex,
     text: &str,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = Color { a: 0.0, ..visible };
     let image = Text::new(context, text, view.font())?.into_inner();
@@ -55,7 +55,7 @@ pub fn message(
     Ok(action::Fork::new(action_sequence.boxed()).boxed())
 }
 
-fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<Action>> {
+fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let mut sprite = Sprite::from_image(view.images().blood.clone(), view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
@@ -75,7 +75,7 @@ fn show_flare_scale(
     at: PosHex,
     color: Color,
     scale: f32,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let visible = color;
     let invisible = Color { a: 0.0, ..visible };
     let size = view.tile_size() * 2.0 * scale;
@@ -92,7 +92,7 @@ fn show_flare_scale(
     ])))
 }
 
-fn show_flare(view: &mut BattleView, at: PosHex, color: Color) -> ZResult<Box<Action>> {
+fn show_flare(view: &mut BattleView, at: PosHex, color: Color) -> ZResult<Box<dyn Action>> {
     let scale = 1.0;
     show_flare_scale(view, at, color, scale)
 }
@@ -102,7 +102,7 @@ fn up_and_down_move(
     sprite: &Sprite,
     height: f32,
     time: Duration,
-) -> Box<Action> {
+) -> Box<dyn Action> {
     let duration_0_25 = time / 4;
     let up_fast = Vector2::new(0.0, -height * 0.75);
     let up_slow = Vector2::new(0.0, -height * 0.25);
@@ -116,7 +116,7 @@ fn up_and_down_move(
     ]))
 }
 
-fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<Action> {
+fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<dyn Action> {
     let len = nalgebra::norm(&diff);
     let min_height = view.tile_size() * 0.5;
     let base_height = view.tile_size() * 2.0;
@@ -132,7 +132,7 @@ fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<Action
     ]))
 }
 
-fn vanish(view: &mut BattleView, target_id: ObjId) -> Box<Action> {
+fn vanish(view: &mut BattleView, target_id: ObjId) -> Box<dyn Action> {
     debug!("vanish target_id={:?}", target_id);
     let sprite = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
@@ -149,8 +149,8 @@ fn vanish(view: &mut BattleView, target_id: ObjId) -> Box<Action> {
     ]))
 }
 
-fn remove_brief_unit_info(view: &mut BattleView, id: ObjId) -> ZResult<Box<Action>> {
-    let mut actions: Vec<Box<Action>> = Vec::new();
+fn remove_brief_unit_info(view: &mut BattleView, id: ObjId) -> ZResult<Box<dyn Action>> {
+    let mut actions: Vec<Box<dyn Action>> = Vec::new();
     let sprites = view.unit_info_get(id);
     for sprite in sprites {
         let color = Color {
@@ -171,9 +171,9 @@ fn generate_brief_obj_info(
     state: &State,
     view: &mut BattleView,
     id: ObjId,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let image = view.images().dot.clone();
-    let mut actions: Vec<Box<Action>> = Vec::new();
+    let mut actions: Vec<Box<dyn Action>> = Vec::new();
     let agent = state.parts().agent.get(id);
     let obj_pos = state.parts().pos.get(id).0;
     let strength = state.parts().strength.get(id);
@@ -219,7 +219,7 @@ pub fn refresh_brief_unit_info(
     state: &State,
     view: &mut BattleView,
     id: ObjId,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     if view.unit_info_check(id) {
         actions.push(remove_brief_unit_info(view, id)?);
@@ -236,7 +236,7 @@ pub fn visualize(
     context: &mut Context,
     event: &Event,
     phase: ApplyPhase,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     debug!("visualize: phase={:?} event={:?}", phase, event);
     match phase {
         ApplyPhase::Pre => visualize_pre(state, view, context, event),
@@ -249,8 +249,8 @@ fn visualize_pre(
     view: &mut BattleView,
     context: &mut Context,
     event: &Event,
-) -> ZResult<Box<Action>> {
-    let mut actions: Vec<Box<Action>> = Vec::new();
+) -> ZResult<Box<dyn Action>> {
+    let mut actions: Vec<Box<dyn Action>> = Vec::new();
     actions.push(visualize_event(state, view, context, &event.active_event)?);
     for (&id, effects) in &event.instant_effects {
         for effect in effects {
@@ -266,7 +266,7 @@ fn visualize_pre(
     Ok(action::Sequence::new(actions).boxed())
 }
 
-fn visualize_post(state: &State, view: &mut BattleView, event: &Event) -> ZResult<Box<Action>> {
+fn visualize_post(state: &State, view: &mut BattleView, event: &Event) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for &id in &event.actor_ids {
         actions.push(refresh_brief_unit_info(state, view, id)?);
@@ -285,7 +285,7 @@ fn visualize_event(
     view: &mut BattleView,
     context: &mut Context,
     event: &ActiveEvent,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     info!("{:?}", event);
     let action = match *event {
         ActiveEvent::UsePassiveAbility(_) | ActiveEvent::Create => action::Empty::new().boxed(),
@@ -306,7 +306,7 @@ fn visualize_create(
     id: ObjId,
     pos: PosHex,
     prototype: &str,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     // TODO: Move to some .ron config:
     // TODO: At lest, extract this to a separate function
     let (sprite_name, offset, shadow_size_coefficient) = match prototype {
@@ -368,10 +368,10 @@ fn visualize_event_move_to(
     view: &mut BattleView,
     _: &mut Context,
     event: &event::MoveTo,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(event.id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
-    let mut actions: Vec<Box<Action>> = Vec::new();
+    let mut actions: Vec<Box<dyn Action>> = Vec::new();
     for step in event.path.steps() {
         let from = geom::hex_to_point(view.tile_size(), step.from);
         let to = geom::hex_to_point(view.tile_size(), step.to);
@@ -397,7 +397,7 @@ fn visualize_event_attack(
     view: &mut BattleView,
     context: &mut Context,
     event: &event::Attack,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(event.attacker_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(event.attacker_id).clone();
     let map_to = state.parts().pos.get(event.target_id).0;
@@ -405,7 +405,7 @@ fn visualize_event_attack(
     let map_from = state.parts().pos.get(event.attacker_id).0;
     let from = geom::hex_to_point(view.tile_size(), map_from);
     let diff = (to - from) / 2.0;
-    let mut actions: Vec<Box<Action>> = Vec::new();
+    let mut actions: Vec<Box<dyn Action>> = Vec::new();
     actions.push(action::Sleep::new(time_s(0.1)).boxed());
     if event.mode == event::AttackMode::Reactive {
         actions.push(action::Sleep::new(time_s(0.3)).boxed());
@@ -430,7 +430,7 @@ fn visualize_event_end_turn(
     _: &mut BattleView,
     _: &mut Context,
     _: &event::EndTurn,
-) -> Box<Action> {
+) -> Box<dyn Action> {
     action::Sleep::new(time_s(0.2)).boxed()
 }
 
@@ -439,7 +439,7 @@ fn visualize_event_begin_turn(
     view: &mut BattleView,
     context: &mut Context,
     event: &event::BeginTurn,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = Color { a: 0.0, ..visible };
     let text = match event.player_id {
@@ -465,7 +465,7 @@ fn visualize_event_use_ability_jump(
     view: &mut BattleView,
     _: &mut Context,
     event: &event::UseAbility,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let sprite_object = view.id_to_sprite(event.id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
     let from = state.parts().pos.get(event.id).0;
@@ -486,7 +486,7 @@ fn visualize_event_use_ability_dash(
     view: &mut BattleView,
     _: &mut Context,
     event: &event::UseAbility,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let sprite_object = view.id_to_sprite(event.id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
     let from = state.parts().pos.get(event.id).0;
@@ -506,7 +506,7 @@ fn visualize_event_use_ability_explode(
     state: &State,
     view: &mut BattleView,
     event: &event::UseAbility,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     let scale = 2.5;
     show_flare_scale(view, pos, [1.0, 0.0, 0.0, 0.7].into(), scale)
@@ -516,7 +516,7 @@ fn visualize_event_use_ability_explode_fire(
     state: &State,
     view: &mut BattleView,
     event: &event::UseAbility,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     let scale = 2.5;
     show_flare_scale(view, pos, [1.0, 0.0, 0.0, 0.7].into(), scale)
@@ -526,7 +526,7 @@ fn visualize_event_use_ability_explode_poison(
     state: &State,
     view: &mut BattleView,
     event: &event::UseAbility,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     let scale = 2.5;
     show_flare_scale(view, pos, [0.0, 1.0, 0.0, 0.7].into(), scale)
@@ -536,7 +536,7 @@ fn visualize_event_use_ability_summon(
     state: &State,
     view: &mut BattleView,
     event: &event::UseAbility,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     let scale = 2.0;
     show_flare_scale(view, pos, [1.0, 1.0, 1.0, 0.7].into(), scale)
@@ -547,7 +547,7 @@ fn visualize_event_use_ability(
     view: &mut BattleView,
     context: &mut Context,
     event: &event::UseAbility,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let action_main = match event.ability {
         Ability::Jump(_) => visualize_event_use_ability_jump(state, view, context, event)?,
         Ability::Dash => visualize_event_use_ability_dash(state, view, context, event)?,
@@ -569,7 +569,7 @@ fn visualize_event_effect_tick(
     state: &State,
     view: &mut BattleView,
     event: &event::EffectTick,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     match event.effect {
         LastingEffect::Poison => show_flare(view, pos, [0.0, 0.8, 0.0, 0.7].into()),
@@ -582,7 +582,7 @@ fn visualize_event_effect_end(
     view: &mut BattleView,
     context: &mut Context,
     event: &event::EffectEnd,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     let s = event.effect.to_str();
     message(view, context, pos, &format!("[{}] ended", s))
@@ -594,7 +594,7 @@ pub fn visualize_lasting_effect(
     context: &mut Context,
     target_id: ObjId,
     timed_effect: &TimedEffect,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
     let action_flare = match timed_effect.effect {
         LastingEffect::Poison => show_flare(view, pos, [0.0, 0.8, 0.0, 0.7].into())?,
@@ -613,7 +613,7 @@ pub fn visualize_instant_effect(
     context: &mut Context,
     target_id: ObjId,
     effect: &Effect,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     debug!("visualize_instant_effect: {:?}", effect);
     let action = match *effect {
         Effect::Create(ref e) => visualize_effect_create(state, view, context, target_id, e)?,
@@ -636,7 +636,7 @@ fn visualize_effect_create(
     context: &mut Context,
     target_id: ObjId,
     effect: &effect::Create,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     visualize_create(view, context, target_id, effect.pos, &effect.prototype)
 }
 
@@ -645,7 +645,7 @@ fn visualize_effect_kill(
     view: &mut BattleView,
     context: &mut Context,
     target_id: ObjId,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
     Ok(Box::new(action::Sequence::new(vec![
         message(view, context, pos, "killed")?,
@@ -660,7 +660,7 @@ fn visualize_effect_vanish(
     view: &mut BattleView,
     _: &mut Context,
     target_id: ObjId,
-) -> Box<Action> {
+) -> Box<dyn Action> {
     debug!("visualize_effect_vanish!");
     vanish(view, target_id)
 }
@@ -670,7 +670,7 @@ fn visualize_effect_stun(
     _view: &mut BattleView,
     _context: &mut Context,
     _target_id: ObjId,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     Ok(action::Sleep::new(time_s(1.0)).boxed())
 }
 
@@ -680,7 +680,7 @@ fn visualize_effect_heal(
     context: &mut Context,
     target_id: ObjId,
     effect: &effect::Heal,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
     let s = format!("healed +{}", effect.strength.0);
     Ok(Box::new(action::Sequence::new(vec![
@@ -696,7 +696,7 @@ fn visualize_effect_wound(
     context: &mut Context,
     target_id: ObjId,
     effect: &effect::Wound,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let damage = effect.damage;
     let pos = state.parts().pos.get(target_id).0;
     let sprite = view.id_to_sprite(target_id).clone();
@@ -717,7 +717,7 @@ fn visualize_effect_knockback(
     context: &mut Context,
     target_id: ObjId,
     effect: &effect::Knockback,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
@@ -739,7 +739,7 @@ fn visualize_effect_fly_off(
     context: &mut Context,
     target_id: ObjId,
     effect: &effect::FlyOff,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let sprite_object = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
@@ -761,7 +761,7 @@ fn visualize_effect_throw(
     _: &mut Context,
     target_id: ObjId,
     effect: &effect::Throw,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
@@ -780,7 +780,7 @@ fn visualize_effect_miss(
     view: &mut BattleView,
     context: &mut Context,
     target_id: ObjId,
-) -> ZResult<Box<Action>> {
+) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
     message(view, context, pos, "missed")
 }
