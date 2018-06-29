@@ -244,7 +244,7 @@ impl Battle {
         Ok(())
     }
 
-    fn do_ai(&mut self, context: &mut Context) -> Box<Action> {
+    fn do_ai(&mut self, context: &mut Context) -> Box<dyn Action> {
         debug!("AI: <");
         let mut actions = Vec::new();
         loop {
@@ -282,7 +282,7 @@ impl Battle {
         &mut self,
         context: &mut Context,
         command: &command::Command,
-    ) -> Box<Action> {
+    ) -> Box<dyn Action> {
         debug!("do_command_inner: {:?}", command);
         let mut actions = Vec::new();
         let state = &mut self.state;
@@ -300,11 +300,11 @@ impl Battle {
         self.add_action(action);
     }
 
-    fn add_actions(&mut self, actions: Vec<Box<Action>>) {
+    fn add_actions(&mut self, actions: Vec<Box<dyn Action>>) {
         self.add_action(action::Sequence::new(actions).boxed());
     }
 
-    fn add_action(&mut self, action: Box<Action>) {
+    fn add_action(&mut self, action: Box<dyn Action>) {
         self.block_timer = Some(action.duration());
         self.view.add_action(action);
     }

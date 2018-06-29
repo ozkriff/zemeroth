@@ -1,3 +1,5 @@
+#![warn(bare_trait_objects)]
+
 /// Tiny and opinionated GUI
 ///
 
@@ -99,11 +101,11 @@ pub trait Widget: Debug {
     fn set_pos(&mut self, pos: Point2);
 }
 
-pub type RcWidget = Rc<RefCell<Widget>>;
+pub type RcWidget = Rc<RefCell<dyn Widget>>;
 
 #[derive(Debug)]
 pub struct AnchoredWidget {
-    widget: Rc<RefCell<Widget>>,
+    widget: Rc<RefCell<dyn Widget>>,
     anchor: Anchor,
 }
 
@@ -134,7 +136,7 @@ impl<Message: Clone> Gui<Message> {
         self.sender.clone()
     }
 
-    pub fn add(&mut self, widget: &Rc<RefCell<Widget>>, anchor: Anchor) {
+    pub fn add(&mut self, widget: &Rc<RefCell<dyn Widget>>, anchor: Anchor) {
         let widget = widget.clone();
         let anchored_widget = AnchoredWidget { widget, anchor };
         self.anchored_widgets.push(anchored_widget);
@@ -142,7 +144,7 @@ impl<Message: Clone> Gui<Message> {
         self.resize(ratio);
     }
 
-    pub fn remove(&mut self, widget: &Rc<RefCell<Widget>>) -> GameResult<()> {
+    pub fn remove(&mut self, widget: &Rc<RefCell<dyn Widget>>) -> GameResult<()> {
         let len_before = self.anchored_widgets.len();
         self.anchored_widgets
             .retain(|w| !Rc::ptr_eq(&w.widget, widget));
@@ -264,7 +266,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
 
 #[derive(Debug, Default)]
 pub struct VLayout {
-    widgets: Vec<Box<Widget>>,
+    widgets: Vec<Box<dyn Widget>>,
     rect: Rect,
 }
 
@@ -276,7 +278,7 @@ impl VLayout {
         }
     }
 
-    pub fn add(&mut self, mut widget: Box<Widget>) {
+    pub fn add(&mut self, mut widget: Box<dyn Widget>) {
         let rect = widget.rect();
         if let Some(last) = self.widgets.last() {
             let rect = last.rect();
@@ -324,7 +326,7 @@ impl Widget for VLayout {
 
 #[derive(Debug, Default)]
 pub struct HLayout {
-    widgets: Vec<Box<Widget>>,
+    widgets: Vec<Box<dyn Widget>>,
     rect: Rect,
 }
 
@@ -336,7 +338,7 @@ impl HLayout {
         }
     }
 
-    pub fn add(&mut self, mut widget: Box<Widget>) {
+    pub fn add(&mut self, mut widget: Box<dyn Widget>) {
         let rect = widget.rect();
         if let Some(last) = self.widgets.last() {
             let rect = last.rect();

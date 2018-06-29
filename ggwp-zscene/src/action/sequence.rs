@@ -4,12 +4,12 @@ use Action;
 
 #[derive(Debug)]
 pub struct Sequence {
-    actions: VecDeque<Box<Action>>,
+    actions: VecDeque<Box<dyn Action>>,
     duration: Duration,
 }
 
 impl Sequence {
-    pub fn new(actions: Vec<Box<Action>>) -> Self {
+    pub fn new(actions: Vec<Box<dyn Action>>) -> Self {
         let mut total_time = Duration::new(0, 0);
         for action in &actions {
             total_time += action.duration();
@@ -21,7 +21,7 @@ impl Sequence {
     }
 
     /// Current action
-    fn action(&mut self) -> &mut Action {
+    fn action(&mut self) -> &mut dyn Action {
         &mut **self.actions.front_mut().unwrap()
     }
 
@@ -66,7 +66,7 @@ impl Action for Sequence {
         self.actions.is_empty()
     }
 
-    fn try_fork(&mut self) -> Option<Box<Action>> {
+    fn try_fork(&mut self) -> Option<Box<dyn Action>> {
         if self.actions.is_empty() {
             return None;
         }

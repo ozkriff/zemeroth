@@ -21,7 +21,7 @@ pub enum ApplyPhase {
 }
 
 /// A callback for visualization of the events/effects with the correct state.
-type Cb<'c> = &'c mut FnMut(&State, &Event, ApplyPhase);
+type Cb<'c> = &'c mut dyn FnMut(&State, &Event, ApplyPhase);
 
 pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error> {
     debug!("Simulator: do_command: {:?}", command);

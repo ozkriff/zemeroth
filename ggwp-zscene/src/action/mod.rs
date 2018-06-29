@@ -30,7 +30,7 @@ pub trait Action: Debug {
         Duration::new(0, 0)
     }
 
-    fn try_fork(&mut self) -> Option<Box<Action>> {
+    fn try_fork(&mut self) -> Option<Box<dyn Action>> {
         None
     }
 
@@ -50,7 +50,7 @@ pub trait Boxed {
 }
 
 impl<T: 'static + Action> Boxed for T {
-    type Out = Box<Action>;
+    type Out = Box<dyn Action>;
 
     fn boxed(self) -> Self::Out {
         Box::new(self)
