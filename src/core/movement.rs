@@ -118,7 +118,7 @@ impl Path {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Step {
     pub from: PosHex,
     pub to: PosHex,
@@ -241,5 +241,56 @@ impl Pathfinder {
         } else {
             Some(Path::new(path))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use core::movement::{Path, Step};
+    use core::PosHex;
+
+    const NODE_0: PosHex = PosHex { q: 0, r: 1 };
+    const NODE_1: PosHex = PosHex { q: 1, r: 0 };
+    const NODE_2: PosHex = PosHex { q: 2, r: 0 };
+
+    #[test]
+    fn path_from_to() {
+        let nodes = vec![NODE_0, NODE_1, NODE_2];
+        let path = Path::new(nodes);
+        assert_eq!(path.from(), NODE_0);
+        assert_eq!(path.to(), NODE_2);
+    }
+
+    #[test]
+    fn path_tiles() {
+        let nodes = vec![NODE_0, NODE_1, NODE_2];
+        let path = Path::new(nodes);
+        let tiles = path.tiles();
+        assert_eq!(tiles.len(), 3);
+        assert_eq!(tiles[0], NODE_0);
+        assert_eq!(tiles[1], NODE_1);
+        assert_eq!(tiles[2], NODE_2);
+    }
+
+    #[test]
+    fn path_steps() {
+        let nodes = vec![NODE_0, NODE_1, NODE_2];
+        let path = Path::new(nodes);
+        let mut steps = path.steps();
+        assert_eq!(
+            steps.next(),
+            Some(Step {
+                from: NODE_0,
+                to: NODE_1,
+            })
+        );
+        assert_eq!(
+            steps.next(),
+            Some(Step {
+                from: NODE_1,
+                to: NODE_2,
+            })
+        );
+        assert_eq!(steps.next(), None);
     }
 }
