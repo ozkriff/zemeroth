@@ -291,7 +291,7 @@ fn update_cooldowns_for_object(state: &mut State, id: ObjId) {
     }
 }
 
-pub fn update_cooldowns(state: &mut State, player_id: PlayerId) {
+fn update_cooldowns(state: &mut State, player_id: PlayerId) {
     for id in state::players_agent_ids(state, player_id) {
         update_cooldowns_for_object(state, id);
     }
