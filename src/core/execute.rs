@@ -36,6 +36,7 @@ pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error
         Command::EndTurn(ref command) => execute_end_turn(state, cb, command),
         Command::UseAbility(ref command) => execute_use_ability(state, cb, command),
     }
+    execute_planned_abilities(state, cb);
     Ok(())
 }
 
@@ -442,8 +443,20 @@ fn execute_event_begin_turn(state: &mut State, cb: Cb) {
     do_event(state, cb, &event);
 }
 
-fn execute_planned_abilities(state: &mut State, cb: Cb) {
+fn tick_planned_abilities(state: &mut State) {
     let phase = Phase::from_player_id(state.player_id());
+    let ids = state.parts().schedule.ids_collected();
+    for obj_id in ids {
+        let schedule = state.parts_mut().schedule.get_mut(obj_id);
+        for planned in &mut schedule.planned {
+            if planned.phase == phase {
+                planned.rounds -= 1;
+            }
+        }
+    }
+}
+
+fn execute_planned_abilities(state: &mut State, cb: Cb) {
     let ids = state.parts().schedule.ids_collected();
     for obj_id in ids {
         let pos = state.parts().pos.get(obj_id).0;
@@ -451,11 +464,7 @@ fn execute_planned_abilities(state: &mut State, cb: Cb) {
         {
             let schedule = state.parts_mut().schedule.get_mut(obj_id);
             for planned in &mut schedule.planned {
-                if planned.phase != phase {
-                    continue;
-                }
-                planned.rounds -= 1;
-                if planned.rounds == 0 {
+                if planned.rounds <= 0 {
                     trace!("planned ability: ready!");
                     let c = command::UseAbility {
                         ability: planned.ability,
@@ -552,6 +561,7 @@ fn execute_effects(state: &mut State, cb: Cb) {
 fn execute_end_turn(state: &mut State, cb: Cb, _: &command::EndTurn) {
     execute_event_end_turn(state, cb);
     execute_event_begin_turn(state, cb);
+    tick_planned_abilities(state);
     try_execute_passive_abilities_on_end_turn(state, cb);
     execute_planned_abilities(state, cb);
     execute_effects(state, cb);
