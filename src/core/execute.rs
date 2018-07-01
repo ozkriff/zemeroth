@@ -239,7 +239,7 @@ fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: ObjI
         return;
     }
     let target_pos = state.parts().pos.get(target_id).0;
-    let ids: Vec<_> = state.parts().passive_abilities.ids().collect();
+    let ids = state.parts().passive_abilities.ids_collected();
     for id in ids {
         if !state.parts().is_exist(target_id) {
             continue;
@@ -286,7 +286,7 @@ fn try_execute_passive_abilities_on_end_turn(state: &mut State, cb: Cb) {
 
     // TODO: extract to some self-abilities-method?
     {
-        let ids: Vec<_> = state.parts().passive_abilities.ids().collect();
+        let ids = state.parts().passive_abilities.ids_collected();
         for id in ids {
             assert!(state.parts().is_exist(id));
             let owner = match state.parts().belongs_to.get_opt(id) {
@@ -444,7 +444,7 @@ fn execute_event_begin_turn(state: &mut State, cb: Cb) {
 
 fn execute_planned_abilities(state: &mut State, cb: Cb) {
     let phase = Phase::from_player_id(state.player_id());
-    let ids: Vec<_> = state.parts().schedule.ids().collect();
+    let ids = state.parts().schedule.ids_collected();
     for obj_id in ids {
         let pos = state.parts().pos.get(obj_id).0;
         let mut activated = Vec::new();
@@ -479,7 +479,7 @@ fn execute_planned_abilities(state: &mut State, cb: Cb) {
 /// Ticks and kills all the lasting effects.
 fn execute_effects(state: &mut State, cb: Cb) {
     let phase = Phase::from_player_id(state.player_id());
-    let ids: Vec<_> = state.parts().effects.ids().collect();
+    let ids = state.parts().effects.ids_collected();
     for obj_id in ids {
         for effect in &mut state.parts_mut().effects.get_mut(obj_id).0 {
             if effect.phase == phase {

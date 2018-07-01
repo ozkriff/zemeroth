@@ -68,7 +68,7 @@ fn apply_event_attack(state: &mut State, event: &event::Attack) {
 
 fn apply_event_end_turn(state: &mut State, event: &event::EndTurn) {
     let parts = state.parts_mut();
-    let ids: Vec<_> = parts.agent.ids().collect();
+    let ids = parts.agent.ids_collected();
     for id in ids {
         let agent = parts.agent.get_mut(id);
         let player_id = parts.belongs_to.get(id).0;
