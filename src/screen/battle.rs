@@ -398,6 +398,7 @@ impl Battle {
                 Some(path) => path,
                 None => return,
             };
+            assert_eq!(path.from(), self.state.parts().pos.get(id).0);
             let command_move = command::Command::MoveTo(command::MoveTo { id, path });
             if check(&self.state, &command_move).is_err() {
                 return;

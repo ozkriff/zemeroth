@@ -105,7 +105,7 @@ pub type RcWidget = Rc<RefCell<dyn Widget>>;
 
 #[derive(Debug)]
 pub struct AnchoredWidget {
-    widget: Rc<RefCell<dyn Widget>>,
+    widget: RcWidget,
     anchor: Anchor,
 }
 
@@ -136,7 +136,7 @@ impl<Message: Clone> Gui<Message> {
         self.sender.clone()
     }
 
-    pub fn add(&mut self, widget: &Rc<RefCell<dyn Widget>>, anchor: Anchor) {
+    pub fn add(&mut self, widget: &RcWidget, anchor: Anchor) {
         let widget = widget.clone();
         let anchored_widget = AnchoredWidget { widget, anchor };
         self.anchored_widgets.push(anchored_widget);
@@ -144,7 +144,7 @@ impl<Message: Clone> Gui<Message> {
         self.resize(ratio);
     }
 
-    pub fn remove(&mut self, widget: &Rc<RefCell<dyn Widget>>) -> GameResult<()> {
+    pub fn remove(&mut self, widget: &RcWidget) -> GameResult<()> {
         let len_before = self.anchored_widgets.len();
         self.anchored_widgets
             .retain(|w| !Rc::ptr_eq(&w.widget, widget));
