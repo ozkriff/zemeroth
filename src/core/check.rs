@@ -92,6 +92,7 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
         Ability::Jump(a) => check_ability_jump(state, command.id, command.pos, a),
         Ability::Poison => check_ability_poison(state, command.id, command.pos),
         Ability::Bomb(a) => check_ability_bomb(state, command.id, command.pos, a),
+        Ability::BombPush(a) => check_ability_bomb_push(state, command.id, command.pos, a),
         Ability::BombFire(a) => check_ability_bomb_fire(state, command.id, command.pos, a),
         Ability::BombPoison(a) => check_ability_bomb_poison(state, command.id, command.pos, a),
         Ability::Summon(a) => check_ability_summon(state, command.id, command.pos, a),
@@ -99,9 +100,10 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
         Ability::Dash => check_ability_dash(state, command.id, command.pos),
         Ability::Rage(a) => check_ability_rage(state, command.id, command.pos, a),
         Ability::Heal(a) => check_ability_heal(state, command.id, command.pos, a),
-        Ability::Explode | Ability::ExplodeFire | Ability::ExplodePoison => {
-            check_ability_explode(state, command.id, command.pos)
-        }
+        Ability::ExplodePush
+        | Ability::ExplodeDamage
+        | Ability::ExplodeFire
+        | Ability::ExplodePoison => check_ability_explode(state, command.id, command.pos),
     }
 }
 
@@ -161,6 +163,18 @@ fn check_ability_bomb(
 ) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, ability.0)?;
+    check_not_blocked(state, pos)?;
+    Ok(())
+}
+
+fn check_ability_bomb_push(
+    state: &State,
+    id: ObjId,
+    pos: PosHex,
+    ability: ability::BombPush,
+) -> Result<(), Error> {
+    let agent_pos = state.parts().pos.get(id).0;
+    check_max_distance(agent_pos, pos, ability.throw_distance)?;
     check_not_blocked(state, pos)?;
     Ok(())
 }

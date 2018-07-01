@@ -788,7 +788,31 @@ fn wound_or_kill(state: &State, id: ObjId, damage: core::Strength) -> Effect {
     }
 }
 
-fn execute_use_ability_explode(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
+fn execute_use_ability_explode_damage(
+    state: &mut State,
+    command: &command::UseAbility,
+) -> ExecuteContext {
+    let mut context = ExecuteContext::default();
+    let from = state.parts().pos.get(command.id).0;
+    for id in state.parts().agent.ids() {
+        let pos = state.parts().pos.get(id).0;
+        let distance = map::distance_hex(from, pos);
+        if distance.0 > 1 || command.id == id {
+            continue;
+        }
+        let effects = vec![wound_or_kill(state, id, core::Strength(1))];
+        context.instant_effects.insert(id, effects);
+    }
+    assert!(context.instant_effects.get(&command.id).is_none());
+    let effects = vec![Effect::Vanish];
+    context.instant_effects.insert(command.id, effects);
+    context
+}
+
+fn execute_use_ability_explode_push(
+    state: &mut State,
+    command: &command::UseAbility,
+) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let from = state.parts().pos.get(command.id).0;
     for id in state.parts().agent.ids() {
@@ -804,7 +828,6 @@ fn execute_use_ability_explode(state: &mut State, command: &command::UseAbility)
             effects.push(Effect::Knockback(effect::Knockback { from: pos, to }));
             context.moved_actor_ids.push(id);
         }
-        effects.push(wound_or_kill(state, id, core::Strength(1)));
         context.instant_effects.insert(id, effects);
     }
     assert!(context.instant_effects.get(&command.id).is_none());
@@ -861,6 +884,7 @@ fn throw_bomb(
     state: &mut State,
     command: &command::UseAbility,
     prototype: &str,
+    rounds: i32,
     ability: Ability,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
@@ -883,7 +907,7 @@ fn throw_bomb(
         }
         let schedule = state.parts_mut().schedule.get_mut(id);
         let planned_ability = component::PlannedAbility {
-            rounds: 1, // on next turn
+            rounds,
             phase,
             ability,
         };
@@ -892,22 +916,32 @@ fn throw_bomb(
     context
 }
 
-fn execute_use_ability_bomb(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
-    throw_bomb(state, command, "bomb", Ability::Explode)
+fn execute_use_ability_bomb_push(
+    state: &mut State,
+    command: &command::UseAbility,
+) -> ExecuteContext {
+    throw_bomb(state, command, "bomb_push", 0, Ability::ExplodePush)
+}
+
+fn execute_use_ability_bomb_damage(
+    state: &mut State,
+    command: &command::UseAbility,
+) -> ExecuteContext {
+    throw_bomb(state, command, "bomb_damage", 1, Ability::ExplodeDamage)
 }
 
 fn execute_use_ability_bomb_fire(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, "bomb_fire", Ability::ExplodeFire)
+    throw_bomb(state, command, "bomb_fire", 1, Ability::ExplodeFire)
 }
 
 fn execute_use_ability_bomb_poison(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, "bomb_poison", Ability::ExplodePoison)
+    throw_bomb(state, command, "bomb_poison", 1, Ability::ExplodePoison)
 }
 
 fn execute_use_ability_summon(
@@ -941,9 +975,11 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
         Ability::Vanish => execute_use_ability_vanish(state, command),
         Ability::ExplodeFire => execute_use_ability_explode_fire(state, command),
         Ability::ExplodePoison => execute_use_ability_explode_poison(state, command),
-        Ability::Explode => execute_use_ability_explode(state, command),
+        Ability::ExplodePush => execute_use_ability_explode_push(state, command),
+        Ability::ExplodeDamage => execute_use_ability_explode_damage(state, command),
         Ability::Poison => execute_use_ability_poison(state, command),
-        Ability::Bomb(_) => execute_use_ability_bomb(state, command),
+        Ability::Bomb(_) => execute_use_ability_bomb_damage(state, command),
+        Ability::BombPush(_) => execute_use_ability_bomb_push(state, command),
         Ability::BombFire(_) => execute_use_ability_bomb_fire(state, command),
         Ability::BombPoison(_) => execute_use_ability_bomb_poison(state, command),
         Ability::Summon(a) => execute_use_ability_summon(state, command, a),

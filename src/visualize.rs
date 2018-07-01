@@ -253,8 +253,7 @@ fn visualize_pre(
     actions.push(visualize_event(state, view, context, &event.active_event)?);
     for (&id, effects) in &event.instant_effects {
         for effect in effects {
-            let action = visualize_instant_effect(state, view, context, id, effect)?;
-            actions.push(action::Fork::new(action).boxed());
+            actions.push(visualize_instant_effect(state, view, context, id, effect)?);
         }
     }
     for (&id, effects) in &event.timed_effects {
@@ -318,7 +317,8 @@ fn visualize_create(
         "imp_bomber" => ("/imp_bomber.png", 0.2, 1.0),
         "imp_summoner" => ("/imp_summoner.png", 0.2, 1.0),
         "boulder" => ("/boulder.png", 0.4, 1.5),
-        "bomb" => ("/bomb.png", 0.2, 0.7),
+        "bomb_damage" => ("/bomb.png", 0.2, 0.7),
+        "bomb_push" => ("/bomb.png", 0.2, 0.7),
         "bomb_fire" => ("/bomb_fire.png", 0.2, 0.7),
         "bomb_poison" => ("/bomb_poison.png", 0.2, 0.7),
         "fire" => ("/fire.png", 0.2, 0.001),
@@ -502,27 +502,7 @@ fn visualize_event_use_ability_explode(
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     let scale = 2.5;
-    show_flare_scale(view, pos, [1.0, 0.0, 0.0, 0.7].into(), scale)
-}
-
-fn visualize_event_use_ability_explode_fire(
-    state: &State,
-    view: &mut BattleView,
-    event: &event::UseAbility,
-) -> ZResult<Box<dyn Action>> {
-    let pos = state.parts().pos.get(event.id).0;
-    let scale = 2.5;
-    show_flare_scale(view, pos, [1.0, 0.0, 0.0, 0.7].into(), scale)
-}
-
-fn visualize_event_use_ability_explode_poison(
-    state: &State,
-    view: &mut BattleView,
-    event: &event::UseAbility,
-) -> ZResult<Box<dyn Action>> {
-    let pos = state.parts().pos.get(event.id).0;
-    let scale = 2.5;
-    show_flare_scale(view, pos, [0.0, 1.0, 0.0, 0.7].into(), scale)
+    show_flare_scale(view, pos, [1.0, 0.0, 0.0, 0.7].into(), scale).map(fork)
 }
 
 fn visualize_event_use_ability_summon(
@@ -544,9 +524,10 @@ fn visualize_event_use_ability(
     let action_main = match event.ability {
         Ability::Jump(_) => visualize_event_use_ability_jump(state, view, context, event)?,
         Ability::Dash => visualize_event_use_ability_dash(state, view, context, event)?,
-        Ability::Explode => visualize_event_use_ability_explode(state, view, event)?,
-        Ability::ExplodeFire => visualize_event_use_ability_explode_fire(state, view, event)?,
-        Ability::ExplodePoison => visualize_event_use_ability_explode_poison(state, view, event)?,
+        Ability::ExplodePush => visualize_event_use_ability_explode(state, view, event)?,
+        Ability::ExplodeDamage => visualize_event_use_ability_explode(state, view, event)?,
+        Ability::ExplodeFire => visualize_event_use_ability_explode(state, view, event)?,
+        Ability::ExplodePoison => visualize_event_use_ability_explode(state, view, event)?,
         Ability::Summon(_) => visualize_event_use_ability_summon(state, view, event)?,
         _ => action::Empty::new().boxed(),
     };
@@ -630,7 +611,7 @@ fn visualize_effect_create(
     target_id: ObjId,
     effect: &effect::Create,
 ) -> ZResult<Box<dyn Action>> {
-    visualize_create(view, context, target_id, effect.pos, &effect.prototype)
+    visualize_create(view, context, target_id, effect.pos, &effect.prototype).map(fork)
 }
 
 fn visualize_effect_kill(
@@ -640,12 +621,12 @@ fn visualize_effect_kill(
     target_id: ObjId,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
-    Ok(seq(vec![
+    Ok(fork(seq(vec![
         message(view, context, pos, "killed")?,
         vanish(view, target_id),
         action::Sleep::new(time_s(0.25)).boxed(),
         show_blood_spot(view, pos)?,
-    ]))
+    ])))
 }
 
 fn visualize_effect_vanish(
@@ -655,7 +636,7 @@ fn visualize_effect_vanish(
     target_id: ObjId,
 ) -> Box<dyn Action> {
     debug!("visualize_effect_vanish!");
-    vanish(view, target_id)
+    fork(vanish(view, target_id))
 }
 
 fn visualize_effect_stun(
@@ -664,7 +645,7 @@ fn visualize_effect_stun(
     _context: &mut Context,
     _target_id: ObjId,
 ) -> ZResult<Box<dyn Action>> {
-    Ok(action::Sleep::new(time_s(1.0)).boxed())
+    Ok(fork(action::Sleep::new(time_s(1.0)).boxed()))
 }
 
 fn visualize_effect_heal(
@@ -696,12 +677,12 @@ fn visualize_effect_wound(
     let c_normal = [1.0, 1.0, 1.0, 1.0].into();
     let c_dark = [0.1, 0.1, 0.1, 1.0].into();
     let time = time_s(0.2);
-    Ok(seq(vec![
+    Ok(fork(seq(vec![
         message(view, context, pos, &format!("wounded - {}", damage.0))?,
         action::ChangeColorTo::new(&sprite, c_dark, time).boxed(),
         action::ChangeColorTo::new(&sprite, c_normal, time).boxed(),
         show_blood_spot(view, pos)?,
-    ]))
+    ])))
 }
 
 fn visualize_effect_knockback(
@@ -719,11 +700,11 @@ fn visualize_effect_knockback(
     let time = time_s(0.15);
     let action_main_move = action::MoveBy::new(&sprite, diff, time).boxed();
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
-    Ok(seq(vec![
+    Ok(fork(seq(vec![
         message(view, context, effect.to, "bump")?,
         fork(action_move_shadow),
         action_main_move,
-    ]))
+    ])))
 }
 
 fn visualize_effect_fly_off(
@@ -741,11 +722,11 @@ fn visualize_effect_fly_off(
     let action_main_move = arc_move(view, &sprite_object, diff);
     let time = action_main_move.duration();
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
-    Ok(seq(vec![
+    Ok(fork(seq(vec![
         message(view, context, effect.to, "fly off")?,
         fork(action_move_shadow),
         action_main_move,
-    ]))
+    ])))
 }
 
 fn visualize_effect_throw(
