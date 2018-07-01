@@ -52,7 +52,7 @@ pub struct Effects(pub Vec<TimedEffect>);
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PlannedAbility {
     // TODO: use real types + take effect::Duration into consideration
-    pub rounds: u8,
+    pub rounds: i32,
     pub phase: Phase,
     pub ability: Ability,
 }

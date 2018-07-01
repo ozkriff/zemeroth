@@ -8,10 +8,12 @@ pub enum Ability {
     Club,
     Jump(Jump),
     Poison,
-    Explode,
+    ExplodePush,
+    ExplodeDamage,
     ExplodeFire,
     ExplodePoison,
     Bomb(Bomb),
+    BombPush(BombPush),
     BombFire(BombFire),
     BombPoison(BombPoison),
     Summon(Summon),
@@ -36,6 +38,11 @@ pub struct Heal(pub Strength);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Bomb(pub Distance);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct BombPush {
+    pub throw_distance: Distance,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct BombPoison(pub Distance);
@@ -81,10 +88,12 @@ impl Ability {
             Ability::Club => "Club".into(),
             Ability::Jump(a) => format!("Jump-{}", (a.0).0),
             Ability::Poison => "Poison".into(),
-            Ability::Explode => "Explode".into(),
+            Ability::ExplodePush => "Explode Push".into(),
+            Ability::ExplodeDamage => "Explode Damage".into(),
             Ability::ExplodeFire => "Explode Fire".into(),
             Ability::ExplodePoison => "Explode Poison".into(),
             Ability::Bomb(a) => format!("Bomb-{}", (a.0).0),
+            Ability::BombPush(a) => format!("Bomb Push-{}", (a.throw_distance).0),
             Ability::BombFire(a) => format!("Fire bomb-{}", (a.0).0),
             Ability::BombPoison(a) => format!("Poison bomb-{}", (a.0).0),
             Ability::Vanish => "Vanish".into(),

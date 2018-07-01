@@ -36,6 +36,7 @@ pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error
         Command::EndTurn(ref command) => execute_end_turn(state, cb, command),
         Command::UseAbility(ref command) => execute_use_ability(state, cb, command),
     }
+    execute_planned_abilities(state, cb);
     Ok(())
 }
 
@@ -239,7 +240,7 @@ fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: ObjI
         return;
     }
     let target_pos = state.parts().pos.get(target_id).0;
-    let ids: Vec<_> = state.parts().passive_abilities.ids().collect();
+    let ids = state.parts().passive_abilities.ids_collected();
     for id in ids {
         if !state.parts().is_exist(target_id) {
             continue;
@@ -286,7 +287,7 @@ fn try_execute_passive_abilities_on_end_turn(state: &mut State, cb: Cb) {
 
     // TODO: extract to some self-abilities-method?
     {
-        let ids: Vec<_> = state.parts().passive_abilities.ids().collect();
+        let ids = state.parts().passive_abilities.ids_collected();
         for id in ids {
             assert!(state.parts().is_exist(id));
             let owner = match state.parts().belongs_to.get_opt(id) {
@@ -442,20 +443,28 @@ fn execute_event_begin_turn(state: &mut State, cb: Cb) {
     do_event(state, cb, &event);
 }
 
-fn execute_planned_abilities(state: &mut State, cb: Cb) {
+fn tick_planned_abilities(state: &mut State) {
     let phase = Phase::from_player_id(state.player_id());
-    let ids: Vec<_> = state.parts().schedule.ids().collect();
+    let ids = state.parts().schedule.ids_collected();
+    for obj_id in ids {
+        let schedule = state.parts_mut().schedule.get_mut(obj_id);
+        for planned in &mut schedule.planned {
+            if planned.phase == phase {
+                planned.rounds -= 1;
+            }
+        }
+    }
+}
+
+fn execute_planned_abilities(state: &mut State, cb: Cb) {
+    let ids = state.parts().schedule.ids_collected();
     for obj_id in ids {
         let pos = state.parts().pos.get(obj_id).0;
         let mut activated = Vec::new();
         {
             let schedule = state.parts_mut().schedule.get_mut(obj_id);
             for planned in &mut schedule.planned {
-                if planned.phase != phase {
-                    continue;
-                }
-                planned.rounds -= 1;
-                if planned.rounds == 0 {
+                if planned.rounds <= 0 {
                     trace!("planned ability: ready!");
                     let c = command::UseAbility {
                         ability: planned.ability,
@@ -479,7 +488,7 @@ fn execute_planned_abilities(state: &mut State, cb: Cb) {
 /// Ticks and kills all the lasting effects.
 fn execute_effects(state: &mut State, cb: Cb) {
     let phase = Phase::from_player_id(state.player_id());
-    let ids: Vec<_> = state.parts().effects.ids().collect();
+    let ids = state.parts().effects.ids_collected();
     for obj_id in ids {
         for effect in &mut state.parts_mut().effects.get_mut(obj_id).0 {
             if effect.phase == phase {
@@ -552,6 +561,7 @@ fn execute_effects(state: &mut State, cb: Cb) {
 fn execute_end_turn(state: &mut State, cb: Cb, _: &command::EndTurn) {
     execute_event_end_turn(state, cb);
     execute_event_begin_turn(state, cb);
+    tick_planned_abilities(state);
     try_execute_passive_abilities_on_end_turn(state, cb);
     execute_planned_abilities(state, cb);
     execute_effects(state, cb);
@@ -778,7 +788,31 @@ fn wound_or_kill(state: &State, id: ObjId, damage: core::Strength) -> Effect {
     }
 }
 
-fn execute_use_ability_explode(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
+fn execute_use_ability_explode_damage(
+    state: &mut State,
+    command: &command::UseAbility,
+) -> ExecuteContext {
+    let mut context = ExecuteContext::default();
+    let from = state.parts().pos.get(command.id).0;
+    for id in state.parts().agent.ids() {
+        let pos = state.parts().pos.get(id).0;
+        let distance = map::distance_hex(from, pos);
+        if distance.0 > 1 || command.id == id {
+            continue;
+        }
+        let effects = vec![wound_or_kill(state, id, core::Strength(1))];
+        context.instant_effects.insert(id, effects);
+    }
+    assert!(context.instant_effects.get(&command.id).is_none());
+    let effects = vec![Effect::Vanish];
+    context.instant_effects.insert(command.id, effects);
+    context
+}
+
+fn execute_use_ability_explode_push(
+    state: &mut State,
+    command: &command::UseAbility,
+) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let from = state.parts().pos.get(command.id).0;
     for id in state.parts().agent.ids() {
@@ -794,7 +828,6 @@ fn execute_use_ability_explode(state: &mut State, command: &command::UseAbility)
             effects.push(Effect::Knockback(effect::Knockback { from: pos, to }));
             context.moved_actor_ids.push(id);
         }
-        effects.push(wound_or_kill(state, id, core::Strength(1)));
         context.instant_effects.insert(id, effects);
     }
     assert!(context.instant_effects.get(&command.id).is_none());
@@ -851,6 +884,7 @@ fn throw_bomb(
     state: &mut State,
     command: &command::UseAbility,
     prototype: &str,
+    rounds: i32,
     ability: Ability,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
@@ -873,7 +907,7 @@ fn throw_bomb(
         }
         let schedule = state.parts_mut().schedule.get_mut(id);
         let planned_ability = component::PlannedAbility {
-            rounds: 1, // on next turn
+            rounds,
             phase,
             ability,
         };
@@ -882,22 +916,32 @@ fn throw_bomb(
     context
 }
 
-fn execute_use_ability_bomb(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
-    throw_bomb(state, command, "bomb", Ability::Explode)
+fn execute_use_ability_bomb_push(
+    state: &mut State,
+    command: &command::UseAbility,
+) -> ExecuteContext {
+    throw_bomb(state, command, "bomb_push", 0, Ability::ExplodePush)
+}
+
+fn execute_use_ability_bomb_damage(
+    state: &mut State,
+    command: &command::UseAbility,
+) -> ExecuteContext {
+    throw_bomb(state, command, "bomb_damage", 1, Ability::ExplodeDamage)
 }
 
 fn execute_use_ability_bomb_fire(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, "bomb_fire", Ability::ExplodeFire)
+    throw_bomb(state, command, "bomb_fire", 1, Ability::ExplodeFire)
 }
 
 fn execute_use_ability_bomb_poison(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, "bomb_poison", Ability::ExplodePoison)
+    throw_bomb(state, command, "bomb_poison", 1, Ability::ExplodePoison)
 }
 
 fn execute_use_ability_summon(
@@ -931,9 +975,11 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
         Ability::Vanish => execute_use_ability_vanish(state, command),
         Ability::ExplodeFire => execute_use_ability_explode_fire(state, command),
         Ability::ExplodePoison => execute_use_ability_explode_poison(state, command),
-        Ability::Explode => execute_use_ability_explode(state, command),
+        Ability::ExplodePush => execute_use_ability_explode_push(state, command),
+        Ability::ExplodeDamage => execute_use_ability_explode_damage(state, command),
         Ability::Poison => execute_use_ability_poison(state, command),
-        Ability::Bomb(_) => execute_use_ability_bomb(state, command),
+        Ability::Bomb(_) => execute_use_ability_bomb_damage(state, command),
+        Ability::BombPush(_) => execute_use_ability_bomb_push(state, command),
         Ability::BombFire(_) => execute_use_ability_bomb_fire(state, command),
         Ability::BombPoison(_) => execute_use_ability_bomb_poison(state, command),
         Ability::Summon(a) => execute_use_ability_summon(state, command, a),
