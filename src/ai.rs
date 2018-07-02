@@ -1,5 +1,5 @@
 use core::command::{self, Command};
-use core::map;
+use core::map::{self, HexMap};
 use core::movement::{self, Path, Pathfinder};
 use core::state;
 use core::utils::shuffle_vec;
@@ -8,6 +8,8 @@ use core::{self, check, ObjId, PlayerId, State};
 #[derive(Debug, Clone)]
 pub struct Ai {
     id: PlayerId,
+
+    distance_map: HexMap<bool>,
 
     /// Each AI has its own Pathfinder because it's not a part of the game state.
     pathfinder: Pathfinder,
@@ -18,10 +20,12 @@ impl Ai {
         Self {
             id,
             pathfinder: Pathfinder::new(map_radius),
+            distance_map: HexMap::new(map_radius),
         }
     }
 
-    fn get_best_path(&mut self, state: &State, unit_id: ObjId) -> Option<Path> {
+    /// Finds shortest path to some enemy.
+    fn find_path_to_nearest_enemy(&mut self, state: &State, unit_id: ObjId) -> Option<Path> {
         self.pathfinder.fill_map(state, unit_id);
         let mut best_path = None;
         let mut best_cost = movement::max_cost();
@@ -41,6 +45,50 @@ impl Ai {
                     best_cost = cost;
                     best_path = Some(path);
                 }
+            }
+        }
+        best_path
+    }
+
+    fn find_path_to_preserve_distance(&mut self, state: &State, unit_id: ObjId) -> Option<Path> {
+        // clean the map
+        for pos in self.distance_map.iter() {
+            self.distance_map.set_tile(pos, false);
+        }
+
+        let distance_min = map::Distance(2);
+        let distance_max = map::Distance(4);
+        for pos in self.distance_map.iter() {
+            for &enemy_id in &state::enemy_agent_ids(state, self.id) {
+                let enemy_pos = state.parts().pos.get(enemy_id).0;
+                if map::distance_hex(pos, enemy_pos) <= distance_max {
+                    self.distance_map.set_tile(pos, true);
+                }
+            }
+            for &enemy_id in &state::enemy_agent_ids(state, self.id) {
+                let enemy_pos = state.parts().pos.get(enemy_id).0;
+                if map::distance_hex(pos, enemy_pos) <= distance_min {
+                    self.distance_map.set_tile(pos, false);
+                }
+            }
+        }
+
+        self.pathfinder.fill_map(state, unit_id);
+        // TODO: remove code duplication
+        let mut best_path = None;
+        let mut best_cost = movement::max_cost();
+        for pos in self.distance_map.iter() {
+            if !self.distance_map.tile(pos) {
+                continue;
+            }
+            let path = match self.pathfinder.path(pos) {
+                Some(path) => path,
+                None => continue,
+            };
+            let cost = path.cost_for(state, unit_id);
+            if best_cost > cost {
+                best_cost = cost;
+                best_path = Some(path);
             }
         }
         best_path
@@ -97,8 +145,8 @@ impl Ai {
         None
     }
 
-    fn try_to_move(&mut self, state: &State, unit_id: ObjId) -> Option<Command> {
-        let path = match self.get_best_path(state, unit_id) {
+    fn try_to_move_closer(&mut self, state: &State, unit_id: ObjId) -> Option<Command> {
+        let path = match self.find_path_to_nearest_enemy(state, unit_id) {
             Some(path) => path,
             None => return None,
         };
@@ -116,6 +164,37 @@ impl Ai {
             return Some(command);
         }
         None
+    }
+
+    fn try_to_keep_distance(&mut self, state: &State, unit_id: ObjId) -> Option<Command> {
+        let path = match self.find_path_to_preserve_distance(state, unit_id) {
+            Some(path) => path,
+            None => return None,
+        };
+        let path = match path.truncate(state, unit_id) {
+            Some(path) => path,
+            None => return None,
+        };
+        let cost = path.cost_for(state, unit_id);
+        let agent = state.parts().agent.get(unit_id);
+        if agent.move_points < cost {
+            return None;
+        }
+        let command = Command::MoveTo(command::MoveTo { id: unit_id, path });
+        if check(state, &command).is_ok() {
+            return Some(command);
+        }
+        None
+    }
+
+    fn try_to_move(&mut self, state: &State, unit_id: ObjId) -> Option<Command> {
+        // TODO: Don't use type names, check its abilities/components
+        match state.parts().meta.get(unit_id).name.as_str() {
+            "imp" | "imp_toxic" => self.try_to_move_closer(state, unit_id),
+            // TODO: Summoner should keep a larger distance
+            "imp_bomber" | "imp_summoner" => self.try_to_keep_distance(state, unit_id),
+            meta => unimplemented!("unknown agent type: {}", meta),
+        }
     }
 
     pub fn command(&mut self, state: &State) -> Option<Command> {
