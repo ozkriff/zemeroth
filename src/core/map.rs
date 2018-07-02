@@ -137,6 +137,44 @@ impl Iterator for HexIter {
     }
 }
 
+/// Helper function to dump some kind of a map's state as an ascii image.
+///
+/// Output example:
+///
+/// ```plain
+///      _ A A A o _
+///     _ o A A A _ _
+///    _ _ A A _ _ _ _
+///   _ _ _ o _ A _ _ _
+///  _ A _ _ _ _ A A _ _
+/// _ _ _ _ _ _ A _ _ _ _
+///  _ _ _ _ _ _ _ A _ _
+///   _ A _ _ A o _ _ _
+///    _ _ _ _ _ _ _ _
+///     _ _ _ A A _ _
+///      _ _ _ _ _ _
+/// ```
+///
+#[allow(dead_code)]
+pub fn dump_map<F: Fn(PosHex) -> char>(radius: Distance, f: F) {
+    let s = radius.0;
+    for r in -s..s + 1 {
+        for _ in -s..r {
+            print!(" ");
+        }
+        for q in -s..s + 1 {
+            let pos = PosHex { q, r };
+            if is_inboard(radius, pos) {
+                print!("{} ", f(pos));
+            } else {
+                print!("  ");
+            }
+        }
+        println!();
+    }
+    println!();
+}
+
 ///
 ///     [-1, 0]  [0, -1]
 /// [-1, 1]  [0, 0]  [1, -1]
