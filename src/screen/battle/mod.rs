@@ -7,18 +7,20 @@ use ron;
 use scene::{action, Action, Boxed};
 use ui::{self, Gui};
 
-use ai::Ai;
-use battle_view::{make_action_create_map, BattleView, SelectionMode};
 use core::ability::Ability;
+use core::ai::battle::Ai;
 use core::effect;
 use core::map::PosHex;
 use core::movement::Pathfinder;
 use core::{self, ability, check, command, execute, state};
 use core::{ObjId, PlayerId, State};
 use geom;
+use screen::battle::view::{make_action_create_map, BattleView, SelectionMode};
 use screen::{Screen, Transition};
-use visualize;
 use ZResult;
+
+mod view;
+mod visualize;
 
 #[derive(Clone, Copy, Debug)]
 enum Message {
