@@ -7,8 +7,8 @@ use ron;
 use scene::{action, Action, Boxed};
 use ui::{self, Gui};
 
-use ai::Ai;
 use core::ability::Ability;
+use core::ai::battle::Ai;
 use core::effect;
 use core::map::PosHex;
 use core::movement::Pathfinder;

@@ -8,6 +8,7 @@ pub use core::execute::execute;
 pub use core::state::State;
 
 pub mod ability;
+pub mod ai;
 pub mod command;
 pub mod component;
 pub mod effect;

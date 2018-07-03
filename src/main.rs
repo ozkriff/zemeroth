@@ -22,7 +22,6 @@ use ggez::event;
 use ggez::graphics::{self, Point2, Rect};
 use ggez::{Context, ContextBuilder, GameResult};
 
-mod ai;
 mod core;
 mod geom;
 mod screen;
