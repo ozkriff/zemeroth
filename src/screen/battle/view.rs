@@ -12,7 +12,7 @@ use core::map::{HexMap, PosHex};
 use core::{self, command, movement};
 use core::{Jokers, Moves, ObjId, State, TileType};
 use geom::{self, hex_to_point};
-use visualize;
+use screen::battle::visualize;
 use ZResult;
 
 #[derive(Debug, PartialEq)]

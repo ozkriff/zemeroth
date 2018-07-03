@@ -23,11 +23,9 @@ use ggez::graphics::{self, Point2, Rect};
 use ggez::{Context, ContextBuilder, GameResult};
 
 mod ai;
-mod battle_view;
 mod core;
 mod geom;
 mod screen;
-mod visualize;
 
 // TODO: move to some submodule
 // TODO: https://github.com/ggez/ggez/issues/384

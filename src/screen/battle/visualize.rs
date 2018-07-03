@@ -6,7 +6,6 @@ use ggez::Context;
 use scene::action;
 use scene::{Action, Boxed, Sprite};
 
-use battle_view::BattleView;
 use core::ability::Ability;
 use core::effect::{self, Effect, LastingEffect, TimedEffect};
 use core::event::{self, ActiveEvent, Event};
@@ -14,6 +13,7 @@ use core::execute::ApplyPhase;
 use core::map::PosHex;
 use core::{ObjId, PlayerId, State};
 use geom;
+use screen::battle::view::BattleView;
 use ZResult;
 
 // TODO: Move to some other module
