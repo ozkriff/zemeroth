@@ -151,7 +151,7 @@ fn vanish(view: &mut BattleView, target_id: ObjId) -> Box<dyn Action> {
 }
 
 fn remove_brief_unit_info(view: &mut BattleView, id: ObjId) -> ZResult<Box<dyn Action>> {
-    let mut actions: Vec<Box<dyn Action>> = Vec::new();
+    let mut actions = Vec::new();
     let sprites = view.unit_info_get(id);
     for sprite in sprites {
         let color = Color {
@@ -172,7 +172,7 @@ fn generate_brief_obj_info(
     id: ObjId,
 ) -> ZResult<Box<dyn Action>> {
     let image = view.images().dot.clone();
-    let mut actions: Vec<Box<dyn Action>> = Vec::new();
+    let mut actions = Vec::new();
     let agent = state.parts().agent.get(id);
     let obj_pos = state.parts().pos.get(id).0;
     let strength = state.parts().strength.get(id);
@@ -249,7 +249,7 @@ fn visualize_pre(
     context: &mut Context,
     event: &Event,
 ) -> ZResult<Box<dyn Action>> {
-    let mut actions: Vec<Box<dyn Action>> = Vec::new();
+    let mut actions = Vec::new();
     actions.push(visualize_event(state, view, context, &event.active_event)?);
     for (&id, effects) in &event.instant_effects {
         for effect in effects {
@@ -370,7 +370,7 @@ fn visualize_event_move_to(
 ) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(event.id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
-    let mut actions: Vec<Box<dyn Action>> = Vec::new();
+    let mut actions = Vec::new();
     for step in event.path.steps() {
         let from = geom::hex_to_point(view.tile_size(), step.from);
         let to = geom::hex_to_point(view.tile_size(), step.to);
@@ -404,7 +404,7 @@ fn visualize_event_attack(
     let map_from = state.parts().pos.get(event.attacker_id).0;
     let from = geom::hex_to_point(view.tile_size(), map_from);
     let diff = (to - from) / 2.0;
-    let mut actions: Vec<Box<dyn Action>> = Vec::new();
+    let mut actions = Vec::new();
     actions.push(action::Sleep::new(time_s(0.1)).boxed());
     if event.mode == event::AttackMode::Reactive {
         actions.push(action::Sleep::new(time_s(0.3)).boxed());
