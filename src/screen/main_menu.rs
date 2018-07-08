@@ -47,7 +47,7 @@ impl MainMenu {
         sprite.set_centered(true);
         sprite.set_pos(Point2::new(0.5, 0.5));
 
-        // TODO: create some random unit arc-moving animation
+        // TODO: create some random agent arc-moving animation
         Ok(Self { gui })
     }
 }

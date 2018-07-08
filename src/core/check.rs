@@ -23,7 +23,7 @@ pub enum Error {
     TileIsBlocked,
     DistanceIsTooBig,
     DistanceIsTooSmall,
-    CanNotCommandEnemyUnits,
+    CanNotCommandEnemyAgents,
     NotEnoughMoves,
     NotEnoughAttacks,
     AbilityIsNotReady,
@@ -35,9 +35,9 @@ pub enum Error {
 
 fn check_command_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> {
     let agent = try_get_actor(state, command.id)?;
-    let unit_player_id = state.parts().belongs_to.get(command.id).0;
-    if unit_player_id != state.player_id() {
-        return Err(Error::CanNotCommandEnemyUnits);
+    let agent_player_id = state.parts().belongs_to.get(command.id).0;
+    if agent_player_id != state.player_id() {
+        return Err(Error::CanNotCommandEnemyAgents);
     }
     check_agent_can_move(state, command.id)?;
     for step in command.path.steps() {
@@ -67,7 +67,7 @@ fn check_command_attack(state: &State, command: &command::Attack) -> Result<(), 
     let attacker_pos = parts.pos.get(command.attacker_id).0;
     let attacker_player_id = parts.belongs_to.get(command.attacker_id).0;
     if attacker_player_id != state.player_id() {
-        return Err(Error::CanNotCommandEnemyUnits);
+        return Err(Error::CanNotCommandEnemyAgents);
     }
     if parts.agent.get_opt(command.target_id).is_none() {
         return Err(Error::BadTargetId);
@@ -288,9 +288,9 @@ fn check_agent_ability_ready(
 }
 
 fn check_agent_belongs_to_correct_player(state: &State, id: ObjId) -> Result<(), Error> {
-    let unit_player_id = state.parts().belongs_to.get(id).0;
-    if unit_player_id != state.player_id() {
-        return Err(Error::CanNotCommandEnemyUnits);
+    let agent_player_id = state.parts().belongs_to.get(id).0;
+    if agent_player_id != state.player_id() {
+        return Err(Error::CanNotCommandEnemyAgents);
     }
     Ok(())
 }

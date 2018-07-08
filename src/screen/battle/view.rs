@@ -33,7 +33,7 @@ pub struct Layers {
     pub grass: Layer,
     pub highlighted_tiles: Layer,
     pub selection_marker: Layer,
-    pub units: Layer,
+    pub objects: Layer,
     pub dots: Layer,
     pub flares: Layer,
     pub text: Layer,
@@ -48,7 +48,7 @@ impl Layers {
             self.grass,
             self.highlighted_tiles,
             self.selection_marker,
-            self.units,
+            self.objects,
             self.dots,
             self.flares,
             self.text,
@@ -66,7 +66,7 @@ struct Sprites {
     highlighted_tiles: Vec<Sprite>,
     id_to_sprite_map: HashMap<ObjId, Sprite>,
     id_to_shadow_map: HashMap<ObjId, Sprite>,
-    unit_info: HashMap<ObjId, Vec<Sprite>>,
+    agent_info: HashMap<ObjId, Vec<Sprite>>,
 }
 
 #[derive(Debug)]
@@ -126,7 +126,7 @@ impl BattleView {
             highlighted_tiles: Vec::new(),
             id_to_sprite_map: HashMap::new(),
             id_to_shadow_map: HashMap::new(),
-            unit_info: HashMap::new(),
+            agent_info: HashMap::new(),
         };
         Ok(Self {
             font,
@@ -192,16 +192,16 @@ impl BattleView {
         &self.sprites.id_to_shadow_map[&id]
     }
 
-    pub fn unit_info_check(&self, id: ObjId) -> bool {
-        self.sprites.unit_info.get(&id).is_some()
+    pub fn agent_info_check(&self, id: ObjId) -> bool {
+        self.sprites.agent_info.get(&id).is_some()
     }
 
-    pub fn unit_info_get(&mut self, id: ObjId) -> Vec<Sprite> {
-        self.sprites.unit_info.remove(&id).unwrap()
+    pub fn agent_info_get(&mut self, id: ObjId) -> Vec<Sprite> {
+        self.sprites.agent_info.remove(&id).unwrap()
     }
 
-    pub fn unit_info_set(&mut self, id: ObjId, sprites: Vec<Sprite>) {
-        self.sprites.unit_info.insert(id, sprites);
+    pub fn agent_info_set(&mut self, id: ObjId, sprites: Vec<Sprite>) {
+        self.sprites.agent_info.insert(id, sprites);
     }
 
     pub fn set_mode(
@@ -284,11 +284,11 @@ impl BattleView {
 
     fn show_attackable_tiles(&mut self, state: &State, id: ObjId) -> ZResult {
         let parts = state.parts();
-        let selected_unit_player_id = parts.belongs_to.get(id).0;
+        let selected_agent_player_id = parts.belongs_to.get(id).0;
         for target_id in parts.agent.ids() {
             let target_pos = parts.pos.get(target_id).0;
             let target_player_id = parts.belongs_to.get(target_id).0;
-            if target_player_id == selected_unit_player_id {
+            if target_player_id == selected_agent_player_id {
                 continue;
             }
             let command_attack = command::Command::Attack(command::Attack {
