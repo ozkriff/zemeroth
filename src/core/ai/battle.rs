@@ -1,9 +1,32 @@
+use core::ability::Ability;
 use core::command::{self, Command};
 use core::map::{self, Distance, HexMap};
 use core::movement::{self, Path, Pathfinder};
 use core::state;
 use core::utils::shuffle_vec;
 use core::{self, check, ObjId, PlayerId, State};
+
+fn does_agent_have_ability_summon(state: &State, id: ObjId) -> bool {
+    if let Some(abilities) = state.parts().abilities.get_opt(id) {
+        for ability in &abilities.0 {
+            if let Ability::Summon(_) = ability.ability {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+fn does_agent_have_ability_bomb(state: &State, id: ObjId) -> bool {
+    if let Some(abilities) = state.parts().abilities.get_opt(id) {
+        for ability in &abilities.0 {
+            if let Ability::Bomb(_) = ability.ability {
+                return true;
+            }
+        }
+    }
+    false
+}
 
 #[derive(Clone, Copy, Debug)]
 struct DistanceRange {
@@ -202,24 +225,20 @@ impl Ai {
     }
 
     fn try_to_move(&mut self, state: &State, unit_id: ObjId) -> Option<Command> {
-        // TODO: Don't use type names, check its abilities/components
-        match state.parts().meta.get(unit_id).name.as_str() {
-            "imp" | "imp_toxic" => self.try_to_move_closer(state, unit_id),
-            "imp_bomber" => {
-                let range = DistanceRange {
-                    min: Distance(2),
-                    max: Distance(4),
-                };
-                self.try_to_keep_distance(state, unit_id, range)
-            }
-            "imp_summoner" => {
-                let range = DistanceRange {
-                    min: Distance(4),
-                    max: Distance(6),
-                };
-                self.try_to_keep_distance(state, unit_id, range)
-            }
-            meta => unimplemented!("unknown agent type: {}", meta),
+        if does_agent_have_ability_summon(state, unit_id) {
+            let range = DistanceRange {
+                min: Distance(4),
+                max: Distance(6),
+            };
+            self.try_to_keep_distance(state, unit_id, range)
+        } else if does_agent_have_ability_bomb(state, unit_id) {
+            let range = DistanceRange {
+                min: Distance(2),
+                max: Distance(4),
+            };
+            self.try_to_keep_distance(state, unit_id, range)
+        } else {
+            self.try_to_move_closer(state, unit_id)
         }
     }
 
