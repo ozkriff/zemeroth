@@ -144,7 +144,7 @@ fn vanish(view: &mut BattleView, target_id: ObjId) -> Box<dyn Action> {
         action::Sleep::new(time_s(0.25)).boxed(),
         action::ChangeColorTo::new(&sprite, dark, time_s(0.2)).boxed(),
         action::ChangeColorTo::new(&sprite, invisible, time_s(0.2)).boxed(),
-        action::Hide::new(&view.layers().agents, &sprite).boxed(),
+        action::Hide::new(&view.layers().objects, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite_shadow, invisible, time_s(0.2)).boxed(),
         action::Hide::new(&view.layers().shadows, &sprite_shadow).boxed(),
     ])
@@ -356,7 +356,7 @@ fn visualize_create(
         action::ChangeColorTo::new(&sprite_shadow, color_shadow, time_s(0.2)).boxed();
     Ok(seq(vec![
         action::Show::new(&view.layers().shadows, &sprite_shadow).boxed(),
-        action::Show::new(&view.layers().agents, &sprite_object).boxed(),
+        action::Show::new(&view.layers().objects, &sprite_object).boxed(),
         fork(action_change_shadow_color),
         action::ChangeColorTo::new(&sprite_object, color_object, time_s(0.25)).boxed(),
     ]))
