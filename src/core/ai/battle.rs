@@ -1,9 +1,38 @@
+use core::ability::Ability;
 use core::command::{self, Command};
-use core::map::{self, HexMap};
+use core::map::{self, Distance, HexMap};
 use core::movement::{self, Path, Pathfinder};
 use core::state;
 use core::utils::shuffle_vec;
 use core::{self, check, ObjId, PlayerId, State};
+
+fn does_agent_have_ability_summon(state: &State, id: ObjId) -> bool {
+    if let Some(abilities) = state.parts().abilities.get_opt(id) {
+        for ability in &abilities.0 {
+            if let Ability::Summon(_) = ability.ability {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+fn does_agent_have_ability_bomb(state: &State, id: ObjId) -> bool {
+    if let Some(abilities) = state.parts().abilities.get_opt(id) {
+        for ability in &abilities.0 {
+            if let Ability::Bomb(_) = ability.ability {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+#[derive(Clone, Copy, Debug)]
+struct DistanceRange {
+    min: Distance,
+    max: Distance,
+}
 
 #[derive(Debug, Clone)]
 pub struct Ai {
@@ -50,24 +79,27 @@ impl Ai {
         best_path
     }
 
-    fn find_path_to_preserve_distance(&mut self, state: &State, unit_id: ObjId) -> Option<Path> {
+    fn find_path_to_preserve_distance(
+        &mut self,
+        state: &State,
+        unit_id: ObjId,
+        distance_range: DistanceRange,
+    ) -> Option<Path> {
         // clean the map
         for pos in self.distance_map.iter() {
             self.distance_map.set_tile(pos, false);
         }
 
-        let distance_min = map::Distance(2);
-        let distance_max = map::Distance(4);
         for pos in self.distance_map.iter() {
             for &enemy_id in &state::enemy_agent_ids(state, self.id) {
                 let enemy_pos = state.parts().pos.get(enemy_id).0;
-                if map::distance_hex(pos, enemy_pos) <= distance_max {
+                if map::distance_hex(pos, enemy_pos) <= distance_range.max {
                     self.distance_map.set_tile(pos, true);
                 }
             }
             for &enemy_id in &state::enemy_agent_ids(state, self.id) {
                 let enemy_pos = state.parts().pos.get(enemy_id).0;
-                if map::distance_hex(pos, enemy_pos) <= distance_min {
+                if map::distance_hex(pos, enemy_pos) <= distance_range.min {
                     self.distance_map.set_tile(pos, false);
                 }
             }
@@ -166,8 +198,13 @@ impl Ai {
         None
     }
 
-    fn try_to_keep_distance(&mut self, state: &State, unit_id: ObjId) -> Option<Command> {
-        let path = match self.find_path_to_preserve_distance(state, unit_id) {
+    fn try_to_keep_distance(
+        &mut self,
+        state: &State,
+        unit_id: ObjId,
+        distance_range: DistanceRange,
+    ) -> Option<Command> {
+        let path = match self.find_path_to_preserve_distance(state, unit_id, distance_range) {
             Some(path) => path,
             None => return None,
         };
@@ -188,12 +225,20 @@ impl Ai {
     }
 
     fn try_to_move(&mut self, state: &State, unit_id: ObjId) -> Option<Command> {
-        // TODO: Don't use type names, check its abilities/components
-        match state.parts().meta.get(unit_id).name.as_str() {
-            "imp" | "imp_toxic" => self.try_to_move_closer(state, unit_id),
-            // TODO: Summoner should keep a larger distance
-            "imp_bomber" | "imp_summoner" => self.try_to_keep_distance(state, unit_id),
-            meta => unimplemented!("unknown agent type: {}", meta),
+        if does_agent_have_ability_summon(state, unit_id) {
+            let range = DistanceRange {
+                min: Distance(4),
+                max: Distance(6),
+            };
+            self.try_to_keep_distance(state, unit_id, range)
+        } else if does_agent_have_ability_bomb(state, unit_id) {
+            let range = DistanceRange {
+                min: Distance(2),
+                max: Distance(4),
+            };
+            self.try_to_keep_distance(state, unit_id, range)
+        } else {
+            self.try_to_move_closer(state, unit_id)
         }
     }
 
