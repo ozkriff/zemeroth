@@ -8,7 +8,7 @@ use scene::action;
 use scene::{Action, Boxed, Layer, Scene, Sprite};
 
 use core::ability::Ability;
-use core::map::{HexMap, PosHex};
+use core::map::{HexMap, PosHex, Distance};
 use core::{self, command, movement};
 use core::{Jokers, Moves, ObjId, State, TileType};
 use geom::{self, hex_to_point};
@@ -56,8 +56,8 @@ impl Layers {
     }
 }
 
-pub fn tile_size(map_height: i32) -> f32 {
-    1.0 / ((map_height) as f32 * 0.75)
+pub fn tile_size(map_height: Distance) -> f32 {
+    1.0 / (map_height.0 as f32 * 0.75)
 }
 
 #[derive(Debug)]
@@ -114,7 +114,7 @@ impl BattleView {
         let images = Images::new(context)?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
-        let tile_size = tile_size(state.map().height()) * 1.0;
+        let tile_size = tile_size(state.map().height());
         let mut selection_marker = Sprite::from_image(
             images.selection.clone(),
             tile_size * 2.0 * geom::FLATNESS_COEFFICIENT,

@@ -185,3 +185,19 @@ pub fn free_neighbor_positions(state: &State, origin: PosHex, count: i32) -> Vec
     }
     positions
 }
+
+pub fn sort_agent_ids_by_distance_to_enemies(state: &State, ids: &mut [ObjId]) {
+    ids.sort_unstable_by_key(|&id| {
+        let agent_player_id = state.parts().belongs_to.get(id).0;
+        let agent_pos = state.parts().pos.get(id).0;
+        let mut min_distance = state.map().height();
+        for enemy_id in enemy_agent_ids(state, agent_player_id) {
+            let enemy_pos = state.parts().pos.get(enemy_id).0;
+            let distance = map::distance_hex(agent_pos, enemy_pos);
+            if distance < min_distance {
+                min_distance = distance;
+            }
+        }
+        min_distance
+    });
+}
