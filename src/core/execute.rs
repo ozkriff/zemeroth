@@ -385,8 +385,8 @@ fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: ObjId) -> 
             // check if target is killed
             continue;
         }
-        let this_unit_owner = state.parts().belongs_to.get(obj_id).0;
-        if this_unit_owner == target_owner {
+        let this_agent_owner = state.parts().belongs_to.get(obj_id).0;
+        if this_agent_owner == target_owner {
             continue;
         }
         let command_attack = command::Attack {
@@ -394,7 +394,7 @@ fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: ObjId) -> 
             target_id,
         };
         let command = command::Command::Attack(command_attack.clone());
-        state.set_player_id(this_unit_owner);
+        state.set_player_id(this_agent_owner);
         if check(state, &command).is_err() {
             continue;
         }

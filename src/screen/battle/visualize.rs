@@ -144,15 +144,15 @@ fn vanish(view: &mut BattleView, target_id: ObjId) -> Box<dyn Action> {
         action::Sleep::new(time_s(0.25)).boxed(),
         action::ChangeColorTo::new(&sprite, dark, time_s(0.2)).boxed(),
         action::ChangeColorTo::new(&sprite, invisible, time_s(0.2)).boxed(),
-        action::Hide::new(&view.layers().units, &sprite).boxed(),
+        action::Hide::new(&view.layers().agents, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite_shadow, invisible, time_s(0.2)).boxed(),
         action::Hide::new(&view.layers().shadows, &sprite_shadow).boxed(),
     ])
 }
 
-fn remove_brief_unit_info(view: &mut BattleView, id: ObjId) -> ZResult<Box<dyn Action>> {
+fn remove_brief_agent_info(view: &mut BattleView, id: ObjId) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
-    let sprites = view.unit_info_get(id);
+    let sprites = view.agent_info_get(id);
     for sprite in sprites {
         let color = Color {
             a: 0.0,
@@ -210,18 +210,18 @@ fn generate_brief_obj_info(
         sprites.push(sprite);
         actions.push(action);
     }
-    view.unit_info_set(id, sprites);
+    view.agent_info_set(id, sprites);
     Ok(seq(actions))
 }
 
-pub fn refresh_brief_unit_info(
+pub fn refresh_brief_agent_info(
     state: &State,
     view: &mut BattleView,
     id: ObjId,
 ) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
-    if view.unit_info_check(id) {
-        actions.push(remove_brief_unit_info(view, id)?);
+    if view.agent_info_check(id) {
+        actions.push(remove_brief_agent_info(view, id)?);
     }
     if state.parts().agent.get_opt(id).is_some() {
         actions.push(generate_brief_obj_info(state, view, id)?);
@@ -267,13 +267,13 @@ fn visualize_pre(
 fn visualize_post(state: &State, view: &mut BattleView, event: &Event) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for &id in &event.actor_ids {
-        actions.push(refresh_brief_unit_info(state, view, id)?);
+        actions.push(refresh_brief_agent_info(state, view, id)?);
     }
     for &id in event.instant_effects.keys() {
-        actions.push(refresh_brief_unit_info(state, view, id)?);
+        actions.push(refresh_brief_agent_info(state, view, id)?);
     }
     for &id in event.timed_effects.keys() {
-        actions.push(refresh_brief_unit_info(state, view, id)?);
+        actions.push(refresh_brief_agent_info(state, view, id)?);
     }
     Ok(seq(actions))
 }
@@ -356,7 +356,7 @@ fn visualize_create(
         action::ChangeColorTo::new(&sprite_shadow, color_shadow, time_s(0.2)).boxed();
     Ok(seq(vec![
         action::Show::new(&view.layers().shadows, &sprite_shadow).boxed(),
-        action::Show::new(&view.layers().units, &sprite_object).boxed(),
+        action::Show::new(&view.layers().agents, &sprite_object).boxed(),
         fork(action_change_shadow_color),
         action::ChangeColorTo::new(&sprite_object, color_object, time_s(0.25)).boxed(),
     ]))

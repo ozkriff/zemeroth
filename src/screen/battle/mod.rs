@@ -35,7 +35,7 @@ fn line_height() -> f32 {
 }
 
 // TODO: reverse?
-fn build_panel_unit_info(
+fn build_panel_agent_info(
     context: &mut Context,
     font: &Font,
     gui: &mut Gui<Message>,
@@ -109,7 +109,7 @@ fn build_panel_unit_info(
     Ok(layout)
 }
 
-fn build_panel_unit_abilities(
+fn build_panel_agent_abilities(
     context: &mut Context,
     font: &Font,
     gui: &mut Gui<Message>,
@@ -197,7 +197,7 @@ pub struct Battle {
     state: State,
     mode: SelectionMode,
     view: BattleView,
-    selected_unit_id: Option<ObjId>,
+    selected_agent_id: Option<ObjId>,
     pathfinder: Pathfinder,
     block_timer: Option<Duration>,
     ai: Ai,
@@ -224,7 +224,7 @@ impl Battle {
             view,
             mode: SelectionMode::Normal,
             state,
-            selected_unit_id: None,
+            selected_agent_id: None,
             pathfinder: Pathfinder::new(radius),
             block_timer: None,
             ai: Ai::new(PlayerId(1), radius),
@@ -265,10 +265,10 @@ impl Battle {
 
     fn use_ability(&mut self, context: &mut Context, ability: Ability) -> ZResult {
         // TODO: code duplication (see check.rs and event.rs)
-        let id = self.selected_unit_id.unwrap(); // TODO: Extract to some specific method
+        let id = self.selected_agent_id.unwrap(); // TODO: Extract to some specific method
         let agent_player_id = self.state.parts().belongs_to.get(id).0;
         if agent_player_id != self.state.player_id() {
-            debug!("Can't command enemy unit");
+            debug!("Can't command enemy agent");
             return Ok(()); // TODO: fix error handling
         }
         for rechargeable in &self.state.parts().abilities.get(id).0 {
@@ -318,10 +318,10 @@ impl Battle {
         if let Some(panel) = self.panel_abilities.take() {
             self.gui.remove(&panel)?;
         }
-        if self.selected_unit_id.is_some() {
+        if self.selected_agent_id.is_some() {
             self.view.deselect();
         }
-        self.selected_unit_id = None;
+        self.selected_agent_id = None;
         self.mode = SelectionMode::Normal;
         Ok(())
     }
@@ -332,7 +332,7 @@ impl Battle {
             // This object is not an agent or dead.
             return Ok(());
         }
-        self.selected_unit_id = Some(id);
+        self.selected_agent_id = Some(id);
         let state = &self.state;
         let gui = &mut self.gui;
         match mode {
@@ -342,9 +342,10 @@ impl Battle {
             }
             SelectionMode::Normal => {
                 self.pathfinder.fill_map(state, id);
-                self.panel_info = Some(build_panel_unit_info(context, &self.font, gui, state, id)?);
+                self.panel_info =
+                    Some(build_panel_agent_info(context, &self.font, gui, state, id)?);
                 self.panel_abilities =
-                    build_panel_unit_abilities(context, &self.font, gui, state, id)?;
+                    build_panel_agent_abilities(context, &self.font, gui, state, id)?;
             }
         }
         let map = self.pathfinder.map();
@@ -353,26 +354,26 @@ impl Battle {
         Ok(())
     }
 
-    fn handle_unit_click(&mut self, context: &mut Context, id: ObjId) -> ZResult {
+    fn handle_agent_click(&mut self, context: &mut Context, id: ObjId) -> ZResult {
         if self.state.parts().agent.get_opt(id).is_none() {
             // only agents can be selected
             return Ok(());
         }
-        let other_unit_player_id = self.state.parts().belongs_to.get(id).0;
-        if let Some(selected_unit_id) = self.selected_unit_id {
-            let selected_unit_player_id = self.state.parts().belongs_to.get(selected_unit_id).0;
-            if selected_unit_id == id {
+        let other_agent_player_id = self.state.parts().belongs_to.get(id).0;
+        if let Some(selected_agent_id) = self.selected_agent_id {
+            let selected_agent_player_id = self.state.parts().belongs_to.get(selected_agent_id).0;
+            if selected_agent_id == id {
                 self.deselect()?;
                 return Ok(());
             }
-            if other_unit_player_id == selected_unit_player_id
-                || other_unit_player_id == self.state.player_id()
+            if other_agent_player_id == selected_agent_player_id
+                || other_agent_player_id == self.state.player_id()
             {
                 self.set_mode(context, id, SelectionMode::Normal)?;
                 return Ok(());
             }
             let command_attack = command::Command::Attack(command::Attack {
-                attacker_id: selected_unit_id,
+                attacker_id: selected_agent_id,
                 target_id: id,
             });
             if check(&self.state, &command_attack).is_err() {
@@ -387,15 +388,15 @@ impl Battle {
     }
 
     fn fill_map(&mut self) {
-        let selected_unit_id = self.selected_unit_id.unwrap();
+        let selected_agent_id = self.selected_agent_id.unwrap();
         let parts = self.state.parts();
-        if parts.agent.get_opt(selected_unit_id).is_some() {
-            self.pathfinder.fill_map(&self.state, selected_unit_id);
+        if parts.agent.get_opt(selected_agent_id).is_some() {
+            self.pathfinder.fill_map(&self.state, selected_agent_id);
         }
     }
 
-    fn try_move_selected_unit(&mut self, context: &mut Context, pos: PosHex) {
-        if let Some(id) = self.selected_unit_id {
+    fn try_move_selected_agent(&mut self, context: &mut Context, pos: PosHex) {
+        if let Some(id) = self.selected_agent_id {
             let path = match self.pathfinder.path(pos) {
                 Some(path) => path,
                 None => return,
@@ -418,7 +419,7 @@ impl Battle {
         }
         if self.state.map().is_inboard(pos) {
             if let SelectionMode::Ability(ability) = self.mode {
-                let selected_id = self.selected_unit_id.unwrap();
+                let selected_id = self.selected_agent_id.unwrap();
                 let command = command::Command::UseAbility(command::UseAbility {
                     id: selected_id,
                     pos,
@@ -431,9 +432,9 @@ impl Battle {
                 }
                 self.set_mode(context, selected_id, SelectionMode::Normal)?;
             } else if let Some(id) = state::agent_id_at_opt(&self.state, pos) {
-                self.handle_unit_click(context, id)?;
+                self.handle_agent_click(context, id)?;
             } else {
-                self.try_move_selected_unit(context, pos);
+                self.try_move_selected_agent(context, pos);
             }
         }
         Ok(())
@@ -443,7 +444,7 @@ impl Battle {
         if let Some(time) = self.block_timer {
             if time < dtime {
                 self.block_timer = None;
-                if let Some(id) = self.selected_unit_id {
+                if let Some(id) = self.selected_agent_id {
                     self.set_mode(context, id, SelectionMode::Normal)?;
                 }
             }

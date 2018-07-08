@@ -211,10 +211,10 @@ impl Pathfinder {
     }
 
     pub fn fill_map(&mut self, state: &State, id: ObjId) {
-        let unit_pos = state.parts().pos.get(id).0;
+        let agent_pos = state.parts().pos.get(id).0;
         assert!(self.queue.is_empty());
         self.clean_map();
-        self.push_start_pos_to_queue(unit_pos);
+        self.push_start_pos_to_queue(agent_pos);
         while let Some(pos) = self.queue.pop_front() {
             self.try_to_push_neighbors(state, id, pos);
         }
