@@ -8,7 +8,7 @@ use scene::action;
 use scene::{Action, Boxed, Layer, Scene, Sprite};
 
 use core::ability::Ability;
-use core::map::{HexMap, PosHex, Distance};
+use core::map::{Distance, HexMap, PosHex};
 use core::{self, command, movement};
 use core::{Jokers, Moves, ObjId, State, TileType};
 use geom::{self, hex_to_point};
