@@ -198,7 +198,9 @@ impl Ai {
     }
 
     pub fn command(&mut self, state: &State) -> Option<Command> {
-        for unit_id in state::players_agent_ids(state, self.id) {
+        let mut ids = state::players_agent_ids(state, self.id);
+        state::sort_agent_ids_by_distance_to_enemies(state, &mut ids);
+        for unit_id in ids {
             if let Some(summon_command) = self.try_summon_imp(state, unit_id) {
                 return Some(summon_command);
             }
