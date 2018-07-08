@@ -45,7 +45,7 @@ pub struct Ai {
 }
 
 impl Ai {
-    pub fn new(id: PlayerId, map_radius: map::Distance) -> Self {
+    pub fn new(id: PlayerId, map_radius: Distance) -> Self {
         Self {
             id,
             pathfinder: Pathfinder::new(map_radius),
@@ -128,7 +128,7 @@ impl Ai {
 
     fn try_throw_bomb(&self, state: &State, unit_id: ObjId) -> Option<Command> {
         // TODO: find ability in the parts and use it here:
-        let ability = core::ability::Ability::Bomb(core::ability::Bomb(map::Distance(3)));
+        let ability = core::ability::Ability::Bomb(core::ability::Bomb(Distance(3)));
         for &target_id in &shuffle_vec(state::enemy_agent_ids(state, self.id)) {
             let target_pos = state.parts().pos.get(target_id).0;
             for dir in shuffle_vec(map::dirs().collect()) {
