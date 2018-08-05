@@ -66,7 +66,7 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
     let mut point = geom::hex_to_point(view.tile_size(), at);
     point.y += view.tile_size() * 0.1;
     sprite.set_pos(point);
-    let color_final = [1.0, 1.0, 1.0, 0.3].into();
+    let color_final = [1.0, 1.0, 1.0, 1.0].into();
     let time = time_s(0.3);
     Ok(seq(vec![
         action::Show::new(&view.layers().blood, &sprite).boxed(),
@@ -307,36 +307,33 @@ fn visualize_create(
 ) -> ZResult<Box<dyn Action>> {
     // TODO: Move to some .ron config:
     // TODO: At lest, extract this to a separate function
-    let (sprite_name, offset, shadow_size_coefficient) = match prototype {
-        "swordsman" => ("/swordsman.png", 0.2, 1.0),
-        "spearman" => ("/spearman.png", 0.2, 1.0),
-        "hammerman" => ("/hammerman.png", 0.2, 1.0),
-        "alchemist" => ("/alchemist.png", 0.2, 1.0),
-        "imp" => ("/imp.png", 0.2, 1.0),
-        "imp_toxic" => ("/imp_toxic.png", 0.2, 1.0),
-        "imp_bomber" => ("/imp_bomber.png", 0.2, 1.0),
-        "imp_summoner" => ("/imp_summoner.png", 0.2, 1.0),
-        "boulder" => ("/boulder.png", 0.4, 1.5),
-        "bomb_damage" => ("/bomb.png", 0.2, 0.7),
-        "bomb_push" => ("/bomb.png", 0.2, 0.7),
-        "bomb_fire" => ("/bomb_fire.png", 0.2, 0.7),
-        "bomb_poison" => ("/bomb_poison.png", 0.2, 0.7),
-        "fire" => ("/fire.png", 0.2, 0.001),
-        "poison_cloud" => ("/poison_cloud.png", 0.2, 1.0),
-        "spike_trap" => ("/spike_trap.png", 0.5, 1.4),
+    let (sprite_name, offset_x, offset_y, shadow_size_coefficient) = match prototype {
+        "swordsman" => ("/swordsman.png", 0.15, 0.1, 1.0),
+        "spearman" => ("/spearman.png", 0.2, 0.05, 1.0),
+        "hammerman" => ("/hammerman.png", 0.05, 0.1, 1.0),
+        "alchemist" => ("/alchemist.png", 0.05, 0.1, 1.0),
+        "imp" => ("/imp.png", -0.05, 0.15, 1.3),
+        "imp_toxic" => ("/imp_toxic.png", -0.05, 0.15, 1.2),
+        "imp_bomber" => ("/imp_bomber.png", -0.05, 0.15, 1.2),
+        "imp_summoner" => ("/imp_summoner.png", -0.05, 0.15, 1.3),
+        "boulder" => ("/boulder.png", 0.0, 0.4, 2.5),
+        "bomb_damage" => ("/bomb.png", 0.0, 0.2, 0.7),
+        "bomb_push" => ("/bomb.png", 0.0, 0.2, 0.7),
+        "bomb_fire" => ("/bomb_fire.png", 0.0, 0.2, 0.7),
+        "bomb_poison" => ("/bomb_poison.png", 0.0, 0.2, 0.7),
+        "bomb_demonic" => ("/bomb_demonic.png", 0.0, 0.2, 0.7),
+        "fire" => ("/fire.png", 0.0, 0.2, 0.001),
+        "poison_cloud" => ("/poison_cloud.png", 0.0, 0.2, 2.0),
+        "spike_trap" => ("/spike_trap.png", 0.0, 0.5, 1.4),
         _ => unimplemented!("Don't know such object type: {}", prototype),
     };
     let point = geom::hex_to_point(view.tile_size(), pos);
-    let color_object = [1.0, 1.0, 1.0, 1.0].into();
-    let color_shadow = [0.0, 0.0, 0.0, 0.7].into();
+    let color = [1.0, 1.0, 1.0, 1.0].into();
     let size = view.tile_size() * 2.0;
     let sprite_object = {
         let mut sprite = Sprite::from_path(context, sprite_name, size)?;
-        sprite.set_color(Color {
-            a: 0.0,
-            ..color_object
-        });
-        sprite.set_offset(Vector2::new(0.5, 1.0 - offset));
+        sprite.set_color(Color { a: 0.0, ..color });
+        sprite.set_offset(Vector2::new(0.5 - offset_x, 1.0 - offset_y));
         sprite.set_pos(point);
         sprite
     };
@@ -344,21 +341,18 @@ fn visualize_create(
         let image_shadow = view.images().shadow.clone();
         let mut sprite = Sprite::from_image(image_shadow, size * shadow_size_coefficient);
         sprite.set_centered(true);
-        sprite.set_color(Color {
-            a: 0.0,
-            ..color_shadow
-        });
+        sprite.set_color(Color { a: 0.0, ..color });
         sprite.set_pos(point);
         sprite
     };
     view.add_object(id, &sprite_object, &sprite_shadow);
     let action_change_shadow_color =
-        action::ChangeColorTo::new(&sprite_shadow, color_shadow, time_s(0.2)).boxed();
+        action::ChangeColorTo::new(&sprite_shadow, color, time_s(0.2)).boxed();
     Ok(seq(vec![
         action::Show::new(&view.layers().shadows, &sprite_shadow).boxed(),
         action::Show::new(&view.layers().objects, &sprite_object).boxed(),
         fork(action_change_shadow_color),
-        action::ChangeColorTo::new(&sprite_object, color_object, time_s(0.25)).boxed(),
+        action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed(),
     ]))
 }
 

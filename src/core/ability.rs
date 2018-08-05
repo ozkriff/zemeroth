@@ -16,6 +16,7 @@ pub enum Ability {
     BombPush(BombPush),
     BombFire(BombFire),
     BombPoison(BombPoison),
+    BombDemonic(BombDemonic),
     Summon(Summon),
     Vanish,
     Dash,
@@ -38,6 +39,9 @@ pub struct Heal(pub Strength);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Bomb(pub Distance);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct BombDemonic(pub Distance);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct BombPush {
@@ -96,6 +100,7 @@ impl Ability {
             Ability::BombPush(a) => format!("Bomb Push-{}", (a.throw_distance).0),
             Ability::BombFire(a) => format!("Fire bomb-{}", (a.0).0),
             Ability::BombPoison(a) => format!("Poison bomb-{}", (a.0).0),
+            Ability::BombDemonic(a) => format!("Bomb Demonic-{}", (a.0).0),
             Ability::Vanish => "Vanish".into(),
             Ability::Summon(a) => format!("Summon-{}", a.0),
             Ability::Dash => "Dash".into(),

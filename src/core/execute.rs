@@ -944,6 +944,13 @@ fn execute_use_ability_bomb_poison(
     throw_bomb(state, command, "bomb_poison", 1, Ability::ExplodePoison)
 }
 
+fn execute_use_ability_bomb_demonic(
+    state: &mut State,
+    command: &command::UseAbility,
+) -> ExecuteContext {
+    throw_bomb(state, command, "bomb_demonic", 1, Ability::ExplodeDamage)
+}
+
 fn execute_use_ability_summon(
     state: &mut State,
     command: &command::UseAbility,
@@ -982,6 +989,7 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
         Ability::BombPush(_) => execute_use_ability_bomb_push(state, command),
         Ability::BombFire(_) => execute_use_ability_bomb_fire(state, command),
         Ability::BombPoison(_) => execute_use_ability_bomb_poison(state, command),
+        Ability::BombDemonic(_) => execute_use_ability_bomb_demonic(state, command),
         Ability::Summon(a) => execute_use_ability_summon(state, command, a),
     };
     context.actor_ids.push(command.id);
