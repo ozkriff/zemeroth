@@ -20,7 +20,7 @@ fn does_agent_have_ability_summon(state: &State, id: ObjId) -> bool {
 fn does_agent_have_ability_bomb(state: &State, id: ObjId) -> bool {
     if let Some(abilities) = state.parts().abilities.get_opt(id) {
         for ability in &abilities.0 {
-            if let Ability::Bomb(_) = ability.ability {
+            if let Ability::BombDemonic(_) = ability.ability {
                 return true;
             }
         }
@@ -165,7 +165,7 @@ impl Ai {
 
     fn try_throw_bomb(&self, state: &State, agent_id: ObjId) -> Option<Command> {
         // TODO: find ability in the parts and use it here:
-        let ability = core::ability::Ability::Bomb(core::ability::Bomb(Distance(3)));
+        let ability = core::ability::Ability::BombDemonic(core::ability::BombDemonic(Distance(3)));
         for &target_id in &shuffle_vec(state::enemy_agent_ids(state, self.id)) {
             let target_pos = state.parts().pos.get(target_id).0;
             for dir in shuffle_vec(map::dirs().collect()) {
