@@ -1,6 +1,11 @@
 [package]
 name = "zcomponents"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
 license = "MIT/Apache-2.0"
 description = "ZComponents is a stupid component storage"
+repository = "https://github.com/ozkriff/zemeroth"
+homepage = "https://github.com/ozkriff/zemeroth/tree/master/zcomponents"
+documentation = "https://docs.rs/zcomponents/"
+readme = "README.md"
+keywords = ["gamedev"]
