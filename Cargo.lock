@@ -1324,7 +1324,7 @@ dependencies = [
 
 [[package]]
 name = "zcomponents"
-version = "0.1.0"
+version = "0.1.1"
 
 [[package]]
 name = "zemeroth"
@@ -1339,7 +1339,7 @@ dependencies = [
  "ron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
- "zcomponents 0.1.0",
+ "zcomponents 0.1.1",
 ]
 
 [[package]]
