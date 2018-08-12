@@ -17,6 +17,7 @@ use core::{ObjId, PlayerId, State};
 use geom;
 use screen::battle::view::{make_action_create_map, BattleView, SelectionMode};
 use screen::{Screen, Transition};
+use utils::time_s;
 use ZResult;
 
 mod view;
@@ -253,8 +254,7 @@ impl Battle {
             let command = self.ai.command(&self.state).unwrap();
             debug!("AI: command = {:?}", command);
             actions.push(self.do_command_inner(context, &command));
-            let time = Duration::from_millis(300); // TODO: use `time_s(0.3)`
-            actions.push(action::Sleep::new(time).boxed());
+            actions.push(action::Sleep::new(time_s(0.3)).boxed());
             if let command::Command::EndTurn(_) = command {
                 break;
             }

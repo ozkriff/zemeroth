@@ -26,6 +26,7 @@ use ggez::{Context, ContextBuilder, GameResult};
 mod core;
 mod geom;
 mod screen;
+mod utils;
 
 // TODO: move to some submodule
 // TODO: https://github.com/ggez/ggez/issues/384

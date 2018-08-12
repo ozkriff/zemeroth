@@ -14,13 +14,8 @@ use core::map::PosHex;
 use core::{ObjId, PlayerId, State};
 use geom;
 use screen::battle::view::BattleView;
+use utils::time_s;
 use ZResult;
-
-// TODO: Move to some other module
-fn time_s(s: f32) -> Duration {
-    let ms = s * 1000.0;
-    Duration::from_millis(ms as u64)
-}
 
 fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
     action::Sequence::new(actions).boxed()
