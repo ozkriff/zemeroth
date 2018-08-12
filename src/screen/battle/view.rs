@@ -13,6 +13,7 @@ use core::{self, command, movement};
 use core::{Jokers, Moves, ObjId, State, TileType};
 use geom::{self, hex_to_point};
 use screen::battle::visualize;
+use utils::time_s;
 use ZResult;
 
 #[derive(Debug, PartialEq)]
@@ -225,7 +226,7 @@ impl BattleView {
             };
             let action = {
                 let layer = &self.layers().highlighted_tiles;
-                let time = Duration::from_millis(300); // TODO: time_s
+                let time = time_s(0.3);
                 let actions = vec![
                     action::ChangeColorTo::new(&sprite, color, time).boxed(),
                     action::Hide::new(layer, &sprite).boxed(),
@@ -329,7 +330,7 @@ impl BattleView {
         sprite.set_centered(true);
         sprite.set_color(color_from);
         sprite.set_pos(hex_to_point(self.tile_size(), pos));
-        let time = Duration::from_millis(300);
+        let time = time_s(0.3);
         let layer = &self.layers.highlighted_tiles;
         let actions = vec![
             action::Show::new(layer, &sprite).boxed(),

@@ -26,15 +26,11 @@ use ggez::{Context, ContextBuilder, GameResult};
 mod core;
 mod geom;
 mod screen;
+mod utils;
 
-// TODO: move to some submodule
 // TODO: https://github.com/ggez/ggez/issues/384
 type ZResult<T = ()> = GameResult<T>;
 
-// TODO: What should we do in case of adding a widget to a nested layout?
-// call `gui.resize()`?
-
-// TODO: rename to TopState, Game or something
 struct MainState {
     screens: screen::Screens,
 }
