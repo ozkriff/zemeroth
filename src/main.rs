@@ -14,6 +14,7 @@ extern crate env_logger;
 extern crate ggez;
 extern crate ggwp_zgui as ui;
 extern crate ggwp_zscene as scene;
+extern crate num;
 extern crate rand;
 extern crate ron;
 

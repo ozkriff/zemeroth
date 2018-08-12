@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 use std::iter::repeat;
 
+use num::{Signed, Num};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Distance(pub i32);
 
@@ -24,16 +26,7 @@ pub struct PosHex<T: Debug + Copy = i32> {
     pub r: T,
 }
 
-// TODO: merge hex_to_cube_f and hex_to_cube
-pub fn hex_to_cube_f(hex: PosHex<f32>) -> PosCube<f32> {
-    PosCube {
-        x: hex.q,
-        y: -hex.q - hex.r,
-        z: hex.r,
-    }
-}
-
-pub fn hex_to_cube(hex: PosHex) -> PosCube {
+pub fn hex_to_cube<N: Num + Copy + Debug + Signed>(hex: PosHex<N>) -> PosCube<N> {
     PosCube {
         x: hex.q,
         y: -hex.q - hex.r,
@@ -49,7 +42,7 @@ pub fn cube_to_hex<T: Debug + Copy>(cube: PosCube<T>) -> PosHex<T> {
 }
 
 pub fn hex_round(hex: PosHex<f32>) -> PosHex {
-    cube_to_hex(cube_round(hex_to_cube_f(hex)))
+    cube_to_hex(cube_round(hex_to_cube(hex)))
 }
 
 /// <http://www.redblobgames.com/grids/hexagons/#rounding>
