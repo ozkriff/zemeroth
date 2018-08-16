@@ -1080,7 +1080,6 @@ pub fn create_objects(state: &mut State, cb: Cb) {
             state.set_player_id(player_id);
         }
         for _ in 0..count {
-            // TODO: different radiouses - put summoner in a good distance
             let pos = match owner {
                 Some(player_id) => random_free_sector_pos(state, player_id),
                 None => random_free_pos(state),

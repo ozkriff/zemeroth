@@ -8,7 +8,7 @@ use std::time::Duration;
 
 use ggez::{Context, GameResult};
 
-// TODO: z-order?
+// TODO: z-order? (https://github.com/ozkriff/zemeroth/issues/319)
 
 pub use action::{Action, Boxed};
 pub use sprite::Sprite;

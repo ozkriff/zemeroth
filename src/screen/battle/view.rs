@@ -99,9 +99,7 @@ impl Images {
 
 #[derive(Debug)]
 pub struct BattleView {
-    // TODO: https://docs.rs/ggez/0.4.2/ggez/struct.Context.html#structfield.default_font?
     font: Font,
-
     tile_size: f32,
     layers: Layers,
     scene: Scene,

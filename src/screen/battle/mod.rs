@@ -35,7 +35,6 @@ fn line_height() -> f32 {
     0.08
 }
 
-// TODO: reverse?
 fn build_panel_agent_info(
     context: &mut Context,
     font: &Font,
@@ -192,9 +191,8 @@ fn prepare_map_and_state(
 
 #[derive(Debug)]
 pub struct Battle {
-    font: graphics::Font, // TODO: use Context::default_font?
+    font: graphics::Font,
     gui: Gui<Message>,
-
     state: State,
     mode: SelectionMode,
     view: BattleView,
