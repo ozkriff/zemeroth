@@ -47,7 +47,9 @@ storage.flag.remove(id1);
 storage.remove(id0);
 ```
 
-See a more advanced example [in crate's documentation](src/lib.rs).
+See a more advanced example [in crate's documentation][advanced_example].
+
+[advanced_example]: https://docs.rs/zcomponents/0/zcomponents/#example
 
 ## Implementation
 
