@@ -99,6 +99,8 @@ fn main() -> ZResult {
     enable_backtrace();
     info!("Creating context...");
     let mut context = context();
+    info!("Checking assets hash file...");
+    utils::check_assets_hash(&mut context, "45eafe96b22789fc7ca0a241c1e40aa0")?;
     info!("Creating MainState...");
     let mut state = MainState::new(&mut context)?;
     info!("Starting the main loop...");
