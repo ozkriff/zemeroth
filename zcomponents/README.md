@@ -1,5 +1,8 @@
 # `ZComponents` - a stupid component storage
 
+[![Crates.io](https://img.shields.io/crates/v/zcomponents.svg)](https://crates.io/crates/zcomponents)
+[![Docs.rs](https://docs.rs/zcomponents/badge.svg)](https://docs.rs/zcomponents)
+
 I find "serious" ECS to be an overkill for turn-based game logic,
 so I've created this simple library that does only one thing:
 stores your components.
@@ -44,7 +47,9 @@ storage.flag.remove(id1);
 storage.remove(id0);
 ```
 
-See a more advanced example [in crate's documentation](src/lib.rs).
+See a more advanced example [in crate's documentation][advanced_example].
+
+[advanced_example]: https://docs.rs/zcomponents/0/zcomponents/#example
 
 ## Implementation
 
