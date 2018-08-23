@@ -23,7 +23,7 @@ os:
   - linux
   - osx
 
-install:
+before_install:
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
         wget http://libsdl.org/release/SDL2-2.0.5.tar.gz
         && tar -xzvf SDL2-2.0.5.tar.gz
@@ -37,7 +37,20 @@ install:
         brew update && brew install sdl2;
     fi
 
+before_script:
+- rustup component list
+
 script:
   - cargo build --all
   - cargo build --examples --all
   - cargo test --all
+
+jobs:
+  include:
+  - env: FEATURE=fmt
+    rust: nightly-2018-08-14
+    install:
+      - rustup component add rustfmt-preview
+      - rustfmt -V
+    script:
+      - cargo fmt --all -- --check
