@@ -13,7 +13,6 @@ cache: cargo
 
 rust:
   - nightly
-  - beta
   - stable
 
 matrix:
