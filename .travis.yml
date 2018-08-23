@@ -54,3 +54,10 @@ jobs:
       - rustfmt -V
     script:
       - cargo fmt --all -- --check
+  - env: FEATURE=clippy
+    rust: nightly-2018-08-14
+    install:
+      - rustup component add clippy-preview
+      - cargo clippy -V
+    script:
+      - cargo clippy --verbose -- -D warnings
