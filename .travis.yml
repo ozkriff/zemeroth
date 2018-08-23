@@ -20,8 +20,8 @@ matrix:
     - rust: nightly
 
 os:
-    - linux
-    - osx
+  - linux
+  - osx
 
 install:
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
