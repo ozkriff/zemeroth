@@ -9,13 +9,13 @@ members = ["zcomponents", "ggwp-zgui", "ggwp-zscene"]
 
 [dependencies]
 ggez = "0.4"
-ron = "0.3"
+ron = "0.4"
 rand = "0.5"
 log = "0.4"
 env_logger = "0.5"
 serde = "1.0"
 serde_derive = "1.0"
-num = { version = "0.1", default-features = false }
+num = { version = "0.2", default-features = false }
 ggwp-zgui = { path = "ggwp-zgui" }
 ggwp-zscene = { path = "ggwp-zscene" }
 zcomponents = { path = "zcomponents" }
