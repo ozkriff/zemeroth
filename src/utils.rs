@@ -1,7 +1,8 @@
 use std::io::Read;
+use std::process;
 use std::time::Duration;
 
-use ggez::Context;
+use ggez::filesystem::Filesystem;
 
 use ZResult;
 
@@ -10,10 +11,16 @@ pub fn time_s(s: f32) -> Duration {
     Duration::from_millis(ms as u64)
 }
 
-pub fn check_assets_hash(context: &mut Context, expected_hash: &str) -> ZResult {
-    let mut file = context.filesystem.open("/hash.md5")?;
+pub fn check_assets_hash(fs: &mut Filesystem, expected: &str) -> ZResult {
+    let mut file = fs.open("/.checksum.md5")?;
     let mut data = String::new();
     file.read_to_string(&mut data)?;
-    assert_eq!(data.trim(), expected_hash);
+    let real = data.trim();
+    if real != expected {
+        let error_code = 1;
+        error!("Bad assets checksum {} (expected {})", real, expected);
+        process::exit(error_code);
+    }
+    info!("Assets checksum is Ok");
     Ok(())
 }
