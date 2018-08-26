@@ -1,9 +1,9 @@
-use core::ability::{self, Ability};
-use core::command::{self, Command};
 use core::map::{self, Distance, PosHex};
-use core::state;
-use core::State;
-use core::{self, Attacks, Jokers, Moves, ObjId};
+use core::tactical_map::ability::{self, Ability};
+use core::tactical_map::command::{self, Command};
+use core::tactical_map::state;
+use core::tactical_map::State;
+use core::tactical_map::{self, Attacks, Jokers, Moves, ObjId};
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
     match *command {
@@ -269,7 +269,7 @@ fn check_ability_heal(
     Ok(())
 }
 
-fn try_get_actor(state: &State, id: ObjId) -> Result<&core::component::Agent, Error> {
+fn try_get_actor(state: &State, id: ObjId) -> Result<&tactical_map::component::Agent, Error> {
     match state.parts().agent.get_opt(id) {
         Some(agent) => Ok(agent),
         None => Err(Error::BadActorId),

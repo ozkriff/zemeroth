@@ -1,14 +1,14 @@
-use core::ability::PassiveAbility;
 use core::map::{self, PosHex};
-use core::utils;
-use core::{ObjId, PlayerId, TileType};
+use core::tactical_map::ability::PassiveAbility;
+use core::tactical_map::utils;
+use core::tactical_map::{ObjId, PlayerId, TileType};
 
 pub use self::private::State;
 
 mod private {
-    use core::component::{Component, Parts, Prototypes};
     use core::map::{self, HexMap};
-    use core::{ObjId, PlayerId, TileType};
+    use core::tactical_map::component::{Component, Parts, Prototypes};
+    use core::tactical_map::{ObjId, PlayerId, TileType};
 
     #[derive(Clone, Debug)]
     pub struct State {

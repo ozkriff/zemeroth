@@ -7,10 +7,10 @@ use ggez::Context;
 use scene::action;
 use scene::{Action, Boxed, Layer, Scene, Sprite};
 
-use core::ability::Ability;
 use core::map::{Distance, HexMap, PosHex};
-use core::{self, command, movement};
-use core::{Jokers, Moves, ObjId, State, TileType};
+use core::tactical_map::ability::Ability;
+use core::tactical_map::{self, command, movement};
+use core::tactical_map::{Jokers, Moves, ObjId, State, TileType};
 use geom::{self, hex_to_point};
 use screen::battle::visualize;
 use utils::time_s;
@@ -255,7 +255,7 @@ impl BattleView {
                 ability,
                 pos,
             });
-            if core::check(state, &command).is_ok() {
+            if tactical_map::check(state, &command).is_ok() {
                 self.highlight(pos, TILE_COLOR_ABILITY.into())?;
             }
         }
@@ -294,7 +294,7 @@ impl BattleView {
                 attacker_id: id,
                 target_id,
             });
-            if core::check(state, &command_attack).is_err() {
+            if tactical_map::check(state, &command_attack).is_err() {
                 continue;
             }
             self.highlight(target_pos, TILE_COLOR_ATTACKABLE.into())?;

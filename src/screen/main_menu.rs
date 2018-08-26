@@ -74,7 +74,7 @@ impl Screen for MainMenu {
                 Ok(Transition::Push(Box::new(screen)))
             }
             Some(Message::StartCampaign) => {
-                let screen = screen::CampaignMenu::new(context)?;
+                let screen = screen::StrategyMap::new(context)?;
                 Ok(Transition::Push(Box::new(screen)))
             }
             Some(Message::Exit) => Ok(Transition::Pop),

@@ -1,10 +1,10 @@
-use core::ability::Ability;
-use core::command::{self, Command};
 use core::map::{self, Distance, HexMap};
-use core::movement::{self, Path, Pathfinder};
-use core::state;
-use core::utils::shuffle_vec;
-use core::{self, check, ObjId, PlayerId, State};
+use core::tactical_map::ability::{self, Ability};
+use core::tactical_map::command::{self, Command};
+use core::tactical_map::movement::{self, Path, Pathfinder};
+use core::tactical_map::state;
+use core::tactical_map::utils::shuffle_vec;
+use core::tactical_map::{check, ObjId, PlayerId, State};
 
 fn does_agent_have_ability_summon(state: &State, id: ObjId) -> bool {
     if let Some(abilities) = state.parts().abilities.get_opt(id) {
@@ -165,7 +165,7 @@ impl Ai {
 
     fn try_throw_bomb(&self, state: &State, agent_id: ObjId) -> Option<Command> {
         // TODO: find ability in the parts and use it here:
-        let ability = core::ability::Ability::BombDemonic(core::ability::BombDemonic(Distance(3)));
+        let ability = Ability::BombDemonic(ability::BombDemonic(Distance(3)));
         for &target_id in &shuffle_vec(state::enemy_agent_ids(state, self.id)) {
             let target_pos = state.parts().pos.get(target_id).0;
             for dir in shuffle_vec(map::dirs().collect()) {
@@ -188,7 +188,7 @@ impl Ai {
 
     fn try_summon_imp(&self, state: &State, agent_id: ObjId) -> Option<Command> {
         // TODO: find ability in the parts and use it here:
-        let ability = core::ability::Ability::Summon(core::ability::Summon(3));
+        let ability = ability::Ability::Summon(ability::Summon(3));
         let target_pos = state.parts().pos.get(agent_id).0;
         let command = Command::UseAbility(command::UseAbility {
             id: agent_id,

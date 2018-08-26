@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 use std::slice::Windows;
 
-use core::ability::PassiveAbility;
 use core::map::{dirs, Dir, Distance, HexMap, PosHex};
-use core::state;
-use core::{ObjId, State, TileType};
+use core::tactical_map::ability::PassiveAbility;
+use core::tactical_map::state;
+use core::tactical_map::{ObjId, State, TileType};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MovePoints(pub i32);
@@ -83,7 +83,7 @@ impl Path {
         *self.tiles().last().unwrap()
     }
 
-    pub fn truncate(&self, state: &State, id: ObjId) -> Option<Path> {
+    pub fn truncate(&self, state: &State, id: ObjId) -> Option<Self> {
         let agent = state.parts().agent.get(id);
         let mut new_path = Vec::new();
         let mut cost = MovePoints(0);
@@ -97,7 +97,7 @@ impl Path {
             new_path.push(to);
         }
         if new_path.len() >= 2 {
-            Some(Path::new(new_path))
+            Some(Self::new(new_path))
         } else {
             None
         }
@@ -151,8 +151,8 @@ pub struct Pathfinder {
 }
 
 impl Pathfinder {
-    pub fn new(map_radius: Distance) -> Pathfinder {
-        Pathfinder {
+    pub fn new(map_radius: Distance) -> Self {
+        Self {
             queue: VecDeque::new(),
             map: HexMap::new(map_radius),
         }
@@ -246,8 +246,8 @@ impl Pathfinder {
 
 #[cfg(test)]
 mod tests {
-    use core::movement::{Path, Step};
-    use core::PosHex;
+    use core::tactical_map::movement::{Path, Step};
+    use core::tactical_map::PosHex;
 
     const NODE_0: PosHex = PosHex { q: 0, r: 1 };
     const NODE_1: PosHex = PosHex { q: 1, r: 0 };

@@ -7,13 +7,13 @@ use ron;
 use scene::{action, Action, Boxed};
 use ui::{self, Gui};
 
-use core::ability::Ability;
-use core::ai::battle::Ai;
-use core::effect;
 use core::map::PosHex;
-use core::movement::Pathfinder;
-use core::{self, ability, check, command, execute, state};
-use core::{ObjId, PlayerId, State};
+use core::tactical_map::ability::Ability;
+use core::tactical_map::ai::Ai;
+use core::tactical_map::effect;
+use core::tactical_map::movement::Pathfinder;
+use core::tactical_map::{self, ability, check, command, execute, state};
+use core::tactical_map::{ObjId, PlayerId, State};
 use geom;
 use screen::battle::view::{make_action_create_map, BattleView, SelectionMode};
 use screen::{Screen, Transition};
@@ -122,7 +122,7 @@ fn build_panel_agent_abilities(
         None => return Ok(None),
     };
     let agent = parts.agent.get(id);
-    if agent.attacks <= core::Attacks(0) && agent.jokers <= core::Jokers(0) {
+    if agent.attacks <= tactical_map::Attacks(0) && agent.jokers <= tactical_map::Jokers(0) {
         return Ok(None);
     }
     let mut layout = ui::VLayout::new();
@@ -287,7 +287,7 @@ impl Battle {
         let mut actions = Vec::new();
         let state = &mut self.state;
         let view = &mut self.view;
-        core::execute(state, command, &mut |state, event, phase| {
+        tactical_map::execute(state, command, &mut |state, event, phase| {
             let action = visualize::visualize(state, view, context, event, phase)
                 .expect("Can't visualize the event");
             actions.push(action);

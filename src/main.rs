@@ -46,10 +46,10 @@ struct MainState {
 }
 
 impl MainState {
-    fn new(context: &mut Context) -> ZResult<MainState> {
+    fn new(context: &mut Context) -> ZResult<Self> {
         let start_screen = Box::new(screen::MainMenu::new(context)?);
         let screens = screen::Screens::new(start_screen);
-        let mut this = MainState { screens };
+        let mut this = Self { screens };
         {
             let (w, h) = graphics::get_drawable_size(context);
             this.resize(context, w, h);

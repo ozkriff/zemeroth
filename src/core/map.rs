@@ -263,7 +263,7 @@ impl Dir {
         }
     }
 
-    pub fn get_dir_from_to(from: PosHex, to: PosHex) -> Dir {
+    pub fn get_dir_from_to(from: PosHex, to: PosHex) -> Self {
         assert_eq!(distance_hex(from, to), Distance(1));
         let diff = [to.q - from.q, to.r - from.r];
         for dir in dirs() {
@@ -274,7 +274,7 @@ impl Dir {
         panic!("impossible positions: {:?}, {:?}", from, to); // TODO: implement Display for PosHex
     }
 
-    pub fn get_neighbor_pos(pos: PosHex, dir: Dir) -> PosHex {
+    pub fn get_neighbor_pos(pos: PosHex, dir: Self) -> PosHex {
         let diff = DIR_TO_POS_DIFF[dir.to_int() as usize];
         PosHex {
             q: pos.q + diff[0],
