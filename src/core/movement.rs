@@ -83,7 +83,7 @@ impl Path {
         *self.tiles().last().unwrap()
     }
 
-    pub fn truncate(&self, state: &State, id: ObjId) -> Option<Path> {
+    pub fn truncate(&self, state: &State, id: ObjId) -> Option<Self> {
         let agent = state.parts().agent.get(id);
         let mut new_path = Vec::new();
         let mut cost = MovePoints(0);
@@ -97,7 +97,7 @@ impl Path {
             new_path.push(to);
         }
         if new_path.len() >= 2 {
-            Some(Path::new(new_path))
+            Some(Self::new(new_path))
         } else {
             None
         }
@@ -151,8 +151,8 @@ pub struct Pathfinder {
 }
 
 impl Pathfinder {
-    pub fn new(map_radius: Distance) -> Pathfinder {
-        Pathfinder {
+    pub fn new(map_radius: Distance) -> Self {
+        Self {
             queue: VecDeque::new(),
             map: HexMap::new(map_radius),
         }
