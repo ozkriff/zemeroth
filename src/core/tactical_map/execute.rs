@@ -2,17 +2,17 @@ use std::collections::HashMap;
 
 use rand::{thread_rng, Rng};
 
-use core::ability::{self, Ability, PassiveAbility};
-use core::apply::apply;
-use core::check::{check, Error};
-use core::command::{self, Command};
-use core::component::{self, Component};
-use core::effect::{self, Duration, Effect, LastingEffect, TimedEffect};
-use core::event::{self, ActiveEvent, Event};
 use core::map::{self, Dir, PosHex};
-use core::movement::Path;
-use core::state;
-use core::{self, Moves, ObjId, Phase, PlayerId, State, TileType};
+use core::tactical_map::ability::{self, Ability, PassiveAbility};
+use core::tactical_map::apply::apply;
+use core::tactical_map::check::{check, Error};
+use core::tactical_map::command::{self, Command};
+use core::tactical_map::component::{self, Component};
+use core::tactical_map::effect::{self, Duration, Effect, LastingEffect, TimedEffect};
+use core::tactical_map::event::{self, ActiveEvent, Event};
+use core::tactical_map::movement::Path;
+use core::tactical_map::state;
+use core::tactical_map::{self, Moves, ObjId, Phase, PlayerId, State, TileType};
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum ApplyPhase {
@@ -173,7 +173,7 @@ fn execute_attack_internal(
 
 fn try_execute_passive_ability_burn(state: &mut State, target_id: ObjId) -> ExecuteContext {
     let mut context = ExecuteContext::default();
-    let damage = core::Strength(1);
+    let damage = tactical_map::Strength(1);
     let target_effects = vec![wound_or_kill(state, target_id, damage)];
     context.instant_effects.insert(target_id, target_effects);
     context
@@ -181,7 +181,7 @@ fn try_execute_passive_ability_burn(state: &mut State, target_id: ObjId) -> Exec
 
 fn try_execute_passive_ability_spike_trap(state: &mut State, target_id: ObjId) -> ExecuteContext {
     let mut context = ExecuteContext::default();
-    let damage = core::Strength(1);
+    let damage = tactical_map::Strength(1);
     let target_effects = vec![wound_or_kill(state, target_id, damage)];
     context.instant_effects.insert(target_id, target_effects);
     context
@@ -511,7 +511,7 @@ fn execute_effects(state: &mut State, cb: Cb) {
                 let mut target_effects = Vec::new();
                 match effect.effect {
                     LastingEffect::Poison => {
-                        let damage = core::Strength(1);
+                        let damage = tactical_map::Strength(1);
                         target_effects.push(wound_or_kill(state, obj_id, damage));
                     }
                     LastingEffect::Stun => {
@@ -779,7 +779,7 @@ fn execute_use_ability_explode_poison(
     context
 }
 
-fn wound_or_kill(state: &State, id: ObjId, damage: core::Strength) -> Effect {
+fn wound_or_kill(state: &State, id: ObjId, damage: tactical_map::Strength) -> Effect {
     let strength = state.parts().strength.get(id);
     if strength.strength > damage {
         Effect::Wound(effect::Wound { damage })
@@ -800,7 +800,7 @@ fn execute_use_ability_explode_damage(
         if distance.0 > 1 || command.id == id {
             continue;
         }
-        let effects = vec![wound_or_kill(state, id, core::Strength(1))];
+        let effects = vec![wound_or_kill(state, id, tactical_map::Strength(1))];
         context.instant_effects.insert(id, effects);
     }
     assert!(context.instant_effects.get(&command.id).is_none());
@@ -1099,8 +1099,8 @@ pub fn create_objects(state: &mut State, cb: Cb) {
 mod tests {
     use std::collections::HashMap;
 
-    use core::effect::Effect;
-    use core::ObjId;
+    use core::tactical_map::effect::Effect;
+    use core::tactical_map::ObjId;
 
     use super::ExecuteContext;
 

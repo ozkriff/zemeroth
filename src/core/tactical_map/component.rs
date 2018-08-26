@@ -1,6 +1,7 @@
-use core::ability::{Ability, PassiveAbility, RechargeableAbility};
-use core::effect::TimedEffect;
-use core::{self, map, Attacks, Jokers, MovePoints, Moves, ObjId, Phase, PlayerId};
+use core::map;
+use core::tactical_map::ability::{Ability, PassiveAbility, RechargeableAbility};
+use core::tactical_map::effect::TimedEffect;
+use core::tactical_map::{self, Attacks, Jokers, MovePoints, Moves, ObjId, Phase, PlayerId};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Pos(pub map::PosHex);
@@ -11,8 +12,8 @@ pub struct Blocker;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Strength {
-    pub base_strength: core::Strength,
-    pub strength: core::Strength,
+    pub base_strength: tactical_map::Strength,
+    pub strength: tactical_map::Strength,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -31,7 +32,7 @@ pub struct Agent {
     pub jokers: Jokers,
 
     // static
-    pub attack_strength: core::Strength,
+    pub attack_strength: tactical_map::Strength,
     pub attack_distance: map::Distance,
     pub move_points: MovePoints,
     pub reactive_attacks: Attacks,
