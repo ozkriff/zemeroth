@@ -8,13 +8,13 @@ use ZResult;
 
 mod battle;
 mod camp;
-mod campaign_menu;
 mod main_menu;
+mod strategy_map;
 
 pub use self::battle::Battle;
 pub use self::camp::Camp;
-pub use self::campaign_menu::CampaignMenu;
 pub use self::main_menu::MainMenu;
+pub use self::strategy_map::StrategyMap;
 
 #[derive(Debug)]
 pub enum Transition {
