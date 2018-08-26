@@ -8,7 +8,7 @@ use scene::{action, Action, Boxed};
 use ui::{self, Gui};
 
 use core::ability::Ability;
-use core::ai::battle::Ai;
+use core::ai::Ai;
 use core::effect;
 use core::map::PosHex;
 use core::movement::Pathfinder;
