@@ -2,11 +2,16 @@ use std::time::Duration;
 
 use ggez::graphics::{self, Font, Point2, Text};
 use ggez::Context;
-use scene::{Layer, Scene, Sprite};
+// use scene::{Layer, Scene, Sprite};
 use ui::{self, Gui};
+use scene::action::{self, Boxed};
 
+use self::view::{make_action_create_map, View};
+use core::strategy_map::State;
 use screen::{self, Screen, Transition};
 use ZResult;
+
+mod view;
 
 #[derive(Copy, Clone, Debug)]
 enum Message {
@@ -29,6 +34,7 @@ fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
     Ok(gui)
 }
 
+/*
 #[derive(Debug, Clone, Default)]
 struct Layers {
     fg: Layer,
@@ -39,15 +45,37 @@ impl Layers {
         vec![self.fg]
     }
 }
+*/
+
+fn prepare_map_and_state(
+    context: &mut Context,
+    state: &mut State,
+    view: &mut View,
+) -> ZResult {
+    let mut actions = Vec::new();
+    // execute::create_terrain(state);
+    actions.push(make_action_create_map(state, view)?);
+    // execute::create_objects(state, &mut |state, event, phase| {
+    //     let action = visualize::visualize(state, view, context, event, phase)
+    //         .expect("Can't visualize the event");
+    //     let action = action::Fork::new(action).boxed();
+    //     actions.push(action);
+    // });
+    view.add_action(action::Sequence::new(actions).boxed());
+    Ok(())
+}
 
 #[derive(Debug)]
 pub struct StrategyMap {
     font: graphics::Font,
     gui: Gui<Message>,
 
-    sprite: Sprite,
-    scene: Scene,
-    layers: Layers,
+    state: State,
+    view: View,
+
+    // sprite: Sprite,
+    // scene: Scene,
+    // layers: Layers,
 }
 
 impl StrategyMap {
@@ -55,32 +83,39 @@ impl StrategyMap {
         let font = Font::new(context, "/OpenSans-Regular.ttf", 32)?;
         let gui = make_gui(context, &font)?;
 
-        let mut sprite = Sprite::from_path(context, "/tile.png", 0.1)?;
-        sprite.set_centered(true);
-        sprite.set_pos(Point2::new(0.5, 0.5));
+        let mut state = State::new();
 
-        let layers = Layers::default();
-        let scene = Scene::new(layers.clone().sorted());
+        // let mut sprite = Sprite::from_path(context, "/tile.png", 0.1)?;
+        // sprite.set_centered(true);
+        // sprite.set_pos(Point2::new(0.5, 0.5));
+
+        // let layers = Layers::default();
+        // let scene = Scene::new(layers.clone().sorted());
+
+        let mut view = View::new(&state, context)?;
+
+        prepare_map_and_state(context, &mut state, &mut view)?;
 
         Ok(Self {
             gui,
             font,
-            sprite,
-            scene,
-            layers,
+            state,
+            view,
+            // sprite,
+            // scene,
+            // layers,
         })
     }
 }
 
 impl Screen for StrategyMap {
     fn update(&mut self, _context: &mut Context, dtime: Duration) -> ZResult<Transition> {
-        self.scene.tick(dtime);
+        self.view.tick(dtime);
         Ok(Transition::None)
     }
 
     fn draw(&self, context: &mut Context) -> ZResult {
-        self.sprite.draw(context)?;
-        self.scene.draw(context)?;
+        self.view.draw(context)?;
         self.gui.draw(context)
     }
 
