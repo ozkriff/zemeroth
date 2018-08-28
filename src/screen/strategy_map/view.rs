@@ -284,8 +284,7 @@ impl View {
         sprite.set_pos(point);
         let action = action::Show::new(layer, sprite).boxed();
         self.scene.add_action(action);
-        */
-    }
+        */    }
 
     fn hide_selection_marker(&mut self) {
         let layer = &self.layers.selection_marker;
@@ -360,11 +359,7 @@ impl View {
     }
 }
 
-fn make_action_show_tile(
-    state: &State,
-    view: &View,
-    at: PosHex,
-) -> ZResult<Box<dyn Action>> {
+fn make_action_show_tile(state: &State, view: &View, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let image = match state.map().tile(at) {
         TileType::Plain => view.images.tile.clone(),

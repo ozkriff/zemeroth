@@ -411,7 +411,6 @@ impl Battle {
 
     fn handle_event_click(&mut self, context: &mut Context, point: Point2) -> ZResult {
         let pos = geom::point_to_hex(self.view.tile_size(), point);
-        self.gui.click(point);
         if self.block_timer.is_some() {
             return Ok(());
         }

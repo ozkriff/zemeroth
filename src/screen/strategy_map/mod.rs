@@ -3,11 +3,12 @@ use std::time::Duration;
 use ggez::graphics::{self, Font, Point2, Text};
 use ggez::Context;
 // use scene::{Layer, Scene, Sprite};
-use ui::{self, Gui};
 use scene::action::{self, Boxed};
+use ui::{self, Gui};
 
 use self::view::{make_action_create_map, View};
 use core::strategy_map::State;
+use geom;
 use screen::{self, Screen, Transition};
 use ZResult;
 
@@ -34,21 +35,8 @@ fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
     Ok(gui)
 }
 
-/*
-#[derive(Debug, Clone, Default)]
-struct Layers {
-    fg: Layer,
-}
-
-impl Layers {
-    fn sorted(self) -> Vec<Layer> {
-        vec![self.fg]
-    }
-}
-*/
-
 fn prepare_map_and_state(
-    context: &mut Context,
+    /*context*/ _: &mut Context,
     state: &mut State,
     view: &mut View,
 ) -> ZResult {
@@ -72,7 +60,6 @@ pub struct StrategyMap {
 
     state: State,
     view: View,
-
     // sprite: Sprite,
     // scene: Scene,
     // layers: Layers,
@@ -106,6 +93,23 @@ impl StrategyMap {
             // layers,
         })
     }
+
+    fn handle_event_click(&mut self, _: &mut Context, point: Point2) -> ZResult {
+        let pos = geom::point_to_hex(self.view.tile_size(), point);
+        println!("pos = {:?}", pos);
+        // if self.block_timer.is_some() {
+        //     return Ok(());
+        // }
+        if self.state.map().is_inboard(pos) {
+            println!("inboard");
+            // if let Some(id) = state::agent_id_at_opt(&self.state, pos) {
+            //     self.handle_agent_click(context, id)?;
+            // } else {
+            //     self.try_move_selected_agent(context, pos);
+            // }
+        }
+        Ok(())
+    }
 }
 
 impl Screen for StrategyMap {
@@ -132,10 +136,11 @@ impl Screen for StrategyMap {
         match message {
             Some(Message::StartBattle) => {
                 let screen = screen::Battle::new(context)?;
-                Ok(Transition::Push(Box::new(screen)))
+                return Ok(Transition::Push(Box::new(screen)));
             }
-            Some(Message::Menu) => Ok(Transition::Pop),
-            None => Ok(Transition::None),
+            Some(Message::Menu) => return Ok(Transition::Pop),
+            None => self.handle_event_click(context, pos)?,
         }
+        Ok(Transition::None)
     }
 }
