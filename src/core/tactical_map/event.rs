@@ -4,6 +4,7 @@ use core::tactical_map::{
     ability::{Ability, PassiveAbility},
     effect::{Effect, LastingEffect, TimedEffect},
     movement::Path,
+    state::BattleResult,
     Moves, ObjId, PlayerId, PosHex,
 };
 
@@ -22,6 +23,7 @@ pub struct Event {
 #[derive(Debug, Clone)]
 pub enum ActiveEvent {
     Create,
+    EndBattle(EndBattle),
     EndTurn(EndTurn),
     BeginTurn(BeginTurn),
     UseAbility(UseAbility),
@@ -50,6 +52,11 @@ pub struct Attack {
     pub attacker_id: ObjId,
     pub target_id: ObjId,
     pub mode: AttackMode,
+}
+
+#[derive(Debug, Clone)]
+pub struct EndBattle {
+    pub result: BattleResult,
 }
 
 #[derive(Debug, Clone)]

@@ -27,6 +27,7 @@ fn apply_event(state: &mut State, event: &Event) {
         ActiveEvent::MoveTo(ref ev) => apply_event_move_to(state, ev),
         ActiveEvent::Attack(ref ev) => apply_event_attack(state, ev),
         ActiveEvent::EndTurn(ref ev) => apply_event_end_turn(state, ev),
+        ActiveEvent::EndBattle(ref ev) => apply_event_end_battle(state, ev),
         ActiveEvent::BeginTurn(ref ev) => apply_event_begin_turn(state, ev),
         ActiveEvent::UseAbility(ref ev) => apply_event_use_ability(state, ev),
         ActiveEvent::UsePassiveAbility(ref ev) => apply_event_use_passive_ability(state, ev),
@@ -107,6 +108,10 @@ fn reset_moves_and_attacks(state: &mut State, player_id: PlayerId) {
         agent.attacks = agent.base_attacks;
         agent.jokers = agent.base_jokers;
     }
+}
+
+fn apply_event_end_battle(state: &mut State, event: &event::EndBattle) {
+    state.set_battle_result(event.result.clone());
 }
 
 fn apply_event_begin_turn(state: &mut State, event: &event::BeginTurn) {
