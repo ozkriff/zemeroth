@@ -14,17 +14,10 @@ use core::tactical_map::execute::ApplyPhase;
 use core::tactical_map::{ObjId, PlayerId, State};
 use geom;
 use screen::battle::view::BattleView;
-use utils::time_s;
+use utils::{fork, seq, time_s};
 use ZResult;
 
-fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
-    action::Sequence::new(actions).boxed()
-}
-
-fn fork(action: Box<dyn Action>) -> Box<dyn Action> {
-    action::Fork::new(action).boxed()
-}
-
+// TODO: why is this public?
 pub fn message(
     view: &mut BattleView,
     context: &mut Context,
@@ -209,7 +202,9 @@ fn generate_brief_obj_info(
     Ok(seq(actions))
 }
 
-pub fn refresh_brief_agent_info(
+// TODO: why is this public?
+// pub fn refresh_brief_agent_info(
+fn refresh_brief_agent_info(
     state: &State,
     view: &mut BattleView,
     id: ObjId,

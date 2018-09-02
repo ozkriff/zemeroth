@@ -37,6 +37,7 @@ impl Phase {
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ObjId(i32);
 
+// TODO: is this really a good idea? Not sure. This way `0` id can be easily created by everyone.
 impl Default for ObjId {
     fn default() -> Self {
         ObjId(0)

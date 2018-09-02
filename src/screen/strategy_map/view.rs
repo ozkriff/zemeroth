@@ -1,18 +1,15 @@
-use rand::{thread_rng, Rng};
-// use std::collections::HashMap;
+use std::collections::HashMap;
 use std::time::Duration;
 
 use ggez::graphics::{Color, Font, Image, Point2};
 use ggez::Context;
+use rand::{thread_rng, Rng};
 use scene::action;
 use scene::{Action, Boxed, Layer, Scene, Sprite};
 
-// TODO: Remove tactical_map stuff
-use core::map::{Distance, HexMap, PosHex};
-use core::strategy_map::state::{State, TileType};
-// use core::tactical_map::ability::Ability;
-use core::tactical_map::{self, command, movement};
-use core::tactical_map::{Jokers, Moves, ObjId}; // TODO: remove most of this
+use core::map::{Distance, /*HexMap,*/ PosHex};
+use core::strategy_map::state::State;
+use core::strategy_map::{Id, TileType};
 use geom::{self, hex_to_point};
 // use screen;
 // use screen::battle::visualize;
@@ -27,7 +24,9 @@ pub enum SelectionMode {
 }
 */
 
+#[allow(dead_code)] // TODO:
 const TILE_COLOR_WALKABLE: [f32; 4] = [0.1, 0.6, 0.1, 0.5];
+#[allow(dead_code)] // TODO:
 const TILE_COLOR_ATTACKABLE: [f32; 4] = [0.8, 0.0, 0.0, 0.6];
 // const TILE_COLOR_ABILITY: [f32; 4] = [0.0, 0.0, 0.9, 0.5];
 
@@ -70,9 +69,9 @@ pub fn tile_size(map_height: Distance) -> f32 {
 struct Sprites {
     selection_marker: Sprite,
     highlighted_tiles: Vec<Sprite>,
-    // id_to_sprite_map: HashMap<ObjId, Sprite>,
-    // id_to_shadow_map: HashMap<ObjId, Sprite>,
-    // agent_info: HashMap<ObjId, Vec<Sprite>>,
+    id_to_sprite_map: HashMap<Id, Sprite>,
+    // id_to_shadow_map: HashMap<Id, Sprite>,
+    // agent_info: HashMap<Id, Vec<Sprite>>,
 }
 
 #[derive(Debug)]
@@ -128,7 +127,7 @@ impl View {
         let sprites = Sprites {
             selection_marker,
             highlighted_tiles: Vec::new(),
-            // id_to_sprite_map: HashMap::new(),
+            id_to_sprite_map: HashMap::new(),
             // id_to_shadow_map: HashMap::new(),
             // agent_info: HashMap::new(),
         };
@@ -146,6 +145,7 @@ impl View {
         &self.font
     }
 
+    #[allow(dead_code)] // TODO:
     pub fn images(&self) -> &Images {
         &self.images
     }
@@ -176,54 +176,47 @@ impl View {
         &self.layers
     }
 
-    /*
-    pub fn add_object(&mut self, id: ObjId, sprite: &Sprite, sprite_shadow: &Sprite) {
-        let sprite_shadow = sprite_shadow.clone();
-        let sprite = sprite.clone();
-        self.sprites.id_to_sprite_map.insert(id, sprite);
-        self.sprites.id_to_shadow_map.insert(id, sprite_shadow);
-    }
+    // pub fn add_object(&mut self, id: Id, sprite: &Sprite, sprite_shadow: &Sprite) {
+    //     let sprite_shadow = sprite_shadow.clone();
+    //     let sprite = sprite.clone();
+    //     self.sprites.id_to_sprite_map.insert(id, sprite);
+    //     self.sprites.id_to_shadow_map.insert(id, sprite_shadow);
+    // }
 
-    pub fn remove_object(&mut self, id: ObjId) {
-        self.sprites.id_to_sprite_map.remove(&id).unwrap();
-        self.sprites.id_to_shadow_map.remove(&id).unwrap();
-    }
+    // pub fn remove_object(&mut self, id: Id) {
+    //     self.sprites.id_to_sprite_map.remove(&id).unwrap();
+    //     self.sprites.id_to_shadow_map.remove(&id).unwrap();
+    // }
 
-    pub fn id_to_sprite(&mut self, id: ObjId) -> &Sprite {
+    pub fn id_to_sprite(&mut self, id: Id) -> &Sprite {
         &self.sprites.id_to_sprite_map[&id]
     }
 
-    pub fn id_to_shadow_sprite(&mut self, id: ObjId) -> &Sprite {
-        &self.sprites.id_to_shadow_map[&id]
-    }
+    // pub fn id_to_shadow_sprite(&mut self, id: Id) -> &Sprite {
+    //     &self.sprites.id_to_shadow_map[&id]
+    // }
 
-    pub fn agent_info_check(&self, id: ObjId) -> bool {
-        self.sprites.agent_info.get(&id).is_some()
-    }
+    // pub fn agent_info_check(&self, id: Id) -> bool {
+    //     self.sprites.agent_info.get(&id).is_some()
+    // }
 
-    pub fn agent_info_get(&mut self, id: ObjId) -> Vec<Sprite> {
-        self.sprites.agent_info.remove(&id).unwrap()
-    }
+    // pub fn agent_info_get(&mut self, id: Id) -> Vec<Sprite> {
+    //     self.sprites.agent_info.remove(&id).unwrap()
+    // }
 
-    pub fn agent_info_set(&mut self, id: ObjId, sprites: Vec<Sprite>) {
-        self.sprites.agent_info.insert(id, sprites);
-    }
-    */
+    // pub fn agent_info_set(&mut self, id: Id, sprites: Vec<Sprite>) {
+    //     self.sprites.agent_info.insert(id, sprites);
+    // }
 
-    /*
     pub fn set_mode(
         &mut self,
         state: &State,
-        map: &HexMap<movement::Tile>,
-        selected_id: ObjId,
-        mode: &SelectionMode,
+        // map: &HexMap<movement::Tile>,
+        selected_id: Id,
     ) -> ZResult {
-        match *mode {
-            SelectionMode::Normal => self.select_normal(state, map, selected_id),
-            SelectionMode::Ability(ability) => self.select_ability(state, selected_id, ability),
-        }
+        // self.select_normal(state, map, selected_id)
+        self.select_normal(state, selected_id)
     }
-    */
 
     fn remove_highlights(&mut self) {
         for sprite in self.sprites.highlighted_tiles.split_off(0) {
@@ -249,34 +242,19 @@ impl View {
         self.remove_highlights();
     }
 
-    fn select_normal(&mut self, state: &State, map: &HexMap<movement::Tile>, id: ObjId) -> ZResult {
+    fn select_normal(
+        &mut self,
+        state: &State,
+        // map: &HexMap<movement::Tile>,
+        id: Id,
+    ) -> ZResult {
         self.show_selection_marker(state, id);
-        self.show_walkable_tiles(state, map, id)?;
+        // self.show_walkable_tiles(state, map, id)?;
         // self.show_attackable_tiles(state, id)
         Ok(())
     }
 
-    /*
-    fn select_ability(&mut self, state: &State, selected_id: ObjId, ability: Ability) -> ZResult {
-        self.remove_highlights();
-        let positions = state.map().iter();
-        for pos in positions {
-            let command = command::Command::UseAbility(command::UseAbility {
-                id: selected_id,
-                ability,
-                pos,
-            });
-            if core::check(state, &command).is_ok() {
-                self.highlight(pos, TILE_COLOR_ABILITY.into())?;
-            }
-        }
-        Ok(())
-    }
-    */
-
-    fn show_selection_marker(&mut self, _state: &State, _id: ObjId) {
-        unimplemented!("show_selection_marker"); // TODO
-        /*
+    fn show_selection_marker(&mut self, state: &State, id: Id) {
         let pos = state.parts().pos.get(id).0;
         let point = hex_to_point(self.tile_size(), pos);
         let layer = &self.layers.selection_marker;
@@ -284,7 +262,7 @@ impl View {
         sprite.set_pos(point);
         let action = action::Show::new(layer, sprite).boxed();
         self.scene.add_action(action);
-        */    }
+    }
 
     fn hide_selection_marker(&mut self) {
         let layer = &self.layers.selection_marker;
@@ -296,7 +274,7 @@ impl View {
     }
 
     /*
-    fn show_attackable_tiles(&mut self, state: &State, id: ObjId) -> ZResult {
+    fn show_attackable_tiles(&mut self, state: &State, id: Id) -> ZResult {
         let parts = state.parts();
         let selected_agent_player_id = parts.belongs_to.get(id).0;
         for target_id in parts.agent.ids() {
@@ -318,27 +296,28 @@ impl View {
     }
     */
 
-    fn show_walkable_tiles(
-        &mut self,
-        _state: &State,
-        _map: &HexMap<movement::Tile>,
-        _id: ObjId,
-    ) -> ZResult {
-        /*
-        let agent = state.parts().agent.get(id);
-        if agent.moves == Moves(0) && agent.jokers == Jokers(0) {
-            return Ok(());
-        }
-        for pos in map.iter() {
-            if map.tile(pos).cost() > agent.move_points {
-                continue;
-            }
-            self.highlight(pos, TILE_COLOR_WALKABLE.into())?
-        }
-        */
-        Ok(())
-    }
+    // fn show_walkable_tiles(
+    //     &mut self,
+    //     _state: &State,
+    //     _map: &HexMap<movement::Tile>,
+    //     _id: Id,
+    // ) -> ZResult {
+    //     /*
+    //     let agent = state.parts().agent.get(id);
+    //     if agent.moves == Moves(0) && agent.jokers == Jokers(0) {
+    //         return Ok(());
+    //     }
+    //     for pos in map.iter() {
+    //         if map.tile(pos).cost() > agent.move_points {
+    //             continue;
+    //         }
+    //         self.highlight(pos, TILE_COLOR_WALKABLE.into())?
+    //     }
+    //     */
+    //     Ok(())
+    // }
 
+    #[allow(dead_code)] // TODO:
     fn highlight(&mut self, pos: PosHex, color: Color) -> ZResult {
         let size = self.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
         let mut sprite = Sprite::from_image(self.images.white_hex.clone(), size);
@@ -363,7 +342,7 @@ fn make_action_show_tile(state: &State, view: &View, at: PosHex) -> ZResult<Box<
     let screen_pos = hex_to_point(view.tile_size(), at);
     let image = match state.map().tile(at) {
         TileType::Plain => view.images.tile.clone(),
-        TileType::Water => view.images.tile_rocks.clone(), // TODO: use some water tile
+        TileType::Water => view.images.tile_rocks.clone(), // TODO: use some image of water
     };
     let size = view.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
     let mut sprite = Sprite::from_image(image, size);

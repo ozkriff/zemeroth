@@ -151,11 +151,11 @@ impl Iterator for HexIter {
 #[allow(dead_code)]
 pub fn dump_map<F: Fn(PosHex) -> char>(radius: Distance, f: F) {
     let s = radius.0;
-    for r in -s..s + 1 {
+    for r in -s..=s {
         for _ in -s..r {
             print!(" ");
         }
-        for q in -s..s + 1 {
+        for q in -s..=s {
             let pos = PosHex { q, r };
             if is_inboard(radius, pos) {
                 print!("{} ", f(pos));

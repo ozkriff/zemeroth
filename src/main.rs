@@ -10,6 +10,7 @@ extern crate serde_derive;
 #[macro_use]
 extern crate zcomponents;
 
+#[allow(unused_imports)] // TODO: wtf, nightly?
 #[macro_use]
 extern crate structopt;
 
