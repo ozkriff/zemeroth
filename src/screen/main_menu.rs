@@ -1,7 +1,9 @@
 use std::time::Duration;
 
-use ggez::graphics::{Font, Point2, Text};
-use ggez::Context;
+use ggez::{
+    graphics::{Font, Point2, Text},
+    Context,
+};
 use scene::Sprite;
 use ui::{self, Gui};
 

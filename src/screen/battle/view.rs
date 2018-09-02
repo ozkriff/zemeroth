@@ -1,16 +1,16 @@
-use rand::{thread_rng, Rng};
-use std::collections::HashMap;
-use std::time::Duration;
+use std::{collections::HashMap, time::Duration};
 
-use ggez::graphics::{Color, Font, Image, Point2};
-use ggez::Context;
-use scene::action;
-use scene::{Action, Boxed, Layer, Scene, Sprite};
+use ggez::{
+    graphics::{Color, Font, Image, Point2},
+    Context,
+};
+use rand::{thread_rng, Rng};
+use scene::{action, Action, Boxed, Layer, Scene, Sprite};
 
 use core::map::{Distance, HexMap, PosHex};
-use core::tactical_map::ability::Ability;
-use core::tactical_map::{self, command, movement};
-use core::tactical_map::{Jokers, Moves, ObjId, State, TileType};
+use core::tactical_map::{
+    self, ability::Ability, command, movement, Jokers, Moves, ObjId, State, TileType,
+};
 use geom::{self, hex_to_point};
 use screen::battle::visualize;
 use utils::time_s;

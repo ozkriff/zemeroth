@@ -1,9 +1,10 @@
-use core::tactical_map::ability::{self, Ability};
-use core::tactical_map::component::{self, Component};
-use core::tactical_map::effect::{self, Effect, LastingEffect};
-use core::tactical_map::event::{self, ActiveEvent, Event};
-use core::tactical_map::state;
-use core::tactical_map::{Attacks, Jokers, Moves, ObjId, PlayerId, State};
+use core::tactical_map::{
+    ability::{self, Ability},
+    component::{self, Component},
+    effect::{self, Effect, LastingEffect},
+    event::{self, ActiveEvent, Event},
+    state, Attacks, Jokers, Moves, ObjId, PlayerId, State,
+};
 
 pub fn apply(state: &mut State, event: &Event) {
     debug!("event::apply: {:?}", event);

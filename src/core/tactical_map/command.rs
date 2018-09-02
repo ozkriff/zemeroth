@@ -1,7 +1,5 @@
 use core::map::PosHex;
-use core::tactical_map::ability::Ability;
-use core::tactical_map::movement::Path;
-use core::tactical_map::{ObjId, PlayerId};
+use core::tactical_map::{ability::Ability, movement::Path, ObjId, PlayerId};
 
 #[derive(Debug, Clone)]
 pub enum Command {

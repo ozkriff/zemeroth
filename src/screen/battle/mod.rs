@@ -1,19 +1,18 @@
-use std::io::Read;
-use std::time::Duration;
+use std::{io::Read, time::Duration};
 
-use ggez::graphics::{self, Font, Point2, Text};
-use ggez::Context;
+use ggez::{
+    graphics::{self, Font, Point2, Text},
+    Context,
+};
 use ron;
 use scene::{action, Action, Boxed};
 use ui::{self, Gui};
 
 use core::map::PosHex;
-use core::tactical_map::ability::Ability;
-use core::tactical_map::ai::Ai;
-use core::tactical_map::effect;
-use core::tactical_map::movement::Pathfinder;
-use core::tactical_map::{self, ability, check, command, execute, state};
-use core::tactical_map::{ObjId, PlayerId, State};
+use core::tactical_map::{
+    self, ability, ability::Ability, ai::Ai, check, command, effect, execute, movement::Pathfinder,
+    state, ObjId, PlayerId, State,
+};
 use geom;
 use screen::battle::view::{make_action_create_map, BattleView, SelectionMode};
 use screen::{Screen, Transition};

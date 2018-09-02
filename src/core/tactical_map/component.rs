@@ -1,7 +1,10 @@
 use core::map;
-use core::tactical_map::ability::{Ability, PassiveAbility, RechargeableAbility};
-use core::tactical_map::effect::TimedEffect;
-use core::tactical_map::{self, Attacks, Jokers, MovePoints, Moves, ObjId, Phase, PlayerId};
+use core::tactical_map::{
+    self,
+    ability::{Ability, PassiveAbility, RechargeableAbility},
+    effect::TimedEffect,
+    Attacks, Jokers, MovePoints, Moves, ObjId, Phase, PlayerId,
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Pos(pub map::PosHex);

@@ -3,16 +3,18 @@ use std::collections::HashMap;
 use rand::{thread_rng, Rng};
 
 use core::map::{self, Dir, PosHex};
-use core::tactical_map::ability::{self, Ability, PassiveAbility};
-use core::tactical_map::apply::apply;
-use core::tactical_map::check::{check, Error};
-use core::tactical_map::command::{self, Command};
-use core::tactical_map::component::{self, Component};
-use core::tactical_map::effect::{self, Duration, Effect, LastingEffect, TimedEffect};
-use core::tactical_map::event::{self, ActiveEvent, Event};
-use core::tactical_map::movement::Path;
-use core::tactical_map::state;
-use core::tactical_map::{self, Moves, ObjId, Phase, PlayerId, State, TileType};
+use core::tactical_map::{
+    self,
+    ability::{self, Ability, PassiveAbility},
+    apply::apply,
+    check::{check, Error},
+    command::{self, Command},
+    component::{self, Component},
+    effect::{self, Duration, Effect, LastingEffect, TimedEffect},
+    event::{self, ActiveEvent, Event},
+    movement::Path,
+    state, Moves, ObjId, Phase, PlayerId, State, TileType,
+};
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum ApplyPhase {
@@ -1099,8 +1101,7 @@ pub fn create_objects(state: &mut State, cb: Cb) {
 mod tests {
     use std::collections::HashMap;
 
-    use core::tactical_map::effect::Effect;
-    use core::tactical_map::ObjId;
+    use core::tactical_map::{effect::Effect, ObjId};
 
     use super::ExecuteContext;
 

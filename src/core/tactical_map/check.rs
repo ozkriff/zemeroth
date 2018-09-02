@@ -1,9 +1,10 @@
 use core::map::{self, Distance, PosHex};
-use core::tactical_map::ability::{self, Ability};
-use core::tactical_map::command::{self, Command};
-use core::tactical_map::state;
-use core::tactical_map::State;
-use core::tactical_map::{self, Attacks, Jokers, Moves, ObjId};
+use core::tactical_map::{
+    self,
+    ability::{self, Ability},
+    command::{self, Command},
+    state, Attacks, Jokers, Moves, ObjId, State,
+};
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
     match *command {

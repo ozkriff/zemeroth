@@ -1,6 +1,4 @@
-use std::io::Read;
-use std::process;
-use std::time::Duration;
+use std::{io::Read, process, time::Duration};
 
 use ggez::filesystem::Filesystem;
 
