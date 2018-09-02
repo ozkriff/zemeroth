@@ -1,17 +1,19 @@
 use std::time::Duration;
 
-use ggez::graphics::{Color, Text, Vector2};
-use ggez::nalgebra;
-use ggez::Context;
-use scene::action;
-use scene::{Action, Boxed, Sprite};
+use ggez::{
+    graphics::{Color, Text, Vector2},
+    nalgebra, Context,
+};
+use scene::{action, Action, Boxed, Sprite};
 
 use core::map::PosHex;
-use core::tactical_map::ability::Ability;
-use core::tactical_map::effect::{self, Effect, LastingEffect, TimedEffect};
-use core::tactical_map::event::{self, ActiveEvent, Event};
-use core::tactical_map::execute::ApplyPhase;
-use core::tactical_map::{ObjId, PlayerId, State};
+use core::tactical_map::{
+    ability::Ability,
+    effect::{self, Effect, LastingEffect, TimedEffect},
+    event::{self, ActiveEvent, Event},
+    execute::ApplyPhase,
+    ObjId, PlayerId, State,
+};
 use geom;
 use screen::battle::view::BattleView;
 use utils::time_s;

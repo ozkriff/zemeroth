@@ -1,8 +1,10 @@
-use std::fmt::Debug;
-use std::time::Duration;
+use std::{fmt::Debug, time::Duration};
 
-use ggez::graphics::{self, Point2};
-use ggez::{self, Context};
+use ggez::{
+    self,
+    graphics::{self, Point2},
+    Context,
+};
 
 use ZResult;
 
@@ -11,10 +13,7 @@ mod camp;
 mod main_menu;
 mod strategy_map;
 
-pub use self::battle::Battle;
-pub use self::camp::Camp;
-pub use self::main_menu::MainMenu;
-pub use self::strategy_map::StrategyMap;
+pub use self::{battle::Battle, camp::Camp, main_menu::MainMenu, strategy_map::StrategyMap};
 
 #[derive(Debug)]
 pub enum Transition {

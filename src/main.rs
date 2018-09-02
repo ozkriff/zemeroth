@@ -10,6 +10,7 @@ extern crate serde_derive;
 #[macro_use]
 extern crate zcomponents;
 
+#[allow(unused_imports)] // TODO: I'm not sure what's going on in nightly
 #[macro_use]
 extern crate structopt;
 
@@ -21,11 +22,12 @@ extern crate num;
 extern crate rand;
 extern crate ron;
 
-use ggez::conf;
-use ggez::event;
-use ggez::filesystem::Filesystem;
-use ggez::graphics::{self, Point2, Rect};
-use ggez::{Context, ContextBuilder, GameResult};
+use ggez::{
+    conf, event,
+    filesystem::Filesystem,
+    graphics::{self, Point2, Rect},
+    Context, ContextBuilder, GameResult,
+};
 use structopt::StructOpt;
 
 mod core;

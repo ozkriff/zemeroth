@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 
-use core::tactical_map::ability::{Ability, PassiveAbility};
-use core::tactical_map::effect::{Effect, LastingEffect, TimedEffect};
-use core::tactical_map::movement::Path;
-use core::tactical_map::{Moves, ObjId, PlayerId, PosHex};
+use core::tactical_map::{
+    ability::{Ability, PassiveAbility},
+    effect::{Effect, LastingEffect, TimedEffect},
+    movement::Path,
+    Moves, ObjId, PlayerId, PosHex,
+};
 
 #[derive(Clone, Debug)]
 pub struct Event {

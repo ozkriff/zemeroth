@@ -1,10 +1,13 @@
 use core::map::{self, Distance, HexMap};
-use core::tactical_map::ability::{self, Ability};
-use core::tactical_map::command::{self, Command};
-use core::tactical_map::movement::{self, Path, Pathfinder};
-use core::tactical_map::state;
-use core::tactical_map::utils::shuffle_vec;
-use core::tactical_map::{check, ObjId, PlayerId, State};
+use core::tactical_map::{
+    ability::{self, Ability},
+    check,
+    command::{self, Command},
+    movement::{self, Path, Pathfinder},
+    state,
+    utils::shuffle_vec,
+    ObjId, PlayerId, State,
+};
 
 fn does_agent_have_ability_summon(state: &State, id: ObjId) -> bool {
     if let Some(abilities) = state.parts().abilities.get_opt(id) {
