@@ -13,7 +13,8 @@ use core::tactical_map::{
     effect::{self, Duration, Effect, LastingEffect, TimedEffect},
     event::{self, ActiveEvent, Event},
     movement::Path,
-    state, Moves, ObjId, Phase, PlayerId, State, TileType,
+    state::{self, BattleResult, State},
+    Moves, ObjId, Phase, PlayerId, TileType,
 };
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -39,6 +40,10 @@ pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error
         Command::UseAbility(ref command) => execute_use_ability(state, cb, command),
     }
     execute_planned_abilities(state, cb);
+    match *command {
+        Command::Create(_) => {}
+        _ => try_execute_end_battle(state, cb),
+    }
     Ok(())
 }
 
@@ -482,6 +487,26 @@ fn execute_planned_abilities(state: &mut State, cb: Cb) {
             if state.parts().is_exist(obj_id) {
                 execute_use_ability(state, cb, &command);
             }
+        }
+    }
+}
+
+fn try_execute_end_battle(state: &mut State, cb: Cb) {
+    for &i in &[0, 1] {
+        let player_id = PlayerId(i);
+        let enemies_count = state::enemy_agent_ids(state, player_id).len();
+        if enemies_count == 0 {
+            let result = BattleResult {
+                winner_id: player_id,
+            };
+            let active_event = event::EndBattle { result };
+            let event = Event {
+                active_event: ActiveEvent::EndBattle(active_event),
+                actor_ids: Vec::new(),
+                instant_effects: HashMap::new(),
+                timed_effects: HashMap::new(),
+            };
+            do_event(state, cb, &event);
         }
     }
 }

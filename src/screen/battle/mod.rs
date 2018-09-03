@@ -181,7 +181,7 @@ fn prepare_map_and_state(
     execute::create_objects(state, &mut |state, event, phase| {
         let action = visualize::visualize(state, view, context, event, phase)
             .expect("Can't visualize the event");
-        let action = action::Fork::new(action).boxed();
+        let action = action::Fork::new(action).boxed(); // TODO: Use helper `fork` method
         actions.push(action);
     });
     view.add_action(action::Sequence::new(actions).boxed());
@@ -253,6 +253,9 @@ impl Battle {
             actions.push(self.do_command_inner(context, &command));
             actions.push(action::Sleep::new(time_s(0.3)).boxed());
             if let command::Command::EndTurn(_) = command {
+                break;
+            }
+            if self.state.battle_result().is_some() {
                 break;
             }
         }
@@ -457,6 +460,9 @@ impl Screen for Battle {
     fn update(&mut self, context: &mut Context, dtime: Duration) -> ZResult<Transition> {
         self.view.tick(dtime);
         self.update_block_timer(context, dtime)?;
+        if self.block_timer.is_none() && self.state.battle_result().is_some() {
+            return Ok(Transition::Pop);
+        }
         Ok(Transition::None)
     }
 

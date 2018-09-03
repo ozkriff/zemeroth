@@ -286,6 +286,7 @@ fn visualize_event(
         ActiveEvent::UsePassiveAbility(_) | ActiveEvent::Create => action::Empty::new().boxed(),
         ActiveEvent::MoveTo(ref ev) => visualize_event_move_to(state, view, context, ev)?,
         ActiveEvent::Attack(ref ev) => visualize_event_attack(state, view, context, ev)?,
+        ActiveEvent::EndBattle(ref ev) => visualize_event_end_battle(state, view, context, ev)?,
         ActiveEvent::EndTurn(ref ev) => visualize_event_end_turn(state, view, context, ev),
         ActiveEvent::BeginTurn(ref ev) => visualize_event_begin_turn(state, view, context, ev)?,
         ActiveEvent::EffectTick(ref ev) => visualize_event_effect_tick(state, view, ev)?,
@@ -413,6 +414,33 @@ fn visualize_event_attack(
     actions.push(action_sprite_move_from);
     actions.push(action::Sleep::new(time_s(0.1)).boxed());
     Ok(seq(actions))
+}
+
+// TODO: code duplication with `visualize_event_begin_turn` - extract a helper function
+fn visualize_event_end_battle(
+    _: &State,
+    view: &mut BattleView,
+    context: &mut Context,
+    event: &event::EndBattle,
+) -> ZResult<Box<dyn Action>> {
+    let visible = [0.0, 0.0, 0.0, 1.0].into();
+    let invisible = Color { a: 0.0, ..visible };
+    let text = match event.result.winner_id {
+        PlayerId(0) => "YOU WON!",
+        PlayerId(1) => "YOU LOSE!",
+        _ => unreachable!(),
+    };
+    let text = Text::new(context, &text, view.font())?;
+    let mut sprite = Sprite::from_image(text.into_inner(), 0.2);
+    sprite.set_centered(true);
+    sprite.set_color(invisible);
+    Ok(seq(vec![
+        action::Show::new(&view.layers().text, &sprite).boxed(),
+        action::ChangeColorTo::new(&sprite, visible, time_s(0.5)).boxed(),
+        action::Sleep::new(time_s(3.0)).boxed(),
+        action::ChangeColorTo::new(&sprite, invisible, time_s(1.0)).boxed(),
+        action::Hide::new(&view.layers().text, &sprite).boxed(),
+    ]))
 }
 
 fn visualize_event_end_turn(

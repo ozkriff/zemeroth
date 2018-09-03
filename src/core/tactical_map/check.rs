@@ -7,6 +7,9 @@ use core::tactical_map::{
 };
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
+    if state.battle_result().is_some() {
+        return Err(Error::BattleEnded);
+    }
     match *command {
         Command::Create(ref command) => check_command_create(state, command),
         Command::MoveTo(ref command) => check_command_move_to(state, command),
@@ -32,6 +35,7 @@ pub enum Error {
     NoTarget,
     BadPos,
     BadActorType,
+    BattleEnded,
 }
 
 fn check_command_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> {

@@ -1,7 +1,7 @@
 use core::map::{self, PosHex};
 use core::tactical_map::{ability::PassiveAbility, utils, ObjId, PlayerId, TileType};
 
-pub use self::private::State;
+pub use self::private::{BattleResult, State};
 
 mod private {
     use core::map::{self, HexMap};
@@ -11,12 +11,18 @@ mod private {
     };
 
     #[derive(Clone, Debug)]
+    pub struct BattleResult {
+        pub winner_id: PlayerId,
+    }
+
+    #[derive(Clone, Debug)]
     pub struct State {
         parts: Parts,
         map: map::HexMap<TileType>,
         player_id: PlayerId,
         players_count: i32,
         prototypes: Prototypes,
+        battle_result: Option<BattleResult>,
     }
 
     impl State {
@@ -28,6 +34,7 @@ mod private {
                 players_count: 2, // TODO: Read from the `Options` struct
                 parts: Parts::new(),
                 prototypes,
+                battle_result: None,
             }
         }
 
@@ -57,6 +64,10 @@ mod private {
             let prototypes = &self.prototypes.0;
             prototypes[name].clone()
         }
+
+        pub fn battle_result(&self) -> &Option<BattleResult> {
+            &self.battle_result
+        }
     }
 
     /// Mutators. Be carefull with them!
@@ -72,6 +83,10 @@ mod private {
 
         pub(in core) fn set_player_id(&mut self, new_value: PlayerId) {
             self.player_id = new_value;
+        }
+
+        pub(in core) fn set_battle_result(&mut self, result: BattleResult) {
+            self.battle_result = Some(result);
         }
 
         pub(in core) fn alloc_id(&mut self) -> ObjId {
