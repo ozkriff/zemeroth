@@ -21,3 +21,7 @@ num = { version = "0.2", default-features = false }
 ggwp-zgui = { path = "ggwp-zgui" }
 ggwp-zscene = { path = "ggwp-zscene" }
 zcomponents = { path = "zcomponents" }
+
+[dependencies.sdl2]
+version = "0.31"
+features = ["bundled", "static-link"]
