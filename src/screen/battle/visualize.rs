@@ -435,11 +435,13 @@ fn visualize_event_end_battle(
     sprite.set_centered(true);
     sprite.set_color(invisible);
     Ok(seq(vec![
+        action::Sleep::new(time_s(1.0)).boxed(),
         action::Show::new(&view.layers().text, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite, visible, time_s(0.5)).boxed(),
-        action::Sleep::new(time_s(3.0)).boxed(),
+        action::Sleep::new(time_s(2.0)).boxed(),
         action::ChangeColorTo::new(&sprite, invisible, time_s(1.0)).boxed(),
         action::Hide::new(&view.layers().text, &sprite).boxed(),
+        action::Sleep::new(time_s(1.0)).boxed(),
     ]))
 }
 
