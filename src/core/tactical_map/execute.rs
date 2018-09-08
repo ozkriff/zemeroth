@@ -986,11 +986,10 @@ fn execute_use_ability_summon(
     let mut context = ExecuteContext::default();
     let max_summoned_count = ability.0;
     for pos in state::free_neighbor_positions(state, command.pos, max_summoned_count) {
-        let prototypes = ["imp", "imp_toxic", "imp_bomber"];
-        let prototype = thread_rng().choose(&prototypes).unwrap();
-        let create = effect_create_agent(state, prototype, state.player_id(), pos);
+        let prototype = choose_who_to_summon(state);
+        let effect_create = effect_create_agent(state, &prototype, state.player_id(), pos);
         let id = state.alloc_id();
-        let effects = vec![create, Effect::Stun];
+        let effects = vec![effect_create, Effect::Stun];
         context.instant_effects.insert(id, effects);
         context.moved_actor_ids.push(id);
         context.reaction_attack_targets.push(id);
@@ -1087,6 +1086,45 @@ pub fn create_terrain(state: &mut State) {
         };
         state.map_mut().set_tile(pos, TileType::Rocks);
     }
+}
+
+fn count_agents_by_typename(state: &State, player_id: PlayerId) -> HashMap<String, u32> {
+    let mut map = HashMap::new();
+    for id in state::players_agent_ids(state, player_id) {
+        let name = &state.parts().meta.get(id).name;
+        *map.entry(name.clone()).or_insert(0) += 1;
+    }
+    map
+}
+
+fn get_summon_pool(state: &State, typenames: &[String]) -> Vec<String> {
+    let mut map = count_agents_by_typename(state, state.player_id());
+    map.retain(|k, _| typenames.contains(&k));
+    let default_max = 3;
+    let max = *map.values().max().unwrap_or(&default_max);
+    // filter out classes that are not in `typenames`.
+    for typename in typenames {
+        map.entry(typename.to_string()).or_insert(0);
+    }
+    let mut pool = vec![];
+    for (typename, count) in map {
+        for _ in 0..max - count {
+            pool.push(typename.clone());
+        }
+    }
+    pool
+}
+
+fn choose_who_to_summon(state: &State) -> String {
+    let typenames: Vec<String> = vec!["imp".into(), "imp_toxic".into(), "imp_bomber".into()];
+    let mut prototypes_pool = get_summon_pool(state, &typenames);
+    if prototypes_pool.is_empty() {
+        prototypes_pool = typenames;
+    }
+    thread_rng()
+        .choose(&prototypes_pool)
+        .expect("Can't choose a prototype")
+        .clone()
 }
 
 pub fn create_objects(state: &mut State, cb: Cb) {
