@@ -247,17 +247,14 @@ impl Battle {
     fn do_ai(&mut self, context: &mut Context) -> Box<dyn Action> {
         debug!("AI: <");
         let mut actions = Vec::new();
-        loop {
-            let command = self.ai.command(&self.state).unwrap();
+        while let Some(command) = self.ai.command(&self.state) {
             debug!("AI: command = {:?}", command);
             actions.push(self.do_command_inner(context, &command));
             actions.push(action::Sleep::new(time_s(0.3)).boxed());
             if let command::Command::EndTurn(_) = command {
                 break;
             }
-            if self.state.battle_result().is_some() {
-                break;
-            }
+            assert!(self.state.battle_result().is_none());
         }
         debug!("AI: >");
         action::Sequence::new(actions).boxed()
