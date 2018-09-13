@@ -7,6 +7,7 @@ use core::tactical_map::{
 };
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
+    trace!("check: {:?}", command);
     if state.battle_result().is_some() {
         return Err(Error::BattleEnded);
     }
