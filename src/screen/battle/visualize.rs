@@ -374,7 +374,7 @@ fn visualize_event_move_to(
         let from = geom::hex_to_point(view.tile_size(), step.from);
         let to = geom::hex_to_point(view.tile_size(), step.to);
         let diff = to - from;
-        let step_height = 0.025;
+        let step_height = view.tile_size() * 0.25;
         let step_time = time_s(0.13);
         let move_time = time_s(0.3);
         let main_move = action::MoveBy::new(&sprite, diff, move_time).boxed();
