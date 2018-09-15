@@ -170,25 +170,32 @@ fn generate_brief_obj_info(
 ) -> ZResult<Box<dyn Action>> {
     let image = view.images().dot.clone();
     let mut actions = Vec::new();
-    let agent = state.parts().agent.get(id);
-    let obj_pos = state.parts().pos.get(id).0;
-    let strength = state.parts().strength.get(id);
+    let parts = state.parts();
+    let agent = parts.agent.get(id);
+    let obj_pos = parts.pos.get(id).0;
+    let strength = parts.strength.get(id);
+    let damage = strength.base_strength.0 - strength.strength.0;
     let size = 0.2 * view.tile_size();
     let mut point = geom::hex_to_point(view.tile_size(), obj_pos);
     point.x += view.tile_size() * 0.8;
     point.y -= view.tile_size() * 1.6;
     let mut dots = Vec::new();
     let base_x = point.x;
-    // TODO: draw missing health as transparent "ghosty" dots
-    for &(color, n) in &[
-        ([0.0, 0.7, 0.0, 1.0], strength.strength.0),
-        ([0.9, 0.1, 0.9, 1.0], agent.jokers.0),
-        ([1.0, 0.0, 0.0, 1.0], agent.attacks.0),
-        ([0.0, 0.0, 1.0, 1.0], agent.moves.0),
-    ] {
-        for _ in 0..n {
-            dots.push((color, point));
-            point.x -= size;
+    let rows: &[&[_]] = &[
+        &[
+            ([0.0, 0.7, 0.0, 1.0], strength.strength.0),
+            ([0.3, 0.5, 0.3, 0.5], damage),
+        ],
+        &[([0.9, 0.1, 0.9, 1.0], agent.jokers.0)],
+        &[([1.0, 0.0, 0.0, 1.0], agent.attacks.0)],
+        &[([0.0, 0.0, 1.0, 1.0], agent.moves.0)],
+    ];
+    for &row in rows {
+        for &(color, n) in row {
+            for _ in 0..n {
+                dots.push((color, point));
+                point.x -= size;
+            }
         }
         point.x = base_x;
         point.y += size;
