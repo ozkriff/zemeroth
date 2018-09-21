@@ -8,11 +8,12 @@ extern crate log;
 
 extern crate ggez;
 
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
-use ggez::graphics::{self, Image, Point2, Rect};
-use ggez::{Context, GameResult};
+use ggez::{
+    graphics::{self, Color, Image, Point2, Rect},
+    Context, GameResult,
+};
 use std::fmt::Debug;
 use std::sync::mpsc::{channel, Receiver, Sender};
 
@@ -60,9 +61,33 @@ impl Sprite {
         }
     }
 
+    pub fn set_color(&mut self, color: Color) {
+        self.param.color = Some(color);
+    }
+
     pub fn set_pos(&mut self, pos: Point2) {
         self.param.dest = pos;
     }
+}
+
+fn make_bg(context: &mut Context, sprite: &Sprite) -> Sprite {
+    let width = sprite.image.width();
+    let height = sprite.image.height();
+    let count = width * height * 4;
+    let data: Vec<u8> = [255, 255, 255, 255]
+        .into_iter()
+        .cloned()
+        .cycle()
+        .take(count as _)
+        .collect();
+    let image = Image::from_rgba8(context, width as _, height as _, &data)
+        .expect("zgui: Can't create bg image");
+    let mut bg = Sprite {
+        image,
+        ..sprite.clone()
+    };
+    bg.set_color([0.8, 0.8, 0.8, 0.5].into());
+    bg
 }
 
 pub fn window_to_screen(context: &Context, pos: Point2) -> Point2 {
@@ -199,17 +224,20 @@ impl<Message: Clone> Gui<Message> {
 #[derive(Debug)]
 pub struct Label {
     sprite: Sprite,
+    bg: Sprite,
 }
 
 impl Label {
-    pub fn new(image: Image, height: f32) -> Self {
+    pub fn new(context: &mut Context, image: Image, height: f32) -> Self {
         let sprite = Sprite::from_image(image, height);
-        Self { sprite }
+        let bg = make_bg(context, &sprite);
+        Self { sprite, bg }
     }
 }
 
 impl Widget for Label {
     fn draw(&self, context: &mut Context) -> GameResult<()> {
+        self.bg.draw(context)?;
         self.sprite.draw(context)
     }
 
@@ -219,22 +247,31 @@ impl Widget for Label {
 
     fn set_pos(&mut self, pos: Point2) {
         self.sprite.set_pos(pos);
+        self.bg.set_pos(pos);
     }
 }
 
-// TODO: add a semi-transparent background
 #[derive(Debug)]
 pub struct Button<Message: Clone> {
     sprite: Sprite,
+    bg: Sprite,
     sender: Sender<Message>,
     message: Message,
 }
 
 impl<Message: Clone> Button<Message> {
-    pub fn new(image: Image, height: f32, sender: Sender<Message>, message: Message) -> Self {
+    pub fn new(
+        context: &mut Context,
+        image: Image,
+        height: f32,
+        sender: Sender<Message>,
+        message: Message,
+    ) -> Self {
         let sprite = Sprite::from_image(image, height);
+        let bg = make_bg(context, &sprite);
         Self {
             sprite,
+            bg,
             sender,
             message,
         }
@@ -243,6 +280,7 @@ impl<Message: Clone> Button<Message> {
 
 impl<Message: Clone + Debug> Widget for Button<Message> {
     fn draw(&self, context: &mut Context) -> GameResult<()> {
+        self.bg.draw(context)?;
         self.sprite.draw(context)
     }
 
@@ -261,6 +299,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
 
     fn set_pos(&mut self, pos: Point2) {
         self.sprite.set_pos(pos);
+        self.bg.set_pos(pos);
     }
 }
 

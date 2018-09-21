@@ -16,8 +16,8 @@ fn make_gui(context: &mut Context, font: &Font) -> GameResult<ui::Gui<Message>> 
     let mut gui = ui::Gui::new(context);
     let image_1 = Text::new(context, "[Button1]", font)?.into_inner();
     let image_2 = Text::new(context, "[Button2]", font)?.into_inner();
-    let button_1 = ui::Button::new(image_1, 0.2, gui.sender(), Message::Command1);
-    let button_2 = ui::Button::new(image_2, 0.2, gui.sender(), Message::Command2);
+    let button_1 = ui::Button::new(context, image_1, 0.2, gui.sender(), Message::Command1);
+    let button_2 = ui::Button::new(context, image_2, 0.2, gui.sender(), Message::Command2);
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_1));
     layout.add(Box::new(button_2));

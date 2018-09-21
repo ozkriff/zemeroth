@@ -22,13 +22,13 @@ fn make_gui(context: &mut Context, font: &Font) -> GameResult<ui::Gui<Message>> 
     let mut gui = ui::Gui::new(context);
     {
         let image = Image::new(context, "/fire.png")?;
-        let button = ui::Button::new(image, 0.1, gui.sender(), Message::Image);
+        let button = ui::Button::new(context, image, 0.1, gui.sender(), Message::Image);
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Top);
         gui.add(&ui::pack(button), anchor);
     }
     {
         let image = Text::new(context, "[label]", font)?.into_inner();
-        let label = ui::Label::new(image, 0.1);
+        let label = ui::Label::new(context, image, 0.1);
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Bottom);
         gui.add(&ui::pack(label), anchor);
     }
@@ -36,9 +36,9 @@ fn make_gui(context: &mut Context, font: &Font) -> GameResult<ui::Gui<Message>> 
         let image_a = Text::new(context, "[A]", font)?.into_inner();
         let image_b = Text::new(context, "[B]", font)?.into_inner();
         let image_c = Text::new(context, "[C]", font)?.into_inner();
-        let button_a = ui::Button::new(image_a, 0.1, gui.sender(), Message::A);
-        let button_b = ui::Button::new(image_b, 0.1, gui.sender(), Message::B);
-        let button_c = ui::Button::new(image_c, 0.1, gui.sender(), Message::C);
+        let button_a = ui::Button::new(context, image_a, 0.1, gui.sender(), Message::A);
+        let button_b = ui::Button::new(context, image_b, 0.1, gui.sender(), Message::B);
+        let button_c = ui::Button::new(context, image_c, 0.1, gui.sender(), Message::C);
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button_a));
         layout.add(Box::new(button_b));
@@ -50,10 +50,10 @@ fn make_gui(context: &mut Context, font: &Font) -> GameResult<ui::Gui<Message>> 
         let image_x = Text::new(context, "[X]", font)?.into_inner();
         let image_y = Text::new(context, "[Y]", font)?.into_inner();
         let image_z = Text::new(context, "[Z]", font)?.into_inner();
-        let button_i = ui::Button::new(image_i, 0.1, gui.sender(), Message::Image);
-        let button_x = ui::Button::new(image_x, 0.1, gui.sender(), Message::X);
-        let button_y = ui::Button::new(image_y, 0.1, gui.sender(), Message::Y);
-        let button_z = ui::Button::new(image_z, 0.1, gui.sender(), Message::Z);
+        let button_i = ui::Button::new(context, image_i, 0.1, gui.sender(), Message::Image);
+        let button_x = ui::Button::new(context, image_x, 0.1, gui.sender(), Message::X);
+        let button_y = ui::Button::new(context, image_y, 0.1, gui.sender(), Message::Y);
+        let button_z = ui::Button::new(context, image_z, 0.1, gui.sender(), Message::Z);
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button_i));
         layout.add(Box::new(button_x));
@@ -65,9 +65,9 @@ fn make_gui(context: &mut Context, font: &Font) -> GameResult<ui::Gui<Message>> 
         let image_a = Text::new(context, "[A]", font)?.into_inner();
         let image_b = Text::new(context, "[B]", font)?.into_inner();
         let image_i = Image::new(context, "/fire.png")?;
-        let button_a = ui::Button::new(image_a, 0.1, gui.sender(), Message::A);
-        let button_b = ui::Button::new(image_b, 0.1, gui.sender(), Message::B);
-        let button_i = ui::Button::new(image_i, 0.2, gui.sender(), Message::Image);
+        let button_a = ui::Button::new(context, image_a, 0.1, gui.sender(), Message::A);
+        let button_b = ui::Button::new(context, image_b, 0.1, gui.sender(), Message::B);
+        let button_i = ui::Button::new(context, image_i, 0.2, gui.sender(), Message::Image);
         let mut layout = ui::HLayout::new();
         layout.add(Box::new(button_a));
         layout.add(Box::new(button_i));

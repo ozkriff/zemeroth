@@ -50,7 +50,7 @@ fn build_panel_agent_info(
     {
         let mut line = |text: &str| -> ZResult {
             let image = Text::new(context, text, font)?.into_inner();
-            let button = ui::Label::new(image, h);
+            let button = ui::Label::new(context, image, h);
             layout.add(Box::new(button));
             Ok(())
         };
@@ -132,7 +132,8 @@ fn build_panel_agent_abilities(
             ability::Status::Cooldown(n) => format!("[{} ({})]", ability.ability.to_string(), n),
         };
         let image = Text::new(context, &text, font)?.into_inner();
-        let button = ui::Button::new(image, h, gui.sender(), Message::Ability(ability.ability));
+        let msg = Message::Ability(ability.ability);
+        let button = ui::Button::new(context, image, h, gui.sender(), msg);
         layout.add(Box::new(button));
     }
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Middle);
@@ -145,7 +146,7 @@ fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     {
         let image = Text::new(context, "[deselect]", font)?.into_inner();
-        let button = ui::Button::new(image, 0.1, gui.sender(), Message::Deselect);
+        let button = ui::Button::new(context, image, 0.1, gui.sender(), Message::Deselect);
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Top);
@@ -153,7 +154,7 @@ fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
     }
     {
         let image = Text::new(context, "[end turn]", font)?.into_inner();
-        let button = ui::Button::new(image, 0.1, gui.sender(), Message::EndTurn);
+        let button = ui::Button::new(context, image, 0.1, gui.sender(), Message::EndTurn);
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
@@ -161,7 +162,7 @@ fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
     }
     {
         let image = Text::new(context, "[exit]", font)?.into_inner();
-        let button = ui::Button::new(image, 0.1, gui.sender(), Message::Exit);
+        let button = ui::Button::new(context, image, 0.1, gui.sender(), Message::Exit);
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
