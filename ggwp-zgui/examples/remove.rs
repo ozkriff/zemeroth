@@ -13,14 +13,14 @@ enum Message {
 
 fn make_label(context: &mut Context) -> ui::RcWidget {
     let image = Image::new(context, "/fire.png").expect("Can't load test image");
-    ui::pack(ui::Label::new(image, 0.5))
+    ui::pack(ui::Label::new(context, image, 0.5))
 }
 
 fn make_gui(context: &mut Context, font: &Font) -> GameResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
     let image = Text::new(context, "[Add/Remove]", &font)?.into_inner();
-    let button = ui::Button::new(image, 0.2, gui.sender(), Message::AddOrRemove);
+    let button = ui::Button::new(context, image, 0.2, gui.sender(), Message::AddOrRemove);
     gui.add(&ui::pack(button), anchor);
     Ok(gui)
 }

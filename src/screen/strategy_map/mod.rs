@@ -18,11 +18,15 @@ enum Message {
 
 fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
-    let image_start_battle = Text::new(context, "[start battle]", font)?.into_inner();
-    let image_menu = Text::new(context, "[menu]", font)?.into_inner();
-    let button_start_battle =
-        ui::Button::new(image_start_battle, 0.2, gui.sender(), Message::StartBattle);
-    let button_menu = ui::Button::new(image_menu, 0.2, gui.sender(), Message::Menu);
+    let h = 0.2;
+    let button_start_battle = {
+        let image = Text::new(context, "[start battle]", font)?.into_inner();
+        ui::Button::new(context, image, h, gui.sender(), Message::StartBattle)
+    };
+    let button_menu = {
+        let image = Text::new(context, "[menu]", font)?.into_inner();
+        ui::Button::new(context, image, h, gui.sender(), Message::Menu)
+    };
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_start_battle));
     layout.add(Box::new(button_menu));

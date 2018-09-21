@@ -19,13 +19,19 @@ enum Message {
 
 fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
-    let image_battle = Text::new(context, "[battle]", font)?.into_inner();
-    let image_campaign = Text::new(context, "[campaign]", font)?.into_inner();
-    let image_exit = Text::new(context, "[exit]", font)?.into_inner();
-    let button_battle = ui::Button::new(image_battle, 0.2, gui.sender(), Message::StartInstant);
-    let button_campaign =
-        ui::Button::new(image_campaign, 0.2, gui.sender(), Message::StartCampaign);
-    let button_exit = ui::Button::new(image_exit, 0.2, gui.sender(), Message::Exit);
+    let h = 0.2;
+    let button_battle = {
+        let image = Text::new(context, "[battle]", font)?.into_inner();
+        ui::Button::new(context, image, h, gui.sender(), Message::StartInstant)
+    };
+    let button_campaign = {
+        let image = Text::new(context, "[campaign]", font)?.into_inner();
+        ui::Button::new(context, image, h, gui.sender(), Message::StartCampaign)
+    };
+    let button_exit = {
+        let image = Text::new(context, "[exit]", font)?.into_inner();
+        ui::Button::new(context, image, h, gui.sender(), Message::Exit)
+    };
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_battle));
     layout.add(Box::new(button_campaign));
