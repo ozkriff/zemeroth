@@ -14,7 +14,7 @@ use core::tactical_map::{
     event::{self, ActiveEvent, Event},
     movement::Path,
     state::{self, BattleResult, State},
-    Moves, ObjId, Phase, PlayerId, TileType,
+    utils, Moves, ObjId, Phase, PlayerId, TileType,
 };
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -140,11 +140,8 @@ fn execute_attack_internal(
         mode,
     });
     let mut target_effects = Vec::new();
-    // TODO: WE NEED SOME ACTUAL MATH HERE
     let mut is_kill = false;
-    if thread_rng().gen_range(0, 6) < 4 {
-        let damage = state.parts().agent.get(command.attacker_id).attack_strength;
-        let effect = wound_or_kill(state, command.target_id, damage);
+    if let Some(effect) = try_attack(state, command.attacker_id, command.target_id) {
         if let Effect::Kill = effect {
             is_kill = true;
         }
@@ -338,6 +335,7 @@ fn try_execute_passive_abilities_on_end_turn(state: &mut State, cb: Cb) {
     }
 }
 
+// TODO: return a struct with named fields (`instant` and `timed`), not a tuple.
 fn try_execute_passive_abilities_on_attack(
     state: &mut State,
     attacker_id: ObjId,
@@ -806,13 +804,50 @@ fn execute_use_ability_explode_poison(
     context
 }
 
+fn correct_damage_with_armor(
+    state: &State,
+    target_id: ObjId,
+    damage: tactical_map::Strength,
+) -> tactical_map::Strength {
+    let id = target_id;
+    let armor = state::get_armor(state, id);
+    tactical_map::Strength(utils::clamp_min(damage.0 - armor.0, 0))
+}
+
 fn wound_or_kill(state: &State, id: ObjId, damage: tactical_map::Strength) -> Effect {
-    let strength = state.parts().strength.get(id);
+    let parts = state.parts();
+    let strength = parts.strength.get(id);
     if strength.strength > damage {
-        Effect::Wound(effect::Wound { damage })
+        Effect::Wound(effect::Wound {
+            damage,
+            armor_break: tactical_map::Strength(0),
+        })
     } else {
         Effect::Kill
     }
+}
+
+fn try_attack(state: &State, attacker_id: ObjId, target_id: ObjId) -> Option<Effect> {
+    // TODO: WE NEED SOME ACTUAL MATH HERE ()
+    if thread_rng().gen_range(0, 6) < 4 {
+        return None;
+    }
+    let parts = state.parts();
+    let strength = parts.strength.get(target_id);
+    let armor = state::get_armor(state, target_id);
+    let agent_attacker = state.parts().agent.get(attacker_id);
+    let attack_strength = agent_attacker.attack_strength;
+    let attack_break = utils::clamp_max(agent_attacker.attack_break, armor);
+    let damage = correct_damage_with_armor(state, target_id, attack_strength);
+    let effect = if strength.strength > damage {
+        Effect::Wound(effect::Wound {
+            damage,
+            armor_break: attack_break,
+        })
+    } else {
+        Effect::Kill
+    };
+    Some(effect)
 }
 
 fn execute_use_ability_explode_damage(
@@ -827,7 +862,9 @@ fn execute_use_ability_explode_damage(
         if distance.0 > 1 || command.id == id {
             continue;
         }
-        let effects = vec![wound_or_kill(state, id, tactical_map::Strength(1))];
+        let damage = tactical_map::Strength(1);
+        let damage = correct_damage_with_armor(state, id, damage);
+        let effects = vec![wound_or_kill(state, id, damage)];
         context.instant_effects.insert(id, effects);
     }
     assert!(context.instant_effects.get(&command.id).is_none());

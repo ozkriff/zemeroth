@@ -20,6 +20,11 @@ pub struct Strength {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct Armor {
+    pub armor: tactical_map::Strength,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Meta {
     pub name: String,
 }
@@ -37,11 +42,20 @@ pub struct Agent {
     // static
     pub attack_strength: tactical_map::Strength,
     pub attack_distance: map::Distance,
+
+    #[serde(default = "strength_zero")]
+    pub attack_break: tactical_map::Strength,
+
     pub move_points: MovePoints,
     pub reactive_attacks: Attacks,
+
     pub base_moves: Moves,
     pub base_attacks: Attacks,
     pub base_jokers: Jokers,
+}
+
+fn strength_zero() -> tactical_map::Strength {
+    tactical_map::Strength(0)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -70,6 +84,7 @@ pub struct Schedule {
 pub enum Component {
     Pos(Pos),
     Strength(Strength),
+    Armor(Armor),
     Meta(Meta),
     BelongsTo(BelongsTo),
     Agent(Agent),
@@ -82,6 +97,7 @@ pub enum Component {
 
 zcomponents_storage!(Parts<ObjId>: {
     strength: Strength,
+    armor: Armor,
     pos: Pos,
     meta: Meta,
     belongs_to: BelongsTo,

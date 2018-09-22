@@ -1,5 +1,5 @@
 use core::map::{self, PosHex};
-use core::tactical_map::{ability::PassiveAbility, utils, ObjId, PlayerId, TileType};
+use core::tactical_map::{ability::PassiveAbility, utils, ObjId, PlayerId, Strength, TileType};
 
 pub use self::private::{BattleResult, State};
 
@@ -215,4 +215,10 @@ pub fn sort_agent_ids_by_distance_to_enemies(state: &State, ids: &mut [ObjId]) {
         }
         min_distance
     });
+}
+
+pub fn get_armor(state: &State, id: ObjId) -> Strength {
+    let parts = state.parts();
+    let default = Strength(0);
+    parts.armor.get_opt(id).map(|v| v.armor).unwrap_or(default)
 }
