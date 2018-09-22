@@ -41,7 +41,7 @@ type ZResult<T = ()> = GameResult<T>;
 const APP_ID: &str = "zemeroth";
 const APP_AUTHOR: &str = "ozkriff";
 const ASSETS_DIR_NAME: &str = "assets";
-const ASSETS_HASHSUM: &str = "fae1d42cf639e272e4accd4f2b505b09";
+const ASSETS_HASHSUM: &str = "87084aa1440c6211837d91d154b98915";
 
 struct MainState {
     screens: screen::Screens,

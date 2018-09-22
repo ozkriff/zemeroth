@@ -69,9 +69,11 @@ impl LastingEffect {
     }
 }
 
+// TODO: Move `armor_break` to a separate effect?
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Wound {
     pub damage: Strength,
+    pub armor_break: Strength,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize)]

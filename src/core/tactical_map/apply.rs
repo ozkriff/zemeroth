@@ -173,6 +173,7 @@ fn add_component(state: &mut State, id: ObjId, component: Component) {
     match component {
         Component::Pos(c) => parts.pos.insert(id, c),
         Component::Strength(c) => parts.strength.insert(id, c),
+        Component::Armor(c) => parts.armor.insert(id, c),
         Component::Meta(c) => parts.meta.insert(id, c),
         Component::BelongsTo(c) => parts.belongs_to.insert(id, c),
         Component::Agent(c) => parts.agent.insert(id, c),
@@ -249,9 +250,19 @@ fn apply_effect_heal(state: &mut State, id: ObjId, effect: &effect::Heal) {
 
 fn apply_effect_wound(state: &mut State, id: ObjId, effect: &effect::Wound) {
     let parts = state.parts_mut();
+    let damage = effect.damage.0;
+    assert!(damage >= 0);
+    if let Some(armor) = parts.armor.get_opt_mut(id) {
+        let armor_break = effect.armor_break;
+        armor.armor.0 -= armor_break.0;
+        if armor.armor.0 < 0 {
+            armor.armor.0 = 0;
+        }
+        assert!(armor.armor.0 >= 0);
+    }
     {
         let strength = parts.strength.get_mut(id);
-        strength.strength.0 -= effect.damage.0;
+        strength.strength.0 -= damage;
         assert!(strength.strength.0 > 0);
     }
     {

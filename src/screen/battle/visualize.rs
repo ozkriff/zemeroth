@@ -12,7 +12,7 @@ use core::tactical_map::{
     effect::{self, Effect, LastingEffect, TimedEffect},
     event::{self, ActiveEvent, Event},
     execute::ApplyPhase,
-    ObjId, PlayerId, State,
+    state, ObjId, PlayerId, State,
 };
 use geom;
 use screen::battle::view::BattleView;
@@ -175,6 +175,7 @@ fn generate_brief_obj_info(
     let obj_pos = parts.pos.get(id).0;
     let strength = parts.strength.get(id);
     let damage = strength.base_strength.0 - strength.strength.0;
+    let armor = state::get_armor(state, id);
     let size = 0.2 * view.tile_size();
     let mut point = geom::hex_to_point(view.tile_size(), obj_pos);
     point.x += view.tile_size() * 0.8;
@@ -185,6 +186,7 @@ fn generate_brief_obj_info(
         &[
             ([0.0, 0.7, 0.0, 1.0], strength.strength.0),
             ([0.3, 0.5, 0.3, 0.5], damage),
+            ([1.0, 1.0, 0.0, 1.0], armor.0),
         ],
         &[([0.9, 0.1, 0.9, 1.0], agent.jokers.0)],
         &[([1.0, 0.0, 0.0, 1.0], agent.attacks.0)],
@@ -692,6 +694,22 @@ fn visualize_effect_heal(
     ]))
 }
 
+fn wound_msg(effect: &effect::Wound) -> String {
+    let damage = effect.damage.0;
+    let armor_break = effect.armor_break.0;
+    if damage > 0 || armor_break > 0 {
+        if armor_break == 0 {
+            format!("-{} strength", damage)
+        } else if damage == 0 {
+            format!("-{} armor", armor_break)
+        } else {
+            format!("-{} strength -{} armor", damage, armor_break)
+        }
+    } else {
+        "no damage".into()
+    }
+}
+
 fn visualize_effect_wound(
     state: &State,
     view: &mut BattleView,
@@ -699,18 +717,22 @@ fn visualize_effect_wound(
     target_id: ObjId,
     effect: &effect::Wound,
 ) -> ZResult<Box<dyn Action>> {
-    let damage = effect.damage;
-    let pos = state.parts().pos.get(target_id).0;
-    let sprite = view.id_to_sprite(target_id).clone();
+    let id = target_id;
+    let parts = state.parts();
+    let pos = parts.pos.get(id).0;
+    let sprite = view.id_to_sprite(id).clone();
     let c_normal = [1.0, 1.0, 1.0, 1.0].into();
     let c_dark = [0.1, 0.1, 0.1, 1.0].into();
     let time = time_s(0.2);
-    Ok(fork(seq(vec![
-        message(view, context, pos, &format!("wounded - {}", damage.0))?,
-        action::ChangeColorTo::new(&sprite, c_dark, time).boxed(),
-        action::ChangeColorTo::new(&sprite, c_normal, time).boxed(),
-        show_blood_spot(view, pos)?,
-    ])))
+    let mut actions = Vec::new();
+    let msg = wound_msg(effect);
+    if effect.damage.0 > 0 || effect.armor_break.0 > 0 {
+        actions.push(show_blood_spot(view, pos)?);
+    }
+    actions.push(message(view, context, pos, &msg)?);
+    actions.push(action::ChangeColorTo::new(&sprite, c_dark, time).boxed());
+    actions.push(action::ChangeColorTo::new(&sprite, c_normal, time).boxed());
+    Ok(fork(seq(actions)))
 }
 
 fn visualize_effect_knockback(

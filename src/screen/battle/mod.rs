@@ -59,6 +59,12 @@ fn build_panel_agent_info(
             "strength: {}/{}",
             st.strength.0, st.base_strength.0
         ))?;
+        if let Some(armor) = parts.armor.get_opt(id) {
+            let armor = armor.armor.0;
+            if armor != 0 {
+                line(&format!("armor: {}", armor))?;
+            }
+        }
         if a.jokers.0 != 0 || a.base_jokers.0 != 0 {
             line(&format!("jokers: {}/{}", a.jokers.0, a.base_jokers.0))?;
         }
