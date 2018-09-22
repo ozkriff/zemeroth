@@ -81,6 +81,11 @@ pub struct Schedule {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct Summoner {
+    pub count: u32,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Component {
     Pos(Pos),
     Strength(Strength),
@@ -93,6 +98,7 @@ pub enum Component {
     PassiveAbilities(PassiveAbilities),
     Effects(Effects),
     Schedule(Schedule),
+    Summoner(Summoner),
 }
 
 zcomponents_storage!(Parts<ObjId>: {
@@ -107,6 +113,7 @@ zcomponents_storage!(Parts<ObjId>: {
     passive_abilities: PassiveAbilities,
     effects: Effects,
     schedule: Schedule,
+    summoner: Summoner,
 });
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
