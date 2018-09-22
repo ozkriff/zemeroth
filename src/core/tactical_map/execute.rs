@@ -153,13 +153,13 @@ fn execute_attack_internal(
         AttackStatus::Miss
     } else {
         if !is_kill {
-            let (mut effects_instant, effects_timed) = try_execute_passive_abilities_on_attack(
+            let mut effects = try_execute_passive_abilities_on_attack(
                 state,
                 command.attacker_id,
                 command.target_id,
             );
-            target_effects.append(&mut effects_instant);
-            timed_effects.insert(command.target_id, effects_timed);
+            target_effects.append(&mut effects.instant);
+            timed_effects.insert(command.target_id, effects.timed);
         }
         AttackStatus::Hit
     };
@@ -335,14 +335,18 @@ fn try_execute_passive_abilities_on_end_turn(state: &mut State, cb: Cb) {
     }
 }
 
-// TODO: return a struct with named fields (`instant` and `timed`), not a tuple.
+#[derive(Debug, Clone, Default)]
+struct Effects {
+    instant: Vec<Effect>,
+    timed: Vec<TimedEffect>,
+}
+
 fn try_execute_passive_abilities_on_attack(
     state: &mut State,
     attacker_id: ObjId,
     target_id: ObjId,
-) -> (Vec<Effect>, Vec<TimedEffect>) {
-    let mut instant_effects: Vec<Effect> = Vec::new();
-    let mut timed_effects: Vec<TimedEffect> = Vec::new();
+) -> Effects {
+    let mut effects = Effects::default();
     let target_pos = state.parts().pos.get(target_id).0;
     let attacker_pos = state.parts().pos.get(attacker_id).0;
     if let Some(passive_abilities) = state.parts().passive_abilities.get_opt(attacker_id) {
@@ -355,7 +359,8 @@ fn try_execute_passive_abilities_on_attack(
                     let from = target_pos;
                     let to = Dir::get_neighbor_pos(target_pos, dir);
                     if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-                        instant_effects.push(Effect::FlyOff(effect::FlyOff { from, to }));
+                        let effect = Effect::FlyOff(effect::FlyOff { from, to });
+                        effects.instant.push(effect);
                     }
                 }
                 PassiveAbility::PoisonAttack => {
@@ -365,7 +370,7 @@ fn try_execute_passive_abilities_on_attack(
                         phase: Phase::from_player_id(owner),
                         effect: LastingEffect::Poison,
                     };
-                    timed_effects.push(effect);
+                    effects.timed.push(effect);
                 }
                 PassiveAbility::Burn
                 | PassiveAbility::SpikeTrap
@@ -375,7 +380,7 @@ fn try_execute_passive_abilities_on_attack(
             }
         }
     }
-    (instant_effects, timed_effects)
+    effects
 }
 
 fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: ObjId) -> AttackStatus {
