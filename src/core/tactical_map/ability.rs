@@ -17,7 +17,7 @@ pub enum Ability {
     BombFire(BombFire),
     BombPoison(BombPoison),
     BombDemonic(BombDemonic),
-    Summon(Summon),
+    Summon,
     Vanish,
     Dash,
     Rage(Rage),
@@ -25,9 +25,6 @@ pub enum Ability {
 }
 
 // TODO: use named fields?
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Summon(pub i32); // TODO: i32 -> ???
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Jump(pub Distance);
 
@@ -102,7 +99,7 @@ impl Ability {
             Ability::BombPoison(a) => format!("Poison bomb-{}", (a.0).0),
             Ability::BombDemonic(a) => format!("Bomb Demonic-{}", (a.0).0),
             Ability::Vanish => "Vanish".into(),
-            Ability::Summon(a) => format!("Summon-{}", a.0),
+            Ability::Summon => "Summon".into(),
             Ability::Dash => "Dash".into(),
             Ability::Rage(a) => format!("Rage-{}", (a.0).0),
             Ability::Heal(a) => format!("Heal-{}", (a.0).0),

@@ -558,7 +558,7 @@ fn visualize_event_use_ability(
         Ability::ExplodeDamage => visualize_event_use_ability_explode(state, view, event)?,
         Ability::ExplodeFire => visualize_event_use_ability_explode(state, view, event)?,
         Ability::ExplodePoison => visualize_event_use_ability_explode(state, view, event)?,
-        Ability::Summon(_) => visualize_event_use_ability_summon(state, view, event)?,
+        Ability::Summon => visualize_event_use_ability_summon(state, view, event)?,
         _ => action::Empty::new().boxed(),
     };
     let pos = state.parts().pos.get(event.id).0;

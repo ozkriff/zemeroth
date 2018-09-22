@@ -1020,14 +1020,10 @@ fn execute_use_ability_bomb_demonic(
     throw_bomb(state, command, "bomb_demonic", 1, Ability::ExplodeDamage)
 }
 
-fn execute_use_ability_summon(
-    state: &mut State,
-    command: &command::UseAbility,
-    ability: ability::Summon,
-) -> ExecuteContext {
+fn execute_use_ability_summon(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
     let mut context = ExecuteContext::default();
-    let max_summoned_count = ability.0;
-    for pos in state::free_neighbor_positions(state, command.pos, max_summoned_count) {
+    let max_summoned_count = state.parts().summoner.get(command.id).count;
+    for pos in state::free_neighbor_positions(state, command.pos, max_summoned_count as _) {
         let prototype = choose_who_to_summon(state);
         let effect_create = effect_create_agent(state, &prototype, state.player_id(), pos);
         let id = state.alloc_id();
@@ -1058,7 +1054,7 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
         Ability::BombFire(_) => execute_use_ability_bomb_fire(state, command),
         Ability::BombPoison(_) => execute_use_ability_bomb_poison(state, command),
         Ability::BombDemonic(_) => execute_use_ability_bomb_demonic(state, command),
-        Ability::Summon(a) => execute_use_ability_summon(state, command, a),
+        Ability::Summon => execute_use_ability_summon(state, command),
     };
     context.actor_ids.push(command.id);
     let active_event = ActiveEvent::UseAbility(event::UseAbility {

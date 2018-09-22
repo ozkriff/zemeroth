@@ -129,8 +129,9 @@ fn apply_event_begin_turn(state: &mut State, event: &event::BeginTurn) {
 }
 
 fn apply_event_use_ability(state: &mut State, event: &event::UseAbility) {
+    let id = event.id;
     let parts = state.parts_mut();
-    if let Some(abilities) = parts.abilities.get_opt_mut(event.id) {
+    if let Some(abilities) = parts.abilities.get_opt_mut(id) {
         for ability in &mut abilities.0 {
             if ability.ability == event.ability {
                 assert_eq!(ability.status, ability::Status::Ready);
@@ -140,7 +141,7 @@ fn apply_event_use_ability(state: &mut State, event: &event::UseAbility) {
             }
         }
     }
-    if let Some(agent) = parts.agent.get_opt_mut(event.id) {
+    if let Some(agent) = parts.agent.get_opt_mut(id) {
         if agent.attacks.0 > 0 {
             agent.attacks.0 -= 1;
         } else if agent.jokers.0 > 0 {
@@ -151,12 +152,17 @@ fn apply_event_use_ability(state: &mut State, event: &event::UseAbility) {
     }
     match event.ability {
         Ability::Jump(_) | Ability::Dash => {
-            parts.pos.get_mut(event.id).0 = event.pos;
+            parts.pos.get_mut(id).0 = event.pos;
         }
         Ability::Rage(ability) => {
-            let component = parts.agent.get_mut(event.id);
+            let component = parts.agent.get_mut(id);
             let attacks = ability.0;
             component.attacks.0 = attacks.0 + 1;
+        }
+        Ability::Summon => {
+            assert!(parts.summoner.get_opt(id).is_some());
+            let mut summoner = parts.summoner.get_mut(id);
+            summoner.count += 1;
         }
         _ => {}
     }
@@ -182,6 +188,7 @@ fn add_component(state: &mut State, id: ObjId, component: Component) {
         Component::PassiveAbilities(c) => parts.passive_abilities.insert(id, c),
         Component::Effects(c) => parts.effects.insert(id, c),
         Component::Schedule(c) => parts.schedule.insert(id, c),
+        Component::Summoner(c) => parts.summoner.insert(id, c),
     }
 }
 

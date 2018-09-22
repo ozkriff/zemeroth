@@ -102,7 +102,7 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
         Ability::BombFire(a) => check_ability_bomb_fire(state, command.id, command.pos, a),
         Ability::BombPoison(a) => check_ability_bomb_poison(state, command.id, command.pos, a),
         Ability::BombDemonic(a) => check_ability_bomb_demonic(state, command.id, command.pos, a),
-        Ability::Summon(a) => check_ability_summon(state, command.id, command.pos, a),
+        Ability::Summon => check_ability_summon(state, command.id, command.pos),
         Ability::Vanish => check_ability_vanish(state, command.id, command.pos),
         Ability::Dash => check_ability_dash(state, command.id, command.pos),
         Ability::Rage(a) => check_ability_rage(state, command.id, command.pos, a),
@@ -222,12 +222,7 @@ fn check_ability_bomb_demonic(
     Ok(())
 }
 
-fn check_ability_summon(
-    state: &State,
-    id: ObjId,
-    pos: PosHex,
-    _: ability::Summon,
-) -> Result<(), Error> {
+fn check_ability_summon(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error> {
     check_object_pos(state, id, pos)
 }
 

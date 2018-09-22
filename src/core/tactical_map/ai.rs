@@ -12,7 +12,7 @@ use core::tactical_map::{
 fn does_agent_have_ability_summon(state: &State, id: ObjId) -> bool {
     if let Some(abilities) = state.parts().abilities.get_opt(id) {
         for ability in &abilities.0 {
-            if let Ability::Summon(_) = ability.ability {
+            if let Ability::Summon = ability.ability {
                 return true;
             }
         }
@@ -191,7 +191,7 @@ impl Ai {
 
     fn try_summon_imp(&self, state: &State, agent_id: ObjId) -> Option<Command> {
         // TODO: find ability in the parts and use it here:
-        let ability = ability::Ability::Summon(ability::Summon(3));
+        let ability = ability::Ability::Summon;
         let target_pos = state.parts().pos.get(agent_id).0;
         let command = Command::UseAbility(command::UseAbility {
             id: agent_id,
