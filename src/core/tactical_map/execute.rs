@@ -514,6 +514,16 @@ fn try_execute_end_battle(state: &mut State, cb: Cb) {
     }
 }
 
+fn is_lasting_effect_over(state: &State, id: ObjId, timed_effect: &TimedEffect) -> bool {
+    if let LastingEffect::Poison = timed_effect.effect {
+        let strength = state.parts().strength.get(id).strength;
+        if strength <= tactical_map::Strength(1) {
+            return true;
+        }
+    }
+    timed_effect.duration.is_over()
+}
+
 // TODO: simplify
 /// Ticks and kills all the lasting effects.
 fn execute_effects(state: &mut State, cb: Cb) {
@@ -541,8 +551,11 @@ fn execute_effects(state: &mut State, cb: Cb) {
                 let mut target_effects = Vec::new();
                 match effect.effect {
                     LastingEffect::Poison => {
-                        let damage = tactical_map::Strength(1);
-                        target_effects.push(wound_or_kill(state, obj_id, damage));
+                        let strength = state.parts().strength.get(obj_id).strength;
+                        if strength > tactical_map::Strength(1) {
+                            let damage = tactical_map::Strength(1);
+                            target_effects.push(wound_or_kill(state, obj_id, damage));
+                        }
                     }
                     LastingEffect::Stun => {
                         target_effects.push(Effect::Stun);
@@ -561,7 +574,7 @@ fn execute_effects(state: &mut State, cb: Cb) {
             if !state.parts().is_exist(obj_id) {
                 break;
             }
-            if effect.duration.is_over() {
+            if is_lasting_effect_over(state, obj_id, effect) {
                 let active_event = event::EffectEnd {
                     id: obj_id,
                     effect: effect.effect.clone(),
@@ -580,11 +593,10 @@ fn execute_effects(state: &mut State, cb: Cb) {
             continue;
         }
 
-        let effects = state.parts_mut().effects.get_mut(obj_id);
-        effects.0.retain(|effect| match effect.duration {
-            effect::Duration::Rounds(n) => n > 0,
-            _ => true,
-        });
+        // TODO: extract a function
+        let mut effects = state.parts_mut().effects.get(obj_id).0.clone();
+        effects.retain(|effect| !is_lasting_effect_over(state, obj_id, effect));
+        state.parts_mut().effects.get_mut(obj_id).0 = effects;
     }
 }
 
