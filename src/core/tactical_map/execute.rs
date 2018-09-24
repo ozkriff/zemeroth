@@ -529,8 +529,8 @@ fn is_lasting_effect_over(state: &State, id: ObjId, timed_effect: &TimedEffect) 
 fn execute_effects(state: &mut State, cb: Cb) {
     let phase = Phase::from_player_id(state.player_id());
     let ids = state.parts().effects.ids_collected();
-    for obj_id in ids {
-        for effect in &mut state.parts_mut().effects.get_mut(obj_id).0 {
+    for id in ids {
+        for effect in &mut state.parts_mut().effects.get_mut(id).0 {
             if effect.phase == phase {
                 if let Duration::Rounds(ref mut n) = effect.duration {
                     *n -= 1;
@@ -538,23 +538,23 @@ fn execute_effects(state: &mut State, cb: Cb) {
             }
         }
 
-        for effect in &mut state.parts_mut().effects.get_mut(obj_id).0.clone() {
+        for effect in &mut state.parts_mut().effects.get_mut(id).0.clone() {
             if effect.phase != phase {
                 continue;
             }
-            assert!(state.parts().is_exist(obj_id));
+            assert!(state.parts().is_exist(id));
             {
                 let active_event = event::EffectTick {
-                    id: obj_id,
+                    id,
                     effect: effect.effect.clone(),
                 };
                 let mut target_effects = Vec::new();
                 match effect.effect {
                     LastingEffect::Poison => {
-                        let strength = state.parts().strength.get(obj_id).strength;
+                        let strength = state.parts().strength.get(id).strength;
                         if strength > tactical_map::Strength(1) {
                             let damage = tactical_map::Strength(1);
-                            target_effects.push(wound_or_kill(state, obj_id, damage));
+                            target_effects.push(wound_or_kill(state, id, damage));
                         }
                     }
                     LastingEffect::Stun => {
@@ -562,26 +562,26 @@ fn execute_effects(state: &mut State, cb: Cb) {
                     }
                 }
                 let mut instant_effects = HashMap::new();
-                instant_effects.insert(obj_id, target_effects);
+                instant_effects.insert(id, target_effects);
                 let event = Event {
                     active_event: ActiveEvent::EffectTick(active_event),
-                    actor_ids: vec![obj_id],
+                    actor_ids: vec![id],
                     instant_effects,
                     timed_effects: HashMap::new(),
                 };
                 do_event(state, cb, &event);
             }
-            if !state.parts().is_exist(obj_id) {
+            if !state.parts().is_exist(id) {
                 break;
             }
-            if is_lasting_effect_over(state, obj_id, effect) {
+            if is_lasting_effect_over(state, id, effect) {
                 let active_event = event::EffectEnd {
-                    id: obj_id,
+                    id,
                     effect: effect.effect.clone(),
                 };
                 let event = Event {
                     active_event: ActiveEvent::EffectEnd(active_event),
-                    actor_ids: vec![obj_id],
+                    actor_ids: vec![id],
                     instant_effects: HashMap::new(),
                     timed_effects: HashMap::new(),
                 };
@@ -589,14 +589,14 @@ fn execute_effects(state: &mut State, cb: Cb) {
             }
         }
 
-        if !state.parts().is_exist(obj_id) {
+        if !state.parts().is_exist(id) {
             continue;
         }
 
         // TODO: extract a function
-        let mut effects = state.parts_mut().effects.get(obj_id).0.clone();
-        effects.retain(|effect| !is_lasting_effect_over(state, obj_id, effect));
-        state.parts_mut().effects.get_mut(obj_id).0 = effects;
+        let mut effects = state.parts_mut().effects.get(id).0.clone();
+        effects.retain(|effect| !is_lasting_effect_over(state, id, effect));
+        state.parts_mut().effects.get_mut(id).0 = effects;
     }
 }
 
