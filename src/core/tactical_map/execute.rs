@@ -1154,7 +1154,7 @@ fn get_summon_pool(state: &State, typenames: &[String]) -> Vec<String> {
 }
 
 fn choose_who_to_summon(state: &State) -> String {
-    let typenames: Vec<String> = vec!["imp".into(), "imp_toxic".into(), "imp_bomber".into()];
+    let typenames = vec!["imp".into(), "imp_toxic".into(), "imp_bomber".into()];
     let mut prototypes_pool = get_summon_pool(state, &typenames);
     if prototypes_pool.is_empty() {
         prototypes_pool = typenames;
