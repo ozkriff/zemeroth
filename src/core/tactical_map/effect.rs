@@ -16,10 +16,10 @@ impl Duration {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct TimedEffect {
+pub struct Timed {
     pub duration: Duration,
     pub phase: Phase,
-    pub effect: LastingEffect,
+    pub effect: Lasting,
 }
 
 /// Instant effects
@@ -55,16 +55,16 @@ impl Effect {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub enum LastingEffect {
+pub enum Lasting {
     Poison,
     Stun,
 }
 
-impl LastingEffect {
+impl Lasting {
     pub fn to_str(&self) -> &str {
         match *self {
-            LastingEffect::Poison => "Poison",
-            LastingEffect::Stun => "Stun",
+            Lasting::Poison => "Poison",
+            Lasting::Stun => "Stun",
         }
     }
 }

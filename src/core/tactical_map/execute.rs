@@ -10,7 +10,7 @@ use core::tactical_map::{
     check::{check, Error},
     command::{self, Command},
     component::{self, Component},
-    effect::{self, Duration, Effect, LastingEffect, TimedEffect},
+    effect::{self, Duration, Effect},
     event::{self, ActiveEvent, Event},
     movement::Path,
     state::{self, BattleResult, State},
@@ -195,7 +195,7 @@ fn try_execute_passive_ability_poison(state: &mut State, target_id: ObjId) -> Ex
     let mut context = ExecuteContext::default();
     if let Some(effects) = state.parts_mut().effects.get_opt_mut(target_id) {
         for effect in &mut effects.0 {
-            if let LastingEffect::Poison = effect.effect {
+            if let effect::Lasting::Poison = effect.effect {
                 // this agent is already poisoned, so just resetting the duration
                 effect.duration = Duration::Rounds(2);
                 return context;
@@ -203,10 +203,10 @@ fn try_execute_passive_ability_poison(state: &mut State, target_id: ObjId) -> Ex
         }
     }
     let owner = state.parts().belongs_to.get(target_id).0;
-    let effect = TimedEffect {
+    let effect = effect::Timed {
         duration: effect::Duration::Rounds(2),
         phase: Phase::from_player_id(owner),
-        effect: LastingEffect::Poison,
+        effect: effect::Lasting::Poison,
     };
     context.timed_effects.insert(target_id, vec![effect]);
     context
@@ -338,7 +338,7 @@ fn try_execute_passive_abilities_on_end_turn(state: &mut State, cb: Cb) {
 #[derive(Debug, Clone, Default)]
 struct Effects {
     instant: Vec<Effect>,
-    timed: Vec<TimedEffect>,
+    timed: Vec<effect::Timed>,
 }
 
 fn try_execute_passive_abilities_on_attack(
@@ -365,10 +365,10 @@ fn try_execute_passive_abilities_on_attack(
                 }
                 PassiveAbility::PoisonAttack => {
                     let owner = state.parts().belongs_to.get(target_id).0;
-                    let effect = TimedEffect {
+                    let effect = effect::Timed {
                         duration: effect::Duration::Rounds(2),
                         phase: Phase::from_player_id(owner),
-                        effect: LastingEffect::Poison,
+                        effect: effect::Lasting::Poison,
                     };
                     effects.timed.push(effect);
                 }
@@ -514,13 +514,23 @@ fn try_execute_end_battle(state: &mut State, cb: Cb) {
     }
 }
 
+fn is_lasting_effect_over(state: &State, id: ObjId, timed_effect: &effect::Timed) -> bool {
+    if let effect::Lasting::Poison = timed_effect.effect {
+        let strength = state.parts().strength.get(id).strength;
+        if strength <= tactical_map::Strength(1) {
+            return true;
+        }
+    }
+    timed_effect.duration.is_over()
+}
+
 // TODO: simplify
 /// Ticks and kills all the lasting effects.
 fn execute_effects(state: &mut State, cb: Cb) {
     let phase = Phase::from_player_id(state.player_id());
     let ids = state.parts().effects.ids_collected();
-    for obj_id in ids {
-        for effect in &mut state.parts_mut().effects.get_mut(obj_id).0 {
+    for id in ids {
+        for effect in &mut state.parts_mut().effects.get_mut(id).0 {
             if effect.phase == phase {
                 if let Duration::Rounds(ref mut n) = effect.duration {
                     *n -= 1;
@@ -528,47 +538,50 @@ fn execute_effects(state: &mut State, cb: Cb) {
             }
         }
 
-        for effect in &mut state.parts_mut().effects.get_mut(obj_id).0.clone() {
+        for effect in &mut state.parts_mut().effects.get_mut(id).0.clone() {
             if effect.phase != phase {
                 continue;
             }
-            assert!(state.parts().is_exist(obj_id));
+            assert!(state.parts().is_exist(id));
             {
                 let active_event = event::EffectTick {
-                    id: obj_id,
+                    id,
                     effect: effect.effect.clone(),
                 };
                 let mut target_effects = Vec::new();
                 match effect.effect {
-                    LastingEffect::Poison => {
-                        let damage = tactical_map::Strength(1);
-                        target_effects.push(wound_or_kill(state, obj_id, damage));
+                    effect::Lasting::Poison => {
+                        let strength = state.parts().strength.get(id).strength;
+                        if strength > tactical_map::Strength(1) {
+                            let damage = tactical_map::Strength(1);
+                            target_effects.push(wound_or_kill(state, id, damage));
+                        }
                     }
-                    LastingEffect::Stun => {
+                    effect::Lasting::Stun => {
                         target_effects.push(Effect::Stun);
                     }
                 }
                 let mut instant_effects = HashMap::new();
-                instant_effects.insert(obj_id, target_effects);
+                instant_effects.insert(id, target_effects);
                 let event = Event {
                     active_event: ActiveEvent::EffectTick(active_event),
-                    actor_ids: vec![obj_id],
+                    actor_ids: vec![id],
                     instant_effects,
                     timed_effects: HashMap::new(),
                 };
                 do_event(state, cb, &event);
             }
-            if !state.parts().is_exist(obj_id) {
+            if !state.parts().is_exist(id) {
                 break;
             }
-            if effect.duration.is_over() {
+            if is_lasting_effect_over(state, id, effect) {
                 let active_event = event::EffectEnd {
-                    id: obj_id,
+                    id,
                     effect: effect.effect.clone(),
                 };
                 let event = Event {
                     active_event: ActiveEvent::EffectEnd(active_event),
-                    actor_ids: vec![obj_id],
+                    actor_ids: vec![id],
                     instant_effects: HashMap::new(),
                     timed_effects: HashMap::new(),
                 };
@@ -576,15 +589,14 @@ fn execute_effects(state: &mut State, cb: Cb) {
             }
         }
 
-        if !state.parts().is_exist(obj_id) {
+        if !state.parts().is_exist(id) {
             continue;
         }
 
-        let effects = state.parts_mut().effects.get_mut(obj_id);
-        effects.0.retain(|effect| match effect.duration {
-            effect::Duration::Rounds(n) => n > 0,
-            _ => true,
-        });
+        // TODO: extract a function
+        let mut effects = state.parts_mut().effects.get(id).0.clone();
+        effects.retain(|effect| !is_lasting_effect_over(state, id, effect));
+        state.parts_mut().effects.get_mut(id).0 = effects;
     }
 }
 
@@ -666,7 +678,7 @@ struct ExecuteContext {
     moved_actor_ids: Vec<ObjId>,
     reaction_attack_targets: Vec<ObjId>,
     instant_effects: HashMap<ObjId, Vec<Effect>>,
-    timed_effects: HashMap<ObjId, Vec<TimedEffect>>,
+    timed_effects: HashMap<ObjId, Vec<effect::Timed>>,
 }
 
 impl ExecuteContext {
@@ -722,10 +734,10 @@ fn execute_use_ability_club(state: &mut State, command: &command::UseAbility) ->
     if state.parts().belongs_to.get_opt(id).is_some() {
         let owner = state.parts().belongs_to.get(id).0;
         let phase = Phase::from_player_id(owner);
-        let effect = TimedEffect {
+        let effect = effect::Timed {
             duration: effect::Duration::Rounds(2),
             phase,
-            effect: LastingEffect::Stun,
+            effect: effect::Lasting::Stun,
         };
         context.timed_effects.insert(id, vec![effect]);
         let effects = context.instant_effects.entry(id).or_insert_with(Vec::new);
@@ -910,10 +922,10 @@ fn execute_use_ability_poison(state: &mut State, command: &command::UseAbility) 
     let id = state::blocker_id_at(state, command.pos);
     let owner = state.parts().belongs_to.get(id).0;
     let phase = Phase::from_player_id(owner);
-    let effect = TimedEffect {
+    let effect = effect::Timed {
         duration: effect::Duration::Rounds(2),
         phase,
-        effect: LastingEffect::Poison,
+        effect: effect::Lasting::Poison,
     };
     context.timed_effects.insert(id, vec![effect]);
     context.actor_ids.push(id);
@@ -1154,7 +1166,7 @@ fn get_summon_pool(state: &State, typenames: &[String]) -> Vec<String> {
 }
 
 fn choose_who_to_summon(state: &State) -> String {
-    let typenames: Vec<String> = vec!["imp".into(), "imp_toxic".into(), "imp_bomber".into()];
+    let typenames = vec!["imp".into(), "imp_toxic".into(), "imp_bomber".into()];
     let mut prototypes_pool = get_summon_pool(state, &typenames);
     if prototypes_pool.is_empty() {
         prototypes_pool = typenames;
