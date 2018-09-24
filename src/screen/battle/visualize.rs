@@ -9,7 +9,7 @@ use scene::{action, Action, Boxed, Sprite};
 use core::map::PosHex;
 use core::tactical_map::{
     ability::Ability,
-    effect::{self, Effect, LastingEffect, TimedEffect},
+    effect::{self, Effect},
     event::{self, ActiveEvent, Event},
     execute::ApplyPhase,
     state, ObjId, PlayerId, State,
@@ -576,8 +576,8 @@ fn visualize_event_effect_tick(
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     match event.effect {
-        LastingEffect::Poison => show_flare(view, pos, [0.0, 0.8, 0.0, 0.7].into()),
-        LastingEffect::Stun => show_flare(view, pos, [1.0, 1.0, 1.0, 0.7].into()),
+        effect::Lasting::Poison => show_flare(view, pos, [0.0, 0.8, 0.0, 0.7].into()),
+        effect::Lasting::Stun => show_flare(view, pos, [1.0, 1.0, 1.0, 0.7].into()),
     }
 }
 
@@ -597,12 +597,12 @@ pub fn visualize_lasting_effect(
     view: &mut BattleView,
     context: &mut Context,
     target_id: ObjId,
-    timed_effect: &TimedEffect,
+    timed_effect: &effect::Timed,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
     let action_flare = match timed_effect.effect {
-        LastingEffect::Poison => show_flare(view, pos, [0.0, 0.8, 0.0, 0.7].into())?,
-        LastingEffect::Stun => show_flare(view, pos, [1.0, 1.0, 1.0, 0.7].into())?,
+        effect::Lasting::Poison => show_flare(view, pos, [0.0, 0.8, 0.0, 0.7].into())?,
+        effect::Lasting::Stun => show_flare(view, pos, [1.0, 1.0, 1.0, 0.7].into())?,
     };
     let s = timed_effect.effect.to_str();
     Ok(seq(vec![

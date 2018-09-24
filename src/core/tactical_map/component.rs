@@ -2,7 +2,7 @@ use core::map;
 use core::tactical_map::{
     self,
     ability::{Ability, PassiveAbility, RechargeableAbility},
-    effect::TimedEffect,
+    effect::Timed,
     Attacks, Jokers, MovePoints, Moves, ObjId, Phase, PlayerId,
 };
 
@@ -65,7 +65,7 @@ pub struct Abilities(pub Vec<RechargeableAbility>);
 pub struct PassiveAbilities(pub Vec<PassiveAbility>);
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct Effects(pub Vec<TimedEffect>);
+pub struct Effects(pub Vec<Timed>);
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PlannedAbility {

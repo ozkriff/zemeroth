@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use core::tactical_map::{
     ability::{Ability, PassiveAbility},
-    effect::{Effect, LastingEffect, TimedEffect},
+    effect::{self, Effect},
     movement::Path,
     state::BattleResult,
     Moves, ObjId, PlayerId, PosHex,
@@ -17,7 +17,7 @@ pub struct Event {
     pub actor_ids: Vec<ObjId>,
 
     pub instant_effects: HashMap<ObjId, Vec<Effect>>,
-    pub timed_effects: HashMap<ObjId, Vec<TimedEffect>>,
+    pub timed_effects: HashMap<ObjId, Vec<effect::Timed>>,
 }
 
 #[derive(Debug, Clone)]
@@ -86,11 +86,11 @@ pub struct UsePassiveAbility {
 #[derive(Debug, Clone)]
 pub struct EffectTick {
     pub id: ObjId,
-    pub effect: LastingEffect,
+    pub effect: effect::Lasting,
 }
 
 #[derive(Debug, Clone)]
 pub struct EffectEnd {
     pub id: ObjId,
-    pub effect: LastingEffect,
+    pub effect: effect::Lasting,
 }

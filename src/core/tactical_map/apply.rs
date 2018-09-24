@@ -1,7 +1,7 @@
 use core::tactical_map::{
     ability::{self, Ability},
     component::{self, Component},
-    effect::{self, Effect, LastingEffect},
+    effect::{self, Effect},
     event::{self, ActiveEvent, Event},
     state, Attacks, Jokers, Moves, ObjId, PlayerId, State,
 };
@@ -79,7 +79,7 @@ fn apply_event_end_turn(state: &mut State, event: &event::EndTurn) {
         }
         if let Some(effects) = parts.effects.get_opt(id) {
             for effect in &effects.0 {
-                if let LastingEffect::Stun = effect.effect {
+                if let effect::Lasting::Stun = effect.effect {
                     agent.attacks.0 = 0;
                 }
             }
@@ -95,8 +95,8 @@ fn apply_lasting_effect_stun(state: &mut State, id: ObjId) {
     agent.jokers.0 = 0;
 }
 
-fn apply_lasting_effect(state: &mut State, id: ObjId, effect: &LastingEffect) {
-    if let LastingEffect::Stun = *effect {
+fn apply_lasting_effect(state: &mut State, id: ObjId, effect: &effect::Lasting) {
+    if let effect::Lasting::Stun = *effect {
         apply_lasting_effect_stun(state, id);
     }
 }
@@ -192,7 +192,7 @@ fn add_component(state: &mut State, id: ObjId, component: Component) {
     }
 }
 
-fn apply_effect_timed(state: &mut State, id: ObjId, timed_effect: &effect::TimedEffect) {
+fn apply_effect_timed(state: &mut State, id: ObjId, timed_effect: &effect::Timed) {
     let parts = state.parts_mut();
     debug!("effect::apply_timed: {:?}", timed_effect);
     let effects = &mut parts.effects;
