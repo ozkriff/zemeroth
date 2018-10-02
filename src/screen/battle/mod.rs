@@ -261,7 +261,6 @@ impl Battle {
             if let command::Command::EndTurn(_) = command {
                 break;
             }
-            assert!(self.state.battle_result().is_none());
         }
         debug!("AI: >");
         action::Sequence::new(actions).boxed()
