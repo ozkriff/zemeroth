@@ -1198,7 +1198,8 @@ pub fn create_objects(state: &mut State, cb: Cb) {
             let pos = match owner {
                 Some(player_id) => random_free_sector_pos(state, player_id),
                 None => random_free_pos(state),
-            }.unwrap();
+            }
+            .unwrap();
             let command = Command::Create(command::Create {
                 prototype: typename.into(),
                 pos,
