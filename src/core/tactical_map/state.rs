@@ -121,6 +121,20 @@ pub fn is_tile_plain_and_completely_free(state: &State, pos: PosHex) -> bool {
     true
 }
 
+/// Are there any enemy agents on the adjacent tiles?
+pub fn check_enemies_around(state: &State, pos: PosHex, player_id: PlayerId) -> bool {
+    for dir in map::dirs() {
+        let neighbor_pos = map::Dir::get_neighbor_pos(pos, dir);
+        if let Some(id) = agent_id_at_opt(state, neighbor_pos) {
+            let neighbor_player_id = state.parts().belongs_to.get(id).0;
+            if neighbor_player_id != player_id {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 pub fn ids_at(state: &State, pos: PosHex) -> Vec<ObjId> {
     let i = state.parts().pos.ids();
     i.filter(|&id| state.parts().pos.get(id).0 == pos).collect()
