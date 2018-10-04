@@ -1121,7 +1121,8 @@ fn random_free_sector_pos(state: &State, player_id: PlayerId) -> Option<PosHex> 
             },
             r: thread_rng().gen_range(-radius.0, radius.0),
         };
-        if state::is_tile_plain_and_completely_free(state, pos) {
+        let no_enemies_around = !state::check_enemies_around(state, pos, player_id);
+        if state::is_tile_plain_and_completely_free(state, pos) && no_enemies_around {
             return Some(pos);
         }
     }
@@ -1198,7 +1199,8 @@ pub fn create_objects(state: &mut State, cb: Cb) {
             let pos = match owner {
                 Some(player_id) => random_free_sector_pos(state, player_id),
                 None => random_free_pos(state),
-            }.unwrap();
+            }
+            .unwrap();
             let command = Command::Create(command::Create {
                 prototype: typename.into(),
                 pos,

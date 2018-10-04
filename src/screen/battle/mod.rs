@@ -296,7 +296,8 @@ impl Battle {
             let action = visualize::visualize(state, view, context, event, phase)
                 .expect("Can't visualize the event");
             actions.push(action);
-        }).expect("Can't execute command");
+        })
+        .expect("Can't execute command");
         action::Sequence::new(actions).boxed()
     }
 
