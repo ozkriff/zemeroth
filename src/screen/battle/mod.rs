@@ -1,17 +1,16 @@
-use std::{io::Read, time::Duration};
+use std::{io::Read, path::Path, time::Duration};
 
 use ggez::{
     graphics::{self, Font, Point2, Text},
     Context,
 };
-use ron;
 use scene::{action, Action, Boxed};
 use ui::{self, Gui};
 
 use core::map::PosHex;
 use core::tactical_map::{
-    self, ability, ability::Ability, ai::Ai, check, command, effect, execute, movement::Pathfinder,
-    state, ObjId, PlayerId, State,
+    self, ability, ability::Ability, ai::Ai, check, command, component::Prototypes, effect,
+    execute, movement::Pathfinder, state, ObjId, PlayerId, State,
 };
 use geom;
 use screen::battle::view::{make_action_create_map, BattleView, SelectionMode};
@@ -195,6 +194,15 @@ fn prepare_map_and_state(
     Ok(())
 }
 
+pub fn load_prototypes(context: &mut Context, path: &Path) -> ZResult<Prototypes> {
+    let mut buf = String::new();
+    let mut file = context.filesystem.open(path)?;
+    file.read_to_string(&mut buf)?;
+    let prototypes = Prototypes::from_string(&buf);
+    debug!("{:?}", prototypes);
+    Ok(prototypes)
+}
+
 #[derive(Debug)]
 pub struct Battle {
     font: graphics::Font,
@@ -214,11 +222,7 @@ impl Battle {
     pub fn new(context: &mut Context) -> ZResult<Self> {
         let font = Font::new(context, "/OpenSans-Regular.ttf", 24)?;
         let gui = make_gui(context, &font)?;
-        let mut prototypes_str = String::new();
-        let mut file = context.filesystem.open("/objects.ron")?;
-        file.read_to_string(&mut prototypes_str)?;
-        let prototypes = ron::de::from_str(&prototypes_str).unwrap();
-        debug!("{:?}", prototypes);
+        let prototypes = load_prototypes(context, Path::new("/objects.ron"))?;
         let mut state = State::new(prototypes);
         let radius = state.map().radius();
         let mut view = BattleView::new(&state, context)?;

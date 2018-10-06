@@ -1,3 +1,5 @@
+use ron;
+
 use core::map;
 use core::tactical_map::{
     self,
@@ -15,7 +17,9 @@ pub struct Blocker;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Strength {
+    #[serde(default)]
     pub base_strength: tactical_map::Strength,
+
     pub strength: tactical_map::Strength,
 }
 
@@ -43,19 +47,20 @@ pub struct Agent {
     pub attack_strength: tactical_map::Strength,
     pub attack_distance: map::Distance,
 
-    #[serde(default = "strength_zero")]
+    #[serde(default)]
     pub attack_break: tactical_map::Strength,
 
     pub move_points: MovePoints,
     pub reactive_attacks: Attacks,
 
+    #[serde(default)]
     pub base_moves: Moves,
-    pub base_attacks: Attacks,
-    pub base_jokers: Jokers,
-}
 
-fn strength_zero() -> tactical_map::Strength {
-    tactical_map::Strength(0)
+    #[serde(default)]
+    pub base_attacks: Attacks,
+
+    #[serde(default)]
+    pub base_jokers: Jokers,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -118,3 +123,29 @@ zcomponents_storage!(Parts<ObjId>: {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Prototypes(pub HashMap<String, Vec<Component>>);
+
+fn init_component(component: &mut Component) {
+    match component {
+        Component::Agent(agent) => {
+            agent.base_moves = agent.moves;
+            agent.base_attacks = agent.attacks;
+            agent.base_jokers = agent.jokers;
+        }
+        Component::Strength(strength) => {
+            strength.base_strength = strength.strength;
+        }
+        _ => {}
+    }
+}
+
+impl Prototypes {
+    pub fn from_string(s: &str) -> Self {
+        let mut prototypes: Prototypes = ron::de::from_str(s).expect("Can't parse the prototypes");
+        for components in prototypes.0.values_mut() {
+            for component in components {
+                init_component(component);
+            }
+        }
+        prototypes
+    }
+}

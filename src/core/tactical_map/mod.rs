@@ -31,26 +31,20 @@ impl Phase {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ObjId(i32);
 
-impl Default for ObjId {
-    fn default() -> Self {
-        ObjId(0)
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Strength(pub i32);
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Attacks(pub i32);
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Moves(pub i32);
 
 /// Move or Attack
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Jokers(pub i32);
 
 #[derive(Clone, Copy, Debug, PartialEq)]
