@@ -477,7 +477,7 @@ fn execute_planned_abilities(state: &mut State, cb: Cb) {
                 if planned.rounds <= 0 {
                     trace!("planned ability: ready!");
                     let c = command::UseAbility {
-                        ability: planned.ability,
+                        ability: planned.ability.clone(),
                         id: obj_id,
                         pos,
                     };
@@ -628,10 +628,10 @@ fn schedule_ability(state: &mut State, id: ObjId, ability: Ability) {
     schedule.planned.push(planned_ability);
 }
 
-fn refresh_scheduled_ability(state: &mut State, id: ObjId, ability: Ability) {
+fn refresh_scheduled_ability(state: &mut State, id: ObjId, ability: &Ability) {
     let schedule = state.parts_mut().schedule.get_mut(id);
     for planned_ability in &mut schedule.planned {
-        if planned_ability.ability == ability {
+        if planned_ability.ability == *ability {
             planned_ability.rounds = 2; // TODO: do not hardcode
             return;
         }
@@ -642,7 +642,7 @@ fn refresh_scheduled_ability(state: &mut State, id: ObjId, ability: Ability) {
 fn start_fire(state: &mut State, pos: PosHex) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     if let Some(id) = state::obj_with_passive_ability_at(state, pos, PassiveAbility::Burn) {
-        refresh_scheduled_ability(state, id, Ability::Vanish);
+        refresh_scheduled_ability(state, id, &Ability::Vanish);
     } else {
         let effect_create = effect_create_object(state, "fire", pos);
         let id = state.alloc_id();
@@ -658,7 +658,7 @@ fn start_fire(state: &mut State, pos: PosHex) -> ExecuteContext {
 fn create_poison_cloud(state: &mut State, pos: PosHex) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     if let Some(id) = state::obj_with_passive_ability_at(state, pos, PassiveAbility::Poison) {
-        refresh_scheduled_ability(state, id, Ability::Vanish);
+        refresh_scheduled_ability(state, id, &Ability::Vanish);
     } else {
         let effect_create = effect_create_object(state, "poison_cloud", pos);
         let id = state.alloc_id();
@@ -1072,7 +1072,7 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
     let active_event = ActiveEvent::UseAbility(event::UseAbility {
         id: command.id,
         pos: command.pos,
-        ability: command.ability,
+        ability: command.ability.clone(),
     });
     let event = Event {
         active_event,

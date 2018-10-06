@@ -16,7 +16,7 @@ use screen::battle::visualize;
 use utils::time_s;
 use ZResult;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SelectionMode {
     Normal,
     Ability(Ability),
@@ -210,9 +210,9 @@ impl BattleView {
         selected_id: ObjId,
         mode: &SelectionMode,
     ) -> ZResult {
-        match *mode {
+        match mode {
             SelectionMode::Normal => self.select_normal(state, map, selected_id),
-            SelectionMode::Ability(ability) => self.select_ability(state, selected_id, ability),
+            SelectionMode::Ability(ref ability) => self.select_ability(state, selected_id, ability),
         }
     }
 
@@ -246,13 +246,13 @@ impl BattleView {
         self.show_attackable_tiles(state, id)
     }
 
-    fn select_ability(&mut self, state: &State, selected_id: ObjId, ability: Ability) -> ZResult {
+    fn select_ability(&mut self, state: &State, selected_id: ObjId, ability: &Ability) -> ZResult {
         self.remove_highlights();
         let positions = state.map().iter();
         for pos in positions {
             let command = command::Command::UseAbility(command::UseAbility {
                 id: selected_id,
-                ability,
+                ability: ability.clone(),
                 pos,
             });
             if tactical_map::check(state, &command).is_ok() {

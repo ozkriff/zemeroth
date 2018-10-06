@@ -179,7 +179,7 @@ impl Ai {
                 let command = Command::UseAbility(command::UseAbility {
                     id: agent_id,
                     pos,
-                    ability,
+                    ability: ability.clone(),
                 });
                 if check(state, &command).is_ok() {
                     return Some(command);
