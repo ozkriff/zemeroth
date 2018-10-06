@@ -2,7 +2,7 @@ use core::map::Distance;
 use core::tactical_map::{Attacks, Strength};
 
 /// Active ability.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Ability {
     Knockback,
     Club,
@@ -25,33 +25,33 @@ pub enum Ability {
 }
 
 // TODO: use named fields?
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Jump(pub Distance);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Rage(pub Attacks);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Heal(pub Strength);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Bomb(pub Distance);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BombDemonic(pub Distance);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BombPush {
     pub throw_distance: Distance,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BombPoison(pub Distance);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BombFire(pub Distance);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Status {
     Ready,
     Cooldown(i32), // TODO: i32 -> Rounds
@@ -72,7 +72,7 @@ fn default_status() -> Status {
     Status::Ready
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RechargeableAbility {
     pub ability: Ability,
 
@@ -83,8 +83,8 @@ pub struct RechargeableAbility {
 }
 
 impl Ability {
-    pub fn to_string(self) -> String {
-        match self {
+    pub fn to_string(&self) -> String {
+        match *self {
             Ability::Knockback => "Knockback".into(),
             Ability::Club => "Club".into(),
             Ability::Jump(a) => format!("Jump-{}", (a.0).0),
@@ -107,7 +107,7 @@ impl Ability {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum PassiveAbility {
     HeavyImpact,
     SpawnPoisonCloudOnDeath,
@@ -118,7 +118,7 @@ pub enum PassiveAbility {
     Regenerate(Regenerate),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Regenerate(pub Strength);
 
 impl PassiveAbility {

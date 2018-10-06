@@ -91,7 +91,7 @@ fn check_command_end_turn(_: &State, _: &command::EndTurn) -> Result<(), Error> 
 fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Result<(), Error> {
     check_agent_belongs_to_correct_player(state, command.id)?;
     check_agent_can_attack(state, command.id)?;
-    check_agent_ability_ready(state, command.id, command.ability)?;
+    check_agent_ability_ready(state, command.id, &command.ability)?;
     match command.ability {
         Ability::Knockback => check_ability_knockback(state, command.id, command.pos),
         Ability::Club => check_ability_club(state, command.id, command.pos),
@@ -280,7 +280,7 @@ fn try_get_actor(state: &State, id: ObjId) -> Result<&tactical_map::component::A
 fn check_agent_ability_ready(
     state: &State,
     id: ObjId,
-    expected_ability: Ability,
+    expected_ability: &Ability,
 ) -> Result<(), Error> {
     let mut found = false;
     let abilities = match state.parts().abilities.get_opt(id) {
@@ -288,7 +288,7 @@ fn check_agent_ability_ready(
         None => return Err(Error::BadActorType),
     };
     for ability in abilities {
-        if ability.ability == expected_ability {
+        if ability.ability == *expected_ability {
             found = true;
             if ability.status != ability::Status::Ready {
                 return Err(Error::AbilityIsNotReady);

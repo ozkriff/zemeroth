@@ -22,7 +22,7 @@ mod check;
 pub struct PlayerId(pub i32);
 
 /// An index of player's turn.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Phase(i32);
 
 impl Phase {
@@ -40,20 +40,20 @@ impl Default for ObjId {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Strength(pub i32);
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Attacks(pub i32);
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Moves(pub i32);
 
 /// Move or Attack
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Jokers(pub i32);
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TileType {
     Plain,
     Rocks,

@@ -22,7 +22,7 @@ use ZResult;
 mod view;
 mod visualize;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 enum Message {
     Exit,
     Deselect,
@@ -132,13 +132,13 @@ fn build_panel_agent_abilities(
     }
     let mut layout = ui::VLayout::new();
     let h = line_height();
-    for &ability in abilities {
+    for ability in abilities {
         let text = match ability.status {
             ability::Status::Ready => format!("[{}]", ability.ability.to_string()),
             ability::Status::Cooldown(n) => format!("[{} ({})]", ability.ability.to_string(), n),
         };
         let image = Text::new(context, &text, font)?.into_inner();
-        let msg = Message::Ability(ability.ability);
+        let msg = Message::Ability(ability.ability.clone());
         let button = ui::Button::new(context, image, h, gui.sender(), msg);
         layout.add(Box::new(button));
     }
@@ -422,7 +422,7 @@ impl Battle {
             return Ok(());
         }
         if self.state.map().is_inboard(pos) {
-            if let SelectionMode::Ability(ability) = self.mode {
+            if let SelectionMode::Ability(ability) = self.mode.clone() {
                 let selected_id = self.selected_agent_id.unwrap();
                 let command = command::Command::UseAbility(command::UseAbility {
                     id: selected_id,
