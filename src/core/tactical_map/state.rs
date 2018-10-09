@@ -121,6 +121,18 @@ pub fn is_tile_plain_and_completely_free(state: &State, pos: PosHex) -> bool {
     true
 }
 
+pub fn is_tile_completely_free(state: &State, pos: PosHex) -> bool {
+    if !state.map().is_inboard(pos) {
+        return false;
+    }
+    for id in state.parts().pos.ids() {
+        if state.parts().pos.get(id).0 == pos {
+            return false;
+        }
+    }
+    true
+}
+
 /// Are there any enemy agents on the adjacent tiles?
 pub fn check_enemies_around(state: &State, pos: PosHex, player_id: PlayerId) -> bool {
     for dir in map::dirs() {
