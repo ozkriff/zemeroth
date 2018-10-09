@@ -1107,12 +1107,45 @@ fn random_free_pos(state: &State) -> Option<PosHex> {
     None
 }
 
-fn random_free_sector_pos(state: &State, player_id: PlayerId) -> Option<PosHex> {
+fn middle_range(min: i32, max: i32) -> (i32, i32) {
+    assert!(min <= max);
+    let size = max - min;
+    let half = size / 2;
+    let forth = size / 4;
+    let min = half - forth;
+    let mut max = half + forth;
+    if min == max {
+        max += 1;
+    }
+    (min, max)
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Line {
+    Any,
+    Front,
+    Middle,
+    Back,
+}
+
+impl Line {
+    pub fn to_range(self, radius: map::Distance) -> (i32, i32) {
+        let radius = radius.0;
+        match self {
+            Line::Front => (radius / 2, radius + 1),
+            Line::Middle => middle_range(0, radius),
+            Line::Back => (0, radius / 2),
+            Line::Any => (0, radius + 1),
+        }
+    }
+}
+
+fn random_free_sector_pos(state: &State, player_id: PlayerId, line: Line) -> Option<PosHex> {
     let attempts = 30;
     let radius = state.map().radius();
-    let start_sector_width = radius.0 + 1;
+    let (min, max) = line.to_range(radius);
     for _ in 0..attempts {
-        let q = radius.0 - thread_rng().gen_range(0, start_sector_width);
+        let q = radius.0 - thread_rng().gen_range(min, max);
         let pos = PosHex {
             q: match player_id.0 {
                 0 => -q,
@@ -1122,14 +1155,22 @@ fn random_free_sector_pos(state: &State, player_id: PlayerId) -> Option<PosHex> 
             r: thread_rng().gen_range(-radius.0, radius.0),
         };
         let no_enemies_around = !state::check_enemies_around(state, pos, player_id);
-        if state::is_tile_plain_and_completely_free(state, pos) && no_enemies_around {
+        if state::is_tile_completely_free(state, pos) && no_enemies_around {
             return Some(pos);
         }
     }
     None
 }
 
+fn random_pos(state: &State, owner: Option<PlayerId>, line: Line) -> Option<PosHex> {
+    match owner {
+        Some(player_id) => random_free_sector_pos(state, player_id, line),
+        None => random_free_pos(state),
+    }
+}
+
 pub fn create_terrain(state: &mut State) {
+    // TODO: read from the config
     for _ in 0..15 {
         let pos = match random_free_pos(state) {
             Some(pos) => pos,
@@ -1179,28 +1220,27 @@ fn choose_who_to_summon(state: &State) -> String {
 }
 
 pub fn create_objects(state: &mut State, cb: Cb) {
+    let id_0 = Some(PlayerId(0));
+    let id_1 = Some(PlayerId(1));
     let player_id_initial = state.player_id();
-    for &(owner, typename, count) in &[
-        (None, "spike_trap", 3),
-        (None, "boulder", 7),
-        (Some(PlayerId(0)), "swordsman", 1),
-        (Some(PlayerId(0)), "hammerman", 1),
-        (Some(PlayerId(0)), "spearman", 1),
-        (Some(PlayerId(0)), "alchemist", 1),
-        (Some(PlayerId(1)), "imp", 3),
-        (Some(PlayerId(1)), "imp_toxic", 1),
-        (Some(PlayerId(1)), "imp_bomber", 2),
-        (Some(PlayerId(1)), "imp_summoner", 2),
+    // TODO: read the table from the config/scenario:
+    for &(owner, typename, preferred_pos, count) in &[
+        (None, "spike_trap", Line::Any, 2),
+        (None, "boulder", Line::Any, 5),
+        (id_0, "swordsman", Line::Front, 1),
+        (id_0, "hammerman", Line::Front, 1),
+        (id_0, "spearman", Line::Middle, 1),
+        (id_0, "alchemist", Line::Middle, 1),
+        (id_1, "imp_summoner", Line::Back, 2),
+        (id_1, "imp_bomber", Line::Middle, 2),
+        (id_1, "imp_toxic", Line::Middle, 1),
+        (id_1, "imp", Line::Front, 3),
     ] {
         if let Some(player_id) = owner {
             state.set_player_id(player_id);
         }
         for _ in 0..count {
-            let pos = match owner {
-                Some(player_id) => random_free_sector_pos(state, player_id),
-                None => random_free_pos(state),
-            }
-            .unwrap();
+            let pos = random_pos(state, owner, preferred_pos).expect("Can't find the position");
             let command = Command::Create(command::Create {
                 prototype: typename.into(),
                 pos,
@@ -1218,7 +1258,7 @@ mod tests {
 
     use core::tactical_map::{effect::Effect, ObjId};
 
-    use super::ExecuteContext;
+    use super::{middle_range, ExecuteContext};
 
     #[test]
     fn test_merge_with_vector() {
@@ -1263,5 +1303,17 @@ mod tests {
         };
         context1.merge_with(context2);
         assert_eq!(context_expected, context1);
+    }
+
+    #[test]
+    fn test_middle_range() {
+        assert_eq!(middle_range(0, 3), (1, 2));
+        assert_eq!(middle_range(0, 4), (1, 3));
+        assert_eq!(middle_range(0, 5), (1, 3));
+        assert_eq!(middle_range(0, 6), (2, 4));
+        assert_eq!(middle_range(0, 7), (2, 4));
+        assert_eq!(middle_range(0, 8), (2, 6));
+        assert_eq!(middle_range(0, 9), (2, 6));
+        assert_eq!(middle_range(0, 10), (3, 7));
     }
 }
