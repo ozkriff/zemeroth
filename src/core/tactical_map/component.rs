@@ -46,9 +46,13 @@ pub struct Agent {
     // static
     pub attack_strength: tactical_map::Strength,
     pub attack_distance: map::Distance,
+    pub attack_accuracy: tactical_map::Accuracy,
 
     #[serde(default)]
     pub attack_break: tactical_map::Strength,
+
+    #[serde(default)]
+    pub dodge: tactical_map::Dodge,
 
     pub move_points: MovePoints,
     pub reactive_attacks: Attacks,

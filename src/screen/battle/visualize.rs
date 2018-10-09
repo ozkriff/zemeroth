@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use ggez::{
-    graphics::{Color, Text, Vector2},
+    graphics::{Color, Point2, Text, Vector2},
     nalgebra, Context,
 };
 use scene::{action, Action, Boxed, Sprite};
@@ -11,7 +11,7 @@ use core::tactical_map::{
     ability::Ability,
     effect::{self, Effect},
     event::{self, ActiveEvent, Event},
-    execute::ApplyPhase,
+    execute::{hit_chance, ApplyPhase},
     state, ObjId, PlayerId, State,
 };
 use geom;
@@ -54,6 +54,30 @@ pub fn message(
     let delta = -Vector2::new(0.0, 0.3);
     let action_move = action::MoveBy::new(&sprite, delta, time).boxed();
     Ok(fork(seq(vec![fork(action_move), action_show_hide])))
+}
+
+pub fn attack_message(
+    view: &mut BattleView,
+    context: &mut Context,
+    pos: Point2,
+    text: &str,
+) -> ZResult<Box<dyn Action>> {
+    let visible = [0.0, 0.0, 0.0, 1.0].into();
+    let invisible = Color { a: 0.0, ..visible };
+    let image = Text::new(context, text, view.font())?.into_inner();
+    let mut sprite = Sprite::from_image(image, 0.1);
+    sprite.set_centered(true);
+    let point = pos + Vector2::new(0.0, view.tile_size() * 0.5);
+    sprite.set_pos(point);
+    sprite.set_color(invisible);
+    let action_show_hide = seq(vec![
+        action::Show::new(&view.layers().text, &sprite).boxed(),
+        // TODO: read the time from Config:
+        action::ChangeColorTo::new(&sprite, visible, time_s(0.3)).boxed(),
+        action::ChangeColorTo::new(&sprite, invisible, time_s(0.3)).boxed(),
+        action::Hide::new(&view.layers().text, &sprite).boxed(),
+    ]);
+    Ok(fork(action_show_hide))
 }
 
 fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
@@ -406,6 +430,9 @@ fn visualize_event_attack(
     let from = geom::hex_to_point(view.tile_size(), map_from);
     let diff = (to - from) / 2.0;
     let mut actions = Vec::new();
+    let chances = hit_chance(state, event.attacker_id, event.target_id);
+    let attack_msg = format!("{}%", chances.1 * 10);
+    actions.push(attack_message(view, context, from, &attack_msg)?);
     actions.push(action::Sleep::new(time_s(0.1)).boxed());
     if event.mode == event::AttackMode::Reactive {
         actions.push(action::Sleep::new(time_s(0.3)).boxed());

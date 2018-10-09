@@ -14,7 +14,7 @@ use core::tactical_map::{
     event::{self, ActiveEvent, Event},
     movement::Path,
     state::{self, BattleResult, State},
-    utils, Moves, ObjId, Phase, PlayerId, TileType,
+    utils, Moves, ObjId, Phase, PlayerId, Strength, TileType,
 };
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -844,19 +844,41 @@ fn wound_or_kill(state: &State, id: ObjId, damage: tactical_map::Strength) -> Ef
     }
 }
 
+// TODO: Return a `Result` or an `Option` (check that attack is possible at all?).
+// TODO: Return a struct with named fields.
+// TODO: Move to some other module.
+pub fn hit_chance(state: &State, attacker_id: ObjId, target_id: ObjId) -> (i32, i32) {
+    let parts = state.parts();
+    let agent_target = parts.agent.get(target_id);
+    let agent_attacker = parts.agent.get(attacker_id);
+    let attacker_strength = parts.strength.get(attacker_id).strength;
+    let attacker_base_strength = parts.strength.get(attacker_id).base_strength;
+    let attacker_wounds = utils::clamp_max(attacker_base_strength.0 - attacker_strength.0, 3);
+    let target_dodge = agent_target.dodge;
+    let attack_accuracy = agent_attacker.attack_accuracy;
+    let attack_strength = agent_attacker.attack_strength;
+    let k_min = attack_accuracy.0 - target_dodge.0 - attacker_wounds;
+    let k_max = k_min + attack_strength.0;
+    (k_min, k_max)
+}
+
 fn try_attack(state: &State, attacker_id: ObjId, target_id: ObjId) -> Option<Effect> {
-    // TODO: WE NEED SOME ACTUAL MATH HERE ()
-    if thread_rng().gen_range(0, 6) < 4 {
+    let parts = state.parts();
+    let agent_attacker = state.parts().agent.get(attacker_id);
+    let target_strength = parts.strength.get(target_id).strength;
+    let target_armor = state::get_armor(state, target_id);
+    let attack_strength = agent_attacker.attack_strength;
+    let (_k_min, k_max) = hit_chance(state, attacker_id, target_id);
+    let r = thread_rng().gen_range(0, 11);
+    let damage_raw = Strength(k_max - r);
+    let damage = Strength(utils::clamp(damage_raw.0, 0, attack_strength.0));
+    if damage_raw < Strength(0) {
+        // That was a total miss
         return None;
     }
-    let parts = state.parts();
-    let strength = parts.strength.get(target_id);
-    let armor = state::get_armor(state, target_id);
-    let agent_attacker = state.parts().agent.get(attacker_id);
-    let attack_strength = agent_attacker.attack_strength;
-    let attack_break = utils::clamp_max(agent_attacker.attack_break, armor);
-    let damage = correct_damage_with_armor(state, target_id, attack_strength);
-    let effect = if strength.strength > damage {
+    let damage = correct_damage_with_armor(state, target_id, damage);
+    let attack_break = utils::clamp_max(agent_attacker.attack_break, target_armor);
+    let effect = if target_strength > damage {
         Effect::Wound(effect::Wound {
             damage,
             armor_break: attack_break,
