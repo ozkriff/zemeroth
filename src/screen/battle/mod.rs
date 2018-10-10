@@ -76,6 +76,10 @@ fn build_panel_agent_info(
             line(&format!("attack distance: {}", a.attack_distance.0))?;
         }
         line(&format!("attack strength: {}", a.attack_strength.0))?;
+        line(&format!("attack accuracy: {}", a.attack_accuracy.0))?;
+        if a.dodge.0 > 0 {
+            line(&format!("dodge: {}", a.dodge.0))?;
+        }
         line(&format!("move points: {}", a.move_points.0))?;
         if let Some(abilities) = parts.passive_abilities.get_opt(id) {
             if !abilities.0.is_empty() {
@@ -357,7 +361,7 @@ impl Battle {
             }
         }
         let map = self.pathfinder.map();
-        self.view.set_mode(state, map, id, &mode)?;
+        self.view.set_mode(state, context, map, id, &mode)?;
         self.mode = mode;
         Ok(())
     }

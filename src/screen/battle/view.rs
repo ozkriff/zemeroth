@@ -1,7 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
 use ggez::{
-    graphics::{Color, Font, Image, Point2},
+    graphics::{Color, Font, Image, Point2, Text /*, Vector2*/},
     Context,
 };
 use rand::{thread_rng, Rng};
@@ -9,7 +9,8 @@ use scene::{action, Action, Boxed, Layer, Scene, Sprite};
 
 use core::map::{Distance, HexMap, PosHex};
 use core::tactical_map::{
-    self, ability::Ability, command, movement, Jokers, Moves, ObjId, State, TileType,
+    self, ability::Ability, command, execute::hit_chance, movement, Jokers, Moves, ObjId, State,
+    TileType,
 };
 use geom::{self, hex_to_point};
 use screen::battle::visualize;
@@ -65,6 +66,7 @@ pub fn tile_size(map_height: Distance) -> f32 {
 struct Sprites {
     selection_marker: Sprite,
     highlighted_tiles: Vec<Sprite>,
+    labels: Vec<Sprite>,
     id_to_sprite_map: HashMap<ObjId, Sprite>,
     id_to_shadow_map: HashMap<ObjId, Sprite>,
     agent_info: HashMap<ObjId, Vec<Sprite>>,
@@ -123,6 +125,7 @@ impl BattleView {
         let sprites = Sprites {
             selection_marker,
             highlighted_tiles: Vec::new(),
+            labels: Vec::new(),
             id_to_sprite_map: HashMap::new(),
             id_to_shadow_map: HashMap::new(),
             agent_info: HashMap::new(),
@@ -206,17 +209,23 @@ impl BattleView {
     pub fn set_mode(
         &mut self,
         state: &State,
+        context: &mut Context,
         map: &HexMap<movement::Tile>,
         selected_id: ObjId,
         mode: &SelectionMode,
     ) -> ZResult {
         match mode {
-            SelectionMode::Normal => self.select_normal(state, map, selected_id),
+            SelectionMode::Normal => self.select_normal(state, context, map, selected_id),
             SelectionMode::Ability(ref ability) => self.select_ability(state, selected_id, ability),
         }
     }
 
     fn remove_highlights(&mut self) {
+        self.clean_highlighted_tiles();
+        self.clean_labels();
+    }
+
+    fn clean_highlighted_tiles(&mut self) {
         for sprite in self.sprites.highlighted_tiles.split_off(0) {
             let color = Color {
                 a: 0.0,
@@ -235,15 +244,28 @@ impl BattleView {
         }
     }
 
+    fn clean_labels(&mut self) {
+        for sprite in self.sprites.labels.split_off(0) {
+            let action = action::Hide::new(&self.layers().text, &sprite).boxed();
+            self.add_action(action);
+        }
+    }
+
     pub fn deselect(&mut self) {
         self.hide_selection_marker();
         self.remove_highlights();
     }
 
-    fn select_normal(&mut self, state: &State, map: &HexMap<movement::Tile>, id: ObjId) -> ZResult {
+    fn select_normal(
+        &mut self,
+        state: &State,
+        context: &mut Context,
+        map: &HexMap<movement::Tile>,
+        id: ObjId,
+    ) -> ZResult {
         self.show_selection_marker(state, id);
         self.show_walkable_tiles(state, map, id)?;
-        self.show_attackable_tiles(state, id)
+        self.show_attackable_tiles(state, context, id)
     }
 
     fn select_ability(&mut self, state: &State, selected_id: ObjId, ability: &Ability) -> ZResult {
@@ -256,7 +278,7 @@ impl BattleView {
                 pos,
             });
             if tactical_map::check(state, &command).is_ok() {
-                self.highlight(pos, TILE_COLOR_ABILITY.into())?;
+                self.highlight_tile(pos, TILE_COLOR_ABILITY.into())?;
             }
         }
         Ok(())
@@ -281,7 +303,12 @@ impl BattleView {
         }
     }
 
-    fn show_attackable_tiles(&mut self, state: &State, id: ObjId) -> ZResult {
+    fn show_attackable_tiles(
+        &mut self,
+        state: &State,
+        context: &mut Context,
+        id: ObjId,
+    ) -> ZResult {
         let parts = state.parts();
         let selected_agent_player_id = parts.belongs_to.get(id).0;
         for target_id in parts.agent.ids() {
@@ -297,7 +324,8 @@ impl BattleView {
             if tactical_map::check(state, &command_attack).is_err() {
                 continue;
             }
-            self.highlight(target_pos, TILE_COLOR_ATTACKABLE.into())?;
+            self.show_hit_chance_label(state, context, id, target_id)?;
+            self.highlight_tile(target_pos, TILE_COLOR_ATTACKABLE.into())?;
         }
         Ok(())
     }
@@ -316,12 +344,12 @@ impl BattleView {
             if map.tile(pos).cost() > agent.move_points {
                 continue;
             }
-            self.highlight(pos, TILE_COLOR_WALKABLE.into())?
+            self.highlight_tile(pos, TILE_COLOR_WALKABLE.into())?
         }
         Ok(())
     }
 
-    fn highlight(&mut self, pos: PosHex, color: Color) -> ZResult {
+    fn highlight_tile(&mut self, pos: PosHex, color: Color) -> ZResult {
         let size = self.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
         let mut sprite = Sprite::from_image(self.images.white_hex.clone(), size);
         let color_from = Color { a: 0.0, ..color };
@@ -337,6 +365,28 @@ impl BattleView {
         let action = action::Sequence::new(actions).boxed();
         self.scene.add_action(action);
         self.sprites.highlighted_tiles.push(sprite);
+        Ok(())
+    }
+
+    fn show_hit_chance_label(
+        &mut self,
+        state: &State,
+        context: &mut Context,
+        attacker_id: ObjId,
+        target_id: ObjId,
+    ) -> ZResult {
+        let target_pos = state.parts().pos.get(target_id).0;
+        let chances = hit_chance(state, attacker_id, target_id);
+        let pos = hex_to_point(self.tile_size(), target_pos);
+        let text = format!("{}%", chances.1 * 10);
+        let image = Text::new(context, &text, self.font())?.into_inner();
+        let mut sprite = Sprite::from_image(image, 0.1);
+        sprite.set_pos(pos);
+        sprite.set_centered(true);
+        sprite.set_color([0.0, 0.0, 0.0, 1.0].into());
+        let action = action::Show::new(&self.layers.text, &sprite).boxed();
+        self.scene.add_action(action);
+        self.sprites.labels.push(sprite);
         Ok(())
     }
 }

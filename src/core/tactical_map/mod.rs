@@ -47,6 +47,12 @@ pub struct Moves(pub i32);
 #[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Jokers(pub i32);
 
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
+pub struct Accuracy(pub i32);
+
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
+pub struct Dodge(pub i32);
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TileType {
     Plain,
