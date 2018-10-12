@@ -47,19 +47,19 @@ script:
 
 jobs:
   include:
-  - env: FEATURE=check_assets
+  - name: check_assets
     rust: stable
     script:
       - git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
       - RUST_LOG=zemeroth=info cargo run -- --check-assets
-  - env: FEATURE=fmt
+  - name: fmt
     rust: nightly-2018-10-01
     install:
       - rustup component add rustfmt-preview
       - rustfmt -V
     script:
       - cargo fmt --all -- --check
-  - env: FEATURE=clippy
+  - name: clippy
     rust: nightly-2018-10-01
     install:
       - rustup component add clippy-preview
