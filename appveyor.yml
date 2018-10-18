@@ -4,6 +4,11 @@ environment:
         # TODO: x86_64-pc-windows-gnu
         - TARGET: x86_64-pc-windows-msvc
 
+artifacts:
+  - path: zemeroth-x86_64-pc-windows-msvc.zip
+    name: zemeroth
+    type: zip
+
 install:
     - set PATH=C:\msys64\usr\bin;%PATH%
     - set PATH=C:\msys64\mingw32\bin;%PATH%
@@ -25,6 +30,12 @@ before_test:
 
 test_script:
     - cmd: 'cargo build --release'
+
+after_test:
+    - git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
+    - copy target\release\zemeroth.exe zemeroth.exe
+    - dir
+    - 7z a zemeroth-x86_64-pc-windows-msvc.zip zemeroth.exe SDL2.dll README.md assets
 
 cache:
     - target -> Cargo.lock
