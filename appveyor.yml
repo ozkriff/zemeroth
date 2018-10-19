@@ -33,6 +33,7 @@ test_script:
 
 after_test:
     - git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
+    - del /f /q assets\.git
     - copy target\release\zemeroth.exe zemeroth.exe
     - dir
     - 7z a zemeroth-x86_64-pc-windows-msvc.zip zemeroth.exe SDL2.dll README.md assets
