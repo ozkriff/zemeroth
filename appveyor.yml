@@ -29,7 +29,7 @@ before_test:
     - cd %APPVEYOR_BUILD_FOLDER%
 
 test_script:
-    - cmd: 'cargo build --release'
+    - cargo build --release
 
 after_test:
     - git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
