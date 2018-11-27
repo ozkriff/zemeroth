@@ -75,7 +75,7 @@ fn make_bg(context: &mut Context, sprite: &Sprite) -> Sprite {
     let height = sprite.image.height();
     let count = width * height * 4;
     let data: Vec<u8> = [255, 255, 255, 255]
-        .into_iter()
+        .iter()
         .cloned()
         .cycle()
         .take(count as _)
