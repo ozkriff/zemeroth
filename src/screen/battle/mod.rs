@@ -53,7 +53,7 @@ fn build_panel_agent_info(
             layout.add(Box::new(button));
             Ok(())
         };
-        line(&format!("[{}]", meta.name))?;
+        line(&format!("<{}>", meta.name))?;
         line(&format!(
             "strength: {}/{}",
             st.strength.0, st.base_strength.0
@@ -83,7 +83,7 @@ fn build_panel_agent_info(
         line(&format!("move points: {}", a.move_points.0))?;
         if let Some(abilities) = parts.passive_abilities.get_opt(id) {
             if !abilities.0.is_empty() {
-                line("[passive abilities]:")?;
+                line("<passive abilities>:")?;
                 for ability in &abilities.0 {
                     line(&format!("'{}'", ability.to_string()))?;
                 }
@@ -91,7 +91,7 @@ fn build_panel_agent_info(
         }
         if let Some(abilities) = parts.abilities.get_opt(id) {
             if !abilities.0.is_empty() {
-                line("[abilities]:")?;
+                line("<abilities>:")?;
                 for ability in &abilities.0 {
                     let s = ability.ability.to_string();
                     line(&format!("'{}'", s))?;
@@ -100,7 +100,7 @@ fn build_panel_agent_info(
         }
         if let Some(effects) = parts.effects.get_opt(id) {
             if !effects.0.is_empty() {
-                line("[effects]:")?;
+                line("<effects>:")?;
                 for effect in &effects.0 {
                     let s = effect.effect.to_str();
                     match effect.duration {
