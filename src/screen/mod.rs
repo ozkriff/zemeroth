@@ -9,11 +9,13 @@ use ggez::{
 use ZResult;
 
 mod battle;
-mod camp;
+mod campaign;
 mod main_menu;
 mod strategy_map;
 
-pub use self::{battle::Battle, camp::Camp, main_menu::MainMenu, strategy_map::StrategyMap};
+pub use self::{
+    battle::Battle, campaign::Campaign, main_menu::MainMenu, strategy_map::StrategyMap,
+};
 
 #[derive(Debug)]
 pub enum Transition {

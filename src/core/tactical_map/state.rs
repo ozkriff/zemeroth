@@ -6,36 +6,83 @@ pub use self::private::{BattleResult, State};
 mod private {
     use core::map::{self, HexMap};
     use core::tactical_map::{
+        command::{self, Command},
         component::{Component, Parts, Prototypes},
+        execute,
+        scenario::{self, Scenario},
         ObjId, PlayerId, TileType,
     };
 
     #[derive(Clone, Debug)]
     pub struct BattleResult {
         pub winner_id: PlayerId,
+        pub survivor_types: Vec<String>,
     }
 
     #[derive(Clone, Debug)]
     pub struct State {
         parts: Parts,
         map: map::HexMap<TileType>,
+        scenario: Scenario,
         player_id: PlayerId,
-        players_count: i32,
         prototypes: Prototypes,
         battle_result: Option<BattleResult>,
     }
 
     impl State {
-        pub fn new(prototypes: Prototypes) -> Self {
-            let radius = map::Distance(5); // TODO: pass `Options` struct
-            Self {
-                map: map::HexMap::new(radius),
+        pub fn new(prototypes: Prototypes, scenario: Scenario, cb: execute::Cb) -> Self {
+            assert_eq!(scenario.players_count, 2, "Only 2 players are supported");
+            assert!(scenario.map_radius.0 >= 3);
+            let mut this = Self {
+                map: map::HexMap::new(scenario.map_radius),
                 player_id: PlayerId(0),
-                players_count: 2, // TODO: Read from the `Options` struct
+                scenario,
                 parts: Parts::new(),
                 prototypes,
                 battle_result: None,
+            };
+            this.create_terrain();
+            this.create_objects(cb);
+            this
+        }
+
+        pub fn scenario(&self) -> &Scenario {
+            &self.scenario
+        }
+
+        fn create_terrain(&mut self) {
+            for _ in 0..self.scenario.rocky_tiles_count {
+                let pos = match scenario::random_free_pos(self) {
+                    Some(pos) => pos,
+                    None => continue,
+                };
+                self.map_mut().set_tile(pos, TileType::Rocks);
             }
+        }
+
+        fn create_objects(&mut self, cb: execute::Cb) {
+            let player_id_initial = self.player_id();
+            for group in self.scenario.objects.clone() {
+                if let Some(player_id) = group.owner {
+                    self.set_player_id(player_id);
+                }
+                for _ in 0..group.count {
+                    let pos = match scenario::random_pos(self, group.owner, group.line) {
+                        Some(pos) => pos,
+                        None => {
+                            error!("Can't find the position");
+                            continue;
+                        }
+                    };
+                    let command = Command::Create(command::Create {
+                        prototype: group.typename.clone(),
+                        pos,
+                        owner: group.owner,
+                    });
+                    execute::execute(self, &command, cb).expect("Can't create an object");
+                }
+            }
+            self.set_player_id(player_id_initial);
         }
 
         pub fn player_id(&self) -> PlayerId {
@@ -44,7 +91,7 @@ mod private {
 
         pub fn next_player_id(&self) -> PlayerId {
             let current_player_id = PlayerId(self.player_id().0 + 1);
-            if current_player_id.0 < self.players_count {
+            if current_player_id.0 < self.scenario.players_count {
                 current_player_id
             } else {
                 PlayerId(0)
@@ -247,4 +294,11 @@ pub fn get_armor(state: &State, id: ObjId) -> Strength {
     let parts = state.parts();
     let default = Strength(0);
     parts.armor.get_opt(id).map(|v| v.armor).unwrap_or(default)
+}
+
+pub fn players_agent_types(state: &State, player_id: PlayerId) -> Vec<String> {
+    players_agent_ids(state, player_id)
+        .into_iter()
+        .map(|id| state.parts().meta.get(id).name.clone())
+        .collect()
 }

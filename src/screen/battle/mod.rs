@@ -1,4 +1,4 @@
-use std::{io::Read, path::Path, time::Duration};
+use std::{path::Path, sync::mpsc::Sender, time::Duration};
 
 use ggez::{
     graphics::{self, Font, Point2, Text},
@@ -9,13 +9,23 @@ use ui::{self, Gui};
 
 use core::map::PosHex;
 use core::tactical_map::{
-    self, ability, ability::Ability, ai::Ai, check, command, component::Prototypes, effect,
-    execute, movement::Pathfinder, state, ObjId, PlayerId, State,
+    self, ability,
+    ability::Ability,
+    ai::Ai,
+    check, command,
+    component::Prototypes,
+    effect,
+    movement::Pathfinder,
+    scenario,
+    state::{self, BattleResult},
+    ObjId, PlayerId, State,
 };
 use geom;
-use screen::battle::view::{make_action_create_map, BattleView, SelectionMode};
-use screen::{Screen, Transition};
-use utils::time_s;
+use screen::{
+    battle::view::{make_action_create_map, BattleView, SelectionMode},
+    Screen, Transition,
+};
+use utils::{self, time_s};
 use ZResult;
 
 mod view;
@@ -180,28 +190,8 @@ fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
     Ok(gui)
 }
 
-fn prepare_map_and_state(
-    context: &mut Context,
-    state: &mut State,
-    view: &mut BattleView,
-) -> ZResult {
-    let mut actions = Vec::new();
-    execute::create_terrain(state);
-    actions.push(make_action_create_map(state, view)?);
-    execute::create_objects(state, &mut |state, event, phase| {
-        let action = visualize::visualize(state, view, context, event, phase)
-            .expect("Can't visualize the event");
-        let action = action::Fork::new(action).boxed(); // TODO: Use helper `fork` method
-        actions.push(action);
-    });
-    view.add_action(action::Sequence::new(actions).boxed());
-    Ok(())
-}
-
 pub fn load_prototypes(context: &mut Context, path: &Path) -> ZResult<Prototypes> {
-    let mut buf = String::new();
-    let mut file = context.filesystem.open(path)?;
-    file.read_to_string(&mut buf)?;
+    let buf = utils::read_file_to_string(context, path)?;
     let prototypes = Prototypes::from_string(&buf);
     debug!("{:?}", prototypes);
     Ok(prototypes)
@@ -220,17 +210,29 @@ pub struct Battle {
     ai: Ai,
     panel_info: Option<ui::RcWidget>,
     panel_abilities: Option<ui::RcWidget>,
+    sender: Sender<BattleResult>,
 }
 
 impl Battle {
-    pub fn new(context: &mut Context) -> ZResult<Self> {
-        let font = Font::new(context, "/OpenSans-Regular.ttf", 24)?;
+    pub fn new(
+        context: &mut Context,
+        scenario: scenario::Scenario,
+        sender: Sender<BattleResult>,
+    ) -> ZResult<Self> {
+        let font = Font::new(context, "/OpenSans-Regular.ttf", 32)?;
         let gui = make_gui(context, &font)?;
         let prototypes = load_prototypes(context, Path::new("/objects.ron"))?;
-        let mut state = State::new(prototypes);
-        let radius = state.map().radius();
-        let mut view = BattleView::new(&state, context)?;
-        prepare_map_and_state(context, &mut state, &mut view)?;
+        let radius = scenario.map_radius;
+        let mut view = BattleView::new(radius, context)?;
+        let mut actions = Vec::new();
+        let state = State::new(prototypes, scenario, &mut |state, event, phase| {
+            let action = visualize::visualize(state, &mut view, context, event, phase)
+                .expect("Can't visualize the event");
+            let action = action::Fork::new(action).boxed(); // TODO: Use helper `fork` method
+            actions.push(action);
+        });
+        actions.push(make_action_create_map(&state, &view)?);
+        view.add_action(action::Sequence::new(actions).boxed());
         Ok(Self {
             gui,
             font,
@@ -243,6 +245,7 @@ impl Battle {
             ai: Ai::new(PlayerId(1), radius),
             panel_info: None,
             panel_abilities: None,
+            sender,
         })
     }
 
@@ -472,8 +475,13 @@ impl Screen for Battle {
     fn update(&mut self, context: &mut Context, dtime: Duration) -> ZResult<Transition> {
         self.view.tick(dtime);
         self.update_block_timer(context, dtime)?;
-        if self.block_timer.is_none() && self.state.battle_result().is_some() {
-            return Ok(Transition::Pop);
+        if self.block_timer.is_none() {
+            if let Some(result) = self.state.battle_result().clone() {
+                self.sender
+                    .send(result)
+                    .expect("Can't report back a battle's result");
+                return Ok(Transition::Pop);
+            }
         }
         Ok(Transition::None)
     }

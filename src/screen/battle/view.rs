@@ -7,7 +7,7 @@ use ggez::{
 use rand::{thread_rng, Rng};
 use scene::{action, Action, Boxed, Layer, Scene, Sprite};
 
-use core::map::{Distance, HexMap, PosHex};
+use core::map::{self, Distance, HexMap, PosHex};
 use core::tactical_map::{
     self, ability::Ability, command, execute::hit_chance, movement, Jokers, Moves, ObjId, State,
     TileType,
@@ -110,12 +110,13 @@ pub struct BattleView {
 }
 
 impl BattleView {
-    pub fn new(state: &State, context: &mut Context) -> ZResult<Self> {
-        let font = Font::new(context, "/OpenSans-Regular.ttf", 24)?;
+    pub fn new(map_radius: Distance, context: &mut Context) -> ZResult<Self> {
+        let font = Font::new(context, "/OpenSans-Regular.ttf", 32)?;
         let images = Images::new(context)?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
-        let tile_size = tile_size(state.map().height());
+        let map_diameter = map::radius_to_diameter(map_radius);
+        let tile_size = tile_size(map_diameter);
         let mut selection_marker = Sprite::from_image(
             images.selection.clone(),
             tile_size * 2.0 * geom::FLATNESS_COEFFICIENT,

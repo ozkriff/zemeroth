@@ -1,4 +1,7 @@
-use std::time::Duration;
+use std::{
+    sync::mpsc::{channel, Receiver},
+    time::Duration,
+};
 
 use ggez::{
     graphics::{self, Font, Point2, Text},
@@ -7,7 +10,9 @@ use ggez::{
 use scene::{Layer, Scene, Sprite};
 use ui::{self, Gui};
 
+use core::tactical_map::state;
 use screen::{self, Screen, Transition};
+use utils;
 use ZResult;
 
 #[derive(Copy, Clone, Debug)]
@@ -54,6 +59,8 @@ pub struct StrategyMap {
     sprite: Sprite,
     scene: Scene,
     layers: Layers,
+
+    receiver: Option<Receiver<state::BattleResult>>,
 }
 
 impl StrategyMap {
@@ -74,6 +81,7 @@ impl StrategyMap {
             sprite,
             scene,
             layers,
+            receiver: None,
         })
     }
 }
@@ -102,7 +110,10 @@ impl Screen for StrategyMap {
         );
         match message {
             Some(Message::StartBattle) => {
-                let screen = screen::Battle::new(context)?;
+                let scenario = utils::deserialize_from_file(context, "/scenario_01.ron")?;
+                let (sender, receiver) = channel();
+                self.receiver = Some(receiver);
+                let screen = screen::Battle::new(context, scenario, sender)?;
                 Ok(Transition::Push(Box::new(screen)))
             }
             Some(Message::Menu) => Ok(Transition::Pop),
