@@ -682,7 +682,7 @@ struct ExecuteContext {
 }
 
 impl ExecuteContext {
-    pub fn merge_with(&mut self, other: Self) {
+    fn merge_with(&mut self, other: Self) {
         type M<T> = HashMap<ObjId, Vec<T>>;
 
         fn merge<T>(m: &mut M<T>, other: M<T>) {
