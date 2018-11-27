@@ -93,6 +93,10 @@ impl event::EventHandler for MainState {
             .click(context, pos)
             .expect("Can't handle click event");
     }
+
+    // This functions just overrides the default implementation,
+    // because we don't want to quit from the game on `Esc`.
+    fn key_down_event(&mut self, _: &mut Context, _: event::Keycode, _: event::Mod, _: bool) {}
 }
 
 fn context() -> Context {
