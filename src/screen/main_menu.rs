@@ -1,4 +1,7 @@
-use std::time::Duration;
+use std::{
+    sync::mpsc::{channel, Receiver},
+    time::Duration,
+};
 
 use ggez::{
     graphics::{Font, Point2, Text},
@@ -7,7 +10,9 @@ use ggez::{
 use scene::Sprite;
 use ui::{self, Gui};
 
+use core::tactical_map::state;
 use screen::{self, Screen, Transition};
+use utils;
 use ZResult;
 
 #[derive(Copy, Clone, Debug)]
@@ -15,18 +20,23 @@ enum Message {
     Exit,
     StartInstant,
     StartCampaign,
+    StartStrategyMap,
 }
 
 fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     let h = 0.2;
     let button_battle = {
-        let image = Text::new(context, "[battle]", font)?.into_inner();
+        let image = Text::new(context, "[demo battle]", font)?.into_inner();
         ui::Button::new(context, image, h, gui.sender(), Message::StartInstant)
     };
     let button_campaign = {
         let image = Text::new(context, "[campaign]", font)?.into_inner();
         ui::Button::new(context, image, h, gui.sender(), Message::StartCampaign)
+    };
+    let button_strategy_map = {
+        let image = Text::new(context, "[strategy mode]", font)?.into_inner();
+        ui::Button::new(context, image, h, gui.sender(), Message::StartStrategyMap)
     };
     let button_exit = {
         let image = Text::new(context, "[exit]", font)?.into_inner();
@@ -35,6 +45,7 @@ fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_battle));
     layout.add(Box::new(button_campaign));
+    layout.add(Box::new(button_strategy_map));
     layout.add(Box::new(button_exit));
     let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
     gui.add(&ui::pack(layout), anchor);
@@ -44,6 +55,8 @@ fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
 #[derive(Debug)]
 pub struct MainMenu {
     gui: Gui<Message>,
+
+    receiver: Option<Receiver<state::BattleResult>>,
 }
 
 impl MainMenu {
@@ -56,7 +69,10 @@ impl MainMenu {
         sprite.set_pos(Point2::new(0.5, 0.5));
 
         // TODO: create some random agent arc-moving animation
-        Ok(Self { gui })
+        Ok(Self {
+            gui,
+            receiver: None,
+        })
     }
 }
 
@@ -78,10 +94,17 @@ impl Screen for MainMenu {
         debug!("MainMenu: click: pos={:?}, message={:?}", pos, message);
         match message {
             Some(Message::StartInstant) => {
-                let screen = screen::Battle::new(context)?;
+                let scenario = utils::deserialize_from_file(context, "/scenario_01.ron")?;
+                let (sender, receiver) = channel();
+                self.receiver = Some(receiver);
+                let screen = screen::Battle::new(context, scenario, sender)?;
                 Ok(Transition::Push(Box::new(screen)))
             }
             Some(Message::StartCampaign) => {
+                let screen = screen::Campaign::new(context)?;
+                Ok(Transition::Push(Box::new(screen)))
+            }
+            Some(Message::StartStrategyMap) => {
                 let screen = screen::StrategyMap::new(context)?;
                 Ok(Transition::Push(Box::new(screen)))
             }

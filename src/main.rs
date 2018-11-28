@@ -21,6 +21,7 @@ extern crate ggwp_zscene as scene;
 extern crate num;
 extern crate rand;
 extern crate ron;
+extern crate serde;
 
 use ggez::{
     conf, event,
@@ -41,7 +42,7 @@ type ZResult<T = ()> = GameResult<T>;
 const APP_ID: &str = "zemeroth";
 const APP_AUTHOR: &str = "ozkriff";
 const ASSETS_DIR_NAME: &str = "assets";
-const ASSETS_HASHSUM: &str = "c2154a1b84ba0884e4af04e431fe84e0";
+const ASSETS_HASHSUM: &str = "1756a424ff728bfa10679d381ab02a17";
 
 struct MainState {
     screens: screen::Screens,
@@ -93,6 +94,10 @@ impl event::EventHandler for MainState {
             .click(context, pos)
             .expect("Can't handle click event");
     }
+
+    // This functions just overrides the default implementation,
+    // because we don't want to quit from the game on `Esc`.
+    fn key_down_event(&mut self, _: &mut Context, _: event::Keycode, _: event::Mod, _: bool) {}
 }
 
 fn context() -> Context {

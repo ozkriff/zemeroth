@@ -14,7 +14,7 @@ use core::tactical_map::{
     event::{self, ActiveEvent, Event},
     movement::Path,
     state::{self, BattleResult, State},
-    utils, Moves, ObjId, Phase, PlayerId, Strength, TileType,
+    utils, Moves, ObjId, Phase, PlayerId, Strength,
 };
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -24,7 +24,7 @@ pub enum ApplyPhase {
 }
 
 /// A callback for visualization of the events/effects with the correct state.
-type Cb<'c> = &'c mut dyn FnMut(&State, &Event, ApplyPhase);
+pub type Cb<'c> = &'c mut dyn FnMut(&State, &Event, ApplyPhase);
 
 pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error> {
     debug!("Simulator: do_command: {:?}", command);
@@ -495,12 +495,13 @@ fn execute_planned_abilities(state: &mut State, cb: Cb) {
 }
 
 fn try_execute_end_battle(state: &mut State, cb: Cb) {
-    for &i in &[0, 1] {
+    for i in 0..state.scenario().players_count {
         let player_id = PlayerId(i);
         let enemies_count = state::enemy_agent_ids(state, player_id).len();
         if enemies_count == 0 {
             let result = BattleResult {
                 winner_id: player_id,
+                survivor_types: state::players_agent_types(state, PlayerId(0)),
             };
             let active_event = event::EndBattle { result };
             let event = Event {
@@ -682,7 +683,7 @@ struct ExecuteContext {
 }
 
 impl ExecuteContext {
-    pub fn merge_with(&mut self, other: Self) {
+    fn merge_with(&mut self, other: Self) {
         type M<T> = HashMap<ObjId, Vec<T>>;
 
         fn merge<T>(m: &mut M<T>, other: M<T>) {
@@ -1114,94 +1115,6 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
     }
 }
 
-fn random_free_pos(state: &State) -> Option<PosHex> {
-    let attempts = 30;
-    let radius = state.map().radius();
-    for _ in 0..attempts {
-        let pos = PosHex {
-            q: thread_rng().gen_range(-radius.0, radius.0),
-            r: thread_rng().gen_range(-radius.0, radius.0),
-        };
-        if state::is_tile_plain_and_completely_free(state, pos) {
-            return Some(pos);
-        }
-    }
-    None
-}
-
-fn middle_range(min: i32, max: i32) -> (i32, i32) {
-    assert!(min <= max);
-    let size = max - min;
-    let half = size / 2;
-    let forth = size / 4;
-    let min = half - forth;
-    let mut max = half + forth;
-    if min == max {
-        max += 1;
-    }
-    (min, max)
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum Line {
-    Any,
-    Front,
-    Middle,
-    Back,
-}
-
-impl Line {
-    pub fn to_range(self, radius: map::Distance) -> (i32, i32) {
-        let radius = radius.0;
-        match self {
-            Line::Front => (radius / 2, radius + 1),
-            Line::Middle => middle_range(0, radius),
-            Line::Back => (0, radius / 2),
-            Line::Any => (0, radius + 1),
-        }
-    }
-}
-
-fn random_free_sector_pos(state: &State, player_id: PlayerId, line: Line) -> Option<PosHex> {
-    let attempts = 30;
-    let radius = state.map().radius();
-    let (min, max) = line.to_range(radius);
-    for _ in 0..attempts {
-        let q = radius.0 - thread_rng().gen_range(min, max);
-        let pos = PosHex {
-            q: match player_id.0 {
-                0 => -q,
-                1 => q,
-                _ => unimplemented!(),
-            },
-            r: thread_rng().gen_range(-radius.0, radius.0),
-        };
-        let no_enemies_around = !state::check_enemies_around(state, pos, player_id);
-        if state::is_tile_completely_free(state, pos) && no_enemies_around {
-            return Some(pos);
-        }
-    }
-    None
-}
-
-fn random_pos(state: &State, owner: Option<PlayerId>, line: Line) -> Option<PosHex> {
-    match owner {
-        Some(player_id) => random_free_sector_pos(state, player_id, line),
-        None => random_free_pos(state),
-    }
-}
-
-pub fn create_terrain(state: &mut State) {
-    // TODO: read from the config
-    for _ in 0..15 {
-        let pos = match random_free_pos(state) {
-            Some(pos) => pos,
-            None => continue,
-        };
-        state.map_mut().set_tile(pos, TileType::Rocks);
-    }
-}
-
 fn count_agents_by_typename(state: &State, player_id: PlayerId) -> HashMap<String, u32> {
     let mut map = HashMap::new();
     for id in state::players_agent_ids(state, player_id) {
@@ -1241,46 +1154,13 @@ fn choose_who_to_summon(state: &State) -> String {
         .clone()
 }
 
-pub fn create_objects(state: &mut State, cb: Cb) {
-    let id_0 = Some(PlayerId(0));
-    let id_1 = Some(PlayerId(1));
-    let player_id_initial = state.player_id();
-    // TODO: read the table from the config/scenario:
-    for &(owner, typename, preferred_pos, count) in &[
-        (None, "spike_trap", Line::Any, 2),
-        (None, "boulder", Line::Any, 5),
-        (id_0, "swordsman", Line::Front, 1),
-        (id_0, "hammerman", Line::Front, 1),
-        (id_0, "spearman", Line::Middle, 1),
-        (id_0, "alchemist", Line::Middle, 1),
-        (id_1, "imp_summoner", Line::Back, 2),
-        (id_1, "imp_bomber", Line::Middle, 2),
-        (id_1, "imp_toxic", Line::Middle, 1),
-        (id_1, "imp", Line::Front, 3),
-    ] {
-        if let Some(player_id) = owner {
-            state.set_player_id(player_id);
-        }
-        for _ in 0..count {
-            let pos = random_pos(state, owner, preferred_pos).expect("Can't find the position");
-            let command = Command::Create(command::Create {
-                prototype: typename.into(),
-                pos,
-                owner,
-            });
-            execute(state, &command, cb).expect("Can't create object");
-        }
-    }
-    state.set_player_id(player_id_initial);
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
 
     use core::tactical_map::{effect::Effect, ObjId};
 
-    use super::{middle_range, ExecuteContext};
+    use super::ExecuteContext;
 
     #[test]
     fn test_merge_with_vector() {
@@ -1325,17 +1205,5 @@ mod tests {
         };
         context1.merge_with(context2);
         assert_eq!(context_expected, context1);
-    }
-
-    #[test]
-    fn test_middle_range() {
-        assert_eq!(middle_range(0, 3), (1, 2));
-        assert_eq!(middle_range(0, 4), (1, 3));
-        assert_eq!(middle_range(0, 5), (1, 3));
-        assert_eq!(middle_range(0, 6), (2, 4));
-        assert_eq!(middle_range(0, 7), (2, 4));
-        assert_eq!(middle_range(0, 8), (2, 6));
-        assert_eq!(middle_range(0, 9), (2, 6));
-        assert_eq!(middle_range(0, 10), (3, 7));
     }
 }

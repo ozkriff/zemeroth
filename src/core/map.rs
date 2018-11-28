@@ -167,6 +167,10 @@ pub fn dump_map<F: Fn(PosHex) -> char>(radius: Distance, f: F) {
     println!();
 }
 
+pub fn radius_to_diameter(radius: Distance) -> Distance {
+    Distance(radius.0 * 2 + 1)
+}
+
 ///
 ///     [-1, 0]  [0, -1]
 /// [-1, 1]  [0, 0]  [1, -1]
@@ -196,7 +200,7 @@ impl<T: Copy + Default + Debug> HexMap<T> {
     }
 
     pub fn height(&self) -> Distance {
-        Distance(self.radius().0 * 2 + 1)
+        radius_to_diameter(self.radius())
     }
 
     pub fn iter(&self) -> HexIter {
