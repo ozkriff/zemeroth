@@ -4,6 +4,7 @@ use ggez::{
     graphics::{Color, Point2, Text, Vector2},
     nalgebra, Context,
 };
+use rand::{thread_rng, Rng};
 use scene::{action, Action, Boxed, Sprite};
 
 use core::map::PosHex;
@@ -93,6 +94,50 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
         action::Show::new(&view.layers().blood, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite, color_final, time).boxed(),
     ]))
+}
+
+fn show_dust_at_pos(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
+    let point = geom::hex_to_point(view.tile_size(), at);
+    let count = 8;
+    show_dust(view, point, count)
+}
+
+fn show_dust(view: &mut BattleView, at: Point2, count: i32) -> ZResult<Box<dyn Action>> {
+    let mut actions = Vec::new();
+    for i in 0..count {
+        let k = thread_rng().gen_range(0.9, 1.1);
+        let visible = [0.8 * k, 0.8 * k, 0.7 * k, 0.8].into();
+        let invisible = Color { a: 0.0, ..visible };
+        let scale = thread_rng().gen_range(0.2, 0.5);
+        let size = view.tile_size() * 2.0 * scale;
+        let vector = {
+            let max = std::f32::consts::PI * 2.0;
+            let rot = nalgebra::Rotation2::new((max / count as f32) * i as f32);
+            let mut vector = rot * Vector2::new(view.tile_size() * 0.5, 0.0);
+            vector.y *= geom::FLATNESS_COEFFICIENT;
+            vector
+        };
+        let point = at + vector;
+        let sprite = {
+            let mut sprite = Sprite::from_image(view.images().white_hex.clone(), size);
+            sprite.set_centered(true);
+            sprite.set_pos(point);
+            sprite.set_color(invisible);
+            sprite
+        };
+        let layer = &view.layers().particles;
+        let action_show_hide = seq(vec![
+            action::Show::new(layer, &sprite).boxed(),
+            action::ChangeColorTo::new(&sprite, visible, time_s(0.2)).boxed(),
+            action::ChangeColorTo::new(&sprite, invisible, time_s(0.7)).boxed(),
+            action::Hide::new(layer, &sprite).boxed(),
+        ]);
+        let time = action_show_hide.duration();
+        let action_move = action::MoveBy::new(&sprite, vector, time).boxed();
+        let action = seq(vec![fork(action_move), fork(action_show_hide)]);
+        actions.push(action);
+    }
+    Ok(seq(actions))
 }
 
 fn show_flare_scale(
@@ -531,7 +576,12 @@ fn visualize_event_use_ability_jump(
     let action_arc_move = arc_move(view, &sprite_object, diff);
     let time = action_arc_move.duration();
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
-    Ok(seq(vec![fork(action_move_shadow), action_arc_move]))
+    let action_dust = show_dust_at_pos(view, event.pos)?;
+    Ok(seq(vec![
+        fork(action_move_shadow),
+        action_arc_move,
+        action_dust,
+    ]))
 }
 
 fn visualize_event_use_ability_dash(
@@ -799,10 +849,12 @@ fn visualize_effect_fly_off(
     let action_main_move = arc_move(view, &sprite_object, diff);
     let time = action_main_move.duration();
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
+    let action_dust = show_dust_at_pos(view, effect.to)?;
     Ok(fork(seq(vec![
         message(view, context, effect.to, "fly off")?,
         fork(action_move_shadow),
         action_main_move,
+        action_dust,
     ])))
 }
 
@@ -820,7 +872,8 @@ fn visualize_effect_throw(
     let diff = to - from;
     let arc_move = arc_move(view, &sprite, diff);
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, arc_move.duration()).boxed();
-    Ok(seq(vec![fork(action_move_shadow), arc_move]))
+    let action_dust = show_dust_at_pos(view, effect.to)?;
+    Ok(seq(vec![fork(action_move_shadow), arc_move, action_dust]))
 }
 
 fn visualize_effect_miss(
