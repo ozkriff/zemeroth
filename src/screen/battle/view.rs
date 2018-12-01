@@ -411,9 +411,10 @@ fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> 
     let screen_pos = hex_to_point(view.tile_size(), at);
     let mut sprite = Sprite::from_image(view.images.grass.clone(), view.tile_size() * 2.0);
     let n = view.tile_size() * 0.5;
+    let v_offset = view.tile_size() * 0.5; // depends on the image
     let screen_pos_grass = Point2::new(
         screen_pos.x + thread_rng().gen_range(-n, n),
-        screen_pos.y + thread_rng().gen_range(-n, n),
+        screen_pos.y - v_offset + thread_rng().gen_range(-n, n) * geom::FLATNESS_COEFFICIENT,
     );
     sprite.set_centered(true);
     sprite.set_pos(screen_pos_grass);
