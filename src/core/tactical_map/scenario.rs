@@ -1,9 +1,12 @@
 use rand::{thread_rng, Rng};
+use serde_derive::{Deserialize, Serialize};
 
-use core::map::{self, PosHex};
-use core::tactical_map::{
-    state::{self, State},
-    PlayerId,
+use crate::core::{
+    map::{self, PosHex},
+    tactical_map::{
+        state::{self, State},
+        PlayerId,
+    },
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,6 +1,7 @@
 use std::{fmt::Debug, iter::repeat};
 
 use num::{Num, Signed};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Distance(pub i32);
@@ -312,7 +313,7 @@ impl Iterator for DirIter {
 
 #[cfg(test)]
 mod tests {
-    use core::map::{Distance, HexMap};
+    use crate::core::map::{Distance, HexMap};
 
     #[test]
     fn test_map_height() {

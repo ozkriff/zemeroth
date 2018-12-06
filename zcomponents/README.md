@@ -10,8 +10,7 @@ stores your components.
 ## Basic Example
 
 ```rust
-#[macro_use]
-extern crate zcomponents;
+use zcomponents::zcomponents_storage;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
 pub struct Id(i32);

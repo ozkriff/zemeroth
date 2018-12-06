@@ -1,5 +1,6 @@
 use ggez::graphics::Color;
-use {Action, Sprite};
+
+use crate::{Action, Sprite};
 
 #[derive(Debug)]
 pub struct SetColor {

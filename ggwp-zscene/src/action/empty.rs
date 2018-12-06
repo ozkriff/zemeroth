@@ -1,4 +1,4 @@
-use Action;
+use crate::Action;
 
 #[derive(Debug, Default)]
 pub struct Empty;

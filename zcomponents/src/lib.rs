@@ -7,8 +7,7 @@
 //! ## Example:
 //!
 //! ```rust
-//! #[macro_use]
-//! extern crate zcomponents;
+//! use zcomponents::zcomponents_storage;
 //!
 //! #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
 //! pub struct Id(i32);
@@ -90,10 +89,12 @@
 
 #![warn(bare_trait_objects)]
 
-use std::collections::{hash_map, HashMap};
-use std::default::Default;
-use std::fmt::Debug;
-use std::hash::Hash;
+use std::{
+    collections::{hash_map, HashMap},
+    default::Default,
+    fmt::Debug,
+    hash::Hash,
+};
 
 #[derive(Debug, Clone)]
 pub struct ComponentContainer<Id: Hash + Eq, V> {
@@ -144,7 +145,7 @@ impl<Id: Hash + Eq + Copy + Debug, V: Clone> ComponentContainer<Id, V> {
         self.data.remove(&id);
     }
 
-    pub fn ids(&self) -> IdIter<Id, V> {
+    pub fn ids(&self) -> IdIter<'_, Id, V> {
         IdIter::new(&self.data)
     }
 
@@ -155,7 +156,7 @@ impl<Id: Hash + Eq + Copy + Debug, V: Clone> ComponentContainer<Id, V> {
 }
 
 #[derive(Clone, Debug)]
-pub struct IdIter<'a, Id: 'a, V: 'a> {
+pub struct IdIter<'a, Id, V> {
     iter: hash_map::Iter<'a, Id, V>,
 }
 

@@ -1,34 +1,13 @@
 #![windows_subsystem = "windows"]
 #![warn(bare_trait_objects)]
 
-#[macro_use]
-extern crate log;
-
-#[macro_use]
-extern crate serde_derive;
-
-#[macro_use]
-extern crate zcomponents;
-
-#[allow(unused_imports)] // TODO: I'm not sure what's going on in nightly
-#[macro_use]
-extern crate structopt;
-
-extern crate env_logger;
-extern crate ggez;
-extern crate ggwp_zgui as ui;
-extern crate ggwp_zscene as scene;
-extern crate num;
-extern crate rand;
-extern crate ron;
-extern crate serde;
-
 use ggez::{
     conf, event,
     filesystem::Filesystem,
     graphics::{self, Point2, Rect},
     Context, ContextBuilder, GameResult,
 };
+use log::info;
 use structopt::StructOpt;
 
 mod core;

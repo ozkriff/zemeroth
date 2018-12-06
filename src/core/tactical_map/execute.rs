@@ -1,20 +1,23 @@
 use std::collections::HashMap;
 
+use log::{debug, error, trace};
 use rand::{thread_rng, Rng};
 
-use core::map::{self, Dir, PosHex};
-use core::tactical_map::{
-    self,
-    ability::{self, Ability, PassiveAbility},
-    apply::apply,
-    check::{check, Error},
-    command::{self, Command},
-    component::{self, Component},
-    effect::{self, Duration, Effect},
-    event::{self, ActiveEvent, Event},
-    movement::Path,
-    state::{self, BattleResult, State},
-    utils, Moves, ObjId, Phase, PlayerId, Strength,
+use crate::core::{
+    map::{self, Dir, PosHex},
+    tactical_map::{
+        self,
+        ability::{self, Ability, PassiveAbility},
+        apply::apply,
+        check::{check, Error},
+        command::{self, Command},
+        component::{self, Component},
+        effect::{self, Duration, Effect},
+        event::{self, ActiveEvent, Event},
+        movement::Path,
+        state::{self, BattleResult, State},
+        utils, Moves, ObjId, Phase, PlayerId, Strength,
+    },
 };
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -1158,7 +1161,7 @@ fn choose_who_to_summon(state: &State) -> String {
 mod tests {
     use std::collections::HashMap;
 
-    use core::tactical_map::{effect::Effect, ObjId};
+    use crate::core::tactical_map::{effect::Effect, ObjId};
 
     use super::ExecuteContext;
 

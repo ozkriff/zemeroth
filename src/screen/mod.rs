@@ -1,3 +1,4 @@
+use log::info;
 use std::{fmt::Debug, time::Duration};
 
 use ggez::{
@@ -6,7 +7,7 @@ use ggez::{
     Context,
 };
 
-use ZResult;
+use crate::ZResult;
 
 mod battle;
 mod campaign;

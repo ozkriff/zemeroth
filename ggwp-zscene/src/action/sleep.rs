@@ -1,5 +1,6 @@
 use std::time::Duration;
-use Action;
+
+use crate::Action;
 
 #[derive(Debug)]
 pub struct Sleep {
