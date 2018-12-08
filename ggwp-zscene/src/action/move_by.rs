@@ -1,7 +1,8 @@
-use ggez::graphics::Vector2;
-use ggez::timer;
 use std::time::Duration;
-use {Action, Sprite};
+
+use ggez::{graphics::Vector2, timer};
+
+use crate::{Action, Sprite};
 
 #[derive(Debug)]
 pub struct MoveBy {

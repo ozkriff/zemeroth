@@ -1,4 +1,6 @@
-use core::tactical_map::{scenario::Scenario, state::BattleResult, PlayerId};
+use serde_derive::{Deserialize, Serialize};
+
+use crate::core::tactical_map::{scenario::Scenario, state::BattleResult, PlayerId};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
 pub enum Mode {
@@ -156,7 +158,7 @@ impl State {
 
 #[cfg(test)]
 mod tests {
-    use core::{
+    use crate::core::{
         campaign::{Award, CampaignNode, Mode, Plan, State},
         tactical_map::{
             scenario::{self, Line, Scenario},

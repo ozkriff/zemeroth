@@ -4,29 +4,34 @@ use ggez::{
     graphics::{self, Font, Point2, Text},
     Context,
 };
+use log::{debug, info};
 use scene::{action, Action, Boxed};
 use ui::{self, Gui};
 
-use core::map::PosHex;
-use core::tactical_map::{
-    self, ability,
-    ability::Ability,
-    ai::Ai,
-    check, command,
-    component::Prototypes,
-    effect,
-    movement::Pathfinder,
-    scenario,
-    state::{self, BattleResult},
-    ObjId, PlayerId, State,
+use crate::{
+    core::{
+        map::PosHex,
+        tactical_map::{
+            self, ability,
+            ability::Ability,
+            ai::Ai,
+            check, command,
+            component::Prototypes,
+            effect,
+            movement::Pathfinder,
+            scenario,
+            state::{self, BattleResult},
+            ObjId, PlayerId, State,
+        },
+    },
+    geom,
+    screen::{
+        battle::view::{make_action_create_map, BattleView, SelectionMode},
+        Screen, Transition,
+    },
+    utils::{self, time_s},
+    ZResult,
 };
-use geom;
-use screen::{
-    battle::view::{make_action_create_map, BattleView, SelectionMode},
-    Screen, Transition,
-};
-use utils::{self, time_s};
-use ZResult;
 
 mod view;
 mod visualize;

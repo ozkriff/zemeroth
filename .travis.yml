@@ -62,16 +62,16 @@ jobs:
       - git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
       - RUST_LOG=zemeroth=info cargo run -- --check-assets
   - name: fmt
-    rust: nightly-2018-10-01
+    rust: stable
     install:
-      - rustup component add rustfmt-preview
+      - rustup component add rustfmt
       - rustfmt -V
     script:
       - cargo fmt --all -- --check
   - name: clippy
-    rust: nightly-2018-10-01
+    rust: nightly-2018-12-05
     install:
-      - rustup component add clippy-preview
+      - rustup component add clippy
       - cargo clippy -V
     script:
       - cargo clippy --verbose -- -D warnings

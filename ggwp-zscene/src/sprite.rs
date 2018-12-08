@@ -1,9 +1,9 @@
-use std::cell::RefCell;
-use std::path::Path;
-use std::rc::Rc;
+use std::{cell::RefCell, path::Path, rc::Rc};
 
-use ggez::graphics::{self, Point2, Rect, Vector2};
-use ggez::{Context, GameResult};
+use ggez::{
+    graphics::{self, Point2, Rect, Vector2},
+    Context, GameResult,
+};
 
 #[derive(Debug, Clone)]
 struct SpriteData {
@@ -63,7 +63,8 @@ impl Sprite {
         dimensions.scale(data.param.scale.x, data.param.scale.y);
         data.offset.x = -dimensions.w * offset.x;
         data.offset.y = -dimensions.h * offset.y;
-        data.param.dest += data.offset - old_offset;
+        let offset = data.offset;
+        data.param.dest += offset - old_offset;
     }
 
     pub fn draw(&self, context: &mut Context) -> GameResult<()> {

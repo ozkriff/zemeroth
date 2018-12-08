@@ -1,16 +1,22 @@
-use core::map::{self, PosHex};
-use core::tactical_map::{ability::PassiveAbility, utils, ObjId, PlayerId, Strength, TileType};
+use crate::core::{
+    map::{self, PosHex},
+    tactical_map::{ability::PassiveAbility, utils, ObjId, PlayerId, Strength, TileType},
+};
 
 pub use self::private::{BattleResult, State};
 
 mod private {
-    use core::map::{self, HexMap};
-    use core::tactical_map::{
-        command::{self, Command},
-        component::{Component, Parts, Prototypes},
-        execute,
-        scenario::{self, Scenario},
-        ObjId, PlayerId, TileType,
+    use log::error;
+
+    use crate::core::{
+        map::{self, HexMap},
+        tactical_map::{
+            command::{self, Command},
+            component::{Component, Parts, Prototypes},
+            execute,
+            scenario::{self, Scenario},
+            ObjId, PlayerId, TileType,
+        },
     };
 
     #[derive(Clone, Debug)]
@@ -107,7 +113,7 @@ mod private {
         }
 
         // TODO: make visible only for `apply`
-        pub(in core) fn prototype_for(&self, name: &str) -> Vec<Component> {
+        pub(in crate::core) fn prototype_for(&self, name: &str) -> Vec<Component> {
             let prototypes = &self.prototypes.0;
             prototypes[name].clone()
         }
@@ -120,23 +126,23 @@ mod private {
     /// Mutators. Be carefull with them!
     impl State {
         // TODO: check that it's called only from apply.rs!
-        pub(in core) fn parts_mut(&mut self) -> &mut Parts {
+        pub(in crate::core) fn parts_mut(&mut self) -> &mut Parts {
             &mut self.parts
         }
 
-        pub(in core) fn map_mut(&mut self) -> &mut HexMap<TileType> {
+        pub(in crate::core) fn map_mut(&mut self) -> &mut HexMap<TileType> {
             &mut self.map
         }
 
-        pub(in core) fn set_player_id(&mut self, new_value: PlayerId) {
+        pub(in crate::core) fn set_player_id(&mut self, new_value: PlayerId) {
             self.player_id = new_value;
         }
 
-        pub(in core) fn set_battle_result(&mut self, result: BattleResult) {
+        pub(in crate::core) fn set_battle_result(&mut self, result: BattleResult) {
             self.battle_result = Some(result);
         }
 
-        pub(in core) fn alloc_id(&mut self) -> ObjId {
+        pub(in crate::core) fn alloc_id(&mut self) -> ObjId {
             self.parts.alloc_id()
         }
     }

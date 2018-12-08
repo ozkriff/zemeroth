@@ -1,14 +1,11 @@
-extern crate ggez;
-extern crate ggwp_zscene as scene;
-
 use std::time::Duration;
 
-use ggez::conf;
-use ggez::event;
-use ggez::graphics::{self, Font, Point2, Rect, Text, Vector2};
-use ggez::{Context, ContextBuilder, GameResult};
-use scene::action;
-use scene::{Boxed, Layer, Scene, Sprite};
+use ggez::{
+    conf, event,
+    graphics::{self, Font, Point2, Rect, Text, Vector2},
+    {Context, ContextBuilder, GameResult},
+};
+use ggwp_zscene::{action, Boxed, Layer, Scene, Sprite};
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {

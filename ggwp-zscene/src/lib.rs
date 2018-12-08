@@ -1,17 +1,15 @@
 #![warn(bare_trait_objects)]
 
-extern crate ggez;
-
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::time::Duration;
+use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use ggez::{Context, GameResult};
 
 // TODO: z-order? (https://github.com/ozkriff/zemeroth/issues/319)
 
-pub use action::{Action, Boxed};
-pub use sprite::Sprite;
+pub use crate::{
+    action::{Action, Boxed},
+    sprite::Sprite,
+};
 
 pub mod action;
 

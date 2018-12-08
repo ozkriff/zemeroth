@@ -1,15 +1,9 @@
-use std::fmt::Debug;
-use std::time::Duration;
+use std::{fmt::Debug, time::Duration};
 
-pub use action::change_color_to::ChangeColorTo;
-pub use action::empty::Empty;
-pub use action::fork::Fork;
-pub use action::hide::Hide;
-pub use action::move_by::MoveBy;
-pub use action::sequence::Sequence;
-pub use action::set_color::SetColor;
-pub use action::show::Show;
-pub use action::sleep::Sleep;
+pub use crate::action::{
+    change_color_to::ChangeColorTo, empty::Empty, fork::Fork, hide::Hide, move_by::MoveBy,
+    sequence::Sequence, set_color::SetColor, show::Show, sleep::Sleep,
+};
 
 mod change_color_to;
 mod empty;

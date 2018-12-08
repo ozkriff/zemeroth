@@ -2,20 +2,18 @@
 
 /// Tiny and opinionated GUI
 ///
-
-#[macro_use]
-extern crate log;
-
-extern crate ggez;
-
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::RefCell,
+    fmt::Debug,
+    rc::Rc,
+    sync::mpsc::{channel, Receiver, Sender},
+};
 
 use ggez::{
     graphics::{self, Color, Image, Point2, Rect},
     Context, GameResult,
 };
-use std::fmt::Debug;
-use std::sync::mpsc::{channel, Receiver, Sender};
+use log::{debug, info};
 
 // TODO: What should we do if some widget changes its size?
 

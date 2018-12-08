@@ -1,7 +1,11 @@
 use std::{collections::VecDeque, slice::Windows};
 
-use core::map::{dirs, Dir, Distance, HexMap, PosHex};
-use core::tactical_map::{ability::PassiveAbility, state, ObjId, State, TileType};
+use serde_derive::{Deserialize, Serialize};
+
+use crate::core::{
+    map::{dirs, Dir, Distance, HexMap, PosHex},
+    tactical_map::{ability::PassiveAbility, state, ObjId, State, TileType},
+};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MovePoints(pub i32);
@@ -31,8 +35,7 @@ impl Default for Tile {
     }
 }
 
-// TODO: const (see https://github.com/rust-lang/rust/issues/24111 )
-pub fn max_cost() -> MovePoints {
+pub const fn max_cost() -> MovePoints {
     MovePoints(i32::max_value())
 }
 
@@ -45,7 +48,7 @@ pub fn tile_cost(state: &State, _: ObjId, _: PosHex, pos: PosHex) -> MovePoints 
         for &ability in &state.parts().passive_abilities.get(id).0 {
             match ability {
                 PassiveAbility::SpikeTrap | PassiveAbility::Burn | PassiveAbility::Poison => {
-                    return MovePoints(4)
+                    return MovePoints(4);
                 }
                 _ => {}
             }
@@ -243,7 +246,7 @@ impl Pathfinder {
 
 #[cfg(test)]
 mod tests {
-    use core::tactical_map::{
+    use crate::core::tactical_map::{
         movement::{Path, Step},
         PosHex,
     };
