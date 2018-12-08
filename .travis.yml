@@ -9,8 +9,6 @@ addons:
     packages:
     - libasound2-dev
 
-cache: cargo
-
 rust:
   - nightly
   - stable
