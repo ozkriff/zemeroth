@@ -22,3 +22,7 @@ num = { version = "0.2", default-features = false }
 ui = { path = "ggwp-zgui", package = "ggwp-zgui" }
 scene = { path = "ggwp-zscene", package = "ggwp-zscene" }
 zcomponents = { path = "zcomponents" }
+
+[profile.dev]
+# lower optimization levels give low FPS at the moment
+opt-level = 2
