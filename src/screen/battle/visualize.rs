@@ -498,7 +498,6 @@ fn visualize_event_attack(
     actions.push(action_sprite_move_to);
     actions.push(fork(action_shadow_move_from));
     actions.push(action_sprite_move_from);
-    actions.push(action::Sleep::new(time_s(0.1)).boxed());
     Ok(seq(actions))
 }
 
