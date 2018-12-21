@@ -103,22 +103,23 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
 
 fn show_dust_at_pos(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let point = geom::hex_to_point(view.tile_size(), at);
-    let count = 8;
+    let count = 9;
     show_dust(view, point, count)
 }
 
 fn show_dust(view: &mut BattleView, at: Point2, count: i32) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for i in 0..count {
-        let k = thread_rng().gen_range(0.9, 1.1);
-        let visible = [0.8 * k, 0.8 * k, 0.7 * k, 0.8].into();
+        let k = thread_rng().gen_range(0.8, 1.2);
+        let visible = [0.8 * k, 0.8 * k, 0.7 * k, 0.8 * k].into();
         let invisible = Color { a: 0.0, ..visible };
-        let scale = thread_rng().gen_range(0.2, 0.5);
+        let scale = thread_rng().gen_range(0.2, 0.4);
         let size = view.tile_size() * 2.0 * scale;
         let vector = {
             let max = std::f32::consts::PI * 2.0;
             let rot = nalgebra::Rotation2::new((max / count as f32) * i as f32);
-            let mut vector = rot * Vector2::new(view.tile_size() * 0.5, 0.0);
+            let n = thread_rng().gen_range(0.4, 0.6);
+            let mut vector = rot * Vector2::new(view.tile_size() * n, 0.0);
             vector.y *= geom::FLATNESS_COEFFICIENT;
             vector
         };
