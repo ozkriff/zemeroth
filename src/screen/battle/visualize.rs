@@ -196,7 +196,7 @@ fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<dyn Ac
     let len = nalgebra::norm(&diff);
     let min_height = view.tile_size() * 0.5;
     let base_height = view.tile_size() * 2.0;
-    let min_time = 0.2;
+    let min_time = 0.25;
     let base_time = 0.3;
     let height = min_height + base_height * (len / 1.0);
     let time = time_s(min_time + base_time * (len / 1.0));
