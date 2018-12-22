@@ -137,15 +137,17 @@ fn execute_attack_internal(
     command: &command::Attack,
     mode: event::AttackMode,
 ) -> AttackStatus {
+    let weapon_type = state.parts().agent.get(command.attacker_id).weapon_type;
     let active_event = ActiveEvent::Attack(event::Attack {
         attacker_id: command.attacker_id,
         target_id: command.target_id,
         mode,
+        weapon_type,
     });
     let mut target_effects = Vec::new();
     let mut is_kill = false;
     if let Some(effect) = try_attack(state, command.attacker_id, command.target_id) {
-        if let Effect::Kill = effect {
+        if let Effect::Kill(_) = effect {
             is_kill = true;
         }
         target_effects.push(effect);
@@ -837,14 +839,16 @@ fn correct_damage_with_armor(
 
 fn wound_or_kill(state: &State, id: ObjId, damage: tactical_map::Strength) -> Effect {
     let parts = state.parts();
-    let strength = parts.strength.get(id);
-    if strength.strength > damage {
+    let strength = parts.strength.get(id).strength;
+    let dir = None; // Let's assume that this is not a directed attack.
+    if strength > damage {
         Effect::Wound(effect::Wound {
             damage,
-            armor_break: tactical_map::Strength(0),
+            armor_break: tactical_map::Strength(0), // !!!
+            dir,
         })
     } else {
-        Effect::Kill
+        Effect::Kill(effect::Kill { dir })
     }
 }
 
@@ -882,13 +886,23 @@ fn try_attack(state: &State, attacker_id: ObjId, target_id: ObjId) -> Option<Eff
     }
     let damage = correct_damage_with_armor(state, target_id, damage);
     let attack_break = utils::clamp_max(agent_attacker.attack_break, target_armor);
+    let dir = {
+        let attacker_pos = state.parts().pos.get(attacker_id).0;
+        let target_pos = state.parts().pos.get(target_id).0;
+        if map::distance_hex(attacker_pos, target_pos).0 > 1 {
+            None
+        } else {
+            Some(Dir::get_dir_from_to(attacker_pos, target_pos))
+        }
+    };
     let effect = if target_strength > damage {
         Effect::Wound(effect::Wound {
             damage,
             armor_break: attack_break,
+            dir,
         })
     } else {
-        Effect::Kill
+        Effect::Kill(effect::Kill { dir })
     };
     Some(effect)
 }
@@ -1161,7 +1175,13 @@ fn choose_who_to_summon(state: &State) -> String {
 mod tests {
     use std::collections::HashMap;
 
-    use crate::core::tactical_map::{effect::Effect, ObjId};
+    use crate::core::{
+        map::Dir,
+        tactical_map::{
+            effect::{self, Effect},
+            ObjId,
+        },
+    };
 
     use super::ExecuteContext;
 
@@ -1186,7 +1206,10 @@ mod tests {
     #[test]
     fn test_merge_with_hashmap() {
         let mut instant_effects1 = HashMap::new();
-        instant_effects1.insert(ObjId(0), vec![Effect::Kill, Effect::Stun]);
+        let effect_kill = Effect::Kill(effect::Kill {
+            dir: Some(Dir::East),
+        });
+        instant_effects1.insert(ObjId(0), vec![effect_kill.clone(), Effect::Stun]);
         let mut context1 = ExecuteContext {
             instant_effects: instant_effects1,
             ..Default::default()
@@ -1200,7 +1223,7 @@ mod tests {
         let mut instant_effects_expected = HashMap::new();
         instant_effects_expected.insert(
             ObjId(0),
-            vec![Effect::Kill, Effect::Stun, Effect::Vanish, Effect::Miss],
+            vec![effect_kill, Effect::Stun, Effect::Vanish, Effect::Miss],
         );
         let context_expected = ExecuteContext {
             instant_effects: instant_effects_expected,

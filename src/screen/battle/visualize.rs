@@ -10,9 +10,10 @@ use scene::{action, Action, Boxed, Sprite};
 
 use crate::{
     core::{
-        map::PosHex,
+        map::{Dir, PosHex},
         tactical_map::{
             ability::Ability,
+            component::WeaponType,
             effect::{self, Effect},
             event::{self, ActiveEvent, Event},
             execute::{hit_chance, ApplyPhase},
@@ -86,6 +87,43 @@ pub fn attack_message(
     Ok(fork(action_show_hide))
 }
 
+fn show_blood_particles(
+    view: &mut BattleView,
+    pos: PosHex,
+    from: Option<Dir>,
+    particles_count: i32,
+) -> ZResult<Box<dyn Action>> {
+    let point_origin = geom::hex_to_point(view.tile_size(), pos);
+    let mut actions = Vec::new();
+    for _ in 0..particles_count {
+        let point = if let Some(dir) = from {
+            let pos_neighbor = Dir::get_neighbor_pos(pos, dir);
+            geom::hex_to_point(view.tile_size(), pos_neighbor)
+                + geom::rand_tile_offset(view.tile_size(), 0.8)
+        } else {
+            point_origin + geom::rand_tile_offset(view.tile_size(), 1.7)
+        };
+        let color = [0.7, 0.0, 0.0, 0.6].into();
+        let visible = color;
+        let invisible = Color { a: 0.0, ..visible };
+        let scale = thread_rng().gen_range(0.05, 0.15);
+        let size = view.tile_size() * 2.0 * scale;
+        let mut sprite = Sprite::from_image(view.images().white_hex.clone(), size);
+        sprite.set_centered(true);
+        sprite.set_pos(point_origin);
+        sprite.set_color(invisible);
+        let vector = point - point_origin;
+        actions.push(fork(seq(vec![
+            action::Show::new(&view.layers().flares, &sprite).boxed(),
+            fork(action::ChangeColorTo::new(&sprite, visible, time_s(0.2)).boxed()),
+            arc_move(view, &sprite, vector),
+            action::Hide::new(&view.layers().flares, &sprite).boxed(),
+            action::Show::new(&view.layers().blood, &sprite).boxed(),
+        ])));
+    }
+    Ok(fork(seq(actions)))
+}
+
 fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let mut sprite = Sprite::from_image(view.images().blood.clone(), view.tile_size() * 2.0);
     sprite.set_centered(true);
@@ -103,22 +141,23 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
 
 fn show_dust_at_pos(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let point = geom::hex_to_point(view.tile_size(), at);
-    let count = 8;
+    let count = 9;
     show_dust(view, point, count)
 }
 
 fn show_dust(view: &mut BattleView, at: Point2, count: i32) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for i in 0..count {
-        let k = thread_rng().gen_range(0.9, 1.1);
-        let visible = [0.8 * k, 0.8 * k, 0.7 * k, 0.8].into();
+        let k = thread_rng().gen_range(0.8, 1.2);
+        let visible = [0.8 * k, 0.8 * k, 0.7 * k, 0.8 * k].into();
         let invisible = Color { a: 0.0, ..visible };
-        let scale = thread_rng().gen_range(0.2, 0.5);
+        let scale = thread_rng().gen_range(0.2, 0.4);
         let size = view.tile_size() * 2.0 * scale;
         let vector = {
             let max = std::f32::consts::PI * 2.0;
             let rot = nalgebra::Rotation2::new((max / count as f32) * i as f32);
-            let mut vector = rot * Vector2::new(view.tile_size() * 0.5, 0.0);
+            let n = thread_rng().gen_range(0.4, 0.6);
+            let mut vector = rot * Vector2::new(view.tile_size() * n, 0.0);
             vector.y *= geom::FLATNESS_COEFFICIENT;
             vector
         };
@@ -167,6 +206,34 @@ fn show_flare_scale(
     ]))
 }
 
+fn show_weapon_flash(
+    view: &mut BattleView,
+    at: PosHex,
+    weapon_type: WeaponType,
+) -> ZResult<Box<dyn Action>> {
+    let visible = [1.0, 1.0, 1.0, 0.8].into();
+    let invisible = Color { a: 0.1, ..visible };
+    let tile_size = view.tile_size();
+    let sprite_size = tile_size * 2.0;
+    let image = match weapon_type {
+        WeaponType::Slash => view.images().attack_slash.clone(),
+        WeaponType::Smash => view.images().attack_smash.clone(),
+        WeaponType::Pierce => view.images().attack_pierce.clone(),
+        WeaponType::Claw => view.images().attack_claws.clone(),
+    };
+    let mut sprite = Sprite::from_image(image, sprite_size);
+    let point = geom::hex_to_point(tile_size, at) - Vector2::new(0.0, tile_size * 0.3);
+    sprite.set_centered(true);
+    sprite.set_pos(point);
+    sprite.set_color(invisible);
+    Ok(fork(seq(vec![
+        action::Show::new(&view.layers().flares, &sprite).boxed(),
+        action::ChangeColorTo::new(&sprite, visible, time_s(0.1)).boxed(),
+        action::ChangeColorTo::new(&sprite, invisible, time_s(0.4)).boxed(),
+        action::Hide::new(&view.layers().flares, &sprite).boxed(),
+    ])))
+}
+
 fn show_flare(view: &mut BattleView, at: PosHex, color: Color) -> ZResult<Box<dyn Action>> {
     let scale = 1.0;
     show_flare_scale(view, at, color, scale)
@@ -195,7 +262,7 @@ fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<dyn Ac
     let len = nalgebra::norm(&diff);
     let min_height = view.tile_size() * 0.5;
     let base_height = view.tile_size() * 2.0;
-    let min_time = 0.2;
+    let min_time = 0.25;
     let base_time = 0.3;
     let height = min_height + base_height * (len / 1.0);
     let time = time_s(min_time + base_time * (len / 1.0));
@@ -496,9 +563,9 @@ fn visualize_event_attack(
     let action_shadow_move_from = action::MoveBy::new(&sprite_shadow, -diff, time_from).boxed();
     actions.push(fork(action_shadow_move_to));
     actions.push(action_sprite_move_to);
+    actions.push(show_weapon_flash(view, map_to, event.weapon_type)?);
     actions.push(fork(action_shadow_move_from));
     actions.push(action_sprite_move_from);
-    actions.push(action::Sleep::new(time_s(0.1)).boxed());
     Ok(seq(actions))
 }
 
@@ -703,7 +770,7 @@ pub fn visualize_instant_effect(
     debug!("visualize_instant_effect: {:?}", effect);
     let action = match *effect {
         Effect::Create(ref e) => visualize_effect_create(state, view, context, target_id, e)?,
-        Effect::Kill => visualize_effect_kill(state, view, context, target_id)?,
+        Effect::Kill(ref e) => visualize_effect_kill(state, view, context, target_id, e)?,
         Effect::Vanish => visualize_effect_vanish(state, view, context, target_id),
         Effect::Stun => visualize_effect_stun(state, view, context, target_id)?,
         Effect::Heal(ref e) => visualize_effect_heal(state, view, context, target_id, e)?,
@@ -731,12 +798,14 @@ fn visualize_effect_kill(
     view: &mut BattleView,
     context: &mut Context,
     target_id: ObjId,
+    effect: &effect::Kill,
 ) -> ZResult<Box<dyn Action>> {
+    let particles_count = 6;
     let pos = state.parts().pos.get(target_id).0;
     Ok(fork(seq(vec![
+        show_blood_particles(view, pos, effect.dir, particles_count)?,
         message(view, context, pos, "killed")?,
         vanish(view, target_id),
-        action::Sleep::new(time_s(0.25)).boxed(),
         show_blood_spot(view, pos)?,
     ])))
 }
@@ -809,7 +878,13 @@ fn visualize_effect_wound(
     let mut actions = Vec::new();
     let msg = wound_msg(effect);
     if effect.damage.0 > 0 || effect.armor_break.0 > 0 {
-        actions.push(show_blood_spot(view, pos)?);
+        let particles_count = effect.damage.0 * 4;
+        actions.push(show_blood_particles(
+            view,
+            pos,
+            effect.dir,
+            particles_count,
+        )?);
     }
     actions.push(message(view, context, pos, &msg)?);
     actions.push(action::ChangeColorTo::new(&sprite, c_dark, time).boxed());

@@ -1,5 +1,9 @@
-use crate::core::tactical_map::{component::Component, Phase, PosHex, Strength};
 use serde_derive::{Deserialize, Serialize};
+
+use crate::core::{
+    map::Dir,
+    tactical_map::{component::Component, Phase, PosHex, Strength},
+};
 
 #[derive(Clone, Debug, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Duration {
@@ -27,7 +31,7 @@ pub struct Timed {
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub enum Effect {
     Create(Create),
-    Kill,
+    Kill(Kill),
     Vanish,
     Stun,
     Heal(Heal),
@@ -42,7 +46,7 @@ impl Effect {
     pub fn to_str(&self) -> &str {
         match *self {
             Effect::Create(_) => "Create",
-            Effect::Kill => "Kill",
+            Effect::Kill(_) => "Kill",
             Effect::Vanish => "Vanish",
             Effect::Stun => "Stun",
             Effect::Heal(_) => "Heal",
@@ -75,6 +79,12 @@ impl Lasting {
 pub struct Wound {
     pub damage: Strength,
     pub armor_break: Strength,
+    pub dir: Option<Dir>,
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct Kill {
+    pub dir: Option<Dir>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize)]

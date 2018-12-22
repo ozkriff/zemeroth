@@ -1,4 +1,5 @@
-use ggez::graphics::Point2;
+use ggez::graphics::{Point2, Vector2};
+use rand::{thread_rng, Rng};
 
 use crate::core::map::{hex_round, PosHex};
 
@@ -19,4 +20,13 @@ pub fn point_to_hex(size: f32, mut point: Point2) -> PosHex {
     let q = (point.x * SQRT_OF_3 / 3.0 - point.y / 3.0) / size;
     let r = point.y * 2.0 / 3.0 / size;
     hex_round(PosHex { q, r })
+}
+
+pub fn rand_tile_offset(size: f32, radius: f32) -> Vector2 {
+    assert!(radius >= 0.0);
+    let r = size * radius;
+    Vector2::new(
+        thread_rng().gen_range(-r, r),
+        thread_rng().gen_range(-r, r) * FLATNESS_COEFFICIENT,
+    )
 }

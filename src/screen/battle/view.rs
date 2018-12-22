@@ -1,7 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
 use ggez::{
-    graphics::{Color, Font, Image, Point2, Text /*, Vector2*/},
+    graphics::{Color, Font, Image, Text},
     Context,
 };
 use rand::{thread_rng, Rng};
@@ -88,6 +88,10 @@ pub struct Images {
     pub dot: Image,
     pub blood: Image,
     pub shadow: Image,
+    pub attack_slash: Image,
+    pub attack_smash: Image,
+    pub attack_pierce: Image,
+    pub attack_claws: Image,
 }
 
 impl Images {
@@ -101,6 +105,10 @@ impl Images {
             dot: Image::new(context, "/dot.png")?,
             blood: Image::new(context, "/blood.png")?,
             shadow: Image::new(context, "/shadow.png")?,
+            attack_slash: Image::new(context, "/slash.png")?,
+            attack_smash: Image::new(context, "/smash.png")?,
+            attack_pierce: Image::new(context, "/pierce.png")?,
+            attack_claws: Image::new(context, "/claw.png")?,
         })
     }
 }
@@ -414,12 +422,9 @@ fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResul
 fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let mut sprite = Sprite::from_image(view.images.grass.clone(), view.tile_size() * 2.0);
-    let n = view.tile_size() * 0.5;
     let v_offset = view.tile_size() * 0.5; // depends on the image
-    let screen_pos_grass = Point2::new(
-        screen_pos.x + thread_rng().gen_range(-n, n),
-        screen_pos.y - v_offset + thread_rng().gen_range(-n, n) * geom::FLATNESS_COEFFICIENT,
-    );
+    let mut screen_pos_grass = screen_pos + geom::rand_tile_offset(view.tile_size(), 0.5);
+    screen_pos_grass.y -= v_offset;
     sprite.set_centered(true);
     sprite.set_pos(screen_pos_grass);
     Ok(action::Show::new(&view.layers().grass, &sprite).boxed())

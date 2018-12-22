@@ -208,7 +208,7 @@ fn apply_effect_instant(state: &mut State, id: ObjId, effect: &Effect) {
     debug!("effect::apply_instant: {:?} ({})", effect, effect.to_str());
     match *effect {
         Effect::Create(ref effect) => apply_effect_create(state, id, effect),
-        Effect::Kill => apply_effect_kill(state, id),
+        Effect::Kill(ref effect) => apply_effect_kill(state, id, effect),
         Effect::Vanish => apply_effect_vanish(state, id),
         Effect::Stun => apply_effect_stun(state, id),
         Effect::Heal(ref effect) => apply_effect_heal(state, id, effect),
@@ -224,7 +224,7 @@ fn apply_effect_create(state: &mut State, id: ObjId, effect: &effect::Create) {
     add_components(state, id, &effect.components);
 }
 
-fn apply_effect_kill(state: &mut State, id: ObjId) {
+fn apply_effect_kill(state: &mut State, id: ObjId, _: &effect::Kill) {
     let parts = state.parts_mut();
     parts.remove(id);
 }
