@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::core::tactical_map::{
     ability::{Ability, PassiveAbility},
+    component::WeaponType,
     effect::{self, Effect},
     movement::Path,
     state::BattleResult,
@@ -52,6 +53,7 @@ pub struct Attack {
     pub attacker_id: ObjId,
     pub target_id: ObjId,
     pub mode: AttackMode,
+    pub weapon_type: WeaponType,
 }
 
 #[derive(Debug, Clone)]

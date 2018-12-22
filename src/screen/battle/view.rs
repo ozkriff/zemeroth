@@ -88,6 +88,10 @@ pub struct Images {
     pub dot: Image,
     pub blood: Image,
     pub shadow: Image,
+    pub attack_slash: Image,
+    pub attack_smash: Image,
+    pub attack_pierce: Image,
+    pub attack_claws: Image,
 }
 
 impl Images {
@@ -101,6 +105,10 @@ impl Images {
             dot: Image::new(context, "/dot.png")?,
             blood: Image::new(context, "/blood.png")?,
             shadow: Image::new(context, "/shadow.png")?,
+            attack_slash: Image::new(context, "/slash.png")?,
+            attack_smash: Image::new(context, "/smash.png")?,
+            attack_pierce: Image::new(context, "/pierce.png")?,
+            attack_claws: Image::new(context, "/claw.png")?,
         })
     }
 }

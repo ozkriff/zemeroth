@@ -13,6 +13,7 @@ use crate::{
         map::PosHex,
         tactical_map::{
             ability::Ability,
+            component::WeaponType,
             effect::{self, Effect},
             event::{self, ActiveEvent, Event},
             execute::{hit_chance, ApplyPhase},
@@ -166,6 +167,34 @@ fn show_flare_scale(
         action::ChangeColorTo::new(&sprite, invisible, time_s(0.3)).boxed(),
         action::Hide::new(&view.layers().flares, &sprite).boxed(),
     ]))
+}
+
+fn show_weapon_flash(
+    view: &mut BattleView,
+    at: PosHex,
+    weapon_type: WeaponType,
+) -> ZResult<Box<dyn Action>> {
+    let visible = [1.0, 1.0, 1.0, 0.8].into();
+    let invisible = Color { a: 0.1, ..visible };
+    let tile_size = view.tile_size();
+    let sprite_size = tile_size * 2.0;
+    let image = match weapon_type {
+        WeaponType::Slash => view.images().attack_slash.clone(),
+        WeaponType::Smash => view.images().attack_smash.clone(),
+        WeaponType::Pierce => view.images().attack_pierce.clone(),
+        WeaponType::Claw => view.images().attack_claws.clone(),
+    };
+    let mut sprite = Sprite::from_image(image, sprite_size);
+    let point = geom::hex_to_point(tile_size, at) - Vector2::new(0.0, tile_size * 0.3);
+    sprite.set_centered(true);
+    sprite.set_pos(point);
+    sprite.set_color(invisible);
+    Ok(fork(seq(vec![
+        action::Show::new(&view.layers().flares, &sprite).boxed(),
+        action::ChangeColorTo::new(&sprite, visible, time_s(0.1)).boxed(),
+        action::ChangeColorTo::new(&sprite, invisible, time_s(0.4)).boxed(),
+        action::Hide::new(&view.layers().flares, &sprite).boxed(),
+    ])))
 }
 
 fn show_flare(view: &mut BattleView, at: PosHex, color: Color) -> ZResult<Box<dyn Action>> {
@@ -497,6 +526,7 @@ fn visualize_event_attack(
     let action_shadow_move_from = action::MoveBy::new(&sprite_shadow, -diff, time_from).boxed();
     actions.push(fork(action_shadow_move_to));
     actions.push(action_sprite_move_to);
+    actions.push(show_weapon_flash(view, map_to, event.weapon_type)?);
     actions.push(fork(action_shadow_move_from));
     actions.push(action_sprite_move_from);
     Ok(seq(actions))

@@ -137,10 +137,12 @@ fn execute_attack_internal(
     command: &command::Attack,
     mode: event::AttackMode,
 ) -> AttackStatus {
+    let weapon_type = state.parts().agent.get(command.attacker_id).weapon_type;
     let active_event = ActiveEvent::Attack(event::Attack {
         attacker_id: command.attacker_id,
         target_id: command.target_id,
         mode,
+        weapon_type,
     });
     let mut target_effects = Vec::new();
     let mut is_kill = false;

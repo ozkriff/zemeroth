@@ -40,6 +40,14 @@ pub struct Meta {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct BelongsTo(pub PlayerId);
 
+#[derive(Serialize, Deserialize, PartialEq, Clone, Copy, Debug)]
+pub enum WeaponType {
+    Slash,
+    Smash,
+    Pierce,
+    Claw,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Agent {
     // dynamic
@@ -51,6 +59,7 @@ pub struct Agent {
     pub attack_strength: tactical_map::Strength,
     pub attack_distance: map::Distance,
     pub attack_accuracy: tactical_map::Accuracy,
+    pub weapon_type: WeaponType,
 
     #[serde(default)]
     pub attack_break: tactical_map::Strength,
