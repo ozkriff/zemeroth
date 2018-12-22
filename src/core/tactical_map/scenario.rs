@@ -1,5 +1,5 @@
 use rand::{thread_rng, Rng};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::core::{
     map::{self, PosHex},

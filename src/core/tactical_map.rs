@@ -1,6 +1,6 @@
 use std::default::Default;
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::core::{map::PosHex, tactical_map::movement::MovePoints};
 

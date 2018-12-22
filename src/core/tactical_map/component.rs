@@ -1,5 +1,5 @@
 use ron;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use zcomponents::zcomponents_storage;
 
 use crate::core::{
