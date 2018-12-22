@@ -1,7 +1,7 @@
-use rand::{thread_rng, Rng};
+use rand::{seq::SliceRandom, thread_rng};
 
 pub fn shuffle_vec<T>(mut vec: Vec<T>) -> Vec<T> {
-    thread_rng().shuffle(&mut vec);
+    vec.shuffle(&mut thread_rng());
     vec
 }
 
