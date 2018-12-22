@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use log::{debug, error, trace};
-use rand::{thread_rng, Rng};
+use rand::{seq::SliceRandom, thread_rng, Rng};
 
 use crate::core::{
     map::{self, Dir, PosHex},
@@ -1165,8 +1165,8 @@ fn choose_who_to_summon(state: &State) -> String {
     if prototypes_pool.is_empty() {
         prototypes_pool = typenames;
     }
-    thread_rng()
-        .choose(&prototypes_pool)
+    prototypes_pool
+        .choose(&mut thread_rng())
         .expect("Can't choose a prototype")
         .clone()
 }
