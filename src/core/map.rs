@@ -1,7 +1,7 @@
 use std::{fmt::Debug, iter::repeat};
 
 use num::{Num, Signed};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Distance(pub i32);

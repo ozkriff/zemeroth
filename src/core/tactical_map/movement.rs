@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, slice::Windows};
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::core::{
     map::{dirs, Dir, Distance, HexMap, PosHex},
