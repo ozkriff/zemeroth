@@ -229,7 +229,7 @@ impl<T: Copy + Default + Debug> HexMap<T> {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
 pub enum Dir {
     SouthEast,
     East,

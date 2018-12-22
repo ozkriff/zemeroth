@@ -1,7 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
 use ggez::{
-    graphics::{Color, Font, Image, Point2, Text /*, Vector2*/},
+    graphics::{Color, Font, Image, Text},
     Context,
 };
 use rand::{thread_rng, Rng};

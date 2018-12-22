@@ -10,7 +10,7 @@ use scene::{action, Action, Boxed, Sprite};
 
 use crate::{
     core::{
-        map::PosHex,
+        map::{Dir, PosHex},
         tactical_map::{
             ability::Ability,
             component::WeaponType,
@@ -85,6 +85,43 @@ pub fn attack_message(
         action::Hide::new(&view.layers().text, &sprite).boxed(),
     ]);
     Ok(fork(action_show_hide))
+}
+
+fn show_blood_particles(
+    view: &mut BattleView,
+    pos: PosHex,
+    from: Option<Dir>,
+    particles_count: i32,
+) -> ZResult<Box<dyn Action>> {
+    let point_origin = geom::hex_to_point(view.tile_size(), pos);
+    let mut actions = Vec::new();
+    for _ in 0..particles_count {
+        let point = if let Some(dir) = from {
+            let pos_neighbor = Dir::get_neighbor_pos(pos, dir);
+            geom::hex_to_point(view.tile_size(), pos_neighbor)
+                + geom::rand_tile_offset(view.tile_size(), 0.8)
+        } else {
+            point_origin + geom::rand_tile_offset(view.tile_size(), 1.7)
+        };
+        let color = [0.7, 0.0, 0.0, 0.6].into();
+        let visible = color;
+        let invisible = Color { a: 0.0, ..visible };
+        let scale = thread_rng().gen_range(0.05, 0.15);
+        let size = view.tile_size() * 2.0 * scale;
+        let mut sprite = Sprite::from_image(view.images().white_hex.clone(), size);
+        sprite.set_centered(true);
+        sprite.set_pos(point_origin);
+        sprite.set_color(invisible);
+        let vector = point - point_origin;
+        actions.push(fork(seq(vec![
+            action::Show::new(&view.layers().flares, &sprite).boxed(),
+            fork(action::ChangeColorTo::new(&sprite, visible, time_s(0.2)).boxed()),
+            arc_move(view, &sprite, vector),
+            action::Hide::new(&view.layers().flares, &sprite).boxed(),
+            action::Show::new(&view.layers().blood, &sprite).boxed(),
+        ])));
+    }
+    Ok(fork(seq(actions)))
 }
 
 fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
@@ -733,7 +770,7 @@ pub fn visualize_instant_effect(
     debug!("visualize_instant_effect: {:?}", effect);
     let action = match *effect {
         Effect::Create(ref e) => visualize_effect_create(state, view, context, target_id, e)?,
-        Effect::Kill => visualize_effect_kill(state, view, context, target_id)?,
+        Effect::Kill(ref e) => visualize_effect_kill(state, view, context, target_id, e)?,
         Effect::Vanish => visualize_effect_vanish(state, view, context, target_id),
         Effect::Stun => visualize_effect_stun(state, view, context, target_id)?,
         Effect::Heal(ref e) => visualize_effect_heal(state, view, context, target_id, e)?,
@@ -761,12 +798,14 @@ fn visualize_effect_kill(
     view: &mut BattleView,
     context: &mut Context,
     target_id: ObjId,
+    effect: &effect::Kill,
 ) -> ZResult<Box<dyn Action>> {
+    let particles_count = 6;
     let pos = state.parts().pos.get(target_id).0;
     Ok(fork(seq(vec![
+        show_blood_particles(view, pos, effect.dir, particles_count)?,
         message(view, context, pos, "killed")?,
         vanish(view, target_id),
-        action::Sleep::new(time_s(0.25)).boxed(),
         show_blood_spot(view, pos)?,
     ])))
 }
@@ -839,7 +878,13 @@ fn visualize_effect_wound(
     let mut actions = Vec::new();
     let msg = wound_msg(effect);
     if effect.damage.0 > 0 || effect.armor_break.0 > 0 {
-        actions.push(show_blood_spot(view, pos)?);
+        let particles_count = effect.damage.0 * 4;
+        actions.push(show_blood_particles(
+            view,
+            pos,
+            effect.dir,
+            particles_count,
+        )?);
     }
     actions.push(message(view, context, pos, &msg)?);
     actions.push(action::ChangeColorTo::new(&sprite, c_dark, time).boxed());
