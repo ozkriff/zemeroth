@@ -26,7 +26,10 @@ use crate::{
     },
     geom,
     screen::{
-        battle::view::{make_action_create_map, BattleView, SelectionMode},
+        battle::{
+            view::{make_action_create_map, BattleView, SelectionMode},
+            visualize::{fork, visualize},
+        },
         Screen, Transition,
     },
     utils::{self, time_s},
@@ -231,10 +234,9 @@ impl Battle {
         let mut view = BattleView::new(radius, context)?;
         let mut actions = Vec::new();
         let state = State::new(prototypes, scenario, &mut |state, event, phase| {
-            let action = visualize::visualize(state, &mut view, context, event, phase)
+            let action = visualize(state, &mut view, context, event, phase)
                 .expect("Can't visualize the event");
-            let action = action::Fork::new(action).boxed(); // TODO: Use helper `fork` method
-            actions.push(action);
+            actions.push(fork(action));
         });
         actions.push(make_action_create_map(&state, &view)?);
         view.add_action(action::Sequence::new(actions).boxed());

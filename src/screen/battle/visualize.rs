@@ -26,11 +26,11 @@ use crate::{
     ZResult,
 };
 
-fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
+pub fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
     action::Sequence::new(actions).boxed()
 }
 
-fn fork(action: Box<dyn Action>) -> Box<dyn Action> {
+pub fn fork(action: Box<dyn Action>) -> Box<dyn Action> {
     action::Fork::new(action).boxed()
 }
 
