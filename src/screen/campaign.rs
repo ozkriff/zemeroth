@@ -96,7 +96,7 @@ impl Campaign {
     pub fn new(context: &mut Context) -> ZResult<Self> {
         let plan = utils::deserialize_from_file(context, "/campaign_01.ron")?;
         let state = State::from_plan(plan);
-        let font = Font::new(context, "/OpenSans-Regular.ttf", 32)?;
+        let font = utils::default_font(context);
         let gui = basic_gui(context, &font)?;
         let mut this = Self {
             gui,

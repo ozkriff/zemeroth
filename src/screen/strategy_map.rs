@@ -67,7 +67,7 @@ pub struct StrategyMap {
 
 impl StrategyMap {
     pub fn new(context: &mut Context) -> ZResult<Self> {
-        let font = Font::new(context, "/OpenSans-Regular.ttf", 32)?;
+        let font = utils::default_font(context);
         let gui = make_gui(context, &font)?;
 
         let mut sprite = Sprite::from_path(context, "/tile.png", 0.1)?;

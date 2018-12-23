@@ -32,7 +32,7 @@ use crate::{
         },
         Screen, Transition,
     },
-    utils::{self, time_s},
+    utils::{self, default_font, time_s},
     ZResult,
 };
 
@@ -227,7 +227,7 @@ impl Battle {
         scenario: scenario::Scenario,
         sender: Sender<BattleResult>,
     ) -> ZResult<Self> {
-        let font = Font::new(context, "/OpenSans-Regular.ttf", 32)?;
+        let font = default_font(context);
         let gui = make_gui(context, &font)?;
         let prototypes = load_prototypes(context, Path::new("/objects.ron"))?;
         let radius = scenario.map_radius;
