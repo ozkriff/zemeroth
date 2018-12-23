@@ -17,7 +17,7 @@ use crate::{
     },
     geom::{self, hex_to_point},
     screen::battle::visualize,
-    utils::time_s,
+    utils::{default_font, time_s},
     ZResult,
 };
 
@@ -125,7 +125,7 @@ pub struct BattleView {
 
 impl BattleView {
     pub fn new(map_radius: Distance, context: &mut Context) -> ZResult<Self> {
-        let font = Font::new(context, "/OpenSans-Regular.ttf", 32)?;
+        let font = default_font(context);
         let images = Images::new(context)?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());

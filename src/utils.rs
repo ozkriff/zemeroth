@@ -1,6 +1,6 @@
 use std::{io::Read, path::Path, process, time::Duration};
 
-use ggez::{filesystem::Filesystem, Context};
+use ggez::{filesystem::Filesystem, graphics::Font, Context};
 use log::{error, info};
 use serde::de::DeserializeOwned;
 
@@ -41,4 +41,8 @@ where
     let s = read_file_to_string(context, path)?;
     let d = ron::de::from_str(&s).map_err(|e| format!("Can't deserialize {:?}: {:?}", path, e))?;
     Ok(d)
+}
+
+pub fn default_font(context: &mut Context) -> Font {
+    Font::new(context, "/OpenSans-Regular.ttf", 32).expect("Can't load the default font")
 }
