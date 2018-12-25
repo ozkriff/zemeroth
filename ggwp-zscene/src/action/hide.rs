@@ -18,7 +18,6 @@ impl Hide {
 impl Action for Hide {
     fn begin(&mut self) {
         assert!(self.layer.has_sprite(&self.sprite)); // TODO: add unit test for this
-        let mut data = self.layer.data.borrow_mut();
-        data.sprites.retain(|sprite| !self.sprite.is_same(sprite))
+        self.layer.remove(&self.sprite);
     }
 }

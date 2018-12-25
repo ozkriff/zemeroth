@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, default::Default, time::Duration};
 
 use ggez::{
     graphics::{Color, Font, Image, Text},
@@ -69,6 +69,16 @@ pub fn tile_size(map_height: Distance) -> f32 {
 }
 
 #[derive(Debug)]
+struct DisappearingSprite {
+    sprite: Sprite,
+    layer: Layer,
+    // TODO: use a special type instead of i32!
+    turns_total: i32,
+    turns_left: i32,
+    initial_alpha: f32,
+}
+
+#[derive(Debug)]
 struct Sprites {
     selection_marker: Sprite,
     highlighted_tiles: Vec<Sprite>,
@@ -76,6 +86,7 @@ struct Sprites {
     id_to_sprite_map: HashMap<ObjId, Sprite>,
     id_to_shadow_map: HashMap<ObjId, Sprite>,
     agent_info: HashMap<ObjId, Vec<Sprite>>,
+    disappearing_sprites: Vec<DisappearingSprite>,
 }
 
 #[derive(Debug)]
@@ -144,6 +155,7 @@ impl BattleView {
             id_to_sprite_map: HashMap::new(),
             id_to_shadow_map: HashMap::new(),
             agent_info: HashMap::new(),
+            disappearing_sprites: Vec::new(),
         };
         Ok(Self {
             font,
@@ -176,6 +188,7 @@ impl BattleView {
     pub fn draw(&self, context: &mut Context) -> ZResult {
         self.scene.draw(context)
     }
+
     pub fn add_action(&mut self, action: Box<dyn Action>) {
         self.scene.add_action(action);
     }
@@ -199,6 +212,41 @@ impl BattleView {
     pub fn remove_object(&mut self, id: ObjId) {
         self.sprites.id_to_sprite_map.remove(&id).unwrap();
         self.sprites.id_to_shadow_map.remove(&id).unwrap();
+    }
+
+    pub fn add_disappearing_sprite(
+        &mut self,
+        layer: &Layer,
+        sprite: &Sprite,
+        turns: i32,
+        initial_alpha: f32,
+    ) {
+        self.sprites.disappearing_sprites.push(DisappearingSprite {
+            sprite: sprite.clone(),
+            layer: layer.clone(),
+            turns_total: turns,
+            turns_left: turns,
+            initial_alpha,
+        });
+    }
+
+    pub fn update_disappearing_sprites(&mut self) -> Box<dyn Action> {
+        let mut actions = Vec::new();
+        for s in &mut self.sprites.disappearing_sprites {
+            s.turns_left -= 1;
+            let mut color = s.sprite.color();
+            color.a = (s.initial_alpha / s.turns_total as f32) * s.turns_left as f32;
+            let mut sub_actions = Vec::new();
+            sub_actions.push(action::ChangeColorTo::new(&s.sprite, color, time_s(2.0)).boxed());
+            if s.turns_left == 0 {
+                sub_actions.push(action::Hide::new(&s.layer, &s.sprite).boxed());
+            }
+            actions.push(visualize::fork(visualize::seq(sub_actions)));
+        }
+        self.sprites
+            .disappearing_sprites
+            .retain(|s| s.turns_left > 0);
+        visualize::seq(actions)
     }
 
     pub fn id_to_sprite(&mut self, id: ObjId) -> &Sprite {
@@ -249,11 +297,10 @@ impl BattleView {
             let action = {
                 let layer = &self.layers().highlighted_tiles;
                 let time = time_s(0.3);
-                let actions = vec![
+                visualize::seq(vec![
                     action::ChangeColorTo::new(&sprite, color, time).boxed(),
                     action::Hide::new(layer, &sprite).boxed(),
-                ];
-                action::Sequence::new(actions).boxed()
+                ])
             };
             self.add_action(action);
         }
@@ -377,8 +424,7 @@ impl BattleView {
             action::Show::new(layer, &sprite).boxed(),
             action::ChangeColorTo::new(&sprite, color, time).boxed(),
         ];
-        let action = action::Sequence::new(actions).boxed();
-        self.scene.add_action(action);
+        self.scene.add_action(visualize::seq(actions));
         self.sprites.highlighted_tiles.push(sprite);
         Ok(())
     }
@@ -438,5 +484,5 @@ pub fn make_action_create_map(state: &State, view: &BattleView) -> ZResult<Box<d
             actions.push(make_action_grass(view, hex_pos)?);
         }
     }
-    Ok(action::Sequence::new(actions).boxed())
+    Ok(visualize::seq(actions))
 }

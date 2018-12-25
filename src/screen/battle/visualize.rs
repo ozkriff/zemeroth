@@ -26,6 +26,8 @@ use crate::{
     ZResult,
 };
 
+const BLOOD_SPRITE_DURATION: i32 = 6;
+
 pub fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
     action::Sequence::new(actions).boxed()
 }
@@ -113,13 +115,15 @@ fn show_blood_particles(
         sprite.set_pos(point_origin);
         sprite.set_color(invisible);
         let vector = point - point_origin;
+        let layer = view.layers().blood.clone();
         actions.push(fork(seq(vec![
             action::Show::new(&view.layers().flares, &sprite).boxed(),
             fork(action::ChangeColorTo::new(&sprite, visible, time_s(0.2)).boxed()),
             arc_move(view, &sprite, vector),
             action::Hide::new(&view.layers().flares, &sprite).boxed(),
-            action::Show::new(&view.layers().blood, &sprite).boxed(),
+            action::Show::new(&layer, &sprite).boxed(),
         ])));
+        view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION, visible.a);
     }
     Ok(fork(seq(actions)))
 }
@@ -131,10 +135,12 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
     let mut point = geom::hex_to_point(view.tile_size(), at);
     point.y += view.tile_size() * 0.1;
     sprite.set_pos(point);
-    let color_final = [1.0, 1.0, 1.0, 1.0].into();
+    let color_final: Color = [1.0, 1.0, 1.0, 1.0].into();
     let time = time_s(0.3);
+    let layer = view.layers().blood.clone();
+    view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION, color_final.a);
     Ok(seq(vec![
-        action::Show::new(&view.layers().blood, &sprite).boxed(),
+        action::Show::new(&layer, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite, color_final, time).boxed(),
     ]))
 }
@@ -600,11 +606,14 @@ fn visualize_event_end_battle(
 
 fn visualize_event_end_turn(
     _: &State,
-    _: &mut BattleView,
+    view: &mut BattleView,
     _: &mut Context,
     _: &event::EndTurn,
 ) -> Box<dyn Action> {
-    action::Sleep::new(time_s(0.2)).boxed()
+    seq(vec![
+        view.update_disappearing_sprites(),
+        action::Sleep::new(time_s(0.2)).boxed(),
+    ])
 }
 
 fn visualize_event_begin_turn(
