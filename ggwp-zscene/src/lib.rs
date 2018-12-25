@@ -39,6 +39,11 @@ impl Layer {
         self.data.borrow_mut().sprites.push(sprite.clone());
     }
 
+    pub fn remove(&mut self, sprite: &Sprite) {
+        let mut data = self.data.borrow_mut();
+        data.sprites.retain(|another| !sprite.is_same(another))
+    }
+
     pub fn has_sprite(&self, sprite: &Sprite) -> bool {
         let data = self.data.borrow();
         data.sprites.iter().any(|other| other.is_same(sprite))
