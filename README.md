@@ -7,7 +7,7 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 
 [Rust]: https://www.rust-lang.org
 
-![tiny screenshot (I don't have any logo yet)](https://i.imgur.com/uOwrmIV.png)
+![tiny screenshot (I don't have any logo yet)](https://i.imgur.com/WYHNPKem.png)
 
 **News**: [@ozkriff on twitter](https://twitter.com/ozkriff) |
 [ozkriff.github.io](https://ozkriff.github.io) |
@@ -32,18 +32,15 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 Precompiled binaries for Linux, Windows and macOS:
 <https://github.com/ozkriff/zemeroth/releases>
 
-## Screenshot
+## Screenshots
 
-!["big" screenshot](https://i.imgur.com/wMG3KkA.png)
+!["big" screenshot](https://i.imgur.com/yPfO8eH.png)
+
+!["campaign" screenshot](https://i.imgur.com/6FB77lz.png)
 
 ## Gifs
 
-![main gameplay animation](https://i.imgur.com/R298zUm.gif)
-
-![gif: hammerman in action](https://i.imgur.com/mTTrWHu.gif)
-![gif: jump ability](https://i.imgur.com/2dR278L.gif)
-![gif: fire bomb ability](https://i.imgur.com/wZZdlXs.gif)
-![gif: imp summoner in action](https://i.imgur.com/1shTV2q.gif)
+![main gameplay animation](https://i.imgur.com/HqgHmOH.gif)
 
 ## Videos
 
