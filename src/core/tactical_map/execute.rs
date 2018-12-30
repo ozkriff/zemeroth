@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use log::{debug, error, trace};
-use rand::{seq::SliceRandom, thread_rng, Rng};
+use rand::{thread_rng, Rng};
 
 use crate::core::{
     map::{self, Dir, PosHex},
@@ -1075,11 +1075,15 @@ fn execute_use_ability_bomb_demonic(
 fn execute_use_ability_summon(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let max_summoned_count = state.parts().summoner.get(command.id).count;
+    let available_typenames = &["imp".into(), "imp_toxic".into(), "imp_bomber".into()];
+    let existing_agents = existing_agent_typenames(state, state.player_id());
+    let mut new_agents = Vec::new();
     for pos in state::free_neighbor_positions(state, command.pos, max_summoned_count as _) {
-        let prototype = choose_who_to_summon(state);
+        let prototype = choose_who_to_summon(&existing_agents, &new_agents, available_typenames);
         let effect_create = effect_create_agent(state, &prototype, state.player_id(), pos);
         let id = state.alloc_id();
         let effects = vec![effect_create, Effect::Stun];
+        new_agents.push(prototype);
         context.instant_effects.insert(id, effects);
         context.moved_actor_ids.push(id);
         context.reaction_attack_targets.push(id);
@@ -1132,43 +1136,36 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
     }
 }
 
-fn count_agents_by_typename(state: &State, player_id: PlayerId) -> HashMap<String, u32> {
-    let mut map = HashMap::new();
+fn existing_agent_typenames(state: &State, player_id: PlayerId) -> Vec<String> {
+    let mut existing_agents = Vec::new();
     for id in state::players_agent_ids(state, player_id) {
-        let name = &state.parts().meta.get(id).name;
-        *map.entry(name.clone()).or_insert(0) += 1;
+        let typename = state.parts().meta.get(id).name.clone();
+        existing_agents.push(typename);
     }
-    map
+    existing_agents
 }
 
-fn get_summon_pool(state: &State, typenames: &[String]) -> Vec<String> {
-    let mut map = count_agents_by_typename(state, state.player_id());
-    map.retain(|k, _| typenames.contains(&k));
-    let default_max = 3;
-    let max = *map.values().max().unwrap_or(&default_max);
-    // filter out classes that are not in `typenames`.
-    for typename in typenames {
-        map.entry(typename.to_string()).or_insert(0);
+fn choose_who_to_summon(
+    existing_agents: &[String],
+    new_agents: &[String],
+    available_typenames: &[String],
+) -> String {
+    assert!(!available_typenames.is_empty());
+    let agents = existing_agents.iter().chain(new_agents);
+    let mut map = HashMap::new();
+    for typename in available_typenames {
+        map.insert(typename, 0);
     }
-    let mut pool = vec![];
-    for (typename, count) in map {
-        for _ in 0..max - count {
-            pool.push(typename.clone());
+    for typename in agents {
+        if let Some(count) = map.get_mut(typename) {
+            *count += 1;
         }
     }
-    pool
-}
-
-fn choose_who_to_summon(state: &State) -> String {
-    let typenames = vec!["imp".into(), "imp_toxic".into(), "imp_bomber".into()];
-    let mut prototypes_pool = get_summon_pool(state, &typenames);
-    if prototypes_pool.is_empty() {
-        prototypes_pool = typenames;
-    }
-    prototypes_pool
-        .choose(&mut thread_rng())
-        .expect("Can't choose a prototype")
-        .clone()
+    let (key, _value) = map
+        .iter()
+        .min_by_key(|&(_key, value)| value)
+        .expect("The map can't be empty");
+    key.to_string()
 }
 
 #[cfg(test)]
