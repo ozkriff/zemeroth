@@ -8,5 +8,5 @@ description = "Tiny and opionated GUI library"
 keywords = ["ggez", "gamedev", "gui"]
 
 [dependencies]
-ggez = "0.4"
+ggez = "0.5.0-rc.0"
 log = "0.4"

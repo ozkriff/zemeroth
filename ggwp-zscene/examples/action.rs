@@ -2,7 +2,8 @@ use std::time::Duration;
 
 use ggez::{
     conf, event,
-    graphics::{self, Font, Point2, Rect, Text, Vector2},
+    nalgebra::{Vector2, Point2},
+    graphics::{self, Rect},
     {Context, ContextBuilder, GameResult},
 };
 use ggwp_zscene::{action, Boxed, Layer, Scene, Sprite};
@@ -20,26 +21,23 @@ impl Layers {
 }
 
 struct State {
-    font: Font,
     scene: Scene,
     layers: Layers,
 }
 
 impl State {
     fn new(context: &mut Context) -> GameResult<Self> {
-        let font = graphics::Font::new(context, "/Karla-Regular.ttf", 24)?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
         let mut this = Self {
-            font,
             scene,
             layers,
         };
         this.demo_move(context)?;
         this.demo_show_hide(context)?;
         {
-            let (w, h) = graphics::get_drawable_size(context);
-            this.resize(context, w, h);
+            let (w, h) = graphics::drawable_size(context);
+            this.resize(context, w as _, h as _);
         }
         Ok(this)
     }
@@ -58,18 +56,12 @@ impl State {
     }
 
     fn demo_show_hide(&mut self, context: &mut Context) -> GameResult<()> {
-        let mut sprite = {
-            let image = Text::new(context, "some text", &self.font)?.into_inner();
-            let mut sprite = Sprite::from_image(image, 0.1);
-            sprite.set_pos(Point2::new(0.0, 0.0));
-            sprite.set_scale(2.0); // just testing set_size method
-            let scale = sprite.scale();
-            assert!((scale - 2.0).abs() < 0.001);
-            sprite
-        };
+        let mut sprite = Sprite::from_path(context, "/fire.png", 0.5)?;
+        sprite.set_scale(2.0); // just testing set_size method
         let visible = [0.0, 1.0, 0.0, 1.0].into();
         let invisible = graphics::Color { a: 0.0, ..visible };
         sprite.set_color(invisible);
+        sprite.set_centered(true);
         let t = Duration::from_millis(1_000);
         let action = action::Sequence::new(vec![
             action::Show::new(&self.layers.bg, &sprite).boxed(),
@@ -91,34 +83,31 @@ impl State {
 
 impl event::EventHandler for State {
     fn update(&mut self, context: &mut Context) -> GameResult<()> {
-        let dtime = ggez::timer::get_delta(context);
+        let dtime = ggez::timer::delta(context);
         self.scene.tick(dtime);
         Ok(())
     }
 
     fn draw(&mut self, context: &mut Context) -> GameResult<()> {
-        graphics::clear(context);
+        graphics::clear(context, [0.0, 0.0, 0.0, 1.0].into());
         self.scene.draw(context)?;
-        graphics::present(context);
-        Ok(())
+        graphics::present(context)
     }
 
-    fn resize_event(&mut self, context: &mut Context, w: u32, h: u32) {
-        self.resize(context, w, h);
+    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
+        self.resize(context, w as _, h as _);
     }
-}
-
-fn context() -> GameResult<ggez::Context> {
-    let title = "ggwp-zscene";
-    let window_conf = conf::WindowSetup::default().resizable(true).title(title);
-    ContextBuilder::new(title, "ozkriff")
-        .window_setup(window_conf)
-        .add_resource_path("resources")
-        .build()
 }
 
 fn main() -> GameResult<()> {
-    let mut context = context()?;
+    let title = "ggwp-zscene";
+    let window_conf = conf::WindowSetup::default()
+        // .resizable(true)
+        .title(title);
+    let (mut context, mut events_loop) = ContextBuilder::new(title, "ozkriff")
+        .window_setup(window_conf)
+        .add_resource_path("resources")
+        .build()?;
     let mut state = State::new(&mut context)?;
-    event::run(&mut context, &mut state)
+    event::run(&mut context, &mut events_loop, &mut state)
 }

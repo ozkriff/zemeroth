@@ -1,7 +1,7 @@
 #![warn(bare_trait_objects)]
 
 /// Tiny and opinionated GUI
-///
+
 use std::{
     cell::RefCell,
     fmt::Debug,
@@ -10,7 +10,8 @@ use std::{
 };
 
 use ggez::{
-    graphics::{self, Color, Image, Point2, Rect},
+    graphics::{self, Color, Image, Rect},
+    nalgebra::Point2,
     Context, GameResult,
 };
 use log::{debug, info};
@@ -25,7 +26,9 @@ pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
 struct Sprite {
     image: graphics::Image,
     basic_scale: f32,
-    param: graphics::DrawParam,
+    // param: graphics::DrawParam,
+    scale: f32,
+    color:
 }
 
 impl Sprite {
@@ -46,7 +49,7 @@ impl Sprite {
     // TODO: some method to change the image.
 
     pub fn draw(&self, context: &mut Context) -> GameResult<()> {
-        graphics::draw_ex(context, &self.image, self.param)
+        graphics::draw(context, &self.image, self.param)
     }
 
     pub fn rect(&self) -> Rect {
@@ -89,7 +92,7 @@ fn make_bg(context: &mut Context, sprite: &Sprite) -> Sprite {
 }
 
 pub fn window_to_screen(context: &Context, pos: Point2) -> Point2 {
-    let (w, h) = graphics::get_drawable_size(context);
+    let (w, h) = graphics::drawable_size(context);
     let w = w as f32;
     let h = h as f32;
     let aspect_ratio = w / h;
@@ -142,7 +145,7 @@ pub struct Gui<Message: Clone> {
 
 impl<Message: Clone> Gui<Message> {
     pub fn new(context: &Context) -> Self {
-        let (w, h) = graphics::get_drawable_size(context);
+        let (w, h) = graphics::drawable_size(context);
         let aspect_ratio = w as f32 / h as f32;
         debug!("Gui: aspect_ratio: {}", aspect_ratio);
         let (sender, receiver) = channel();
@@ -180,7 +183,7 @@ impl<Message: Clone> Gui<Message> {
     }
 
     pub fn draw(&self, context: &mut Context) -> GameResult<()> {
-        let old_coordinates = graphics::get_screen_coordinates(context);
+        let old_coordinates = graphics::screen_coordinates(context);
         let ui_coordinates = Rect::new(-self.aspect_ratio, -1.0, self.aspect_ratio * 2.0, 2.0);
         graphics::set_screen_coordinates(context, ui_coordinates)?;
         for AnchoredWidget { widget, .. } in &self.anchored_widgets {
