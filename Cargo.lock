@@ -703,9 +703,9 @@ dependencies = [
 [[package]]
 name = "ggez"
 version = "0.5.0-rc.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "app_dirs2 2.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "approx 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "bitflags 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx 0.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx_core 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -723,7 +723,7 @@ dependencies = [
  "serde 1.0.82 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.82 (registry+https://github.com/rust-lang/crates.io-index)",
  "skeptic 0.13.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "smart-default 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "smart-default 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "winit 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "zip 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -733,7 +733,7 @@ dependencies = [
 name = "ggwp-zgui"
 version = "0.1.0"
 dependencies = [
- "ggez 0.5.0-rc.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ggez 0.5.0-rc.0",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -741,7 +741,7 @@ dependencies = [
 name = "ggwp-zscene"
 version = "0.1.0"
 dependencies = [
- "ggez 0.5.0-rc.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ggez 0.5.0-rc.0",
 ]
 
 [[package]]
@@ -2020,6 +2020,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "smart-default"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "proc-macro2 0.4.24 (registry+https://github.com/rust-lang/crates.io-index)",
+ "quote 0.6.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "syn 0.15.23 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "smithay-client-toolkit"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2308,7 +2318,7 @@ name = "wayland-scanner"
 version = "0.21.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "xml-rs 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xml-rs 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -2552,7 +2562,6 @@ dependencies = [
 "checksum gfx_window_glutin 0.28.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9762740a3aa4d2c0dc61fca23a4271e4c26586d90d7e904c00e2dd97d775db7f"
 "checksum gfx_window_sdl 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f0d36e50e6620804c7613d1fd95f816b4f1c6e0ece0ccb8b155016a9404344f1"
 "checksum ggez 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)" = "51c1ba59ec402c1fab55e59d9b715032a6c5e9385be3edf9628a128fad0af68a"
-"checksum ggez 0.5.0-rc.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b698e7eeadbfb08708b19fe29e156a215dca9cebddb62bd44f2cb09d86076dde"
 "checksum gif 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)" = "dd4bca55ac1f213920ce3527ccd62386f1f15fa3f1714aeee1cf93f2c416903f"
 "checksum gilrs 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a9096406afa56cc93a06d68e450a829d0bc2b21751f6b451f6c3e541db4316a0"
 "checksum gl_generator 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a0ffaf173cf76c73a73e080366bf556b4776ece104b06961766ff11449f38604"
@@ -2699,6 +2708,7 @@ dependencies = [
 "checksum slice-deque 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)" = "d39fca478d10e201944a8e21f4393d6bfe38fa3b16a152050e4d097fe2bbf494"
 "checksum smallvec 0.6.7 (registry+https://github.com/rust-lang/crates.io-index)" = "b73ea3738b47563803ef814925e69be00799a8c07420be8b996f8e98fb2336db"
 "checksum smart-default 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3e7392ae8cdf79428cc98170bf264af7219887def8a30bb61d7ad2200313e88d"
+"checksum smart-default 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "70e5c02ddada494809d36623d38050f3bd63446750abd21e7e13c01aa3a79b69"
 "checksum smithay-client-toolkit 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)" = "d858330eeed4efaf71c560555e2a6a0597d01b7d52685c3cc964ab1cc360f8c6"
 "checksum stable_deref_trait 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "dba1a27d3efae4351c8051072d619e3ade2820635c3958d826bfea39d59b54c8"
 "checksum stb_truetype 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "71a7d260b43b6129a22dc341be18a231044ca67a48b7e32625f380cc5ec9ad70"
