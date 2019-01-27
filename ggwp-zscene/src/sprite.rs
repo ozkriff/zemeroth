@@ -1,14 +1,16 @@
-use std::{cell::RefCell, path::Path, rc::Rc};
+use std::{cell::RefCell, fmt, path::Path, rc::Rc};
 
 use ggez::{
     nalgebra::{Point2, Vector2},
-    graphics::{self, Rect, Color},
+    graphics::{self, Rect, Color, Drawable},
     Context, GameResult,
 };
 
-#[derive(Debug, Clone)]
+// #[derive(Debug, Clone)] // TODO: Do I need `Clone` here?
 struct SpriteData {
-    image: graphics::Image,
+    drawable: Box<dyn Drawable>,
+    dimensions: Rect,
+
     basic_scale: f32,
     offset: Vector2<f32>,
 
@@ -17,16 +19,26 @@ struct SpriteData {
     color: Color,
 }
 
+// TODO: !
+impl fmt::Debug for SpriteData {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // write!(f, "Point {{ x: {}, y: {} }}", self.x, self+.y)
+        unimplemented!() // TODO: show some fields
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Sprite {
     data: Rc<RefCell<SpriteData>>,
 }
 
 impl Sprite {
-    pub fn from_image(image: graphics::Image, height: f32) -> Self {
-        let scale = height / f32::from(image.height());
+    pub fn from_drawable(context: &mut Context, drawable: Box<dyn Drawable>, height: f32) -> Self {
+        let dimensions = drawable.dimensions(context).expect("TODO: err msg"); // TODO: convert to Result?
+        let scale = height / dimensions.h;
         let data = SpriteData {
-            image,
+            drawable,
+            dimensions,
             scale,
             dest: Point2::new(0.0, 0.0),
             color: graphics::WHITE,
@@ -37,13 +49,17 @@ impl Sprite {
         Self { data }
     }
 
+    pub fn from_image(context: &mut Context, image: graphics::Image, height: f32) -> Self {
+        Self::from_drawable(context, Box::new(image), height)
+    }
+
     pub fn from_path<P: AsRef<Path>>(
         context: &mut Context,
         path: P,
         height: f32,
     ) -> GameResult<Self> {
         let image = graphics::Image::new(context, path)?;
-        Ok(Self::from_image(image, height))
+        Ok(Self::from_image(context, image, height))
     }
 
     // TODO: some method to change the image.
@@ -61,7 +77,7 @@ impl Sprite {
     pub fn set_offset(&mut self, offset: Vector2<f32>) {
         let mut data = self.data.borrow_mut();
         let old_offset = data.offset;
-        let mut dimensions = data.image.dimensions();
+        let mut dimensions = data.dimensions;
         dimensions.scale(data.scale, data.scale);
         data.offset.x = -dimensions.w * offset.x;
         data.offset.y = -dimensions.h * offset.y;
@@ -75,7 +91,7 @@ impl Sprite {
             .dest(data.dest)
             .color(data.color)
             .scale([data.scale, data.scale]);
-        graphics::draw(context, &data.image, param)
+        data.drawable.draw(context, param)
     }
 
     pub fn pos(&self) -> Point2<f32> {
@@ -86,7 +102,7 @@ impl Sprite {
     pub fn rect(&self) -> Rect {
         let pos = self.pos();
         let data = self.data.borrow();
-        let r = data.image.dimensions();
+        let r = data.dimensions;
         // TODO: angle?
         Rect {
             x: pos.x,
