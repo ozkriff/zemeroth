@@ -4,7 +4,8 @@ use std::{
 };
 
 use ggez::{
-    graphics::{self, Font, Point2, Text},
+    nalgebra::Point2,
+    graphics::{self, Font, Text},
     Context,
 };
 use log::info;
@@ -26,17 +27,19 @@ enum Message {
     Recruit(String),
 }
 
+const FONT_SIZE: f32 = 32.0; // TODO: merge them all
+
 // TODO: Fix code duplication with `Battle` screen! (Move to `utils` mod?)
 fn line_height() -> f32 {
     0.08 * 1.5
 }
 
-fn basic_gui(context: &mut Context, font: &Font) -> ZResult<Gui<Message>> {
+fn basic_gui(context: &mut Context, font: Font) -> ZResult<Gui<Message>> {
     let mut gui = Gui::new(context);
     let h = line_height();
     let button_menu = {
-        let image = Text::new(context, "[exit]", font)?.into_inner();
-        ui::Button::new(context, image, h, gui.sender(), Message::Menu)
+        let text = Box::new(Text::new(("[exit]", font, FONT_SIZE)));
+        ui::Button::new(context, text, h, gui.sender(), Message::Menu)
     };
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_menu));
@@ -47,20 +50,22 @@ fn basic_gui(context: &mut Context, font: &Font) -> ZResult<Gui<Message>> {
 
 fn add_agents_panel(
     context: &mut Context,
-    font: &Font,
+    font: Font,
     layout: &mut ui::VLayout,
     agents: &[String],
 ) -> ZResult {
     let h = line_height();
     {
         let text = "Your group consists of:";
-        let image = Text::new(context, text, font)?.into_inner();
-        layout.add(Box::new(ui::Label::new(context, image, h)));
+        // let image = Text::new(context, text, font)?.into_inner();
+        let text = Box::new(Text::new((text, font, FONT_SIZE)));
+        layout.add(Box::new(ui::Label::new(context, text, h)));
     }
     for agent_type in agents {
         let text = format!("- {}", agent_type);
-        let image = Text::new(context, &text, font)?.into_inner();
-        let label = ui::Label::new(context, image, h);
+        // let image = Text::new(context, &text, font)?.into_inner();
+        let text = Box::new(Text::new((text.as_str(), font, FONT_SIZE)));
+        let label = ui::Label::new(context, text, h);
         layout.add(Box::new(label));
     }
     Ok(())
@@ -68,17 +73,19 @@ fn add_agents_panel(
 
 // TODO: add spacer widget to ZGui. Remove this hack.
 // https://github.com/ozkriff/zemeroth/issues/382
-fn add_spacer(context: &mut Context, font: &Font, layout: &mut ui::VLayout) -> ZResult {
+fn add_spacer(context: &mut Context, font: Font, layout: &mut ui::VLayout) -> ZResult {
     let h = line_height();
-    let image = Text::new(context, "", font)?.into_inner();
-    layout.add(Box::new(ui::Label::new(context, image, h)));
+    // let image = Text::new(context, "", font)?.into_inner();
+    let text = Box::new(Text::new(("", font, FONT_SIZE)));
+    layout.add(Box::new(ui::Label::new(context, text, h)));
     Ok(())
 }
 
-fn label(context: &mut Context, font: &Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
+fn label(context: &mut Context, font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
     let h = line_height();
-    let image = Text::new(context, text, font)?.into_inner();
-    Ok(Box::new(ui::Label::new(context, image, h)))
+    let text = Box::new(Text::new((text, font, FONT_SIZE)));
+    // let image = Text::new(context, text, font)?.into_inner();
+    Ok(Box::new(ui::Label::new(context, text, h)))
 }
 
 #[derive(Debug)]
@@ -97,7 +104,7 @@ impl Campaign {
         let plan = utils::deserialize_from_file(context, "/campaign_01.ron")?;
         let state = State::from_plan(plan);
         let font = utils::default_font(context);
-        let gui = basic_gui(context, &font)?;
+        let gui = basic_gui(context, font)?;
         let mut this = Self {
             gui,
             font,
@@ -130,32 +137,35 @@ impl Campaign {
         if !casualties.is_empty() {
             layout.add(label(
                 context,
-                &self.font,
+                self.font,
                 "In the last battle you have lost:",
             )?);
             for agent_type in casualties {
                 let text = format!("- {} (killed)", agent_type);
-                let image = Text::new(context, &text, &self.font)?.into_inner();
-                let label = ui::Label::new(context, image, h);
+                // let image = Text::new(context, &text, &self.font)?.into_inner();
+                let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
+                let label = ui::Label::new(context, text, h);
                 layout.add(Box::new(label));
             }
         }
 
-        add_spacer(context, &self.font, &mut layout)?;
-        add_agents_panel(context, &self.font, &mut layout, self.state.agents())?;
-        add_spacer(context, &self.font, &mut layout)?;
+        add_spacer(context, self.font, &mut layout)?;
+        add_agents_panel(context, self.font, &mut layout, self.state.agents())?;
+        add_spacer(context, self.font, &mut layout)?;
 
         if let Mode::PreparingForBattle = self.state.mode() {
             {
-                let image = Text::new(context, "Choose:", &self.font)?.into_inner();
-                layout.add(Box::new(ui::Label::new(context, image, h)));
+                // let image = Text::new(context, "Choose:", &self.font)?.into_inner();
+                let text = Box::new(Text::new(("Choose:", self.font, FONT_SIZE)));
+                layout.add(Box::new(ui::Label::new(context, text, h)));
             }
             for agent_type in self.state.aviable_recruits() {
                 let text = format!("- [Recruit {}]", agent_type);
-                let image = Text::new(context, &text, &self.font)?.into_inner();
+                // let image = Text::new(context, &text, &self.font)?.into_inner();
+                let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
                 let sender = self.gui.sender();
                 let message = Message::Recruit(agent_type.to_string());
-                let button = ui::Button::new(context, image, h, sender, message);
+                let button = ui::Button::new(context, text, h, sender, message);
                 layout.add(Box::new(button));
             }
         }
@@ -170,7 +180,7 @@ impl Campaign {
 
     fn set_mode_ready(&mut self, context: &mut Context) -> ZResult {
         let mut layout = ui::VLayout::new();
-        add_agents_panel(context, &self.font, &mut layout, self.state.agents())?;
+        add_agents_panel(context, self.font, &mut layout, self.state.agents())?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         let layout = ui::pack(layout);
         self.gui.add(&layout, anchor);
@@ -182,9 +192,10 @@ impl Campaign {
                 self.state.current_scenario_index() + 1,
                 self.state.scenarios_count()
             );
-            let image = Text::new(context, text, &self.font)?.into_inner();
+            // let image = Text::new(context, text, self.font)?.into_inner();
+            let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
             let button =
-                ui::Button::new(context, image, h, self.gui.sender(), Message::StartBattle);
+                ui::Button::new(context, text, h, self.gui.sender(), Message::StartBattle);
             let rc_button = ui::pack(button);
             let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Bottom);
             self.gui.add(&rc_button, anchor);
@@ -218,8 +229,9 @@ impl Campaign {
 
     fn add_label_central_message(&mut self, context: &mut Context, text: &str) -> ZResult {
         let h = line_height() * 1.5;
-        let image = Text::new(context, text, &self.font)?.into_inner();
-        let label = ui::pack(ui::Label::new(context, image, h));
+        // let image = Text::new(context, text, &self.font)?.into_inner();
+        let text = Box::new(Text::new((text, self.font, FONT_SIZE)));
+        let label = ui::pack(ui::Label::new(context, text, h));
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         self.gui.add(&label, anchor);
         self.label_central_message = Some(label);
@@ -271,7 +283,7 @@ impl Screen for Campaign {
         self.gui.resize(aspect_ratio);
     }
 
-    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<Transition> {
+    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<Transition> {
         let message = self.gui.click(pos);
         info!(
             "StrategyScreen: click: pos={:?}, message={:?}",

@@ -11,7 +11,7 @@ use std::{
 };
 
 use ggez::{
-    graphics::{self, Color, Image, Text, DrawParam, Drawable, Rect},
+    graphics::{self, Color, Image, Drawable, Rect},
     nalgebra::Point2,
     Context, GameResult,
 };
@@ -22,46 +22,11 @@ use log::{debug, info};
 pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
     Rc::new(RefCell::new(widget))
 }
-
 // TODO: make a note in the blog that I wasn't able to use a trait
-// because ggez::Drawable is not object safe (because of the `Into` arg)
+// because ggez::Drawable is not object safe (because of the `Into` arg).
+// and because i needed `.dimensions()`
 
-// TODO: rustfmt
-
-// // TODO: try to find a better name
-// #[derive(Debug, Clone)]
-// pub enum DrawableSized {
-//     Image(Image),
-//     Text(Text, (f32, f32)),
-// }
-
-// impl DrawableSized {
-//     pub fn from_image(image: Image) -> Self {
-//         DrawableSized::Image(image)
-//     }
-
-//     pub fn from_text(text: Text, context: &mut Context) -> Self {
-//         let (w, h) = text.dimensions(context);
-//         DrawableSized::Text(text, (w as _, h as _))
-//     }
-
-//     pub fn dimensions(&self) -> (f32, f32) {
-//         match self {
-//             DrawableSized::Image(image) => {
-//                 let d = image.dimensions();
-//                 (d.w, d.h)
-//             },
-//             DrawableSized::Text(_, dimensions) => *dimensions,
-//         }
-//     }
-
-//     pub fn draw(&self, context: &mut Context, param: DrawParam) -> GameResult {
-//         match self {
-//             DrawableSized::Image(image) => image.draw(context, param),
-//             DrawableSized::Text(text, _) => text.draw(context, param),
-//         }
-//     }
-// }
+// TODO: rustfmt before merging!
 
 // #[derive(Debug, Clone)]
 struct Sprite {

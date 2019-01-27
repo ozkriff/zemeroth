@@ -10,10 +10,8 @@ use ggez::{
 struct SpriteData {
     drawable: Box<dyn Drawable>,
     dimensions: Rect,
-
     basic_scale: f32,
     offset: Vector2<f32>,
-
     scale: f32,
     dest: Point2<f32>,
     color: Color,
@@ -100,6 +98,7 @@ impl Sprite {
     }
 
     pub fn rect(&self) -> Rect {
+        // TODO: `self.dimensions` + `graphics::transform_rect(param)` ?
         let pos = self.pos();
         let data = self.data.borrow();
         let r = data.dimensions;
