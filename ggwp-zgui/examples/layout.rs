@@ -13,7 +13,7 @@ enum Message {
 }
 
 fn make_gui(context: &mut Context, font: Font) -> GameResult<ui::Gui<Message>> {
-    let font_size = 32.0;
+    let font_size = 64.0;
     let mut gui = ui::Gui::new(context);
     let text_1 = Box::new(Text::new(("[Button1]", font, font_size)));
     let text_2 = Box::new(Text::new(("[Button2]", font, font_size)));

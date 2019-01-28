@@ -449,7 +449,7 @@ impl BattleView {
         let target_pos = state.parts().pos.get(target_id).0;
         let chances = hit_chance(state, attacker_id, target_id);
         let pos = hex_to_point(self.tile_size(), target_pos);
-        let font_size = 32.0; // TODO: merge them all
+        let font_size = 64.0; // TODO: merge them all
         let text = format!("{}%", chances.1 * 10);
         let text = Box::new(Text::new((text.as_str(), self.font, font_size)));
         // let image = Text::new(context, &text, self.font())?.into_inner();

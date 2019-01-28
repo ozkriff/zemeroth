@@ -18,7 +18,7 @@ use crate::{
     utils, ZResult,
 };
 
-const FONT_SIZE: f32 = 32.0; // TODO: merge them all
+const FONT_SIZE: f32 = 64.0; // TODO: merge them all
 
 #[derive(Copy, Clone, Debug)]
 enum Message {

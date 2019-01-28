@@ -19,7 +19,7 @@ struct SpriteData {
 
 // TODO: !
 impl fmt::Debug for SpriteData {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, _f: &mut fmt::Formatter) -> fmt::Result {
         // write!(f, "Point {{ x: {}, y: {} }}", self.x, self+.y)
         unimplemented!() // TODO: show some fields
     }

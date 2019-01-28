@@ -27,7 +27,7 @@ enum Message {
     Recruit(String),
 }
 
-const FONT_SIZE: f32 = 32.0; // TODO: merge them all
+const FONT_SIZE: f32 = 64.0; // TODO: merge them all
 
 // TODO: Fix code duplication with `Battle` screen! (Move to `utils` mod?)
 fn line_height() -> f32 {

@@ -1,5 +1,5 @@
 // use std::{io::Read, path::Path, process, time::Duration};
-use std::{path::Path, time::Duration};
+use std::{io::Read, path::Path, time::Duration};
 
 use ggez::{filesystem::Filesystem, graphics::Font, Context};
 // use log::{error, info};
@@ -31,38 +31,12 @@ pub fn check_assets_hash(_fs: &mut Filesystem, _expected: &str) -> ZResult {
     */
 }
 
-// pub fn read_file_to_string<P: AsRef<Path>>(_ /*context*/: &mut Context, _ /*path*/: P) -> ZResult<String> {
-//     unimplemented!() // TODO: !
-//     /*
-//     let mut buf = String::new();
-//     let mut file = context.filesystem.open(path)?;
-//     file.read_to_string(&mut buf)?;
-//     Ok(buf)
-//     */
-// }
-
 pub fn read_file_to_string<P: AsRef<Path>>(context: &mut Context, path: P) -> ZResult<String> {
-    use std::io::Read; // TODO: ???
-
     let mut buf = String::new();
     let mut file = ggez::filesystem::open(context, path)?;
     file.read_to_string(&mut buf)?;
     Ok(buf)
 }
-
-// pub fn deserialize_from_file<P, D>(_ /*context*/: &mut Context, _ /*path*/: P) -> ZResult<D>
-// where
-//     P: AsRef<Path>,
-//     D: DeserializeOwned,
-// {
-//     unimplemented!() // TODO: !
-//     /*
-//     let path = path.as_ref();
-//     let s = read_file_to_string(context, path)?;
-//     let d = ron::de::from_str(&s).map_err(|e| format!("Can't deserialize {:?}: {:?}", path, e))?;
-//     Ok(d)
-//     */
-// }
 
 pub fn deserialize_from_file<P, D>(context: &mut Context, path: P) -> ZResult<D>
 where

@@ -69,7 +69,7 @@ fn build_panel_agent_info(
         let mut line = |text: &str| -> ZResult {
             // let image = Text::new(context, text, font)?.into_inner();
             // let text = Box::new(Text::new(context, text, font)?.into_inner();
-            let font_size = 32.0; // TODO: merge them all
+            let font_size = 64.0; // TODO: merge them all
             let text = Box::new(Text::new((text, font, font_size)));
             let button = ui::Label::new(context, text, h);
             layout.add(Box::new(button));
@@ -163,7 +163,7 @@ fn build_panel_agent_abilities(
             ability::Status::Cooldown(n) => format!("[{} ({})]", ability.ability.to_string(), n),
         };
         // let image = Text::new(context, &text, font)?.into_inner();
-        let font_size = 32.0; // TODO: merge them all
+        let font_size = 64.0; // TODO: merge them all
         let s: &str = &text;
         // let text = Box::new(Text::new((&text, font, font_size)));
         let text = Box::new(Text::new((s, font, font_size)));
@@ -178,7 +178,7 @@ fn build_panel_agent_abilities(
 }
 
 fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
-    let font_size = 32.0; // TODO: merge them all
+    let font_size = 64.0; // TODO: merge them all
     let mut gui = ui::Gui::new(context);
     {
         // let image = Text::new(context, "[deselect]", font)?.into_inner();

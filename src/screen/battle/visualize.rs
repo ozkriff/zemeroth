@@ -28,7 +28,7 @@ use crate::{
     ZResult,
 };
 
-const FONT_SIZE: f32 = 32.0; // TODO: merge them all
+const FONT_SIZE: f32 = 64.0; // TODO: merge them all
 
 const BLOOD_SPRITE_DURATION: i32 = 6;
 
@@ -46,10 +46,9 @@ pub fn message(
     pos: PosHex,
     text: &str,
 ) -> ZResult<Box<dyn Action>> {
-    let font_size = 32.0; // TODO: merge them all
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = Color { a: 0.0, ..visible };
-    let text = Box::new(Text::new((text, view.font(), font_size)));
+    let text = Box::new(Text::new((text, view.font(), FONT_SIZE)));
     // let image = Box::new(Text::new(context, text, view.font())?.into_inner();
     let mut sprite = Sprite::from_drawable(context, text, 0.1);
     sprite.set_centered(true);
@@ -77,11 +76,10 @@ pub fn attack_message(
     pos: Point2<f32>,
     text: &str,
 ) -> ZResult<Box<dyn Action>> {
-    let font_size = 32.0; // TODO: merge them all
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = Color { a: 0.0, ..visible };
     // let image = Text::new(context, text, view.font())?.into_inner();
-    let text = Box::new(Text::new((text, view.font(), font_size)));
+    let text = Box::new(Text::new((text, view.font(), FONT_SIZE)));
     let mut sprite = Sprite::from_drawable(context, text, 0.1);
     sprite.set_centered(true);
     let point = pos + Vector2::new(0.0, view.tile_size() * 0.5);
