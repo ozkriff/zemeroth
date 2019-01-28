@@ -4,11 +4,8 @@ addons:
   apt:
     update: true
     packages:
-    - libasound2-dev  # TODO: and do I really need this?
+    - libasound2-dev
     - libudev-dev
-    # # TODO: Do I really need this? The error was about libudev.
-    # - libxxf86vm-dev
-    # - libosmesa6-dev
 
 rust:
   - nightly
@@ -46,7 +43,7 @@ jobs:
     script:
       - cargo fmt --all -- --check
   - name: clippy
-    rust: nightly-2018-12-05  # TODO: try to migrate to stable
+    rust: stable
     install:
       - rustup component add clippy
       - cargo clippy -V
