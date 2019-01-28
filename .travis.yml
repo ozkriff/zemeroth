@@ -1,8 +1,5 @@
 language: rust
 
-# TODO: find a way to install SDL2 without sudo and disable it:
-sudo: true
-
 addons:
   apt:
     update: true
@@ -24,28 +21,6 @@ os:
   - linux
   - osx
   - windows
-
-before_install:
-  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-        wget http://libsdl.org/release/SDL2-2.0.5.tar.gz
-        && tar -xzvf SDL2-2.0.5.tar.gz
-        && pushd SDL2-2.0.5
-        && ./configure --prefix=/usr
-        && make
-        && sudo make install
-        && popd;
-    fi
-  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
-        brew update && brew install sdl2;
-    fi
-  - if [ "${TRAVIS_OS_NAME}" = "windows" ]; then
-        curl -O https://www.libsdl.org/release/SDL2-devel-2.0.5-VC.zip
-        && ls
-        && 7z x SDL2-devel-2.0.5-VC.zip
-        && ls
-        && cp SDL2-2.0.5/lib/x64/* .
-        && ls;
-    fi
 
 before_script:
 - rustup component list
