@@ -4,8 +4,8 @@ addons:
   apt:
     update: true
     packages:
-    - libasound2-dev
-    - libudev-dev
+      - libasound2-dev
+      - libudev-dev
 
 rust:
   - nightly
@@ -21,7 +21,7 @@ os:
   - windows
 
 before_script:
-- rustup component list
+  - rustup component list
 
 script:
   - cargo build --all
