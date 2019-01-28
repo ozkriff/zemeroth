@@ -6,9 +6,9 @@ addons:
     packages:
     - libasound2-dev
     - libudev-dev
-    # TODO: Do I really need this? The error was about libudev.
-    - libxxf86vm-dev
-    - libosmesa6-dev
+    # # TODO: Do I really need this? The error was about libudev.
+    # - libxxf86vm-dev
+    # - libosmesa6-dev
 
 rust:
   - nightly
