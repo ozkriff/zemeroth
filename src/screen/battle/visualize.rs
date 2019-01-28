@@ -1,9 +1,10 @@
 use std::time::Duration;
 
 use ggez::{
-    nalgebra::{Vector2, Point2},
     graphics::{Color, Text},
-    nalgebra, Context,
+    nalgebra,
+    nalgebra::{Point2, Vector2},
+    Context,
 };
 use log::{debug, info};
 use rand::{thread_rng, Rng};
@@ -136,8 +137,13 @@ fn show_blood_particles(
     Ok(fork(seq(actions)))
 }
 
-fn show_blood_spot(view: &mut BattleView, context: &mut Context, at: PosHex) -> ZResult<Box<dyn Action>> {
-    let mut sprite = Sprite::from_image(context, view.images().blood.clone(), view.tile_size() * 2.0);
+fn show_blood_spot(
+    view: &mut BattleView,
+    context: &mut Context,
+    at: PosHex,
+) -> ZResult<Box<dyn Action>> {
+    let mut sprite =
+        Sprite::from_image(context, view.images().blood.clone(), view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
     let mut point = geom::hex_to_point(view.tile_size(), at);
@@ -153,13 +159,22 @@ fn show_blood_spot(view: &mut BattleView, context: &mut Context, at: PosHex) -> 
     ]))
 }
 
-fn show_dust_at_pos(view: &mut BattleView, context: &mut Context, at: PosHex) -> ZResult<Box<dyn Action>> {
+fn show_dust_at_pos(
+    view: &mut BattleView,
+    context: &mut Context,
+    at: PosHex,
+) -> ZResult<Box<dyn Action>> {
     let point = geom::hex_to_point(view.tile_size(), at);
     let count = 9;
     show_dust(view, context, point, count)
 }
 
-fn show_dust(view: &mut BattleView, context: &mut Context, at: Point2<f32>, count: i32) -> ZResult<Box<dyn Action>> {
+fn show_dust(
+    view: &mut BattleView,
+    context: &mut Context,
+    at: Point2<f32>,
+    count: i32,
+) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for i in 0..count {
         let k = thread_rng().gen_range(0.8, 1.2);
@@ -250,7 +265,12 @@ fn show_weapon_flash(
     ])))
 }
 
-fn show_flare(view: &mut BattleView, context: &mut Context, at: PosHex, color: Color) -> ZResult<Box<dyn Action>> {
+fn show_flare(
+    view: &mut BattleView,
+    context: &mut Context,
+    at: PosHex,
+    color: Color,
+) -> ZResult<Box<dyn Action>> {
     let scale = 1.0;
     show_flare_scale(view, context, at, color, scale)
 }
@@ -429,7 +449,12 @@ fn visualize_pre(
     Ok(seq(actions))
 }
 
-fn visualize_post(state: &State, view: &mut BattleView, context: &mut Context, event: &Event) -> ZResult<Box<dyn Action>> {
+fn visualize_post(
+    state: &State,
+    view: &mut BattleView,
+    context: &mut Context,
+    event: &Event,
+) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for &id in &event.actor_ids {
         actions.push(refresh_brief_agent_info(state, view, context, id)?);

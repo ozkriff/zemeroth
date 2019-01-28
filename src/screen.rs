@@ -1,12 +1,7 @@
 use log::info;
 use std::{fmt::Debug, time::Duration};
 
-use ggez::{
-    self,
-    nalgebra::Point2,
-    graphics,
-    Context,
-};
+use ggez::{self, graphics, nalgebra::Point2, Context};
 
 use crate::ZResult;
 

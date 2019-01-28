@@ -1,8 +1,8 @@
 use std::{cell::RefCell, fmt, path::Path, rc::Rc};
 
 use ggez::{
+    graphics::{self, Color, Drawable, Rect},
     nalgebra::{Point2, Vector2},
-    graphics::{self, Rect, Color, Drawable},
     Context, GameResult,
 };
 

@@ -1,17 +1,16 @@
 #![warn(bare_trait_objects)]
 
 /// Tiny and opinionated GUI
-
 use std::{
-    fmt,
     cell::RefCell,
+    fmt,
     fmt::Debug,
     rc::Rc,
     sync::mpsc::{channel, Receiver, Sender},
 };
 
 use ggez::{
-    graphics::{self, Color, Image, Drawable, Rect},
+    graphics::{self, Color, Drawable, Image, Rect},
     nalgebra::Point2,
     Context, GameResult,
 };
@@ -42,11 +41,11 @@ struct Sprite {
     // param: graphics::DrawParam,
     scale: f32,
     color: Color,
-    dest: Point2<f32>
+    dest: Point2<f32>,
 }
 
 impl Debug for Sprite {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, _f: &mut fmt::Formatter) -> fmt::Result {
         // write!(f, "Point {{ x: {}, y: {} }}", self.x, self+.y)
         unimplemented!() // TODO: show some fields
     }
@@ -153,8 +152,8 @@ fn make_bg(context: &mut Context, sprite: &Sprite) -> Sprite {
         .cycle()
         .take(count)
         .collect();
-    let image = Image::from_rgba8(context, w as _, h as _, &data)
-        .expect("zgui: Can't create bg image");
+    let image =
+        Image::from_rgba8(context, w as _, h as _, &data).expect("zgui: Can't create bg image");
     // let mut bg = Sprite {
     //     image: DrawableSized::Image(image),
     //     ..sprite.clone()

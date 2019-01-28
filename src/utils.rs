@@ -13,8 +13,9 @@ pub fn time_s(s: f32) -> Duration {
 }
 
 #[allow(dead_code)] // TODO: remove the attribute
-pub fn check_assets_hash(_ /*fs*/: &mut Filesystem, _ /*expected*/: &str) -> ZResult {
+pub fn check_assets_hash(_fs: &mut Filesystem, _expected: &str) -> ZResult {
     unimplemented!() // TODO: !
+
     /*
     let mut file = fs.open("/.checksum.md5")?;
     let mut data = String::new();
@@ -74,7 +75,6 @@ where
     let d = ron::de::from_str(&s).expect("TODO: ERROR MESSAGE!");
     Ok(d)
 }
-
 
 pub fn default_font(context: &mut Context) -> Font {
     // Font::new(context, "/OpenSans-Regular.ttf", 32).expect("Can't load the default font")

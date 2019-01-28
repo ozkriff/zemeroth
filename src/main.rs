@@ -4,8 +4,8 @@
 use ggez::{
     conf, event,
     filesystem::Filesystem,
-    nalgebra::Point2,
     graphics::{self, Rect},
+    nalgebra::Point2,
     Context, ContextBuilder, GameResult,
 };
 use log::info;
@@ -46,8 +46,7 @@ impl MainState {
     fn resize(&mut self, context: &mut Context, w: f32, h: f32) {
         let aspect_ratio = w / h;
         let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-        graphics::set_screen_coordinates(context, coordinates)
-            .expect("Can't resize the window");
+        graphics::set_screen_coordinates(context, coordinates).expect("Can't resize the window");
         self.screens.resize(aspect_ratio);
     }
 }
@@ -85,10 +84,8 @@ impl event::EventHandler for MainState {
 }
 
 fn context() -> GameResult<(Context, event::EventsLoop)> {
-    let window_conf = conf::WindowSetup::default()
-        .title("Zemeroth");
-    let window_mode = conf::WindowMode::default()
-        .resizable(true);
+    let window_conf = conf::WindowSetup::default().title("Zemeroth");
+    let window_mode = conf::WindowMode::default().resizable(true);
     ContextBuilder::new(APP_ID, APP_AUTHOR)
         .window_setup(window_conf)
         .window_mode(window_mode)

@@ -4,8 +4,8 @@ use std::{
 };
 
 use ggez::{
-    nalgebra::Point2,
     graphics::{self, Font, Text},
+    nalgebra::Point2,
     Context,
 };
 use log::info;

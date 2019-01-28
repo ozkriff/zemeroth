@@ -280,7 +280,9 @@ impl BattleView {
     ) -> ZResult {
         match mode {
             SelectionMode::Normal => self.select_normal(state, context, map, selected_id),
-            SelectionMode::Ability(ref ability) => self.select_ability(state, context, selected_id, ability),
+            SelectionMode::Ability(ref ability) => {
+                self.select_ability(state, context, selected_id, ability)
+            }
         }
     }
 
@@ -331,7 +333,13 @@ impl BattleView {
         self.show_attackable_tiles(state, context, id)
     }
 
-    fn select_ability(&mut self, state: &State, context: &mut Context, selected_id: ObjId, ability: &Ability) -> ZResult {
+    fn select_ability(
+        &mut self,
+        state: &State,
+        context: &mut Context,
+        selected_id: ObjId,
+        ability: &Ability,
+    ) -> ZResult {
         self.remove_highlights();
         let positions = state.map().iter();
         for pos in positions {
@@ -457,7 +465,12 @@ impl BattleView {
     }
 }
 
-fn make_action_show_tile(state: &State, context: &mut Context, view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
+fn make_action_show_tile(
+    state: &State,
+    context: &mut Context,
+    view: &BattleView,
+    at: PosHex,
+) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let image = match state.map().tile(at) {
         TileType::Plain => view.images.tile.clone(),
@@ -470,7 +483,11 @@ fn make_action_show_tile(state: &State, context: &mut Context, view: &BattleView
     Ok(action::Show::new(&view.layers().bg, &sprite).boxed())
 }
 
-fn make_action_grass(context: &mut Context, view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
+fn make_action_grass(
+    context: &mut Context,
+    view: &BattleView,
+    at: PosHex,
+) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let mut sprite = Sprite::from_image(context, view.images.grass.clone(), view.tile_size() * 2.0);
     let v_offset = view.tile_size() * 0.5; // depends on the image
@@ -481,7 +498,11 @@ fn make_action_grass(context: &mut Context, view: &BattleView, at: PosHex) -> ZR
     Ok(action::Show::new(&view.layers().grass, &sprite).boxed())
 }
 
-pub fn make_action_create_map(state: &State, context: &mut Context, view: &BattleView) -> ZResult<Box<dyn Action>> {
+pub fn make_action_create_map(
+    state: &State,
+    context: &mut Context,
+    view: &BattleView,
+) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for hex_pos in state.map().iter() {
         actions.push(make_action_show_tile(state, context, view, hex_pos)?);

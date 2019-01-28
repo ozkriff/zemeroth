@@ -4,8 +4,8 @@ use std::{
 };
 
 use ggez::{
-    nalgebra::Point2,
     graphics::{self, Font, Text},
+    nalgebra::Point2,
     Context,
 };
 use log::info;
@@ -192,10 +192,8 @@ impl Campaign {
                 self.state.current_scenario_index() + 1,
                 self.state.scenarios_count()
             );
-            // let image = Text::new(context, text, self.font)?.into_inner();
             let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
-            let button =
-                ui::Button::new(context, text, h, self.gui.sender(), Message::StartBattle);
+            let button = ui::Button::new(context, text, h, self.gui.sender(), Message::StartBattle);
             let rc_button = ui::pack(button);
             let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Bottom);
             self.gui.add(&rc_button, anchor);

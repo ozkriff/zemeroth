@@ -1,7 +1,7 @@
 use ggez::{
     conf, event,
-    nalgebra::Point2,
     graphics::{self, Font, Image, Text},
+    nalgebra::Point2,
     Context, ContextBuilder, GameResult,
 };
 use ggwp_zgui as ui;
@@ -101,10 +101,8 @@ impl event::EventHandler for State {
 
 fn context() -> GameResult<(Context, event::EventsLoop)> {
     let name = file!();
-    let window_conf = conf::WindowSetup::default()
-        .title(name);
-    let window_mode = conf::WindowMode::default()
-        .resizable(true);
+    let window_conf = conf::WindowSetup::default().title(name);
+    let window_mode = conf::WindowMode::default().resizable(true);
     ContextBuilder::new(name, "ozkriff")
         .window_setup(window_conf)
         .window_mode(window_mode)

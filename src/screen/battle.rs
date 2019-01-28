@@ -1,8 +1,8 @@
 use std::{path::Path, sync::mpsc::Sender, time::Duration};
 
 use ggez::{
-    nalgebra::Point2,
     graphics::{self, Font, Text},
+    nalgebra::Point2,
     Context,
 };
 use log::{debug, info};
@@ -376,8 +376,7 @@ impl Battle {
             }
             SelectionMode::Normal => {
                 self.pathfinder.fill_map(state, id);
-                self.panel_info =
-                    Some(build_panel_agent_info(context, self.font, gui, state, id)?);
+                self.panel_info = Some(build_panel_agent_info(context, self.font, gui, state, id)?);
                 self.panel_abilities =
                     build_panel_agent_abilities(context, self.font, gui, state, id)?;
             }
