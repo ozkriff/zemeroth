@@ -10,8 +10,8 @@ description = "A 2D turn-based hexagonal tactical game."
 members = ["zcomponents", "ggwp-zgui", "ggwp-zscene"]
 
 [dependencies]
-# ggez = "0.4" # TODO: !
-ggez = { path = "../ggez" }
+# ggez = "0.5.0-rc.0" # TODO: get back to crates.io version
+ggez = { git = "https://github.com/ozkriff/ggez", rev = "a23153a18" }
 ron = "0.4"
 rand = "0.6"
 log = "0.4"

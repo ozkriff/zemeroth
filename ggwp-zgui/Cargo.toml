@@ -8,6 +8,6 @@ description = "Tiny and opionated GUI library"
 keywords = ["ggez", "gamedev", "gui"]
 
 [dependencies]
-# ggez = "0.5.0-rc.0"
-ggez = { path = "../../ggez" }
+# ggez = "0.5.0-rc.0" # TODO: get back to crates.io version
+ggez = { git = "https://github.com/ozkriff/ggez", rev = "a23153a18" }
 log = "0.4"
