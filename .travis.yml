@@ -4,7 +4,7 @@ addons:
   apt:
     update: true
     packages:
-    # - libasound2-dev  # TODO: and do I really need this?
+    - libasound2-dev  # TODO: and do I really need this?
     - libudev-dev
     # # TODO: Do I really need this? The error was about libudev.
     # - libxxf86vm-dev
