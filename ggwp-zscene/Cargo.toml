@@ -9,4 +9,8 @@ keywords = ["ggez", "gamedev", "2D"]
 
 [dependencies]
 # ggez = "0.5.0-rc.0" # TODO: get back to crates.io version
-ggez = { git = "https://github.com/ozkriff/ggez", rev = "a23153a18" }
+#ggez = { git = "https://github.com/ozkriff/ggez", rev = "a23153a18" }
+
+[target.wasm32-unknown-unknown.dependencies]
+ggez = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game", features = ["nalgebra"] }
+

@@ -77,6 +77,7 @@ impl Screens {
                 if self.screens.len() > 1 {
                     self.screens.pop().expect(ERR_MSG);
                 } else {
+                    #[cfg(not(target_arch = "wasm32"))]
                     ggez::quit(context);
                 }
             }

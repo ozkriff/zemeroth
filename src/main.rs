@@ -6,9 +6,10 @@ use ggez::{
     filesystem::Filesystem,
     graphics::{self, Rect},
     nalgebra::Point2,
-    Context, ContextBuilder, GameResult,
+    Context, GameResult,
 };
 use log::info;
+#[cfg(not(target_arch = "wasm32"))]
 use structopt::StructOpt;
 
 mod core;
@@ -80,13 +81,15 @@ impl event::EventHandler for MainState {
 
     // This functions just overrides the default implementation,
     // because we don't want to quit from the game on `Esc`.
+    #[cfg(not(target_arch = "wasm32"))] // we cant quit in wasm anyway
     fn key_down_event(&mut self, _: &mut Context, _: event::KeyCode, _: event::KeyMods, _: bool) {}
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn context() -> GameResult<(Context, event::EventsLoop)> {
     let window_conf = conf::WindowSetup::default().title("Zemeroth");
     let window_mode = conf::WindowMode::default().resizable(true);
-    ContextBuilder::new(APP_ID, APP_AUTHOR)
+    ggez::ContextBuilder::new(APP_ID, APP_AUTHOR)
         .window_setup(window_conf)
         .window_mode(window_mode)
         .add_resource_path(ASSETS_DIR_NAME)
@@ -101,15 +104,16 @@ fn fs() -> Filesystem {
     unimplemented!() // TODO
 }
 
-#[derive(StructOpt, Debug)]
-#[structopt(name = "Zemeroth")]
-struct Options {
-    /// Only check assets' hash
-    #[structopt(long = "check-assets")]
-    check_assets: bool,
-}
-
+#[cfg(not(target_arch = "wasm32"))]
 fn main() -> ZResult {
+    #[derive(StructOpt, Debug)]
+    #[structopt(name = "Zemeroth")]
+    struct Options {
+        /// Only check assets' hash
+        #[structopt(long = "check-assets")]
+        check_assets: bool,
+    }
+
     let opt = Options::from_args();
     env_logger::init();
     enable_backtrace();
@@ -125,6 +129,21 @@ fn main() -> ZResult {
     let mut state = MainState::new(&mut context)?;
     info!("Starting the main loop...");
     event::run(&mut context, &mut events_loop, &mut state)
+}
+
+#[cfg(target_arch = "wasm32")]
+fn main() -> GameResult {
+    ggez::start(
+        conf::Conf {
+            cache: conf::Cache::Index,
+            ..Default::default()
+        },
+        |mut context| {
+            let state = MainState::new(&mut context).unwrap();
+
+            event::run(context, state)
+        },
+    )
 }
 
 fn enable_backtrace() {

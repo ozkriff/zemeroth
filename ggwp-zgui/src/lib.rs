@@ -293,7 +293,7 @@ impl<Message: Clone> Gui<Message> {
                 VAnchor::Middle => pos.y = -rect.h / 2.0,
                 VAnchor::Bottom => pos.y = 1.0 - rect.h,
             }
-            widget.set_pos(pos);
+            widget.set_pos(pos.into());
         }
     }
 }
@@ -401,9 +401,9 @@ impl VLayout {
             let rect = last.rect();
             let mut pos = rect.point();
             pos.y += rect.h;
-            widget.set_pos(pos);
+            widget.set_pos(pos.into());
         } else {
-            widget.set_pos(self.rect.point());
+            widget.set_pos(self.rect.point().into());
         }
         self.widgets.push(widget);
         self.rect.h += rect.h;
@@ -432,9 +432,9 @@ impl Widget for VLayout {
     }
 
     fn set_pos(&mut self, pos: Point2<f32>) {
-        let diff = pos - self.rect.point();
+        let diff = pos - Into::<Point2<f32>>::into(self.rect.point());
         for widget in &mut self.widgets {
-            let pos = widget.rect().point();
+            let pos: Point2<f32> = widget.rect().point().into();
             widget.set_pos(pos + diff);
         }
         self.rect.move_to(pos);
@@ -461,9 +461,9 @@ impl HLayout {
             let rect = last.rect();
             let mut pos = rect.point();
             pos.x += rect.w;
-            widget.set_pos(pos);
+            widget.set_pos(pos.into());
         } else {
-            widget.set_pos(self.rect.point());
+            widget.set_pos(self.rect.point().into());
         }
         self.widgets.push(widget);
         self.rect.w += rect.w;
@@ -492,9 +492,9 @@ impl Widget for HLayout {
     }
 
     fn set_pos(&mut self, pos: Point2<f32>) {
-        let diff = pos - self.rect.point();
+        let diff = pos - Into::<Point2<f32>>::into(self.rect.point());
         for widget in &mut self.widgets {
-            let pos = widget.rect().point();
+            let pos: Point2<f32> = widget.rect().point().into();
             widget.set_pos(pos + diff);
         }
         self.rect.move_to(pos);

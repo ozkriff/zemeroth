@@ -10,15 +10,23 @@ description = "A 2D turn-based hexagonal tactical game."
 members = ["zcomponents", "ggwp-zgui", "ggwp-zscene"]
 
 [dependencies]
-# ggez = "0.5.0-rc.0" # TODO: get back to crates.io version
-ggez = { git = "https://github.com/ozkriff/ggez", rev = "a23153a18" }
 ron = "0.4"
-rand = "0.6"
+
 log = "0.4"
-structopt = "0.2"
 env_logger = "0.6"
 serde = { version = "1.0", features = ['derive'] }
 num = { version = "0.2", default-features = false }
 ui = { path = "ggwp-zgui", package = "ggwp-zgui" }
 scene = { path = "ggwp-zscene", package = "ggwp-zscene" }
 zcomponents = { path = "zcomponents" }
+
+[target.wasm32-unknown-unknown.dependencies]
+ggez = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game", features = ["nalgebra"] }
+rand = { version = "0.6", features = ["stdweb"] }
+
+# [target.'not(wasm32-unknown-unknown.dependencies)'.dependencies]
+# ggez = { git = "https://github.com/ozkriff/ggez", rev = "a23153a18" } # "0.5.0-rc.0" # TODO: get back to crates.io version
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+structopt = "0.2"
+rand = { version = "0.6" }
