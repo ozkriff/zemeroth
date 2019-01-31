@@ -136,6 +136,7 @@ fn main() -> GameResult {
     ggez::start(
         conf::Conf {
             cache: conf::Cache::Index,
+            loading: conf::Loading::Embedded,
             ..Default::default()
         },
         |mut context| {
