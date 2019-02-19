@@ -1,16 +1,29 @@
-use std::{cell::RefCell, path::Path, rc::Rc};
+use std::{cell::RefCell, fmt, path::Path, rc::Rc};
 
 use ggez::{
-    graphics::{self, Point2, Rect, Vector2},
+    graphics::{self, Drawable, Rect},
+    nalgebra::{Point2, Vector2},
     Context, GameResult,
 };
 
-#[derive(Debug, Clone)]
 struct SpriteData {
-    image: graphics::Image,
+    drawable: Box<dyn Drawable>,
+    dimensions: Rect,
     basic_scale: f32,
     param: graphics::DrawParam,
-    offset: Vector2,
+    offset: Vector2<f32>,
+}
+
+impl fmt::Debug for SpriteData {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("SpriteData")
+            .field("drawable", &format_args!("{:p}", self.drawable))
+            .field("dimensions", &self.dimensions)
+            .field("basic_scale", &self.basic_scale)
+            .field("param", &self.param)
+            .field("offset", &self.offset)
+            .finish()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -19,20 +32,28 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    pub fn from_image(image: graphics::Image, height: f32) -> Self {
-        let basic_scale = height / image.height() as f32;
+    pub fn from_drawable(context: &mut Context, drawable: Box<dyn Drawable>, height: f32) -> Self {
+        let dimensions = drawable
+            .dimensions(context)
+            .expect("Can't get the dimensions"); // TODO: convert to Result
+        let scale = height / dimensions.h;
         let param = graphics::DrawParam {
-            scale: Point2::new(basic_scale, basic_scale),
+            scale: Vector2::new(scale, scale),
             ..Default::default()
         };
         let data = SpriteData {
-            image,
+            drawable,
+            dimensions,
+            basic_scale: scale,
             param,
-            basic_scale,
             offset: Vector2::new(0.0, 0.0),
         };
         let data = Rc::new(RefCell::new(data));
         Self { data }
+    }
+
+    pub fn from_image(context: &mut Context, image: graphics::Image, height: f32) -> Self {
+        Self::from_drawable(context, Box::new(image), height)
     }
 
     pub fn from_path<P: AsRef<Path>>(
@@ -41,7 +62,7 @@ impl Sprite {
         height: f32,
     ) -> GameResult<Self> {
         let image = graphics::Image::new(context, path)?;
-        Ok(Self::from_image(image, height))
+        Ok(Self::from_image(context, image, height))
     }
 
     // TODO: some method to change the image.
@@ -56,10 +77,10 @@ impl Sprite {
     }
 
     /// [0.0 .. 1.0]
-    pub fn set_offset(&mut self, offset: Vector2) {
+    pub fn set_offset(&mut self, offset: Vector2<f32>) {
         let mut data = self.data.borrow_mut();
         let old_offset = data.offset;
-        let mut dimensions = data.image.get_dimensions();
+        let mut dimensions = data.dimensions;
         dimensions.scale(data.param.scale.x, data.param.scale.y);
         data.offset.x = -dimensions.w * offset.x;
         data.offset.y = -dimensions.h * offset.y;
@@ -69,18 +90,19 @@ impl Sprite {
 
     pub fn draw(&self, context: &mut Context) -> GameResult<()> {
         let data = self.data.borrow();
-        graphics::draw_ex(context, &data.image, data.param)
+        data.drawable.draw(context, data.param)
     }
 
-    pub fn pos(&self) -> Point2 {
+    pub fn pos(&self) -> Point2<f32> {
         let data = self.data.borrow();
         data.param.dest - data.offset
     }
 
     pub fn rect(&self) -> Rect {
+        // TODO: `self.dimensions` + `graphics::transform_rect(param)` ?
         let pos = self.pos();
         let data = self.data.borrow();
-        let r = data.image.get_dimensions();
+        let r = data.dimensions;
         // TODO: angle?
         Rect {
             x: pos.x,
@@ -90,33 +112,28 @@ impl Sprite {
         }
     }
 
-    pub fn color_opt(&self) -> Option<graphics::Color> {
-        self.data.borrow().param.color
-    }
-
-    /// NOTE: panics if the sprite has no color.
     pub fn color(&self) -> graphics::Color {
-        self.color_opt().unwrap()
+        self.data.borrow().param.color
     }
 
     pub fn scale(&self) -> f32 {
         let data = self.data.borrow();
-        data.param.scale.x / data.basic_scale
+        data.param.scale.y / data.basic_scale
     }
 
-    pub fn set_pos(&mut self, pos: Point2) {
+    pub fn set_pos(&mut self, pos: Point2<f32>) {
         let mut data = self.data.borrow_mut();
         data.param.dest = pos + data.offset;
     }
 
     pub fn set_color(&mut self, color: graphics::Color) {
-        self.data.borrow_mut().param.color = Some(color);
+        self.data.borrow_mut().param.color = color;
     }
 
     pub fn set_scale(&mut self, scale: f32) {
         let mut data = self.data.borrow_mut();
         let s = data.basic_scale * scale;
-        let scale = Point2::new(s, s);
+        let scale = Vector2::new(s, s);
         data.param.scale = scale;
     }
 

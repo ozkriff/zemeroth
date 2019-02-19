@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ggez::{graphics::Vector2, timer};
+use ggez::{nalgebra::Vector2, timer};
 
 use crate::{Action, Sprite};
 
@@ -8,12 +8,12 @@ use crate::{Action, Sprite};
 pub struct MoveBy {
     sprite: Sprite,
     duration: Duration,
-    delta: Vector2,
+    delta: Vector2<f32>,
     progress: Duration,
 }
 
 impl MoveBy {
-    pub fn new(sprite: &Sprite, delta: Vector2, duration: Duration) -> Self {
+    pub fn new(sprite: &Sprite, delta: Vector2<f32>, duration: Duration) -> Self {
         Self {
             sprite: sprite.clone(),
             delta,

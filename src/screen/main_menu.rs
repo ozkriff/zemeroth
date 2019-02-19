@@ -4,7 +4,8 @@ use std::{
 };
 
 use ggez::{
-    graphics::{Font, Point2, Text},
+    graphics::{Font, Text},
+    nalgebra::Point2,
     Context,
 };
 use log::debug;
@@ -25,24 +26,25 @@ enum Message {
     StartStrategyMap,
 }
 
-fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
+fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     let h = 0.2;
+    let font_size = utils::font_size();
     let button_battle = {
-        let image = Text::new(context, "[demo battle]", font)?.into_inner();
-        ui::Button::new(context, image, h, gui.sender(), Message::StartInstant)
+        let text = Box::new(Text::new(("[demo battle]", font, font_size)));
+        ui::Button::new(context, text, h, gui.sender(), Message::StartInstant)
     };
     let button_campaign = {
-        let image = Text::new(context, "[campaign]", font)?.into_inner();
-        ui::Button::new(context, image, h, gui.sender(), Message::StartCampaign)
+        let text = Box::new(Text::new(("[campaign]", font, font_size)));
+        ui::Button::new(context, text, h, gui.sender(), Message::StartCampaign)
     };
     let button_strategy_map = {
-        let image = Text::new(context, "[strategy mode]", font)?.into_inner();
-        ui::Button::new(context, image, h, gui.sender(), Message::StartStrategyMap)
+        let text = Box::new(Text::new(("[strategy mode]", font, font_size)));
+        ui::Button::new(context, text, h, gui.sender(), Message::StartStrategyMap)
     };
     let button_exit = {
-        let image = Text::new(context, "[exit]", font)?.into_inner();
-        ui::Button::new(context, image, h, gui.sender(), Message::Exit)
+        let text = Box::new(Text::new(("[exit]", font, font_size)));
+        ui::Button::new(context, text, h, gui.sender(), Message::Exit)
     };
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_battle));
@@ -64,7 +66,7 @@ pub struct MainMenu {
 impl MainMenu {
     pub fn new(context: &mut Context) -> ZResult<Self> {
         let font = utils::default_font(context);
-        let gui = make_gui(context, &font)?;
+        let gui = make_gui(context, font)?;
 
         let mut sprite = Sprite::from_path(context, "/tile.png", 0.1)?;
         sprite.set_centered(true);
@@ -91,7 +93,7 @@ impl Screen for MainMenu {
         self.gui.resize(aspect_ratio);
     }
 
-    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<Transition> {
+    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<Transition> {
         let message = self.gui.click(pos);
         debug!("MainMenu: click: pos={:?}, message={:?}", pos, message);
         match message {

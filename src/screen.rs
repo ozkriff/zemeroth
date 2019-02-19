@@ -1,11 +1,7 @@
 use log::info;
 use std::{fmt::Debug, time::Duration};
 
-use ggez::{
-    self,
-    graphics::{self, Point2},
-    Context,
-};
+use ggez::{self, graphics, nalgebra::Point2, Context};
 
 use crate::ZResult;
 
@@ -28,7 +24,7 @@ pub enum Transition {
 pub trait Screen: Debug {
     fn update(&mut self, context: &mut Context, dtime: Duration) -> ZResult<Transition>;
     fn draw(&self, context: &mut Context) -> ZResult;
-    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<Transition>;
+    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<Transition>;
     fn resize(&mut self, aspect_ratio: f32);
 }
 
@@ -46,20 +42,19 @@ impl Screens {
     }
 
     pub fn update(&mut self, context: &mut Context) -> ZResult {
-        let dtime = ggez::timer::get_delta(context);
+        let dtime = ggez::timer::delta(context);
         let command = self.screen_mut().update(context, dtime)?;
         self.handle_command(context, command)
     }
 
     pub fn draw(&self, context: &mut Context) -> ZResult {
-        graphics::set_background_color(context, [0.9, 0.9, 0.8, 1.0].into());
-        graphics::clear(context);
+        let bg_color = [0.9, 0.9, 0.8, 1.0].into();
+        graphics::clear(context, bg_color);
         self.screen().draw(context)?;
-        graphics::present(context);
-        Ok(())
+        graphics::present(context)
     }
 
-    pub fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult {
+    pub fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult {
         let command = self.screen_mut().click(context, pos)?;
         self.handle_command(context, command)
     }
@@ -82,7 +77,7 @@ impl Screens {
                 if self.screens.len() > 1 {
                     self.screens.pop().expect(ERR_MSG);
                 } else {
-                    context.quit()?;
+                    ggez::quit(context);
                 }
             }
         }
