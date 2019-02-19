@@ -66,13 +66,15 @@ fn add_agents_panel(
     Ok(())
 }
 
-// TODO: add spacer widget to ZGui. Remove this hack.
-// https://github.com/ozkriff/zemeroth/issues/382
-fn add_spacer(context: &mut Context, font: &Font, layout: &mut ui::VLayout) -> ZResult {
+fn add_spacer(layout: &mut ui::VLayout) {
     let h = line_height();
-    let image = Text::new(context, "", font)?.into_inner();
-    layout.add(Box::new(ui::Label::new(context, image, h)));
-    Ok(())
+    let rect = graphics::Rect {
+        w: 0.0,
+        h,
+        x: 0.0,
+        y: 0.0,
+    };
+    layout.add(Box::new(ui::Spacer::new(rect)));
 }
 
 fn label(context: &mut Context, font: &Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
@@ -141,9 +143,9 @@ impl Campaign {
             }
         }
 
-        add_spacer(context, &self.font, &mut layout)?;
+        add_spacer(&mut layout);
         add_agents_panel(context, &self.font, &mut layout, self.state.agents())?;
-        add_spacer(context, &self.font, &mut layout)?;
+        add_spacer(&mut layout);
 
         if let Mode::PreparingForBattle = self.state.mode() {
             {

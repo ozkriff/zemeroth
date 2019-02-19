@@ -250,6 +250,31 @@ impl Widget for Label {
 }
 
 #[derive(Debug)]
+pub struct Spacer {
+    rect: Rect,
+}
+
+impl Spacer {
+    pub fn new(rect: Rect) -> Self {
+        Self { rect }
+    }
+}
+
+impl Widget for Spacer {
+    fn draw(&self, _: &mut Context) -> GameResult<()> {
+        Ok(())
+    }
+
+    fn rect(&self) -> Rect {
+        self.rect
+    }
+
+    fn set_pos(&mut self, pos: Point2) {
+        self.rect.move_to(pos)
+    }
+}
+
+#[derive(Debug)]
 pub struct Button<Message: Clone> {
     sprite: Sprite,
     bg: Sprite,
