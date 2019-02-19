@@ -21,13 +21,6 @@ install:
 
 build: false
 
-before_test:
-    - cd %TEMP%
-    - appveyor DownloadFile https://www.libsdl.org/release/SDL2-devel-2.0.5-VC.zip
-    - 7z x SDL2-devel-2.0.5-VC.zip > nul
-    - xcopy SDL2-2.0.5\lib\x64\* %APPVEYOR_BUILD_FOLDER% > nul
-    - cd %APPVEYOR_BUILD_FOLDER%
-
 test_script:
     - cargo build --release
 
@@ -36,7 +29,7 @@ after_test:
     - del /f /q assets\.git
     - copy target\release\zemeroth.exe zemeroth.exe
     - dir
-    - 7z a zemeroth-x86_64-pc-windows-msvc.zip zemeroth.exe SDL2.dll README.md assets
+    - 7z a zemeroth-x86_64-pc-windows-msvc.zip zemeroth.exe README.md assets
 
 cache:
     - target -> Cargo.lock
