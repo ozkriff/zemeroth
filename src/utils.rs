@@ -11,8 +11,13 @@ pub fn time_s(s: f32) -> Duration {
     Duration::from_millis(ms as u64)
 }
 
-pub fn check_assets_hash(fs: &mut Filesystem, expected: &str) -> ZResult {
-    let mut file = fs.open("/.checksum.md5")?;
+pub fn check_assets_hash(_fs: &mut Filesystem, expected: &str) -> ZResult {
+    use std::fs::File;
+    let mut file = File::open("assets/.checksum.md5")?;
+
+    // TODO: un-comment this when https://github.com/ggez/ggez/issues/570 is fixed
+    // let mut file = fs.open("/.checksum.md5")?;
+
     let mut data = String::new();
     file.read_to_string(&mut data)?;
     let real = data.trim();
@@ -27,7 +32,7 @@ pub fn check_assets_hash(fs: &mut Filesystem, expected: &str) -> ZResult {
 
 pub fn read_file_to_string<P: AsRef<Path>>(context: &mut Context, path: P) -> ZResult<String> {
     let mut buf = String::new();
-    let mut file = context.filesystem.open(path)?;
+    let mut file = ggez::filesystem::open(context, path)?;
     file.read_to_string(&mut buf)?;
     Ok(buf)
 }
@@ -39,10 +44,17 @@ where
 {
     let path = path.as_ref();
     let s = read_file_to_string(context, path)?;
-    let d = ron::de::from_str(&s).map_err(|e| format!("Can't deserialize {:?}: {:?}", path, e))?;
+    // TODO: Create a Zemeroth-specific error type
+    // let d = ron::de::from_str(&s).map_err(|e| format!("Can't deserialize {:?}: {:?}", path, e))?;
+    let d = ron::de::from_str(&s).expect("TODO: ERROR MESSAGE!");
     Ok(d)
 }
 
 pub fn default_font(context: &mut Context) -> Font {
-    Font::new(context, "/OpenSans-Regular.ttf", 32).expect("Can't load the default font")
+    Font::new(context, "/OpenSans-Regular.ttf").expect("Can't load the default font")
+}
+
+// TODO: Move to some config (https://github.com/ozkriff/zemeroth/issues/424)
+pub const fn font_size() -> f32 {
+    128.0
 }

@@ -1,7 +1,8 @@
 use std::{path::Path, sync::mpsc::Sender, time::Duration};
 
 use ggez::{
-    graphics::{self, Font, Point2, Text},
+    graphics::{self, Font, Text},
+    nalgebra::Point2,
     Context,
 };
 use log::{debug, info};
@@ -39,6 +40,8 @@ use crate::{
 mod view;
 mod visualize;
 
+const FONT_SIZE: f32 = utils::font_size();
+
 #[derive(Clone, Debug)]
 enum Message {
     Exit,
@@ -53,7 +56,7 @@ fn line_height() -> f32 {
 
 fn build_panel_agent_info(
     context: &mut Context,
-    font: &Font,
+    font: Font,
     gui: &mut Gui<Message>,
     state: &State,
     id: ObjId,
@@ -66,8 +69,8 @@ fn build_panel_agent_info(
     let h = line_height();
     {
         let mut line = |text: &str| -> ZResult {
-            let image = Text::new(context, text, font)?.into_inner();
-            let button = ui::Label::new(context, image, h);
+            let text = Box::new(Text::new((text, font, FONT_SIZE)));
+            let button = ui::Label::new(context, text, h);
             layout.add(Box::new(button));
             Ok(())
         };
@@ -137,7 +140,7 @@ fn build_panel_agent_info(
 
 fn build_panel_agent_abilities(
     context: &mut Context,
-    font: &Font,
+    font: Font,
     gui: &mut Gui<Message>,
     state: &State,
     id: ObjId,
@@ -158,9 +161,9 @@ fn build_panel_agent_abilities(
             ability::Status::Ready => format!("[{}]", ability.ability.to_string()),
             ability::Status::Cooldown(n) => format!("[{} ({})]", ability.ability.to_string(), n),
         };
-        let image = Text::new(context, &text, font)?.into_inner();
+        let text = Box::new(Text::new((text.as_str(), font, FONT_SIZE)));
         let msg = Message::Ability(ability.ability.clone());
-        let button = ui::Button::new(context, image, h, gui.sender(), msg);
+        let button = ui::Button::new(context, text, h, gui.sender(), msg);
         layout.add(Box::new(button));
     }
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Middle);
@@ -169,27 +172,27 @@ fn build_panel_agent_abilities(
     Ok(Some(layout))
 }
 
-fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
+fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     {
-        let image = Text::new(context, "[deselect]", font)?.into_inner();
-        let button = ui::Button::new(context, image, 0.1, gui.sender(), Message::Deselect);
+        let text = Box::new(Text::new(("[deselect]", font, FONT_SIZE)));
+        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::Deselect);
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Top);
         gui.add(&ui::pack(layout), anchor);
     }
     {
-        let image = Text::new(context, "[end turn]", font)?.into_inner();
-        let button = ui::Button::new(context, image, 0.1, gui.sender(), Message::EndTurn);
+        let text = Box::new(Text::new(("[end turn]", font, FONT_SIZE)));
+        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::EndTurn);
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
         gui.add(&ui::pack(layout), anchor);
     }
     {
-        let image = Text::new(context, "[exit]", font)?.into_inner();
-        let button = ui::Button::new(context, image, 0.1, gui.sender(), Message::Exit);
+        let text = Box::new(Text::new(("[exit]", font, FONT_SIZE)));
+        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::Exit);
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
@@ -228,7 +231,7 @@ impl Battle {
         sender: Sender<BattleResult>,
     ) -> ZResult<Self> {
         let font = default_font(context);
-        let gui = make_gui(context, &font)?;
+        let gui = make_gui(context, font)?;
         let prototypes = load_prototypes(context, Path::new("/objects.ron"))?;
         let radius = scenario.map_radius;
         let mut view = BattleView::new(radius, context)?;
@@ -238,7 +241,7 @@ impl Battle {
                 .expect("Can't visualize the event");
             actions.push(fork(action));
         });
-        actions.push(make_action_create_map(&state, &view)?);
+        actions.push(make_action_create_map(&state, context, &view)?);
         view.add_action(action::Sequence::new(actions).boxed());
         Ok(Self {
             gui,
@@ -364,10 +367,9 @@ impl Battle {
             }
             SelectionMode::Normal => {
                 self.pathfinder.fill_map(state, id);
-                self.panel_info =
-                    Some(build_panel_agent_info(context, &self.font, gui, state, id)?);
+                self.panel_info = Some(build_panel_agent_info(context, self.font, gui, state, id)?);
                 self.panel_abilities =
-                    build_panel_agent_abilities(context, &self.font, gui, state, id)?;
+                    build_panel_agent_abilities(context, self.font, gui, state, id)?;
             }
         }
         let map = self.pathfinder.map();
@@ -433,7 +435,7 @@ impl Battle {
         }
     }
 
-    fn handle_event_click(&mut self, context: &mut Context, point: Point2) -> ZResult {
+    fn handle_event_click(&mut self, context: &mut Context, point: Point2<f32>) -> ZResult {
         let pos = geom::point_to_hex(self.view.tile_size(), point);
         self.gui.click(point);
         if self.block_timer.is_some() {
@@ -502,7 +504,7 @@ impl Screen for Battle {
         self.gui.resize(aspect_ratio);
     }
 
-    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<Transition> {
+    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<Transition> {
         let message = self.gui.click(pos);
         info!("Battle: click: pos={:?}, message={:?}", pos, message);
         match message {

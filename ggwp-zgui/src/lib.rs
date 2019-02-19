@@ -1,16 +1,16 @@
 #![warn(bare_trait_objects)]
 
 /// Tiny and opinionated GUI
-///
 use std::{
     cell::RefCell,
-    fmt::Debug,
+    fmt::{self, Debug},
     rc::Rc,
     sync::mpsc::{channel, Receiver, Sender},
 };
 
 use ggez::{
-    graphics::{self, Color, Image, Point2, Rect},
+    graphics::{self, Color, Drawable, Image, Rect},
+    nalgebra::{Point2, Vector2},
     Context, GameResult,
 };
 use log::{debug, info};
@@ -21,75 +21,99 @@ pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
     Rc::new(RefCell::new(widget))
 }
 
-#[derive(Debug, Clone)]
 struct Sprite {
-    image: graphics::Image,
+    drawable: Box<dyn Drawable>,
+    dimensions: Rect,
     basic_scale: f32,
     param: graphics::DrawParam,
 }
 
+impl Debug for Sprite {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("SpriteData")
+            .field("drawable", &format_args!("{:p}", self.drawable))
+            .field("dimensions", &self.dimensions)
+            .field("basic_scale", &self.basic_scale)
+            .field("param", &self.param)
+            .finish()
+    }
+}
+
 impl Sprite {
-    pub fn from_image(image: graphics::Image, height: f32) -> Self {
-        let basic_scale = height / image.height() as f32;
+    fn new(context: &mut Context, drawable: Box<dyn Drawable>, height: f32) -> Self {
+        // TODO: remove expect, return Result from this function.
+        let dimensions = drawable.dimensions(context).expect("Can't get dimensions");
+        let basic_scale = height / dimensions.h;
         let param = graphics::DrawParam {
-            scale: Point2::new(basic_scale, basic_scale),
-            color: Some([0.0, 0.0, 0.0, 1.0].into()),
+            scale: Vector2::new(basic_scale, basic_scale),
+            color: graphics::BLACK,
             ..Default::default()
         };
         Self {
-            image,
+            drawable,
+            dimensions,
             param,
             basic_scale,
         }
     }
 
-    // TODO: some method to change the image.
-
-    pub fn draw(&self, context: &mut Context) -> GameResult<()> {
-        graphics::draw_ex(context, &self.image, self.param)
-    }
-
-    pub fn rect(&self) -> Rect {
-        let r = self.image.get_dimensions();
-        Rect {
-            x: self.param.dest.x,
-            y: self.param.dest.y,
-            w: r.w * self.param.scale.x,
-            h: r.h * self.param.scale.y,
+    fn clone_with_another_drawable(&self, drawable: Box<dyn Drawable>) -> Self {
+        Self {
+            drawable,
+            dimensions: self.dimensions,
+            param: self.param,
+            basic_scale: self.basic_scale,
         }
     }
 
-    pub fn set_color(&mut self, color: Color) {
-        self.param.color = Some(color);
+    // TODO: Add some method to change or switch the drawable.
+
+    fn draw(&self, context: &mut Context) -> GameResult<()> {
+        self.drawable.draw(context, self.param)
     }
 
-    pub fn set_pos(&mut self, pos: Point2) {
+    fn rect(&self) -> Rect {
+        let w = self.dimensions.w;
+        let h = self.dimensions.h;
+        // TODO: Transform Drawable 's dimensions
+        Rect {
+            x: self.param.dest.x,
+            y: self.param.dest.y,
+            w: w * self.param.scale.x,
+            h: h * self.param.scale.y,
+        }
+    }
+
+    fn set_color(&mut self, color: Color) {
+        self.param.color = color;
+    }
+
+    fn set_pos(&mut self, pos: Point2<f32>) {
         self.param.dest = pos;
     }
 }
 
 fn make_bg(context: &mut Context, sprite: &Sprite) -> Sprite {
-    let width = sprite.image.width();
-    let height = sprite.image.height();
-    let count = width * height * 4;
+    let h = sprite.dimensions.h.ceil();
+    let w = sprite.dimensions.w.ceil();
+    assert!(h > 0.0, "h = {}", h);
+    assert!(w > 0.0, "w = {}", w);
+    let count = w as usize * h as usize * 4;
     let data: Vec<u8> = [255, 255, 255, 255]
         .iter()
         .cloned()
         .cycle()
-        .take(count as _)
+        .take(count)
         .collect();
-    let image = Image::from_rgba8(context, width as _, height as _, &data)
-        .expect("zgui: Can't create bg image");
-    let mut bg = Sprite {
-        image,
-        ..sprite.clone()
-    };
+    let image =
+        Image::from_rgba8(context, w as _, h as _, &data).expect("zgui: Can't create bg image");
+    let mut bg = sprite.clone_with_another_drawable(Box::new(image));
     bg.set_color([0.8, 0.8, 0.8, 0.5].into());
     bg
 }
 
-pub fn window_to_screen(context: &Context, pos: Point2) -> Point2 {
-    let (w, h) = graphics::get_drawable_size(context);
+pub fn window_to_screen(context: &Context, pos: Point2<f32>) -> Point2<f32> {
+    let (w, h) = graphics::drawable_size(context);
     let w = w as f32;
     let h = h as f32;
     let aspect_ratio = w / h;
@@ -119,9 +143,9 @@ pub struct Anchor(pub HAnchor, pub VAnchor);
 
 pub trait Widget: Debug {
     fn draw(&self, _: &mut Context) -> GameResult<()>;
-    fn click(&self, _: Point2) {}
+    fn click(&self, _: Point2<f32>) {}
     fn rect(&self) -> Rect;
-    fn set_pos(&mut self, pos: Point2);
+    fn set_pos(&mut self, pos: Point2<f32>);
 }
 
 pub type RcWidget = Rc<RefCell<dyn Widget>>;
@@ -142,7 +166,7 @@ pub struct Gui<Message: Clone> {
 
 impl<Message: Clone> Gui<Message> {
     pub fn new(context: &Context) -> Self {
-        let (w, h) = graphics::get_drawable_size(context);
+        let (w, h) = graphics::drawable_size(context);
         let aspect_ratio = w as f32 / h as f32;
         debug!("Gui: aspect_ratio: {}", aspect_ratio);
         let (sender, receiver) = channel();
@@ -174,13 +198,13 @@ impl<Message: Clone> Gui<Message> {
         let len_after = self.anchored_widgets.len();
         info!("len_before={}, len_after={}", len_before, len_after);
         if len_after != len_before - 1 {
-            Err("Can't remove the widget".to_string())?
+            panic!("Can't remove the widget");
         }
         Ok(())
     }
 
     pub fn draw(&self, context: &mut Context) -> GameResult<()> {
-        let old_coordinates = graphics::get_screen_coordinates(context);
+        let old_coordinates = graphics::screen_coordinates(context);
         let ui_coordinates = Rect::new(-self.aspect_ratio, -1.0, self.aspect_ratio * 2.0, 2.0);
         graphics::set_screen_coordinates(context, ui_coordinates)?;
         for AnchoredWidget { widget, .. } in &self.anchored_widgets {
@@ -190,7 +214,7 @@ impl<Message: Clone> Gui<Message> {
         Ok(())
     }
 
-    pub fn click(&mut self, pos: Point2) -> Option<Message> {
+    pub fn click(&mut self, pos: Point2<f32>) -> Option<Message> {
         for AnchoredWidget { widget, .. } in &self.anchored_widgets {
             widget.borrow_mut().click(pos);
         }
@@ -214,7 +238,7 @@ impl<Message: Clone> Gui<Message> {
                 VAnchor::Middle => pos.y = -rect.h / 2.0,
                 VAnchor::Bottom => pos.y = 1.0 - rect.h,
             }
-            widget.set_pos(pos);
+            widget.set_pos(pos.into());
         }
     }
 }
@@ -226,8 +250,8 @@ pub struct Label {
 }
 
 impl Label {
-    pub fn new(context: &mut Context, image: Image, height: f32) -> Self {
-        let sprite = Sprite::from_image(image, height);
+    pub fn new(context: &mut Context, drawable: Box<dyn Drawable>, height: f32) -> Self {
+        let sprite = Sprite::new(context, drawable, height);
         let bg = make_bg(context, &sprite);
         Self { sprite, bg }
     }
@@ -243,7 +267,7 @@ impl Widget for Label {
         self.sprite.rect()
     }
 
-    fn set_pos(&mut self, pos: Point2) {
+    fn set_pos(&mut self, pos: Point2<f32>) {
         self.sprite.set_pos(pos);
         self.bg.set_pos(pos);
     }
@@ -269,7 +293,7 @@ impl Widget for Spacer {
         self.rect
     }
 
-    fn set_pos(&mut self, pos: Point2) {
+    fn set_pos(&mut self, pos: Point2<f32>) {
         self.rect.move_to(pos)
     }
 }
@@ -285,12 +309,12 @@ pub struct Button<Message: Clone> {
 impl<Message: Clone> Button<Message> {
     pub fn new(
         context: &mut Context,
-        image: Image,
+        drawable: Box<dyn Drawable>,
         height: f32,
         sender: Sender<Message>,
         message: Message,
     ) -> Self {
-        let sprite = Sprite::from_image(image, height);
+        let sprite = Sprite::new(context, drawable, height);
         let bg = make_bg(context, &sprite);
         Self {
             sprite,
@@ -307,7 +331,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
         self.sprite.draw(context)
     }
 
-    fn click(&self, pos: Point2) {
+    fn click(&self, pos: Point2<f32>) {
         debug!("Label: rect={:?}, pos={:?}", self.sprite.rect(), pos);
         if self.sprite.rect().contains(pos) {
             let message = self.message.clone();
@@ -320,7 +344,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
         self.sprite.rect()
     }
 
-    fn set_pos(&mut self, pos: Point2) {
+    fn set_pos(&mut self, pos: Point2<f32>) {
         self.sprite.set_pos(pos);
         self.bg.set_pos(pos);
     }
@@ -346,9 +370,9 @@ impl VLayout {
             let rect = last.rect();
             let mut pos = rect.point();
             pos.y += rect.h;
-            widget.set_pos(pos);
+            widget.set_pos(pos.into());
         } else {
-            widget.set_pos(self.rect.point());
+            widget.set_pos(self.rect.point().into());
         }
         self.widgets.push(widget);
         self.rect.h += rect.h;
@@ -366,7 +390,7 @@ impl Widget for VLayout {
         Ok(())
     }
 
-    fn click(&self, pos: Point2) {
+    fn click(&self, pos: Point2<f32>) {
         for widget in &self.widgets {
             widget.click(pos);
         }
@@ -376,10 +400,11 @@ impl Widget for VLayout {
         self.rect
     }
 
-    fn set_pos(&mut self, pos: Point2) {
-        let diff = pos - self.rect.point();
+    fn set_pos(&mut self, pos: Point2<f32>) {
+        let point: Point2<f32> = self.rect.point().into();
+        let diff = pos - point;
         for widget in &mut self.widgets {
-            let pos = widget.rect().point();
+            let pos: Point2<f32> = widget.rect().point().into();
             widget.set_pos(pos + diff);
         }
         self.rect.move_to(pos);
@@ -404,11 +429,11 @@ impl HLayout {
         let rect = widget.rect();
         if let Some(last) = self.widgets.last() {
             let rect = last.rect();
-            let mut pos = rect.point();
+            let mut pos: Point2<f32> = rect.point().into();
             pos.x += rect.w;
             widget.set_pos(pos);
         } else {
-            widget.set_pos(self.rect.point());
+            widget.set_pos(self.rect.point().into());
         }
         self.widgets.push(widget);
         self.rect.w += rect.w;
@@ -426,7 +451,7 @@ impl Widget for HLayout {
         Ok(())
     }
 
-    fn click(&self, pos: Point2) {
+    fn click(&self, pos: Point2<f32>) {
         for widget in &self.widgets {
             widget.click(pos);
         }
@@ -436,10 +461,11 @@ impl Widget for HLayout {
         self.rect
     }
 
-    fn set_pos(&mut self, pos: Point2) {
-        let diff = pos - self.rect.point();
+    fn set_pos(&mut self, pos: Point2<f32>) {
+        let point: Point2<f32> = self.rect.point().into();
+        let diff = pos - point;
         for widget in &mut self.widgets {
-            let pos = widget.rect().point();
+            let pos: Point2<f32> = widget.rect().point().into();
             widget.set_pos(pos + diff);
         }
         self.rect.move_to(pos);

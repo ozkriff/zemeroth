@@ -4,7 +4,8 @@ use std::{
 };
 
 use ggez::{
-    graphics::{self, Font, Point2, Text},
+    graphics::{self, Font, Text},
+    nalgebra::Point2,
     Context,
 };
 use log::info;
@@ -23,16 +24,17 @@ enum Message {
     StartBattle,
 }
 
-fn make_gui(context: &mut Context, font: &Font) -> ZResult<ui::Gui<Message>> {
+fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     let h = 0.2;
+    let font_size = utils::font_size();
     let button_start_battle = {
-        let image = Text::new(context, "[start battle]", font)?.into_inner();
-        ui::Button::new(context, image, h, gui.sender(), Message::StartBattle)
+        let text = Box::new(Text::new(("[start battle]", font, font_size)));
+        ui::Button::new(context, text, h, gui.sender(), Message::StartBattle)
     };
     let button_menu = {
-        let image = Text::new(context, "[menu]", font)?.into_inner();
-        ui::Button::new(context, image, h, gui.sender(), Message::Menu)
+        let text = Box::new(Text::new(("[menu]", font, font_size)));
+        ui::Button::new(context, text, h, gui.sender(), Message::Menu)
     };
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_start_battle));
@@ -68,7 +70,7 @@ pub struct StrategyMap {
 impl StrategyMap {
     pub fn new(context: &mut Context) -> ZResult<Self> {
         let font = utils::default_font(context);
-        let gui = make_gui(context, &font)?;
+        let gui = make_gui(context, font)?;
 
         let mut sprite = Sprite::from_path(context, "/tile.png", 0.1)?;
         sprite.set_centered(true);
@@ -104,7 +106,7 @@ impl Screen for StrategyMap {
         self.gui.resize(aspect_ratio);
     }
 
-    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<Transition> {
+    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<Transition> {
         let message = self.gui.click(pos);
         info!(
             "StrategyScreen: click: pos={:?}, message={:?}",
