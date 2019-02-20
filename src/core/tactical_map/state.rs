@@ -1,6 +1,8 @@
 use crate::core::{
     map::{self, PosHex},
-    tactical_map::{ability::PassiveAbility, utils, ObjId, PlayerId, Strength, TileType},
+    tactical_map::{
+        ability::PassiveAbility, component::ObjType, utils, ObjId, PlayerId, Strength, TileType,
+    },
 };
 
 pub use self::private::{BattleResult, State};
@@ -12,7 +14,7 @@ mod private {
         map::{self, HexMap},
         tactical_map::{
             command::{self, Command},
-            component::{Component, Parts, Prototypes},
+            component::{Component, ObjType, Parts, Prototypes},
             execute,
             scenario::{self, Scenario},
             ObjId, PlayerId, TileType,
@@ -22,7 +24,7 @@ mod private {
     #[derive(Clone, Debug)]
     pub struct BattleResult {
         pub winner_id: PlayerId,
-        pub survivor_types: Vec<String>,
+        pub survivor_types: Vec<ObjType>,
     }
 
     #[derive(Clone, Debug)]
@@ -113,7 +115,7 @@ mod private {
         }
 
         // TODO: make visible only for `apply`
-        pub(in crate::core) fn prototype_for(&self, name: &str) -> Vec<Component> {
+        pub(in crate::core) fn prototype_for(&self, name: &ObjType) -> Vec<Component> {
             let prototypes = &self.prototypes.0;
             prototypes[name].clone()
         }
@@ -302,7 +304,7 @@ pub fn get_armor(state: &State, id: ObjId) -> Strength {
     parts.armor.get_opt(id).map(|v| v.armor).unwrap_or(default)
 }
 
-pub fn players_agent_types(state: &State, player_id: PlayerId) -> Vec<String> {
+pub fn players_agent_types(state: &State, player_id: PlayerId) -> Vec<ObjType> {
     players_agent_ids(state, player_id)
         .into_iter()
         .map(|id| state.parts().meta.get(id).name.clone())

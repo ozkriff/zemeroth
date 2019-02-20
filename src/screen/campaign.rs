@@ -14,7 +14,7 @@ use ui::{self, Gui};
 use crate::{
     core::{
         campaign::{Mode, State},
-        tactical_map::{scenario, state::BattleResult, PlayerId},
+        tactical_map::{component::ObjType, scenario, state::BattleResult, PlayerId},
     },
     screen::{self, Screen, Transition},
     utils, ZResult,
@@ -24,7 +24,7 @@ use crate::{
 enum Message {
     Menu,
     StartBattle,
-    Recruit(String),
+    Recruit(ObjType),
 }
 
 const FONT_SIZE: f32 = utils::font_size();
@@ -47,7 +47,7 @@ fn add_agents_panel(
     context: &mut Context,
     font: Font,
     layout: &mut ui::VLayout,
-    agents: &[String],
+    agents: &[ObjType],
 ) -> ZResult {
     let h = utils::line_heights().big;
     {
@@ -56,7 +56,7 @@ fn add_agents_panel(
         layout.add(Box::new(ui::Label::new(context, text, h)));
     }
     for agent_type in agents {
-        let text = format!("- {}", agent_type);
+        let text = format!("- {}", agent_type.0);
         let text = Box::new(Text::new((text.as_str(), font, FONT_SIZE)));
         let label = ui::Label::new(context, text, h);
         layout.add(Box::new(label));
@@ -134,7 +134,7 @@ impl Campaign {
                 "In the last battle you have lost:",
             )?);
             for agent_type in casualties {
-                let text = format!("- {} (killed)", agent_type);
+                let text = format!("- {} (killed)", agent_type.0);
                 let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
                 let label = ui::Label::new(context, text, h);
                 layout.add(Box::new(label));
@@ -151,10 +151,10 @@ impl Campaign {
                 layout.add(Box::new(ui::Label::new(context, text, h)));
             }
             for agent_type in self.state.aviable_recruits() {
-                let text = format!("- [Recruit {}]", agent_type);
+                let text = format!("- [Recruit {}]", agent_type.0);
                 let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
                 let sender = self.gui.sender();
-                let message = Message::Recruit(agent_type.to_string());
+                let message = Message::Recruit(agent_type.clone());
                 let button = ui::Button::new(context, text, h, sender, message);
                 layout.add(Box::new(button));
             }

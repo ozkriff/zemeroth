@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::{
     map::{self, PosHex},
     tactical_map::{
+        component::ObjType,
         state::{self, State},
         PlayerId,
     },
@@ -12,7 +13,7 @@ use crate::core::{
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ObjectsGroup {
     pub owner: Option<PlayerId>,
-    pub typename: String,
+    pub typename: ObjType,
     pub line: Line,
     pub count: i32,
 }

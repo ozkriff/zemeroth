@@ -11,7 +11,7 @@ use crate::core::{
         apply::apply,
         check::{check, Error},
         command::{self, Command},
-        component::{self, Component},
+        component::{self, Component, ObjType},
         effect::{self, Duration, Effect},
         event::{self, ActiveEvent, Event},
         movement::Path,
@@ -650,7 +650,7 @@ fn start_fire(state: &mut State, pos: PosHex) -> ExecuteContext {
     if let Some(id) = state::obj_with_passive_ability_at(state, pos, PassiveAbility::Burn) {
         refresh_scheduled_ability(state, id, &Ability::Vanish);
     } else {
-        let effect_create = effect_create_object(state, "fire", pos);
+        let effect_create = effect_create_object(state, &"fire".into(), pos);
         let id = state.alloc_id();
         context.instant_effects.insert(id, vec![effect_create]);
         schedule_ability(state, id, Ability::Vanish);
@@ -666,7 +666,7 @@ fn create_poison_cloud(state: &mut State, pos: PosHex) -> ExecuteContext {
     if let Some(id) = state::obj_with_passive_ability_at(state, pos, PassiveAbility::Poison) {
         refresh_scheduled_ability(state, id, &Ability::Vanish);
     } else {
-        let effect_create = effect_create_object(state, "poison_cloud", pos);
+        let effect_create = effect_create_object(state, &"poison_cloud".into(), pos);
         let id = state.alloc_id();
         context.instant_effects.insert(id, vec![effect_create]);
         schedule_ability(state, id, Ability::Vanish);
@@ -972,8 +972,8 @@ fn execute_use_ability_poison(state: &mut State, command: &command::UseAbility) 
     context
 }
 
-fn effect_create_object(state: &State, prototype: &str, pos: PosHex) -> Effect {
-    let name = prototype.into();
+fn effect_create_object(state: &State, prototype: &ObjType, pos: PosHex) -> Effect {
+    let name = prototype.clone();
     let mut components = state.prototype_for(prototype);
     components.extend_from_slice(&[
         Component::Pos(component::Pos(pos)),
@@ -981,13 +981,18 @@ fn effect_create_object(state: &State, prototype: &str, pos: PosHex) -> Effect {
     ]);
     Effect::Create(effect::Create {
         pos,
-        prototype: prototype.into(),
+        prototype: prototype.clone(),
         components,
     })
 }
 
-fn effect_create_agent(state: &State, prototype: &str, player_id: PlayerId, pos: PosHex) -> Effect {
-    let name = prototype.into();
+fn effect_create_agent(
+    state: &State,
+    prototype: &ObjType,
+    player_id: PlayerId,
+    pos: PosHex,
+) -> Effect {
+    let name = prototype.clone();
     let mut components = state.prototype_for(prototype);
     components.extend_from_slice(&[
         Component::Pos(component::Pos(pos)),
@@ -996,7 +1001,7 @@ fn effect_create_agent(state: &State, prototype: &str, player_id: PlayerId, pos:
     ]);
     Effect::Create(effect::Create {
         pos,
-        prototype: prototype.into(),
+        prototype: prototype.clone(),
         components,
     })
 }
@@ -1004,7 +1009,7 @@ fn effect_create_agent(state: &State, prototype: &str, player_id: PlayerId, pos:
 fn throw_bomb(
     state: &mut State,
     command: &command::UseAbility,
-    prototype: &str,
+    prototype: &ObjType,
     rounds: i32,
     ability: Ability,
 ) -> ExecuteContext {
@@ -1041,35 +1046,53 @@ fn execute_use_ability_bomb_push(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, "bomb_push", 0, Ability::ExplodePush)
+    throw_bomb(state, command, &"bomb_push".into(), 0, Ability::ExplodePush)
 }
 
 fn execute_use_ability_bomb_damage(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, "bomb_damage", 1, Ability::ExplodeDamage)
+    throw_bomb(
+        state,
+        command,
+        &"bomb_damage".into(),
+        1,
+        Ability::ExplodeDamage,
+    )
 }
 
 fn execute_use_ability_bomb_fire(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, "bomb_fire", 1, Ability::ExplodeFire)
+    throw_bomb(state, command, &"bomb_fire".into(), 1, Ability::ExplodeFire)
 }
 
 fn execute_use_ability_bomb_poison(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, "bomb_poison", 1, Ability::ExplodePoison)
+    throw_bomb(
+        state,
+        command,
+        &"bomb_poison".into(),
+        1,
+        Ability::ExplodePoison,
+    )
 }
 
 fn execute_use_ability_bomb_demonic(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, "bomb_demonic", 1, Ability::ExplodeDamage)
+    throw_bomb(
+        state,
+        command,
+        &"bomb_demonic".into(),
+        1,
+        Ability::ExplodeDamage,
+    )
 }
 
 fn execute_use_ability_summon(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
@@ -1136,7 +1159,7 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
     }
 }
 
-fn existing_agent_typenames(state: &State, player_id: PlayerId) -> Vec<String> {
+fn existing_agent_typenames(state: &State, player_id: PlayerId) -> Vec<ObjType> {
     let mut existing_agents = Vec::new();
     for id in state::players_agent_ids(state, player_id) {
         let typename = state.parts().meta.get(id).name.clone();
@@ -1146,10 +1169,10 @@ fn existing_agent_typenames(state: &State, player_id: PlayerId) -> Vec<String> {
 }
 
 fn choose_who_to_summon(
-    existing_agents: &[String],
-    new_agents: &[String],
-    available_typenames: &[String],
-) -> String {
+    existing_agents: &[ObjType],
+    new_agents: &[ObjType],
+    available_typenames: &[ObjType],
+) -> ObjType {
     assert!(!available_typenames.is_empty());
     let agents = existing_agents.iter().chain(new_agents);
     let mut map = HashMap::new();
@@ -1162,10 +1185,10 @@ fn choose_who_to_summon(
         }
     }
     let (key, _value) = map
-        .iter()
+        .into_iter()
         .min_by_key(|&(_key, value)| value)
         .expect("The map can't be empty");
-    key.to_string()
+    key.clone()
 }
 
 #[cfg(test)]

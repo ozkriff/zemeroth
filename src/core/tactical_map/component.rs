@@ -32,9 +32,19 @@ pub struct Armor {
     pub armor: tactical_map::Strength,
 }
 
+#[serde(transparent)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct ObjType(pub String);
+
+impl From<&str> for ObjType {
+    fn from(s: &str) -> Self {
+        ObjType(s.into())
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Meta {
-    pub name: String,
+    pub name: ObjType,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -139,7 +149,7 @@ zcomponents_storage!(Parts<ObjId>: {
 });
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Prototypes(pub HashMap<String, Vec<Component>>);
+pub struct Prototypes(pub HashMap<ObjType, Vec<Component>>);
 
 fn init_component(component: &mut Component) {
     match component {

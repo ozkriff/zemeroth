@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::core::tactical_map::{scenario::Scenario, state::BattleResult, PlayerId};
+use crate::core::tactical_map::{
+    component::ObjType, scenario::Scenario, state::BattleResult, PlayerId,
+};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
 pub enum Mode {
@@ -20,7 +22,7 @@ pub enum Mode {
 /// An award that is given to the player after the successful battle.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Award {
-    pub recruits: Vec<String>,
+    pub recruits: Vec<ObjType>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -29,7 +31,7 @@ pub struct CampaignNode {
     pub award: Award,
 }
 
-fn casualties(initial_agents: &[String], survivors: &[String]) -> Vec<String> {
+fn casualties(initial_agents: &[ObjType], survivors: &[ObjType]) -> Vec<ObjType> {
     let mut agents = initial_agents.to_vec();
     for typename in survivors {
         if let Some(i) = agents.iter().position(|v| v == typename) {
@@ -41,7 +43,7 @@ fn casualties(initial_agents: &[String], survivors: &[String]) -> Vec<String> {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Plan {
-    initial_agents: Vec<String>,
+    initial_agents: Vec<ObjType>,
     nodes: Vec<CampaignNode>,
 }
 
@@ -51,11 +53,10 @@ pub struct State {
     current_scenario_index: i32,
     mode: Mode,
 
-    /// Unittypes.
-    agents: Vec<String>,
+    agents: Vec<ObjType>,
 
-    last_battle_casualties: Vec<String>,
-    recruits: Vec<String>,
+    last_battle_casualties: Vec<ObjType>,
+    recruits: Vec<ObjType>,
 }
 
 impl State {
@@ -75,7 +76,7 @@ impl State {
         self.mode
     }
 
-    pub fn last_battle_casualties(&self) -> &[String] {
+    pub fn last_battle_casualties(&self) -> &[ObjType] {
         &self.last_battle_casualties
     }
 
@@ -93,11 +94,11 @@ impl State {
         self.scenarios.len() as _
     }
 
-    pub fn agents(&self) -> &[String] {
+    pub fn agents(&self) -> &[ObjType] {
         &self.agents
     }
 
-    pub fn recruit(&mut self, typename: String) {
+    pub fn recruit(&mut self, typename: ObjType) {
         assert_eq!(self.mode(), Mode::PreparingForBattle);
         assert!(self.recruits.contains(&typename));
         self.agents.push(typename);
@@ -105,7 +106,7 @@ impl State {
         self.mode = Mode::ReadyForBattle;
     }
 
-    pub fn aviable_recruits(&self) -> &[String] {
+    pub fn aviable_recruits(&self) -> &[ObjType] {
         if self.mode != Mode::PreparingForBattle {
             assert!(self.recruits.is_empty());
         }
@@ -161,13 +162,14 @@ mod tests {
     use crate::core::{
         campaign::{Award, CampaignNode, Mode, Plan, State},
         tactical_map::{
+            component::ObjType,
             scenario::{self, Line, Scenario},
             state::BattleResult,
             PlayerId,
         },
     };
 
-    fn initial_agents() -> Vec<String> {
+    fn initial_agents() -> Vec<ObjType> {
         vec!["swordsman".into(), "alchemist".into()]
     }
 
@@ -298,7 +300,7 @@ mod tests {
             };
             state.report_battle_results(&battle_result).unwrap();
         }
-        assert_eq!(state.aviable_recruits(), &["spearman".to_string()]);
+        assert_eq!(state.aviable_recruits(), &["spearman".into()]);
         assert!(state.last_battle_casualties().is_empty());
         assert_eq!(state.mode(), Mode::PreparingForBattle);
         state.recruit("spearman".into());
@@ -312,6 +314,6 @@ mod tests {
             state.report_battle_results(&battle_result).unwrap();
         }
         assert_eq!(state.mode(), Mode::Won);
-        assert_eq!(state.last_battle_casualties(), &["spearman".to_string()]);
+        assert_eq!(state.last_battle_casualties(), &["spearman".into()]);
     }
 }

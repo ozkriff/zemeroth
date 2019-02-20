@@ -15,7 +15,7 @@ use crate::{
         map::{Dir, PosHex},
         tactical_map::{
             ability::Ability,
-            component::WeaponType,
+            component::{ObjType, WeaponType},
             effect::{self, Effect},
             event::{self, ActiveEvent, Event},
             execute::{hit_chance, ApplyPhase},
@@ -490,11 +490,11 @@ fn visualize_create(
     context: &mut Context,
     id: ObjId,
     pos: PosHex,
-    prototype: &str,
+    prototype: &ObjType,
 ) -> ZResult<Box<dyn Action>> {
     // TODO: Move to some .ron config:
     // TODO: At lest, extract this to a separate function
-    let (sprite_name, offset_x, offset_y, shadow_size_coefficient) = match prototype {
+    let (sprite_name, offset_x, offset_y, shadow_size_coefficient) = match prototype.0.as_str() {
         "swordsman" => ("/swordsman.png", 0.15, 0.1, 1.0),
         "spearman" => ("/spearman.png", 0.2, 0.05, 1.0),
         "hammerman" => ("/hammerman.png", 0.05, 0.1, 1.0),
@@ -512,7 +512,7 @@ fn visualize_create(
         "fire" => ("/fire.png", 0.0, 0.2, 0.001),
         "poison_cloud" => ("/poison_cloud.png", 0.0, 0.2, 2.0),
         "spike_trap" => ("/spike_trap.png", 0.0, 0.5, 1.4),
-        _ => unimplemented!("Don't know such object type: {}", prototype),
+        _ => unimplemented!("Don't know such object type: {}", prototype.0),
     };
     let point = geom::hex_to_point(view.tile_size(), pos);
     let color = [1.0, 1.0, 1.0, 1.0].into();

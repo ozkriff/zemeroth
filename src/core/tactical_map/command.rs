@@ -1,6 +1,6 @@
 use crate::core::{
     map::PosHex,
-    tactical_map::{ability::Ability, movement::Path, ObjId, PlayerId},
+    tactical_map::{ability::Ability, component::ObjType, movement::Path, ObjId, PlayerId},
 };
 
 #[derive(Debug, Clone)]
@@ -16,7 +16,7 @@ pub enum Command {
 pub struct Create {
     pub owner: Option<PlayerId>,
     pub pos: PosHex,
-    pub prototype: String,
+    pub prototype: ObjType,
 }
 
 #[derive(Debug, Clone)]
