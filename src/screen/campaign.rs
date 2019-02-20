@@ -29,14 +29,9 @@ enum Message {
 
 const FONT_SIZE: f32 = utils::font_size();
 
-// TODO: Fix code duplication with `Battle` screen! (Move to `utils` mod?)
-fn line_height() -> f32 {
-    0.08 * 1.5
-}
-
 fn basic_gui(context: &mut Context, font: Font) -> ZResult<Gui<Message>> {
     let mut gui = Gui::new(context);
-    let h = line_height();
+    let h = utils::line_heights().big;
     let button_menu = {
         let text = Box::new(Text::new(("[exit]", font, FONT_SIZE)));
         ui::Button::new(context, text, h, gui.sender(), Message::Menu)
@@ -54,7 +49,7 @@ fn add_agents_panel(
     layout: &mut ui::VLayout,
     agents: &[String],
 ) -> ZResult {
-    let h = line_height();
+    let h = utils::line_heights().big;
     {
         let text = "Your group consists of:";
         let text = Box::new(Text::new((text, font, FONT_SIZE)));
@@ -70,7 +65,7 @@ fn add_agents_panel(
 }
 
 fn add_spacer(layout: &mut ui::VLayout) {
-    let h = line_height();
+    let h = utils::line_heights().big;
     let rect = graphics::Rect {
         w: 0.0,
         h,
@@ -81,7 +76,7 @@ fn add_spacer(layout: &mut ui::VLayout) {
 }
 
 fn label(context: &mut Context, font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
-    let h = line_height();
+    let h = utils::line_heights().big;
     let text = Box::new(Text::new((text, font, FONT_SIZE)));
     Ok(Box::new(ui::Label::new(context, text, h)))
 }
@@ -129,7 +124,7 @@ impl Campaign {
 
     fn set_mode_preparing(&mut self, context: &mut Context) -> ZResult {
         let mut layout = ui::VLayout::new();
-        let h = line_height();
+        let h = utils::line_heights().big;
 
         let casualties = self.state.last_battle_casualties();
         if !casualties.is_empty() {
@@ -181,7 +176,7 @@ impl Campaign {
         self.gui.add(&layout, anchor);
         self.layout = Some(layout);
         {
-            let h = line_height() * 1.5;
+            let h = utils::line_heights().large;
             let text = &format!(
                 "[start battle - {}/{}]",
                 self.state.current_scenario_index() + 1,
@@ -221,7 +216,7 @@ impl Campaign {
     }
 
     fn add_label_central_message(&mut self, context: &mut Context, text: &str) -> ZResult {
-        let h = line_height() * 1.5;
+        let h = utils::line_heights().large;
         let text = Box::new(Text::new((text, self.font, FONT_SIZE)));
         let label = ui::pack(ui::Label::new(context, text, h));
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);

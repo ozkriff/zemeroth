@@ -26,7 +26,7 @@ enum Message {
 
 fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
-    let h = 0.2;
+    let h = utils::line_heights().large;
     let font_size = utils::font_size();
     let button_start_battle = {
         let text = Box::new(Text::new(("[start battle]", font, font_size)));
