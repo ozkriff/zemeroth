@@ -70,7 +70,7 @@ fn build_panel_agent_info(
             layout.add(Box::new(button));
             Ok(())
         };
-        line(&format!("<{}>", meta.name))?;
+        line(&format!("<{}>", meta.name.0))?;
         line(&format!(
             "strength: {}/{}",
             st.strength.0, st.base_strength.0

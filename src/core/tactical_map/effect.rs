@@ -2,7 +2,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::{
     map::Dir,
-    tactical_map::{component::Component, Phase, PosHex, Strength},
+    tactical_map::{
+        component::{Component, ObjType},
+        Phase, PosHex, Strength,
+    },
 };
 
 #[derive(Clone, Debug, Copy, PartialEq, Serialize, Deserialize)]
@@ -95,7 +98,7 @@ pub struct Heal {
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Create {
     pub pos: PosHex,
-    pub prototype: String,
+    pub prototype: ObjType,
     pub components: Vec<Component>,
 }
 
