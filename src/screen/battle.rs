@@ -33,7 +33,7 @@ use crate::{
         },
         Screen, Transition,
     },
-    utils::{self, default_font, time_s},
+    utils::{self, default_font, line_heights, time_s},
     ZResult,
 };
 
@@ -50,10 +50,6 @@ enum Message {
     Ability(Ability),
 }
 
-fn line_height() -> f32 {
-    0.08
-}
-
 fn build_panel_agent_info(
     context: &mut Context,
     font: Font,
@@ -66,7 +62,7 @@ fn build_panel_agent_info(
     let meta = parts.meta.get(id);
     let a = parts.agent.get(id);
     let mut layout = ui::VLayout::new();
-    let h = line_height();
+    let h = line_heights().normal;
     {
         let mut line = |text: &str| -> ZResult {
             let text = Box::new(Text::new((text, font, FONT_SIZE)));
@@ -155,7 +151,7 @@ fn build_panel_agent_abilities(
         return Ok(None);
     }
     let mut layout = ui::VLayout::new();
-    let h = line_height();
+    let h = line_heights().normal;
     for ability in abilities {
         let text = match ability.status {
             ability::Status::Ready => format!("[{}]", ability.ability.to_string()),

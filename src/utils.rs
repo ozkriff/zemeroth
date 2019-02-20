@@ -58,3 +58,19 @@ pub fn default_font(context: &mut Context) -> Font {
 pub const fn font_size() -> f32 {
     128.0
 }
+
+pub struct LineHeights {
+    pub small: f32,
+    pub normal: f32,
+    pub big: f32,
+    pub large: f32,
+}
+
+pub fn line_heights() -> LineHeights {
+    LineHeights {
+        small: 1.0 / 20.0,
+        normal: 1.0 / 12.0,
+        big: 1.0 / 9.0,
+        large: 1.0 / 6.0,
+    }
+}
