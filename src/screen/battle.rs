@@ -66,7 +66,7 @@ fn build_panel_agent_info(
     {
         let mut line = |text: &str| -> ZResult {
             let text = Box::new(Text::new((text, font, FONT_SIZE)));
-            let button = ui::Label::new(context, text, h);
+            let button = ui::Label::new(context, text, h)?;
             layout.add(Box::new(button));
             Ok(())
         };
@@ -159,7 +159,7 @@ fn build_panel_agent_abilities(
         };
         let text = Box::new(Text::new((text.as_str(), font, FONT_SIZE)));
         let msg = Message::Ability(ability.ability.clone());
-        let button = ui::Button::new(context, text, h, gui.sender(), msg);
+        let button = ui::Button::new(context, text, h, gui.sender(), msg)?;
         layout.add(Box::new(button));
     }
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Middle);
@@ -172,7 +172,7 @@ fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     {
         let text = Box::new(Text::new(("[deselect]", font, FONT_SIZE)));
-        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::Deselect);
+        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::Deselect)?;
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Top);
@@ -180,7 +180,7 @@ fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     }
     {
         let text = Box::new(Text::new(("[end turn]", font, FONT_SIZE)));
-        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::EndTurn);
+        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::EndTurn)?;
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
@@ -188,7 +188,7 @@ fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     }
     {
         let text = Box::new(Text::new(("[exit]", font, FONT_SIZE)));
-        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::Exit);
+        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::Exit)?;
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
@@ -493,7 +493,8 @@ impl Screen for Battle {
 
     fn draw(&self, context: &mut Context) -> ZResult {
         self.view.draw(context)?;
-        self.gui.draw(context)
+        self.gui.draw(context)?;
+        Ok(())
     }
 
     fn resize(&mut self, aspect_ratio: f32) {

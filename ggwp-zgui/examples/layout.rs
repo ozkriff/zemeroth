@@ -12,13 +12,13 @@ enum Message {
     Command2,
 }
 
-fn make_gui(context: &mut Context, font: Font) -> GameResult<ui::Gui<Message>> {
+fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
     let font_size = 64.0;
     let mut gui = ui::Gui::new(context);
     let text_1 = Box::new(Text::new(("[Button1]", font, font_size)));
     let text_2 = Box::new(Text::new(("[Button2]", font, font_size)));
-    let button_1 = ui::Button::new(context, text_1, 0.2, gui.sender(), Message::Command1);
-    let button_2 = ui::Button::new(context, text_2, 0.2, gui.sender(), Message::Command2);
+    let button_1 = ui::Button::new(context, text_1, 0.2, gui.sender(), Message::Command1)?;
+    let button_2 = ui::Button::new(context, text_2, 0.2, gui.sender(), Message::Command2)?;
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_1));
     layout.add(Box::new(button_2));
@@ -32,7 +32,7 @@ struct State {
 }
 
 impl State {
-    fn new(context: &mut Context) -> GameResult<State> {
+    fn new(context: &mut Context) -> ui::Result<State> {
         let font = Font::new(context, "/Karla-Regular.ttf")?;
         let gui = make_gui(context, font)?;
         Ok(Self { gui })
@@ -85,8 +85,9 @@ fn context() -> GameResult<(Context, event::EventsLoop)> {
         .build()
 }
 
-fn main() -> GameResult {
+fn main() -> ui::Result {
     let (mut context, mut events_loop) = context()?;
     let mut state = State::new(&mut context)?;
-    event::run(&mut context, &mut events_loop, &mut state)
+    event::run(&mut context, &mut events_loop, &mut state)?;
+    Ok(())
 }

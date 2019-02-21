@@ -15,10 +15,50 @@ use ggez::{
 };
 use log::{debug, info};
 
+pub use error::Error;
+
+pub type Result<T = ()> = std::result::Result<T, Error>;
+
 // TODO: What should we do if some widget changes its size?
 
 pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
     Rc::new(RefCell::new(widget))
+}
+
+mod error {
+    use std::{error::Error as StdError, fmt};
+
+    use ggez::GameError;
+
+    #[derive(Debug)]
+    pub enum Error {
+        GgezError(GameError),
+        NoDimensions,
+    }
+
+    impl fmt::Display for Error {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            match *self {
+                Error::GgezError(ref e) => write!(f, "GGEZ Error: {}", e),
+                Error::NoDimensions => write!(f, "The drawable has no dimensions"),
+            }
+        }
+    }
+
+    impl StdError for Error {
+        fn source(&self) -> Option<&(dyn StdError + 'static)> {
+            match *self {
+                Error::GgezError(ref e) => Some(e),
+                Error::NoDimensions => None,
+            }
+        }
+    }
+
+    impl From<GameError> for Error {
+        fn from(e: GameError) -> Self {
+            Error::GgezError(e)
+        }
+    }
 }
 
 struct Sprite {
@@ -40,21 +80,23 @@ impl Debug for Sprite {
 }
 
 impl Sprite {
-    fn new(context: &mut Context, drawable: Box<dyn Drawable>, height: f32) -> Self {
-        // TODO: remove expect, return Result from this function.
-        let dimensions = drawable.dimensions(context).expect("Can't get dimensions");
+    fn new(context: &mut Context, drawable: Box<dyn Drawable>, height: f32) -> Result<Self> {
+        let dimensions = match drawable.dimensions(context) {
+            Some(dimensions) => dimensions,
+            None => return Err(Error::NoDimensions),
+        };
         let basic_scale = height / dimensions.h;
         let param = graphics::DrawParam {
             scale: Vector2::new(basic_scale, basic_scale),
             color: graphics::BLACK,
             ..Default::default()
         };
-        Self {
+        Ok(Self {
             drawable,
             dimensions,
             param,
             basic_scale,
-        }
+        })
     }
 
     fn clone_with_another_drawable(&self, drawable: Box<dyn Drawable>) -> Self {
@@ -93,7 +135,7 @@ impl Sprite {
     }
 }
 
-fn make_bg(context: &mut Context, sprite: &Sprite) -> Sprite {
+fn make_bg(context: &mut Context, sprite: &Sprite) -> Result<Sprite> {
     let h = sprite.dimensions.h.ceil();
     let w = sprite.dimensions.w.ceil();
     assert!(h > 0.0, "h = {}", h);
@@ -105,11 +147,10 @@ fn make_bg(context: &mut Context, sprite: &Sprite) -> Sprite {
         .cycle()
         .take(count)
         .collect();
-    let image =
-        Image::from_rgba8(context, w as _, h as _, &data).expect("zgui: Can't create bg image");
+    let image = Image::from_rgba8(context, w as _, h as _, &data)?;
     let mut bg = sprite.clone_with_another_drawable(Box::new(image));
     bg.set_color([0.8, 0.8, 0.8, 0.5].into());
-    bg
+    Ok(bg)
 }
 
 pub fn window_to_screen(context: &Context, pos: Point2<f32>) -> Point2<f32> {
@@ -250,10 +291,10 @@ pub struct Label {
 }
 
 impl Label {
-    pub fn new(context: &mut Context, drawable: Box<dyn Drawable>, height: f32) -> Self {
-        let sprite = Sprite::new(context, drawable, height);
-        let bg = make_bg(context, &sprite);
-        Self { sprite, bg }
+    pub fn new(context: &mut Context, drawable: Box<dyn Drawable>, height: f32) -> Result<Self> {
+        let sprite = Sprite::new(context, drawable, height)?;
+        let bg = make_bg(context, &sprite)?;
+        Ok(Self { sprite, bg })
     }
 }
 
@@ -313,15 +354,15 @@ impl<Message: Clone> Button<Message> {
         height: f32,
         sender: Sender<Message>,
         message: Message,
-    ) -> Self {
-        let sprite = Sprite::new(context, drawable, height);
-        let bg = make_bg(context, &sprite);
-        Self {
+    ) -> Result<Self> {
+        let sprite = Sprite::new(context, drawable, height)?;
+        let bg = make_bg(context, &sprite)?;
+        Ok(Self {
             sprite,
             bg,
             sender,
             message,
-        }
+        })
     }
 }
 

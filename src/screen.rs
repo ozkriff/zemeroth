@@ -51,7 +51,8 @@ impl Screens {
         let bg_color = [0.9, 0.9, 0.8, 1.0].into();
         graphics::clear(context, bg_color);
         self.screen().draw(context)?;
-        graphics::present(context)
+        graphics::present(context)?;
+        Ok(())
     }
 
     pub fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult {

@@ -30,11 +30,11 @@ fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     let font_size = utils::font_size();
     let button_start_battle = {
         let text = Box::new(Text::new(("[start battle]", font, font_size)));
-        ui::Button::new(context, text, h, gui.sender(), Message::StartBattle)
+        ui::Button::new(context, text, h, gui.sender(), Message::StartBattle)?
     };
     let button_menu = {
         let text = Box::new(Text::new(("[menu]", font, font_size)));
-        ui::Button::new(context, text, h, gui.sender(), Message::Menu)
+        ui::Button::new(context, text, h, gui.sender(), Message::Menu)?
     };
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_start_battle));
@@ -99,7 +99,8 @@ impl Screen for StrategyMap {
     fn draw(&self, context: &mut Context) -> ZResult {
         self.sprite.draw(context)?;
         self.scene.draw(context)?;
-        self.gui.draw(context)
+        self.gui.draw(context)?;
+        Ok(())
     }
 
     fn resize(&mut self, aspect_ratio: f32) {

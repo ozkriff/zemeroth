@@ -32,19 +32,19 @@ fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     let font_size = utils::font_size();
     let button_battle = {
         let text = Box::new(Text::new(("[demo battle]", font, font_size)));
-        ui::Button::new(context, text, h, gui.sender(), Message::StartInstant)
+        ui::Button::new(context, text, h, gui.sender(), Message::StartInstant)?
     };
     let button_campaign = {
         let text = Box::new(Text::new(("[campaign]", font, font_size)));
-        ui::Button::new(context, text, h, gui.sender(), Message::StartCampaign)
+        ui::Button::new(context, text, h, gui.sender(), Message::StartCampaign)?
     };
     let button_strategy_map = {
         let text = Box::new(Text::new(("[strategy mode]", font, font_size)));
-        ui::Button::new(context, text, h, gui.sender(), Message::StartStrategyMap)
+        ui::Button::new(context, text, h, gui.sender(), Message::StartStrategyMap)?
     };
     let button_exit = {
         let text = Box::new(Text::new(("[exit]", font, font_size)));
-        ui::Button::new(context, text, h, gui.sender(), Message::Exit)
+        ui::Button::new(context, text, h, gui.sender(), Message::Exit)?
     };
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_battle));
@@ -86,7 +86,8 @@ impl Screen for MainMenu {
     }
 
     fn draw(&self, context: &mut Context) -> ZResult {
-        self.gui.draw(context)
+        self.gui.draw(context)?;
+        Ok(())
     }
 
     fn resize(&mut self, aspect_ratio: f32) {

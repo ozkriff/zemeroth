@@ -8,12 +8,16 @@ use ggez::{Context, GameResult};
 
 pub use crate::{
     action::{Action, Boxed},
+    error::Error,
     sprite::Sprite,
 };
 
 pub mod action;
 
+mod error;
 mod sprite;
+
+pub type Result<T = ()> = std::result::Result<T, Error>;
 
 #[derive(Debug)]
 struct LayerData {

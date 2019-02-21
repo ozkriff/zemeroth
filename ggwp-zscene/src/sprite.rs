@@ -6,6 +6,8 @@ use ggez::{
     Context, GameResult,
 };
 
+use crate::{Error, Result};
+
 struct SpriteData {
     drawable: Box<dyn Drawable>,
     dimensions: Rect,
@@ -32,10 +34,15 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    pub fn from_drawable(context: &mut Context, drawable: Box<dyn Drawable>, height: f32) -> Self {
-        let dimensions = drawable
-            .dimensions(context)
-            .expect("Can't get the dimensions"); // TODO: convert to Result
+    pub fn from_drawable(
+        context: &mut Context,
+        drawable: Box<dyn Drawable>,
+        height: f32,
+    ) -> Result<Self> {
+        let dimensions = match drawable.dimensions(context) {
+            Some(dimensions) => dimensions,
+            None => return Err(Error::NoDimensions),
+        };
         let scale = height / dimensions.h;
         let param = graphics::DrawParam {
             scale: Vector2::new(scale, scale),
@@ -49,20 +56,16 @@ impl Sprite {
             offset: Vector2::new(0.0, 0.0),
         };
         let data = Rc::new(RefCell::new(data));
-        Self { data }
+        Ok(Self { data })
     }
 
-    pub fn from_image(context: &mut Context, image: graphics::Image, height: f32) -> Self {
+    pub fn from_image(context: &mut Context, image: graphics::Image, height: f32) -> Result<Self> {
         Self::from_drawable(context, Box::new(image), height)
     }
 
-    pub fn from_path<P: AsRef<Path>>(
-        context: &mut Context,
-        path: P,
-        height: f32,
-    ) -> GameResult<Self> {
+    pub fn from_path<P: AsRef<Path>>(context: &mut Context, path: P, height: f32) -> Result<Self> {
         let image = graphics::Image::new(context, path)?;
-        Ok(Self::from_image(context, image, height))
+        Self::from_image(context, image, height)
     }
 
     // TODO: some method to change the image.

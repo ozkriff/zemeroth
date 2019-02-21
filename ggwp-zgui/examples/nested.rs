@@ -18,18 +18,18 @@ enum Message {
 }
 
 // TODO: rework this into some more game-like
-fn make_gui(context: &mut Context, font: Font) -> GameResult<ui::Gui<Message>> {
+fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
     let font_size = 32.0;
     let mut gui = ui::Gui::new(context);
     {
         let image = Box::new(Image::new(context, "/fire.png")?);
-        let button = ui::Button::new(context, image, 0.1, gui.sender(), Message::Image);
+        let button = ui::Button::new(context, image, 0.1, gui.sender(), Message::Image)?;
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Top);
         gui.add(&ui::pack(button), anchor);
     }
     {
         let text = Box::new(Text::new(("label", font, font_size)));
-        let label = ui::Label::new(context, text, 0.1);
+        let label = ui::Label::new(context, text, 0.1)?;
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Bottom);
         gui.add(&ui::pack(label), anchor);
     }
@@ -37,9 +37,9 @@ fn make_gui(context: &mut Context, font: Font) -> GameResult<ui::Gui<Message>> {
         let text_a = Box::new(Text::new(("[A]", font, font_size)));
         let text_b = Box::new(Text::new(("[A]", font, font_size)));
         let text_c = Box::new(Text::new(("[A]", font, font_size)));
-        let button_a = ui::Button::new(context, text_a, 0.1, gui.sender(), Message::A);
-        let button_b = ui::Button::new(context, text_b, 0.1, gui.sender(), Message::B);
-        let button_c = ui::Button::new(context, text_c, 0.1, gui.sender(), Message::C);
+        let button_a = ui::Button::new(context, text_a, 0.1, gui.sender(), Message::A)?;
+        let button_b = ui::Button::new(context, text_b, 0.1, gui.sender(), Message::B)?;
+        let button_c = ui::Button::new(context, text_c, 0.1, gui.sender(), Message::C)?;
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button_a));
         layout.add(Box::new(button_b));
@@ -51,10 +51,10 @@ fn make_gui(context: &mut Context, font: Font) -> GameResult<ui::Gui<Message>> {
         let text_x = Box::new(Text::new(("[X]", font, font_size)));
         let text_y = Box::new(Text::new(("[Y]", font, font_size)));
         let text_z = Box::new(Text::new(("[Z]", font, font_size)));
-        let button_i = ui::Button::new(context, image_i, 0.1, gui.sender(), Message::Image);
-        let button_x = ui::Button::new(context, text_x, 0.1, gui.sender(), Message::X);
-        let button_y = ui::Button::new(context, text_y, 0.1, gui.sender(), Message::Y);
-        let button_z = ui::Button::new(context, text_z, 0.1, gui.sender(), Message::Z);
+        let button_i = ui::Button::new(context, image_i, 0.1, gui.sender(), Message::Image)?;
+        let button_x = ui::Button::new(context, text_x, 0.1, gui.sender(), Message::X)?;
+        let button_y = ui::Button::new(context, text_y, 0.1, gui.sender(), Message::Y)?;
+        let button_z = ui::Button::new(context, text_z, 0.1, gui.sender(), Message::Z)?;
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button_i));
         layout.add(Box::new(button_x));
@@ -66,9 +66,9 @@ fn make_gui(context: &mut Context, font: Font) -> GameResult<ui::Gui<Message>> {
         let text_a = Box::new(Text::new(("[A]", font, font_size)));
         let text_b = Box::new(Text::new(("[A]", font, font_size)));
         let image_i = Box::new(Image::new(context, "/fire.png")?);
-        let button_a = ui::Button::new(context, text_a, 0.1, gui.sender(), Message::A);
-        let button_b = ui::Button::new(context, text_b, 0.1, gui.sender(), Message::B);
-        let button_i = ui::Button::new(context, image_i, 0.2, gui.sender(), Message::Image);
+        let button_a = ui::Button::new(context, text_a, 0.1, gui.sender(), Message::A)?;
+        let button_b = ui::Button::new(context, text_b, 0.1, gui.sender(), Message::B)?;
+        let button_i = ui::Button::new(context, image_i, 0.2, gui.sender(), Message::Image)?;
         let mut layout = ui::HLayout::new();
         layout.add(Box::new(button_a));
         layout.add(Box::new(button_i));
@@ -86,7 +86,7 @@ struct State {
 }
 
 impl State {
-    fn new(context: &mut Context) -> GameResult<State> {
+    fn new(context: &mut Context) -> ui::Result<State> {
         let font = Font::new(context, "/Karla-Regular.ttf")?;
         let gui = make_gui(context, font)?;
         Ok(State { gui })
@@ -142,8 +142,9 @@ fn context() -> GameResult<(Context, event::EventsLoop)> {
         .build()
 }
 
-fn main() -> GameResult {
+fn main() -> ui::Result {
     let (mut context, mut events_loop) = context()?;
     let mut state = State::new(&mut context)?;
-    event::run(&mut context, &mut events_loop, &mut state)
+    event::run(&mut context, &mut events_loop, &mut state)?;
+    Ok(())
 }
