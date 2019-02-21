@@ -34,7 +34,7 @@ fn basic_gui(context: &mut Context, font: Font) -> ZResult<Gui<Message>> {
     let h = utils::line_heights().big;
     let button_menu = {
         let text = Box::new(Text::new(("[exit]", font, FONT_SIZE)));
-        ui::Button::new(context, text, h, gui.sender(), Message::Menu)
+        ui::Button::new(context, text, h, gui.sender(), Message::Menu)?
     };
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_menu));
@@ -53,12 +53,12 @@ fn add_agents_panel(
     {
         let text = "Your group consists of:";
         let text = Box::new(Text::new((text, font, FONT_SIZE)));
-        layout.add(Box::new(ui::Label::new(context, text, h)));
+        layout.add(Box::new(ui::Label::new(context, text, h)?));
     }
     for agent_type in agents {
         let text = format!("- {}", agent_type.0);
         let text = Box::new(Text::new((text.as_str(), font, FONT_SIZE)));
-        let label = ui::Label::new(context, text, h);
+        let label = ui::Label::new(context, text, h)?;
         layout.add(Box::new(label));
     }
     Ok(())
@@ -78,7 +78,7 @@ fn add_spacer(layout: &mut ui::VLayout) {
 fn label(context: &mut Context, font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
     let h = utils::line_heights().big;
     let text = Box::new(Text::new((text, font, FONT_SIZE)));
-    Ok(Box::new(ui::Label::new(context, text, h)))
+    Ok(Box::new(ui::Label::new(context, text, h)?))
 }
 
 #[derive(Debug)]
@@ -136,7 +136,7 @@ impl Campaign {
             for agent_type in casualties {
                 let text = format!("- {} (killed)", agent_type.0);
                 let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
-                let label = ui::Label::new(context, text, h);
+                let label = ui::Label::new(context, text, h)?;
                 layout.add(Box::new(label));
             }
         }
@@ -148,14 +148,14 @@ impl Campaign {
         if let Mode::PreparingForBattle = self.state.mode() {
             {
                 let text = Box::new(Text::new(("Choose:", self.font, FONT_SIZE)));
-                layout.add(Box::new(ui::Label::new(context, text, h)));
+                layout.add(Box::new(ui::Label::new(context, text, h)?));
             }
             for agent_type in self.state.aviable_recruits() {
                 let text = format!("- [Recruit {}]", agent_type.0);
                 let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
                 let sender = self.gui.sender();
                 let message = Message::Recruit(agent_type.clone());
-                let button = ui::Button::new(context, text, h, sender, message);
+                let button = ui::Button::new(context, text, h, sender, message)?;
                 layout.add(Box::new(button));
             }
         }
@@ -183,7 +183,8 @@ impl Campaign {
                 self.state.scenarios_count()
             );
             let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
-            let button = ui::Button::new(context, text, h, self.gui.sender(), Message::StartBattle);
+            let button =
+                ui::Button::new(context, text, h, self.gui.sender(), Message::StartBattle)?;
             let rc_button = ui::pack(button);
             let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Bottom);
             self.gui.add(&rc_button, anchor);
@@ -218,7 +219,7 @@ impl Campaign {
     fn add_label_central_message(&mut self, context: &mut Context, text: &str) -> ZResult {
         let h = utils::line_heights().large;
         let text = Box::new(Text::new((text, self.font, FONT_SIZE)));
-        let label = ui::pack(ui::Label::new(context, text, h));
+        let label = ui::pack(ui::Label::new(context, text, h)?);
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         self.gui.add(&label, anchor);
         self.label_central_message = Some(label);
@@ -263,7 +264,8 @@ impl Screen for Campaign {
     }
 
     fn draw(&self, context: &mut Context) -> ZResult {
-        self.gui.draw(context)
+        self.gui.draw(context)?;
+        Ok(())
     }
 
     fn resize(&mut self, aspect_ratio: f32) {

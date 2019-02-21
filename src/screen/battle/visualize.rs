@@ -48,7 +48,7 @@ pub fn message(
     let invisible = Color { a: 0.0, ..visible };
     let font_size = font_size();
     let text = Box::new(Text::new((text, view.font(), font_size)));
-    let mut sprite = Sprite::from_drawable(context, text, 0.1);
+    let mut sprite = Sprite::from_drawable(context, text, 0.1)?;
     sprite.set_centered(true);
     let point = geom::hex_to_point(view.tile_size(), pos);
     let point = point - Vector2::new(0.0, view.tile_size() * 1.5);
@@ -78,7 +78,7 @@ pub fn attack_message(
     let invisible = Color { a: 0.0, ..visible };
     let font_size = font_size();
     let text = Box::new(Text::new((text, view.font(), font_size)));
-    let mut sprite = Sprite::from_drawable(context, text, 0.1);
+    let mut sprite = Sprite::from_drawable(context, text, 0.1)?;
     sprite.set_centered(true);
     let point = pos + Vector2::new(0.0, view.tile_size() * 0.5);
     sprite.set_pos(point);
@@ -115,7 +115,7 @@ fn show_blood_particles(
         let invisible = Color { a: 0.0, ..visible };
         let scale = thread_rng().gen_range(0.05, 0.15);
         let size = view.tile_size() * 2.0 * scale;
-        let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size);
+        let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size)?;
         sprite.set_centered(true);
         sprite.set_pos(point_origin);
         sprite.set_color(invisible);
@@ -139,7 +139,7 @@ fn show_blood_spot(
     at: PosHex,
 ) -> ZResult<Box<dyn Action>> {
     let mut sprite =
-        Sprite::from_image(context, view.images().blood.clone(), view.tile_size() * 2.0);
+        Sprite::from_image(context, view.images().blood.clone(), view.tile_size() * 2.0)?;
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
     let mut point = geom::hex_to_point(view.tile_size(), at);
@@ -188,7 +188,7 @@ fn show_dust(
         };
         let point = at + vector;
         let sprite = {
-            let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size);
+            let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size)?;
             sprite.set_centered(true);
             sprite.set_pos(point);
             sprite.set_color(invisible);
@@ -219,7 +219,7 @@ fn show_flare_scale(
     let visible = color;
     let invisible = Color { a: 0.0, ..visible };
     let size = view.tile_size() * 2.0 * scale;
-    let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size);
+    let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size)?;
     let point = geom::hex_to_point(view.tile_size(), at);
     sprite.set_centered(true);
     sprite.set_pos(point);
@@ -248,7 +248,7 @@ fn show_weapon_flash(
         WeaponType::Pierce => view.images().attack_pierce.clone(),
         WeaponType::Claw => view.images().attack_claws.clone(),
     };
-    let mut sprite = Sprite::from_image(context, image, sprite_size);
+    let mut sprite = Sprite::from_image(context, image, sprite_size)?;
     let point = geom::hex_to_point(tile_size, at) - Vector2::new(0.0, tile_size * 0.3);
     sprite.set_centered(true);
     sprite.set_pos(point);
@@ -379,7 +379,7 @@ fn generate_brief_obj_info(
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
         let color = color.into();
-        let mut sprite = Sprite::from_image(context, image.clone(), size);
+        let mut sprite = Sprite::from_image(context, image.clone(), size)?;
         sprite.set_centered(true);
         sprite.set_pos(point);
         sprite.set_color(Color { a: 0.0, ..color });
@@ -526,7 +526,7 @@ fn visualize_create(
     };
     let sprite_shadow = {
         let image_shadow = view.images().shadow.clone();
-        let mut sprite = Sprite::from_image(context, image_shadow, size * shadow_size_coefficient);
+        let mut sprite = Sprite::from_image(context, image_shadow, size * shadow_size_coefficient)?;
         sprite.set_centered(true);
         sprite.set_color(Color { a: 0.0, ..color });
         sprite.set_pos(point);
@@ -623,7 +623,7 @@ fn visualize_event_end_battle(
         _ => unreachable!(),
     };
     let text = Box::new(Text::new((text, view.font(), font_size())));
-    let mut sprite = Sprite::from_drawable(context, text, 0.2);
+    let mut sprite = Sprite::from_drawable(context, text, 0.2)?;
     sprite.set_centered(true);
     sprite.set_color(invisible);
     Ok(seq(vec![
@@ -663,7 +663,7 @@ fn visualize_event_begin_turn(
         _ => unreachable!(),
     };
     let text = Box::new(Text::new((text, view.font(), font_size())));
-    let mut sprite = Sprite::from_drawable(context, text, 0.2);
+    let mut sprite = Sprite::from_drawable(context, text, 0.2)?;
     sprite.set_centered(true);
     sprite.set_color(invisible);
     Ok(seq(vec![

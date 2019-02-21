@@ -12,16 +12,12 @@ use log::info;
 use structopt::StructOpt;
 
 mod core;
+mod error;
 mod geom;
 mod screen;
 mod utils;
 
-// TODO: Remove it with a real error type.
-// TODO: https://github.com/ggez/ggez/issues/384
-//
-// TODO: Replace with a Zemeroth-specific error enum!
-//
-type ZResult<T = ()> = GameResult<T>;
+type ZResult<T = ()> = Result<T, error::ZError>;
 
 const APP_ID: &str = "zemeroth";
 const APP_AUTHOR: &str = "ozkriff";
@@ -53,12 +49,14 @@ impl MainState {
 }
 
 impl event::EventHandler for MainState {
-    fn update(&mut self, context: &mut Context) -> ZResult {
-        self.screens.update(context)
+    fn update(&mut self, context: &mut Context) -> GameResult {
+        self.screens.update(context).expect("Update call failed");
+        Ok(())
     }
 
-    fn draw(&mut self, context: &mut Context) -> ZResult {
-        self.screens.draw(context)
+    fn draw(&mut self, context: &mut Context) -> GameResult {
+        self.screens.draw(context).expect("Draw call failed");
+        Ok(())
     }
 
     fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
@@ -125,7 +123,8 @@ fn main() -> ZResult {
     info!("Creating MainState...");
     let mut state = MainState::new(&mut context)?;
     info!("Starting the main loop...");
-    event::run(&mut context, &mut events_loop, &mut state)
+    event::run(&mut context, &mut events_loop, &mut state)?;
+    Ok(())
 }
 
 fn enable_backtrace() {

@@ -4,7 +4,7 @@ use ggez::{filesystem::Filesystem, graphics::Font, Context};
 use log::{error, info};
 use serde::de::DeserializeOwned;
 
-use crate::ZResult;
+use crate::{error::ZError, ZResult};
 
 pub fn time_s(s: f32) -> Duration {
     let ms = s * 1000.0;
@@ -44,10 +44,7 @@ where
 {
     let path = path.as_ref();
     let s = read_file_to_string(context, path)?;
-    // TODO: Create a Zemeroth-specific error type
-    // let d = ron::de::from_str(&s).map_err(|e| format!("Can't deserialize {:?}: {:?}", path, e))?;
-    let d = ron::de::from_str(&s).expect("TODO: ERROR MESSAGE!");
-    Ok(d)
+    ron::de::from_str(&s).map_err(|e| ZError::from_ron_de_error(e, path.into()))
 }
 
 pub fn default_font(context: &mut Context) -> Font {

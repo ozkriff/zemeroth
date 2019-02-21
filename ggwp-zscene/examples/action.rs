@@ -6,7 +6,7 @@ use ggez::{
     nalgebra::{Point2, Vector2},
     {Context, ContextBuilder, GameResult},
 };
-use ggwp_zscene::{action, Boxed, Layer, Scene, Sprite};
+use ggwp_zscene::{self as zscene, action, Boxed, Layer, Scene, Sprite};
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
@@ -27,7 +27,7 @@ struct State {
 }
 
 impl State {
-    fn new(context: &mut Context) -> GameResult<Self> {
+    fn new(context: &mut Context) -> zscene::Result<Self> {
         let font = graphics::Font::new(context, "/Karla-Regular.ttf")?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
@@ -45,7 +45,7 @@ impl State {
         Ok(this)
     }
 
-    fn demo_move(&mut self, context: &mut Context) -> GameResult {
+    fn demo_move(&mut self, context: &mut Context) -> zscene::Result {
         let mut sprite = Sprite::from_path(context, "/fire.png", 0.5)?;
         sprite.set_pos(Point2::new(0.0, -1.0));
         let delta = Vector2::new(0.0, 1.5);
@@ -58,11 +58,11 @@ impl State {
         Ok(())
     }
 
-    fn demo_show_hide(&mut self, context: &mut Context) -> GameResult {
+    fn demo_show_hide(&mut self, context: &mut Context) -> zscene::Result {
         let mut sprite = {
             let font_size = 32.0;
             let text = Box::new(Text::new(("some text", self.font, font_size)));
-            let mut sprite = Sprite::from_drawable(context, text, 0.1);
+            let mut sprite = Sprite::from_drawable(context, text, 0.1)?;
             sprite.set_pos(Point2::new(0.0, 0.0));
             sprite.set_scale(2.0); // just testing set_size method
             let scale = sprite.scale();
@@ -84,7 +84,7 @@ impl State {
         Ok(())
     }
 
-    fn resize(&mut self, context: &mut Context, w: f32, h: f32) -> GameResult {
+    fn resize(&mut self, context: &mut Context, w: f32, h: f32) -> zscene::Result {
         let aspect_ratio = w / h;
         let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
         graphics::set_screen_coordinates(context, coordinates)?;
@@ -121,8 +121,9 @@ fn context() -> GameResult<(Context, event::EventsLoop)> {
         .build()
 }
 
-fn main() -> GameResult {
+fn main() -> zscene::Result {
     let (mut context, mut events_loop) = context()?;
     let mut state = State::new(&mut context)?;
-    event::run(&mut context, &mut events_loop, &mut state)
+    event::run(&mut context, &mut events_loop, &mut state)?;
+    Ok(())
 }

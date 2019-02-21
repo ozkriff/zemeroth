@@ -146,7 +146,7 @@ impl BattleView {
             context,
             images.selection.clone(),
             tile_size * 2.0 * geom::FLATNESS_COEFFICIENT,
-        );
+        )?;
         selection_marker.set_centered(true);
         selection_marker.set_color([0.0, 0.0, 1.0, 0.8].into());
         let sprites = Sprites {
@@ -187,7 +187,8 @@ impl BattleView {
     }
 
     pub fn draw(&self, context: &mut Context) -> ZResult {
-        self.scene.draw(context)
+        self.scene.draw(context)?;
+        Ok(())
     }
 
     pub fn add_action(&mut self, action: Box<dyn Action>) {
@@ -423,7 +424,7 @@ impl BattleView {
 
     fn highlight_tile(&mut self, context: &mut Context, pos: PosHex, color: Color) -> ZResult {
         let size = self.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
-        let mut sprite = Sprite::from_image(context, self.images.white_hex.clone(), size);
+        let mut sprite = Sprite::from_image(context, self.images.white_hex.clone(), size)?;
         let color_from = Color { a: 0.0, ..color };
         sprite.set_centered(true);
         sprite.set_color(color_from);
@@ -451,7 +452,7 @@ impl BattleView {
         let pos = hex_to_point(self.tile_size(), target_pos);
         let text = format!("{}%", chances.1 * 10);
         let text = Box::new(Text::new((text.as_str(), self.font, font_size())));
-        let mut sprite = Sprite::from_drawable(context, text, 0.1);
+        let mut sprite = Sprite::from_drawable(context, text, 0.1)?;
         sprite.set_pos(pos);
         sprite.set_centered(true);
         sprite.set_color([0.0, 0.0, 0.0, 1.0].into());
@@ -474,7 +475,7 @@ fn make_action_show_tile(
         TileType::Rocks => view.images.tile_rocks.clone(),
     };
     let size = view.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
-    let mut sprite = Sprite::from_image(context, image, size);
+    let mut sprite = Sprite::from_image(context, image, size)?;
     sprite.set_centered(true);
     sprite.set_pos(screen_pos);
     Ok(action::Show::new(&view.layers().bg, &sprite).boxed())
@@ -486,7 +487,8 @@ fn make_action_grass(
     at: PosHex,
 ) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
-    let mut sprite = Sprite::from_image(context, view.images.grass.clone(), view.tile_size() * 2.0);
+    let mut sprite =
+        Sprite::from_image(context, view.images.grass.clone(), view.tile_size() * 2.0)?;
     let v_offset = view.tile_size() * 0.5; // depends on the image
     let mut screen_pos_grass = screen_pos + geom::rand_tile_offset(view.tile_size(), 0.5);
     screen_pos_grass.y -= v_offset;
