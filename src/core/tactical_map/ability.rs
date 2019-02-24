@@ -6,7 +6,7 @@ use crate::core::{
 };
 
 /// Active ability.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::From)]
 pub enum Ability {
     Knockback,
     Club,

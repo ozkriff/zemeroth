@@ -99,15 +99,17 @@ pub struct PassiveAbilities(pub Vec<PassiveAbility>);
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Effects(pub Vec<Timed>);
 
+// TODO: Move to `ability` mod?
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PlannedAbility {
     // TODO: use real types + take effect::Duration into consideration
+    // (not Rounds, because it has `Forever` variant)
     pub rounds: i32,
     pub phase: Phase,
     pub ability: Ability,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Default)]
 pub struct Schedule {
     pub planned: Vec<PlannedAbility>,
 }
@@ -117,7 +119,7 @@ pub struct Summoner {
     pub count: u32,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, derive_more::From)]
 pub enum Component {
     Pos(Pos),
     Strength(Strength),
@@ -168,11 +170,15 @@ fn init_component(component: &mut Component) {
 impl Prototypes {
     pub fn from_string(s: &str) -> Self {
         let mut prototypes: Prototypes = ron::de::from_str(s).expect("Can't parse the prototypes");
-        for components in prototypes.0.values_mut() {
+        prototypes.init_components();
+        prototypes
+    }
+
+    pub fn init_components(&mut self) {
+        for components in self.0.values_mut() {
             for component in components {
                 init_component(component);
             }
         }
-        prototypes
     }
 }

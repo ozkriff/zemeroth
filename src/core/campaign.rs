@@ -163,11 +163,26 @@ mod tests {
         campaign::{Award, CampaignNode, Mode, Plan, State},
         tactical_map::{
             component::ObjType,
-            scenario::{self, Line, Scenario},
+            scenario::{self, Line, ObjectsGroup, Scenario},
             state::BattleResult,
             PlayerId,
         },
     };
+
+    type GroupTuple<'a> = (Option<PlayerId>, &'a str, Line, i32);
+
+    impl<'a> From<GroupTuple<'a>> for ObjectsGroup {
+        fn from(tuple: GroupTuple) -> Self {
+            let (owner, typename, line, count) = tuple;
+            let typename = typename.into();
+            Self {
+                owner,
+                typename,
+                line,
+                count,
+            }
+        }
+    }
 
     fn initial_agents() -> Vec<ObjType> {
         vec!["swordsman".into(), "alchemist".into()]

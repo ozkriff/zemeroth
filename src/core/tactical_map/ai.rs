@@ -36,10 +36,8 @@ fn does_agent_have_ability_bomb(state: &State, id: ObjId) -> bool {
 }
 
 fn check_path_is_ok(state: &State, id: ObjId, path: &Path) -> bool {
-    let command = Command::MoveTo(command::MoveTo {
-        id,
-        path: path.clone(),
-    });
+    let path = path.clone();
+    let command = command::MoveTo { id, path }.into();
     check(state, &command).is_ok()
 }
 
@@ -210,10 +208,12 @@ impl Ai {
 
     fn try_to_attack(&self, state: &State, agent_id: ObjId) -> Option<Command> {
         for &target_id in &shuffle_vec(state::enemy_agent_ids(state, self.id)) {
-            let command = Command::Attack(command::Attack {
-                attacker_id: agent_id,
+            let attacker_id = agent_id;
+            let command = command::Attack {
+                attacker_id,
                 target_id,
-            });
+            }
+            .into();
             if check(state, &command).is_ok() {
                 return Some(command);
             }
@@ -286,7 +286,7 @@ impl Ai {
         if agent.move_points < cost {
             return None;
         }
-        let command = Command::MoveTo(command::MoveTo { id: agent_id, path });
+        let command = command::MoveTo { id: agent_id, path }.into();
         if check(state, &command).is_ok() {
             return Some(command);
         }
@@ -311,7 +311,7 @@ impl Ai {
         };
         match path_result {
             PathfindingResult::Path(path) => {
-                let command = Command::MoveTo(command::MoveTo { id: agent_id, path });
+                let command = command::MoveTo { id: agent_id, path }.into();
                 if check(state, &command).is_ok() {
                     Some(command)
                 } else {

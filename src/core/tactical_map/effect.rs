@@ -31,7 +31,7 @@ pub struct Timed {
 }
 
 /// Instant effects
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, derive_more::From)]
 pub enum Effect {
     Create(Create),
     Kill(Kill),

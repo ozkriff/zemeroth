@@ -17,7 +17,7 @@ pub struct PosCube<T: Debug + Copy = i32> {
 
 /// Axial coordinates
 /// <http://www.redblobgames.com/grids/hexagons/#coordinates-axial>
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Hash, Eq)]
 pub struct PosHex<T: Debug + Copy = i32> {
     /// column
     pub q: T,

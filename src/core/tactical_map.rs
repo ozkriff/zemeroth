@@ -21,6 +21,9 @@ pub mod utils;
 mod apply;
 mod check;
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PlayerId(pub i32);
 
@@ -34,7 +37,9 @@ impl Phase {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(
+    Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd, Ord, Eq, Hash,
+)]
 pub struct ObjId(i32);
 
 #[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
@@ -56,7 +61,7 @@ pub struct Accuracy(pub i32);
 #[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Dodge(pub i32);
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq)]
 pub enum TileType {
     Plain,
     Rocks,

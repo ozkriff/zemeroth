@@ -16,8 +16,12 @@ rand = "0.6"
 log = "0.4"
 structopt = "0.2"
 env_logger = "0.6"
+derive_more = "0.14"
 serde = { version = "1.0", features = ['derive'] }
 num = { version = "0.2", default-features = false }
 ui = { path = "ggwp-zgui", package = "ggwp-zgui" }
 scene = { path = "ggwp-zscene", package = "ggwp-zscene" }
 zcomponents = { path = "zcomponents" }
+
+[dev-dependencies]
+pretty_assertions = "0.6"
