@@ -8,5 +8,4 @@ description = "Scene and Actions for GGEZ"
 keywords = ["ggez", "gamedev", "2D"]
 
 [dependencies]
-# ggez = "0.5.0-rc.0" # TODO: get back to crates.io version
-ggez = { git = "https://github.com/ozkriff/ggez", rev = "7699cb33b" }
+ggez = "0.5.0-rc.1"

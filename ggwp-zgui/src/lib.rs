@@ -10,7 +10,7 @@ use std::{
 
 use ggez::{
     graphics::{self, Color, Drawable, Image, Rect},
-    nalgebra::{Point2, Vector2},
+    nalgebra::Point2,
     Context, GameResult,
 };
 use log::{debug, info};
@@ -87,7 +87,7 @@ impl Sprite {
         };
         let basic_scale = height / dimensions.h;
         let param = graphics::DrawParam {
-            scale: Vector2::new(basic_scale, basic_scale),
+            scale: [basic_scale, basic_scale].into(),
             color: graphics::BLACK,
             ..Default::default()
         };
@@ -131,7 +131,7 @@ impl Sprite {
     }
 
     fn set_pos(&mut self, pos: Point2<f32>) {
-        self.param.dest = pos;
+        self.param.dest = pos.into();
     }
 }
 
