@@ -45,7 +45,7 @@ impl Sprite {
         };
         let scale = height / dimensions.h;
         let param = graphics::DrawParam {
-            scale: Vector2::new(scale, scale),
+            scale: [scale, scale].into(),
             ..Default::default()
         };
         let data = SpriteData {
@@ -87,8 +87,9 @@ impl Sprite {
         dimensions.scale(data.param.scale.x, data.param.scale.y);
         data.offset.x = -dimensions.w * offset.x;
         data.offset.y = -dimensions.h * offset.y;
-        let offset = data.offset;
-        data.param.dest += offset - old_offset;
+        let mut new_dest: Point2<f32> = data.param.dest.into();
+        new_dest += data.offset - old_offset;
+        data.param.dest = new_dest.into();
     }
 
     pub fn draw(&self, context: &mut Context) -> GameResult<()> {
@@ -98,7 +99,8 @@ impl Sprite {
 
     pub fn pos(&self) -> Point2<f32> {
         let data = self.data.borrow();
-        data.param.dest - data.offset
+        let dest: Point2<f32> = data.param.dest.into();
+        dest - data.offset
     }
 
     pub fn rect(&self) -> Rect {
@@ -126,7 +128,7 @@ impl Sprite {
 
     pub fn set_pos(&mut self, pos: Point2<f32>) {
         let mut data = self.data.borrow_mut();
-        data.param.dest = pos + data.offset;
+        data.param.dest = (pos + data.offset).into();
     }
 
     pub fn set_color(&mut self, color: graphics::Color) {
@@ -136,7 +138,7 @@ impl Sprite {
     pub fn set_scale(&mut self, scale: f32) {
         let mut data = self.data.borrow_mut();
         let s = data.basic_scale * scale;
-        let scale = Vector2::new(s, s);
+        let scale = [s, s].into();
         data.param.scale = scale;
     }
 
