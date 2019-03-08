@@ -90,8 +90,8 @@ fn do_move(state: &mut State, cb: Cb, id: ObjId, cost: Option<Moves>, path: Path
     let event = Event {
         active_event,
         actor_ids: vec![id],
-        instant_effects: HashMap::new(),
-        timed_effects: HashMap::new(),
+        instant_effects: Vec::new(),
+        timed_effects: Vec::new(),
     };
     do_event(state, cb, &event);
 }
@@ -108,19 +108,19 @@ fn execute_create(state: &mut State, cb: Cb, command: &command::Create) {
     ]);
     let id = state.alloc_id();
 
-    let mut instant_effects = HashMap::new();
+    let mut instant_effects = Vec::new();
     let effect_create = Effect::Create(effect::Create {
         pos: command.pos,
         prototype: command.prototype.clone(),
         components,
     });
-    instant_effects.insert(id, vec![effect_create]);
+    instant_effects.push((id, vec![effect_create]));
 
     let event = Event {
         active_event: ActiveEvent::Create,
         actor_ids: vec![id],
         instant_effects,
-        timed_effects: HashMap::new(),
+        timed_effects: Vec::new(),
     };
     do_event(state, cb, &event);
 }
@@ -152,7 +152,7 @@ fn execute_attack_internal(
         }
         target_effects.push(effect);
     }
-    let mut timed_effects = HashMap::new();
+    let mut timed_effects = Vec::new();
     let status = if target_effects.is_empty() {
         target_effects.push(Effect::Miss);
         AttackStatus::Miss
@@ -164,12 +164,12 @@ fn execute_attack_internal(
                 command.target_id,
             );
             target_effects.append(&mut effects.instant);
-            timed_effects.insert(command.target_id, effects.timed);
+            timed_effects.push((command.target_id, effects.timed));
         }
         AttackStatus::Hit
     };
-    let mut effects = HashMap::new();
-    effects.insert(command.target_id, target_effects);
+    let mut effects = Vec::new();
+    effects.push((command.target_id, target_effects));
     let event = Event {
         active_event,
         actor_ids: vec![command.attacker_id],
@@ -184,7 +184,7 @@ fn try_execute_passive_ability_burn(state: &mut State, target_id: ObjId) -> Exec
     let mut context = ExecuteContext::default();
     let damage = tactical_map::Strength(1);
     let target_effects = vec![wound_or_kill(state, target_id, damage)];
-    context.instant_effects.insert(target_id, target_effects);
+    context.instant_effects.push((target_id, target_effects));
     context
 }
 
@@ -192,7 +192,7 @@ fn try_execute_passive_ability_spike_trap(state: &mut State, target_id: ObjId) -
     let mut context = ExecuteContext::default();
     let damage = tactical_map::Strength(1);
     let target_effects = vec![wound_or_kill(state, target_id, damage)];
-    context.instant_effects.insert(target_id, target_effects);
+    context.instant_effects.push((target_id, target_effects));
     context
 }
 
@@ -213,7 +213,7 @@ fn try_execute_passive_ability_poison(state: &mut State, target_id: ObjId) -> Ex
         phase: Phase::from_player_id(owner),
         effect: effect::Lasting::Poison,
     };
-    context.timed_effects.insert(target_id, vec![effect]);
+    context.timed_effects.push((target_id, vec![effect]));
     context
 }
 
@@ -325,13 +325,12 @@ fn try_execute_passive_abilities_on_end_turn(state: &mut State, cb: Cb) {
                     target_effects.push(Effect::Heal(effect::Heal {
                         strength: regenerate.0,
                     }));
-                    let mut effects = HashMap::new();
-                    effects.insert(id, target_effects);
+                    let instant_effects = vec![(id, target_effects)];
                     let event = Event {
                         active_event,
                         actor_ids: vec![id],
-                        instant_effects: effects,
-                        timed_effects: HashMap::new(),
+                        instant_effects,
+                        timed_effects: Vec::new(),
                     };
                     do_event(state, cb, &event);
                 }
@@ -437,8 +436,8 @@ fn execute_event_end_turn(state: &mut State, cb: Cb) {
     let event = Event {
         active_event,
         actor_ids,
-        instant_effects: HashMap::new(),
-        timed_effects: HashMap::new(),
+        instant_effects: Vec::new(),
+        timed_effects: Vec::new(),
     };
     do_event(state, cb, &event);
 }
@@ -452,8 +451,8 @@ fn execute_event_begin_turn(state: &mut State, cb: Cb) {
     let event = Event {
         active_event,
         actor_ids,
-        instant_effects: HashMap::new(),
-        timed_effects: HashMap::new(),
+        instant_effects: Vec::new(),
+        timed_effects: Vec::new(),
     };
     do_event(state, cb, &event);
 }
@@ -512,8 +511,8 @@ fn try_execute_end_battle(state: &mut State, cb: Cb) {
             let event = Event {
                 active_event: ActiveEvent::EndBattle(active_event),
                 actor_ids: Vec::new(),
-                instant_effects: HashMap::new(),
-                timed_effects: HashMap::new(),
+                instant_effects: Vec::new(),
+                timed_effects: Vec::new(),
             };
             do_event(state, cb, &event);
         }
@@ -567,13 +566,12 @@ fn execute_effects(state: &mut State, cb: Cb) {
                         target_effects.push(Effect::Stun);
                     }
                 }
-                let mut instant_effects = HashMap::new();
-                instant_effects.insert(id, target_effects);
+                let instant_effects = vec![(id, target_effects)];
                 let event = Event {
                     active_event: ActiveEvent::EffectTick(active_event),
                     actor_ids: vec![id],
                     instant_effects,
-                    timed_effects: HashMap::new(),
+                    timed_effects: Vec::new(),
                 };
                 do_event(state, cb, &event);
             }
@@ -588,8 +586,8 @@ fn execute_effects(state: &mut State, cb: Cb) {
                 let event = Event {
                     active_event: ActiveEvent::EffectEnd(active_event),
                     actor_ids: vec![id],
-                    instant_effects: HashMap::new(),
-                    timed_effects: HashMap::new(),
+                    instant_effects: Vec::new(),
+                    timed_effects: Vec::new(),
                 };
                 do_event(state, cb, &event);
             }
@@ -652,7 +650,7 @@ fn start_fire(state: &mut State, pos: PosHex) -> ExecuteContext {
     } else {
         let effect_create = effect_create_object(state, &"fire".into(), pos);
         let id = state.alloc_id();
-        context.instant_effects.insert(id, vec![effect_create]);
+        context.instant_effects.push((id, vec![effect_create]));
         schedule_ability(state, id, Ability::Vanish);
         for target_id in state::agent_ids_at(state, pos) {
             context.merge_with(try_execute_passive_ability_burn(state, target_id));
@@ -668,7 +666,7 @@ fn create_poison_cloud(state: &mut State, pos: PosHex) -> ExecuteContext {
     } else {
         let effect_create = effect_create_object(state, &"poison_cloud".into(), pos);
         let id = state.alloc_id();
-        context.instant_effects.insert(id, vec![effect_create]);
+        context.instant_effects.push((id, vec![effect_create]));
         schedule_ability(state, id, Ability::Vanish);
         for target_id in state::agent_ids_at(state, pos) {
             context.merge_with(try_execute_passive_ability_poison(state, target_id));
@@ -677,23 +675,31 @@ fn create_poison_cloud(state: &mut State, pos: PosHex) -> ExecuteContext {
     context
 }
 
+fn extend_or_crate_sub_vec<T>(vec: &mut Vec<(ObjId, Vec<T>)>, id: ObjId, values: Vec<T>) {
+    if let Some(i) = vec.iter().position(|(this_id, _)| this_id == &id) {
+        vec[i].1.extend(values);
+    } else {
+        vec.push((id, values));
+    }
+}
+
 #[must_use]
 #[derive(Default, Debug, PartialEq, Clone)]
 struct ExecuteContext {
     actor_ids: Vec<ObjId>,
     moved_actor_ids: Vec<ObjId>,
     reaction_attack_targets: Vec<ObjId>,
-    instant_effects: HashMap<ObjId, Vec<Effect>>,
-    timed_effects: HashMap<ObjId, Vec<effect::Timed>>,
+    instant_effects: Vec<(ObjId, Vec<Effect>)>,
+    timed_effects: Vec<(ObjId, Vec<effect::Timed>)>,
 }
 
 impl ExecuteContext {
     fn merge_with(&mut self, other: Self) {
-        type M<T> = HashMap<ObjId, Vec<T>>;
+        type M<T> = Vec<(ObjId, Vec<T>)>;
 
         fn merge<T>(m: &mut M<T>, other: M<T>) {
-            for (key, value) in other {
-                m.entry(key).or_insert_with(Vec::new).extend(value);
+            for (id, values) in other {
+                extend_or_crate_sub_vec(m, id, values);
             }
         }
 
@@ -718,7 +724,7 @@ fn execute_use_ability_knockback(
     let to = Dir::get_neighbor_pos(command.pos, dir);
     if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
         let effect = Effect::Knockback(effect::Knockback { from, to });
-        context.instant_effects.insert(id, vec![effect]);
+        context.instant_effects.push((id, vec![effect]));
         context.moved_actor_ids.push(id);
     }
     context.actor_ids.push(id);
@@ -734,7 +740,7 @@ fn execute_use_ability_club(state: &mut State, command: &command::UseAbility) ->
     let to = Dir::get_neighbor_pos(command.pos, dir);
     if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
         let effect = Effect::FlyOff(effect::FlyOff { from, to });
-        context.instant_effects.insert(id, vec![effect]);
+        context.instant_effects.push((id, vec![effect]));
         context.moved_actor_ids.push(id);
     }
     if state.parts().belongs_to.get_opt(id).is_some() {
@@ -745,9 +751,8 @@ fn execute_use_ability_club(state: &mut State, command: &command::UseAbility) ->
             phase,
             effect: effect::Lasting::Stun,
         };
-        context.timed_effects.insert(id, vec![effect]);
-        let effects = context.instant_effects.entry(id).or_insert_with(Vec::new);
-        effects.push(Effect::Stun);
+        context.timed_effects.push((id, vec![effect]));
+        extend_or_crate_sub_vec(&mut context.instant_effects, id, vec![Effect::Stun]);
     }
     context.actor_ids.push(id);
     context
@@ -758,9 +763,13 @@ fn execute_use_ability_explode_fire(
     command: &command::UseAbility,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
-    assert!(context.instant_effects.get(&command.id).is_none());
+    assert!(context
+        .instant_effects
+        .iter()
+        .position(|(id, _)| id == &command.id)
+        .is_none());
     let effects = vec![Effect::Vanish];
-    context.instant_effects.insert(command.id, effects);
+    context.instant_effects.push((command.id, effects));
     context.merge_with(start_fire(state, command.pos));
     for dir in map::dirs() {
         let pos = Dir::get_neighbor_pos(command.pos, dir);
@@ -797,7 +806,7 @@ fn execute_use_ability_heal(
     let effect = Effect::Heal(effect::Heal {
         strength: ability.0,
     });
-    context.instant_effects.insert(id, vec![effect]);
+    context.instant_effects.push((id, vec![effect]));
     context
 }
 
@@ -805,7 +814,7 @@ fn execute_use_ability_vanish(state: &mut State, command: &command::UseAbility) 
     let mut context = ExecuteContext::default();
     assert!(state.parts().is_exist(command.id));
     let effects = vec![Effect::Vanish];
-    context.instant_effects.insert(command.id, effects);
+    context.instant_effects.push((command.id, effects));
     context
 }
 
@@ -814,9 +823,13 @@ fn execute_use_ability_explode_poison(
     command: &command::UseAbility,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
-    assert!(context.instant_effects.get(&command.id).is_none());
+    assert!(context
+        .instant_effects
+        .iter()
+        .position(|(id, _)| id == &command.id)
+        .is_none());
     let effects = vec![Effect::Vanish];
-    context.instant_effects.insert(command.id, effects);
+    context.instant_effects.push((command.id, effects));
     context.merge_with(create_poison_cloud(state, command.pos));
     for dir in map::dirs() {
         let pos = Dir::get_neighbor_pos(command.pos, dir);
@@ -922,11 +935,15 @@ fn execute_use_ability_explode_damage(
         let damage = tactical_map::Strength(1);
         let damage = correct_damage_with_armor(state, id, damage);
         let effects = vec![wound_or_kill(state, id, damage)];
-        context.instant_effects.insert(id, effects);
+        context.instant_effects.push((id, effects));
     }
-    assert!(context.instant_effects.get(&command.id).is_none());
+    assert!(context
+        .instant_effects
+        .iter()
+        .position(|(id, _)| id == &command.id)
+        .is_none());
     let effects = vec![Effect::Vanish];
-    context.instant_effects.insert(command.id, effects);
+    context.instant_effects.push((command.id, effects));
     context
 }
 
@@ -949,11 +966,15 @@ fn execute_use_ability_explode_push(
             effects.push(Effect::Knockback(effect::Knockback { from: pos, to }));
             context.moved_actor_ids.push(id);
         }
-        context.instant_effects.insert(id, effects);
+        context.instant_effects.push((id, effects));
     }
-    assert!(context.instant_effects.get(&command.id).is_none());
+    assert!(context
+        .instant_effects
+        .iter()
+        .position(|(id, _)| id == &command.id)
+        .is_none());
     let effects = vec![Effect::Vanish];
-    context.instant_effects.insert(command.id, effects);
+    context.instant_effects.push((command.id, effects));
     context
 }
 
@@ -967,7 +988,7 @@ fn execute_use_ability_poison(state: &mut State, command: &command::UseAbility) 
         phase,
         effect: effect::Lasting::Poison,
     };
-    context.timed_effects.insert(id, vec![effect]);
+    context.timed_effects.push((id, vec![effect]));
     context.actor_ids.push(id);
     context
 }
@@ -1022,7 +1043,7 @@ fn throw_bomb(
         to: command.pos,
     });
     let effects = vec![effect_create, effect_throw];
-    context.instant_effects.insert(id, effects);
+    context.instant_effects.push((id, effects));
     {
         let phase = Phase::from_player_id(state.player_id());
         if state.parts().schedule.get_opt(id).is_none() {
@@ -1107,7 +1128,7 @@ fn execute_use_ability_summon(state: &mut State, command: &command::UseAbility) 
         let id = state.alloc_id();
         let effects = vec![effect_create, Effect::Stun];
         new_agents.push(prototype);
-        context.instant_effects.insert(id, effects);
+        context.instant_effects.push((id, effects));
         context.moved_actor_ids.push(id);
         context.reaction_attack_targets.push(id);
     }
@@ -1193,8 +1214,6 @@ fn choose_who_to_summon(
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use crate::core::{
         map::Dir,
         tactical_map::{
@@ -1225,26 +1244,26 @@ mod tests {
 
     #[test]
     fn test_merge_with_hashmap() {
-        let mut instant_effects1 = HashMap::new();
+        let mut instant_effects1 = Vec::new();
         let effect_kill = Effect::Kill(effect::Kill {
             dir: Some(Dir::East),
         });
-        instant_effects1.insert(ObjId(0), vec![effect_kill.clone(), Effect::Stun]);
+        instant_effects1.push((ObjId(0), vec![effect_kill.clone(), Effect::Stun]));
         let mut context1 = ExecuteContext {
             instant_effects: instant_effects1,
             ..Default::default()
         };
-        let mut instant_effects2 = HashMap::new();
-        instant_effects2.insert(ObjId(0), vec![Effect::Vanish, Effect::Miss]);
+        let mut instant_effects2 = Vec::new();
+        instant_effects2.push((ObjId(0), vec![Effect::Vanish, Effect::Miss]));
         let context2 = ExecuteContext {
             instant_effects: instant_effects2,
             ..Default::default()
         };
-        let mut instant_effects_expected = HashMap::new();
-        instant_effects_expected.insert(
+        let mut instant_effects_expected = Vec::new();
+        instant_effects_expected.push((
             ObjId(0),
             vec![effect_kill, Effect::Stun, Effect::Vanish, Effect::Miss],
-        );
+        ));
         let context_expected = ExecuteContext {
             instant_effects: instant_effects_expected,
             ..Default::default()
