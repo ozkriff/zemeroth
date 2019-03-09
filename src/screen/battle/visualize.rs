@@ -432,14 +432,14 @@ fn visualize_pre(
 ) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     actions.push(visualize_event(state, view, context, &event.active_event)?);
-    for (&id, effects) in &event.instant_effects {
+    for &(id, ref effects) in &event.instant_effects {
         for effect in effects {
-            actions.push(visualize_instant_effect(state, view, context, id, effect)?);
+            actions.push(visualize_instant_effect(state, view, context, id, &effect)?);
         }
     }
-    for (&id, effects) in &event.timed_effects {
+    for &(id, ref effects) in &event.timed_effects {
         for effect in effects {
-            actions.push(visualize_lasting_effect(state, view, context, id, effect)?);
+            actions.push(visualize_lasting_effect(state, view, context, id, &effect)?);
         }
     }
     Ok(seq(actions))
@@ -455,10 +455,10 @@ fn visualize_post(
     for &id in &event.actor_ids {
         actions.push(refresh_brief_agent_info(state, view, context, id)?);
     }
-    for &id in event.instant_effects.keys() {
+    for &(id, _) in &event.instant_effects {
         actions.push(refresh_brief_agent_info(state, view, context, id)?);
     }
-    for &id in event.timed_effects.keys() {
+    for &(id, _) in &event.timed_effects {
         actions.push(refresh_brief_agent_info(state, view, context, id)?);
     }
     Ok(seq(actions))

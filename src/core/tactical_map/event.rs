@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::core::tactical_map::{
     ability::{Ability, PassiveAbility},
     component::WeaponType,
@@ -17,8 +15,8 @@ pub struct Event {
     /// These agent's stats must be updated
     pub actor_ids: Vec<ObjId>,
 
-    pub instant_effects: HashMap<ObjId, Vec<Effect>>,
-    pub timed_effects: HashMap<ObjId, Vec<effect::Timed>>,
+    pub instant_effects: Vec<(ObjId, Vec<Effect>)>,
+    pub timed_effects: Vec<(ObjId, Vec<effect::Timed>)>,
 }
 
 #[derive(Debug, Clone)]

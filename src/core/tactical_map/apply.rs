@@ -11,12 +11,12 @@ use crate::core::tactical_map::{
 pub fn apply(state: &mut State, event: &Event) {
     debug!("event::apply: {:?}", event);
     apply_event(state, event);
-    for (&obj_id, effects) in &event.instant_effects {
+    for &(obj_id, ref effects) in &event.instant_effects {
         for effect in effects {
             apply_effect_instant(state, obj_id, effect);
         }
     }
-    for (&obj_id, effects) in &event.timed_effects {
+    for &(obj_id, ref effects) in &event.timed_effects {
         for effect in effects {
             apply_effect_timed(state, obj_id, effect);
         }
