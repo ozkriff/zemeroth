@@ -12,7 +12,7 @@ use crate::core::{
         check::{check, Error},
         command::{self, Command},
         component::{self, Component, ObjType},
-        effect::{self, Duration, Effect},
+        effect::{self, Effect},
         event::{self, ActiveEvent, Event},
         movement::Path,
         state::{self, BattleResult, State},
@@ -42,7 +42,6 @@ pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error
         Command::EndTurn(ref command) => execute_end_turn(state, cb, command),
         Command::UseAbility(ref command) => execute_use_ability(state, cb, command),
     }
-    execute_planned_abilities(state, cb);
     match *command {
         Command::Create(_) => {}
         _ => try_execute_end_battle(state, cb),
@@ -92,6 +91,7 @@ fn do_move(state: &mut State, cb: Cb, id: ObjId, cost: Option<Moves>, path: Path
         actor_ids: vec![id],
         instant_effects: Vec::new(),
         timed_effects: Vec::new(),
+        scheduled_abilities: Vec::new(),
     };
     do_event(state, cb, &event);
 }
@@ -121,6 +121,7 @@ fn execute_create(state: &mut State, cb: Cb, command: &command::Create) {
         actor_ids: vec![id],
         instant_effects,
         timed_effects: Vec::new(),
+        scheduled_abilities: Vec::new(),
     };
     do_event(state, cb, &event);
 }
@@ -164,7 +165,9 @@ fn execute_attack_internal(
                 command.target_id,
             );
             target_effects.append(&mut effects.instant);
-            timed_effects.push((command.target_id, effects.timed));
+            if !effects.timed.is_empty() {
+                timed_effects.push((command.target_id, effects.timed));
+            }
         }
         AttackStatus::Hit
     };
@@ -175,6 +178,7 @@ fn execute_attack_internal(
         actor_ids: vec![command.attacker_id],
         instant_effects: effects,
         timed_effects,
+        scheduled_abilities: Vec::new(),
     };
     do_event(state, cb, &event);
     status
@@ -196,16 +200,10 @@ fn try_execute_passive_ability_spike_trap(state: &mut State, target_id: ObjId) -
     context
 }
 
-fn try_execute_passive_ability_poison(state: &mut State, target_id: ObjId) -> ExecuteContext {
+fn try_execute_passive_ability_poison(state: &State, target_id: ObjId) -> ExecuteContext {
     let mut context = ExecuteContext::default();
-    if let Some(effects) = state.parts_mut().effects.get_opt_mut(target_id) {
-        for effect in &mut effects.0 {
-            if let effect::Lasting::Poison = effect.effect {
-                // this agent is already poisoned, so just resetting the duration
-                effect.duration = Duration::Rounds(2);
-                return context;
-            }
-        }
+    if state.parts().strength.get(target_id).strength <= Strength(1) {
+        return context;
     }
     let owner = state.parts().belongs_to.get(target_id).0;
     let effect = effect::Timed {
@@ -225,6 +223,11 @@ fn do_passive_ability(
     ability: PassiveAbility,
     context: ExecuteContext,
 ) {
+    assert!(
+        !context.instant_effects.is_empty()
+            || !context.timed_effects.is_empty()
+            || !context.scheduled_abilities.is_empty()
+    );
     let active_event = ActiveEvent::UsePassiveAbility(event::UsePassiveAbility {
         pos: target_pos,
         id,
@@ -235,6 +238,7 @@ fn do_passive_ability(
         actor_ids: context.actor_ids,
         instant_effects: context.instant_effects,
         timed_effects: context.timed_effects,
+        scheduled_abilities: Vec::new(),
     };
     do_event(state, cb, &event);
 }
@@ -278,7 +282,9 @@ fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: ObjI
                 }
                 PassiveAbility::Poison => {
                     let context = try_execute_passive_ability_poison(state, target_id);
-                    do_passive_ability(state, cb, id, target_pos, ability, context);
+                    if !context.timed_effects.is_empty() {
+                        do_passive_ability(state, cb, id, target_pos, ability, context);
+                    }
                 }
                 PassiveAbility::HeavyImpact
                 | PassiveAbility::PoisonAttack
@@ -289,7 +295,7 @@ fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: ObjI
     }
 }
 
-fn try_execute_passive_abilities_on_end_turn(state: &mut State, cb: Cb) {
+fn try_execute_passive_abilities_on_begin_turn(state: &mut State, cb: Cb) {
     for id in state::players_agent_ids(state, state.player_id()) {
         try_execute_passive_abilities_tick(state, cb, id);
     }
@@ -331,6 +337,7 @@ fn try_execute_passive_abilities_on_end_turn(state: &mut State, cb: Cb) {
                         actor_ids: vec![id],
                         instant_effects,
                         timed_effects: Vec::new(),
+                        scheduled_abilities: Vec::new(),
                     };
                     do_event(state, cb, &event);
                 }
@@ -438,6 +445,7 @@ fn execute_event_end_turn(state: &mut State, cb: Cb) {
         actor_ids,
         instant_effects: Vec::new(),
         timed_effects: Vec::new(),
+        scheduled_abilities: Vec::new(),
     };
     do_event(state, cb, &event);
 }
@@ -453,31 +461,20 @@ fn execute_event_begin_turn(state: &mut State, cb: Cb) {
         actor_ids,
         instant_effects: Vec::new(),
         timed_effects: Vec::new(),
+        scheduled_abilities: Vec::new(),
     };
     do_event(state, cb, &event);
 }
 
-fn tick_planned_abilities(state: &mut State) {
-    let phase = Phase::from_player_id(state.player_id());
-    let ids = state.parts().schedule.ids_collected();
-    for obj_id in ids {
-        let schedule = state.parts_mut().schedule.get_mut(obj_id);
-        for planned in &mut schedule.planned {
-            if planned.phase == phase {
-                planned.rounds -= 1;
-            }
-        }
-    }
-}
-
 fn execute_planned_abilities(state: &mut State, cb: Cb) {
-    let ids = state.parts().schedule.ids_collected();
+    let mut ids = state.parts().schedule.ids_collected();
+    ids.sort();
     for obj_id in ids {
         let pos = state.parts().pos.get(obj_id).0;
         let mut activated = Vec::new();
         {
-            let schedule = state.parts_mut().schedule.get_mut(obj_id);
-            for planned in &mut schedule.planned {
+            let schedule = state.parts().schedule.get(obj_id);
+            for planned in &schedule.planned {
                 if planned.rounds <= 0 {
                     trace!("planned ability: ready!");
                     let c = command::UseAbility {
@@ -488,7 +485,6 @@ fn execute_planned_abilities(state: &mut State, cb: Cb) {
                     activated.push(c);
                 }
             }
-            schedule.planned.retain(|p| p.rounds > 0);
         }
         for command in activated {
             if state.parts().is_exist(obj_id) {
@@ -513,37 +509,19 @@ fn try_execute_end_battle(state: &mut State, cb: Cb) {
                 actor_ids: Vec::new(),
                 instant_effects: Vec::new(),
                 timed_effects: Vec::new(),
+                scheduled_abilities: Vec::new(),
             };
             do_event(state, cb, &event);
         }
     }
 }
 
-fn is_lasting_effect_over(state: &State, id: ObjId, timed_effect: &effect::Timed) -> bool {
-    if let effect::Lasting::Poison = timed_effect.effect {
-        let strength = state.parts().strength.get(id).strength;
-        if strength <= tactical_map::Strength(1) {
-            return true;
-        }
-    }
-    timed_effect.duration.is_over()
-}
-
 // TODO: simplify
 /// Ticks and kills all the lasting effects.
 fn execute_effects(state: &mut State, cb: Cb) {
     let phase = Phase::from_player_id(state.player_id());
-    let ids = state.parts().effects.ids_collected();
-    for id in ids {
-        for effect in &mut state.parts_mut().effects.get_mut(id).0 {
-            if effect.phase == phase {
-                if let Duration::Rounds(ref mut n) = effect.duration {
-                    *n -= 1;
-                }
-            }
-        }
-
-        for effect in &mut state.parts_mut().effects.get_mut(id).0.clone() {
+    for id in state.parts().effects.ids_collected() {
+        for effect in &state.parts().effects.get(id).0.clone() {
             if effect.phase != phase {
                 continue;
             }
@@ -572,13 +550,14 @@ fn execute_effects(state: &mut State, cb: Cb) {
                     actor_ids: vec![id],
                     instant_effects,
                     timed_effects: Vec::new(),
+                    scheduled_abilities: Vec::new(),
                 };
                 do_event(state, cb, &event);
             }
             if !state.parts().is_exist(id) {
                 break;
             }
-            if is_lasting_effect_over(state, id, effect) {
+            if state::is_lasting_effect_over(state, id, effect) {
                 let active_event = event::EffectEnd {
                     id,
                     effect: effect.effect.clone(),
@@ -588,6 +567,7 @@ fn execute_effects(state: &mut State, cb: Cb) {
                     actor_ids: vec![id],
                     instant_effects: Vec::new(),
                     timed_effects: Vec::new(),
+                    scheduled_abilities: Vec::new(),
                 };
                 do_event(state, cb, &event);
             }
@@ -596,62 +576,31 @@ fn execute_effects(state: &mut State, cb: Cb) {
         if !state.parts().is_exist(id) {
             continue;
         }
-
-        // TODO: extract a function
-        let mut effects = state.parts_mut().effects.get(id).0.clone();
-        effects.retain(|effect| !is_lasting_effect_over(state, id, effect));
-        state.parts_mut().effects.get_mut(id).0 = effects;
     }
 }
 
 fn execute_end_turn(state: &mut State, cb: Cb, _: &command::EndTurn) {
     execute_event_end_turn(state, cb);
     execute_event_begin_turn(state, cb);
-    tick_planned_abilities(state);
-    try_execute_passive_abilities_on_end_turn(state, cb);
+    try_execute_passive_abilities_on_begin_turn(state, cb);
     execute_planned_abilities(state, cb);
     execute_effects(state, cb);
 }
 
-fn schedule_ability(state: &mut State, id: ObjId, ability: Ability) {
-    let phase = Phase::from_player_id(state.player_id());
-    let schedule = {
-        if state.parts().schedule.get_opt(id).is_none() {
-            let component = component::Schedule {
-                planned: Vec::new(),
-            };
-            state.parts_mut().schedule.insert(id, component);
-        }
-        state.parts_mut().schedule.get_mut(id)
-    };
-    let planned_ability = component::PlannedAbility {
-        rounds: 2,
-        phase,
-        ability,
-    };
-    schedule.planned.push(planned_ability);
-}
-
-fn refresh_scheduled_ability(state: &mut State, id: ObjId, ability: &Ability) {
-    let schedule = state.parts_mut().schedule.get_mut(id);
-    for planned_ability in &mut schedule.planned {
-        if planned_ability.ability == *ability {
-            planned_ability.rounds = 2; // TODO: do not hardcode
-            return;
-        }
-    }
-    panic!("haven't found an object with this ability");
-}
-
 fn start_fire(state: &mut State, pos: PosHex) -> ExecuteContext {
+    let vanish = component::PlannedAbility {
+        rounds: 2, // TODO: Replace this magic number
+        phase: Phase::from_player_id(state.player_id()),
+        ability: Ability::Vanish,
+    };
     let mut context = ExecuteContext::default();
     if let Some(id) = state::obj_with_passive_ability_at(state, pos, PassiveAbility::Burn) {
-        refresh_scheduled_ability(state, id, &Ability::Vanish);
+        context.scheduled_abilities.push((id, vec![vanish]));
     } else {
         let effect_create = effect_create_object(state, &"fire".into(), pos);
         let id = state.alloc_id();
         context.instant_effects.push((id, vec![effect_create]));
-        schedule_ability(state, id, Ability::Vanish);
+        context.scheduled_abilities.push((id, vec![vanish]));
         for target_id in state::agent_ids_at(state, pos) {
             context.merge_with(try_execute_passive_ability_burn(state, target_id));
         }
@@ -660,14 +609,19 @@ fn start_fire(state: &mut State, pos: PosHex) -> ExecuteContext {
 }
 
 fn create_poison_cloud(state: &mut State, pos: PosHex) -> ExecuteContext {
+    let vanish = component::PlannedAbility {
+        rounds: 2, // TODO: Replace this magic number
+        phase: Phase::from_player_id(state.player_id()),
+        ability: Ability::Vanish,
+    };
     let mut context = ExecuteContext::default();
     if let Some(id) = state::obj_with_passive_ability_at(state, pos, PassiveAbility::Poison) {
-        refresh_scheduled_ability(state, id, &Ability::Vanish);
+        context.scheduled_abilities.push((id, vec![vanish]));
     } else {
         let effect_create = effect_create_object(state, &"poison_cloud".into(), pos);
         let id = state.alloc_id();
         context.instant_effects.push((id, vec![effect_create]));
-        schedule_ability(state, id, Ability::Vanish);
+        context.scheduled_abilities.push((id, vec![vanish]));
         for target_id in state::agent_ids_at(state, pos) {
             context.merge_with(try_execute_passive_ability_poison(state, target_id));
         }
@@ -691,6 +645,7 @@ struct ExecuteContext {
     reaction_attack_targets: Vec<ObjId>,
     instant_effects: Vec<(ObjId, Vec<Effect>)>,
     timed_effects: Vec<(ObjId, Vec<effect::Timed>)>,
+    scheduled_abilities: Vec<(ObjId, Vec<component::PlannedAbility>)>,
 }
 
 impl ExecuteContext {
@@ -709,6 +664,7 @@ impl ExecuteContext {
             .extend(other.reaction_attack_targets);
         merge(&mut self.instant_effects, other.instant_effects);
         merge(&mut self.timed_effects, other.timed_effects);
+        merge(&mut self.scheduled_abilities, other.scheduled_abilities);
     }
 }
 
@@ -889,7 +845,18 @@ fn try_attack(state: &State, attacker_id: ObjId, target_id: ObjId) -> Option<Eff
     let target_strength = parts.strength.get(target_id).strength;
     let target_armor = state::get_armor(state, target_id);
     let attack_strength = agent_attacker.attack_strength;
-    let (_k_min, k_max) = hit_chance(state, attacker_id, target_id);
+    let (k_min, k_max) = hit_chance(state, attacker_id, target_id);
+    if state.deterministic_mode() {
+        // I want to be sure that I either will totally miss
+        // or that I'll surely hit the target at a full force.
+        let sure_miss = k_min < 0;
+        let sure_hit = k_min > 10;
+        assert!(
+            sure_miss || sure_hit,
+            "Hit isn't determined: {:?}",
+            (k_min, k_max)
+        );
+    }
     let r = thread_rng().gen_range(0, 11);
     let damage_raw = Strength(k_max - r);
     let damage = Strength(utils::clamp(damage_raw.0, 0, attack_strength.0));
@@ -1044,22 +1011,14 @@ fn throw_bomb(
     });
     let effects = vec![effect_create, effect_throw];
     context.instant_effects.push((id, effects));
-    {
-        let phase = Phase::from_player_id(state.player_id());
-        if state.parts().schedule.get_opt(id).is_none() {
-            let component = component::Schedule {
-                planned: Vec::new(),
-            };
-            state.parts_mut().schedule.insert(id, component);
-        }
-        let schedule = state.parts_mut().schedule.get_mut(id);
-        let planned_ability = component::PlannedAbility {
-            rounds,
-            phase,
-            ability,
-        };
-        schedule.planned.push(planned_ability);
-    }
+    let planned_ability = component::PlannedAbility {
+        rounds,
+        phase: Phase::from_player_id(state.player_id()),
+        ability,
+    };
+    context
+        .scheduled_abilities
+        .push((id, vec![planned_ability]));
     context
 }
 
@@ -1167,6 +1126,7 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
         actor_ids: context.actor_ids,
         instant_effects: context.instant_effects,
         timed_effects: context.timed_effects,
+        scheduled_abilities: context.scheduled_abilities,
     };
     do_event(state, cb, &event);
     for id in context.moved_actor_ids {
@@ -1223,6 +1183,8 @@ mod tests {
     };
 
     use super::ExecuteContext;
+
+    // TODO: Don't create ObjId's manually? Use a mocked State instead.
 
     #[test]
     fn test_merge_with_vector() {

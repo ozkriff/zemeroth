@@ -3,7 +3,7 @@ use crate::core::{
     tactical_map::{ability::Ability, component::ObjType, movement::Path, ObjId, PlayerId},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, derive_more::From)]
 pub enum Command {
     Create(Create),
     Attack(Attack),

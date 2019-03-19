@@ -1,7 +1,8 @@
 use crate::core::{
     map::{self, PosHex},
     tactical_map::{
-        ability::PassiveAbility, component::ObjType, utils, ObjId, PlayerId, Strength, TileType,
+        ability::PassiveAbility, component::ObjType, effect, utils, ObjId, PlayerId, Strength,
+        TileType,
     },
 };
 
@@ -11,7 +12,7 @@ mod private {
     use log::error;
 
     use crate::core::{
-        map::{self, HexMap},
+        map,
         tactical_map::{
             command::{self, Command},
             component::{Component, ObjType, Parts, Prototypes},
@@ -21,7 +22,7 @@ mod private {
         },
     };
 
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, PartialEq)]
     pub struct BattleResult {
         pub winner_id: PlayerId,
         pub survivor_types: Vec<ObjType>,
@@ -35,11 +36,14 @@ mod private {
         player_id: PlayerId,
         prototypes: Prototypes,
         battle_result: Option<BattleResult>,
+
+        /// Enables panics when non-deterministic functions are called.
+        deterministic_mode: bool,
     }
 
     impl State {
         pub fn new(prototypes: Prototypes, scenario: Scenario, cb: execute::Cb) -> Self {
-            assert_eq!(scenario.players_count, 2, "Only 2 players are supported");
+            scenario.check().expect("Bad scenario");
             assert!(scenario.map_radius.0 >= 3);
             let mut this = Self {
                 map: map::HexMap::new(scenario.map_radius),
@@ -48,28 +52,41 @@ mod private {
                 parts: Parts::new(),
                 prototypes,
                 battle_result: None,
+                deterministic_mode: false,
             };
             this.create_terrain();
             this.create_objects(cb);
             this
         }
 
+        #[allow(dead_code)]
+        pub fn set_deterministic_mode(&mut self, value: bool) {
+            self.deterministic_mode = value;
+        }
+
+        pub fn deterministic_mode(&self) -> bool {
+            self.deterministic_mode
+        }
+
         pub fn scenario(&self) -> &Scenario {
             &self.scenario
         }
 
+        // TODO: Handle Scenario::exact_tiles
         fn create_terrain(&mut self) {
             for _ in 0..self.scenario.rocky_tiles_count {
                 let pos = match scenario::random_free_pos(self) {
                     Some(pos) => pos,
                     None => continue,
                 };
-                self.map_mut().set_tile(pos, TileType::Rocks);
+                self.map.set_tile(pos, TileType::Rocks);
             }
         }
 
+        // TODO: Handle Scenario::exact_objects
         fn create_objects(&mut self, cb: execute::Cb) {
             let player_id_initial = self.player_id();
+            // TODO: Merge the cycles. Generate `exact_objects` based on `objects`.
             for group in self.scenario.objects.clone() {
                 if let Some(player_id) = group.owner {
                     self.set_player_id(player_id);
@@ -89,6 +106,17 @@ mod private {
                     });
                     execute::execute(self, &command, cb).expect("Can't create an object");
                 }
+            }
+            for group in self.scenario.exact_objects.clone() {
+                if let Some(player_id) = group.owner {
+                    self.set_player_id(player_id);
+                }
+                let command = Command::Create(command::Create {
+                    prototype: group.typename.clone(),
+                    pos: group.pos,
+                    owner: group.owner,
+                });
+                execute::execute(self, &command, cb).expect("Can't create an object");
             }
             self.set_player_id(player_id_initial);
         }
@@ -125,15 +153,11 @@ mod private {
         }
     }
 
-    /// Mutators. Be carefull with them!
+    /// Mutators. Be careful with them!
     impl State {
         // TODO: check that it's called only from apply.rs!
         pub(in crate::core) fn parts_mut(&mut self) -> &mut Parts {
             &mut self.parts
-        }
-
-        pub(in crate::core) fn map_mut(&mut self) -> &mut HexMap<TileType> {
-            &mut self.map
         }
 
         pub(in crate::core) fn set_player_id(&mut self, new_value: PlayerId) {
@@ -186,6 +210,16 @@ pub fn is_tile_completely_free(state: &State, pos: PosHex) -> bool {
         }
     }
     true
+}
+
+pub fn is_lasting_effect_over(state: &State, id: ObjId, timed_effect: &effect::Timed) -> bool {
+    if let effect::Lasting::Poison = timed_effect.effect {
+        let strength = state.parts().strength.get(id).strength;
+        if strength <= Strength(1) {
+            return true;
+        }
+    }
+    timed_effect.duration.is_over()
 }
 
 /// Are there any enemy agents on the adjacent tiles?

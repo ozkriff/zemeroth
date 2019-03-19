@@ -68,6 +68,9 @@ fn check_command_create(state: &State, command: &command::Create) -> Result<(), 
 }
 
 fn check_command_attack(state: &State, command: &command::Attack) -> Result<(), Error> {
+    if command.attacker_id == command.target_id {
+        return Err(Error::BadTargetId);
+    }
     let target_pos = match state.parts().pos.get_opt(command.target_id) {
         Some(pos) => pos.0,
         None => return Err(Error::BadTargetId),

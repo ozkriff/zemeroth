@@ -1,6 +1,6 @@
 use std::{error, fmt, io, path::PathBuf};
 
-#[derive(Debug)]
+#[derive(Debug, derive_more::From)]
 pub enum ZError {
     GgezError(ggez::GameError),
     UiError(ui::Error),
@@ -42,29 +42,5 @@ impl error::Error for ZError {
             ZError::RonDeserializeError { error, .. } => Some(error),
             ZError::IOError(ref e) => Some(e),
         }
-    }
-}
-
-impl From<ggez::GameError> for ZError {
-    fn from(e: ggez::GameError) -> Self {
-        ZError::GgezError(e)
-    }
-}
-
-impl From<ui::Error> for ZError {
-    fn from(e: ui::Error) -> Self {
-        ZError::UiError(e)
-    }
-}
-
-impl From<scene::Error> for ZError {
-    fn from(e: scene::Error) -> Self {
-        ZError::SceneError(e)
-    }
-}
-
-impl From<io::Error> for ZError {
-    fn from(e: io::Error) -> ZError {
-        ZError::IOError(e)
     }
 }

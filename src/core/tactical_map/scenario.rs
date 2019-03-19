@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
@@ -6,7 +8,7 @@ use crate::core::{
     tactical_map::{
         component::ObjType,
         state::{self, State},
-        PlayerId,
+        PlayerId, TileType,
     },
 };
 
@@ -18,31 +20,77 @@ pub struct ObjectsGroup {
     pub count: i32,
 }
 
-type GroupTuple<'a> = (Option<PlayerId>, &'a str, Line, i32);
-
-impl<'a> From<GroupTuple<'a>> for ObjectsGroup {
-    fn from(tuple: GroupTuple) -> Self {
-        let (owner, typename, line, count) = tuple;
-        let typename = typename.into();
-        Self {
-            owner,
-            typename,
-            line,
-            count,
-        }
-    }
+// TODO: rename to just `Object`
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExactObject {
+    pub owner: Option<PlayerId>,
+    pub typename: ObjType,
+    pub pos: PosHex,
 }
 
+// TODO: Split into `Scenario` (exact info) and `ScenarioTemplate`?
+//  Rename  `exact_*` fields to just `*`.
 #[serde(default = "default")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scenario {
     pub map_radius: map::Distance,
     pub players_count: i32,
+
+    // TODO: rename it to `randomized_tiles` later (not only `TileType::Rocks`)
     pub rocky_tiles_count: i32,
+
+    pub exact_tiles: HashMap<PosHex, TileType>,
+
+    // TODO: rename to `randomized_objects`
     pub objects: Vec<ObjectsGroup>,
+
+    pub exact_objects: Vec<ExactObject>,
+}
+
+#[derive(Clone, Debug, derive_more::From)]
+pub enum Error {
+    MapIsTooSmall,
+    PosOutsideOfMap(PosHex),
+    NoPlayerAgents,
+    NoEnemyAgents,
+    UnsupportedPlayersCount(i32),
+}
+
+impl Scenario {
+    pub fn check(&self) -> Result<(), Error> {
+        if self.players_count != 2 {
+            return Err(Error::UnsupportedPlayersCount(self.players_count));
+        }
+        if self.map_radius.0 < 3 {
+            return Err(Error::MapIsTooSmall);
+        }
+        let origin = PosHex { q: 0, r: 0 };
+        for obj in &self.exact_objects {
+            let dist = map::distance_hex(origin, obj.pos);
+            if dist > self.map_radius {
+                return Err(Error::PosOutsideOfMap(obj.pos));
+            }
+        }
+        if !self
+            .exact_objects
+            .iter()
+            .any(|obj| obj.owner == Some(PlayerId(0)))
+        {
+            return Err(Error::NoPlayerAgents);
+        }
+        if !self
+            .exact_objects
+            .iter()
+            .any(|obj| obj.owner == Some(PlayerId(1)))
+        {
+            return Err(Error::NoEnemyAgents);
+        }
+        Ok(())
+    }
 }
 
 pub fn random_free_pos(state: &State) -> Option<PosHex> {
+    assert!(!state.deterministic_mode());
     let attempts = 30;
     let radius = state.map().radius();
     for _ in 0..attempts {
@@ -91,6 +139,7 @@ impl Line {
 }
 
 fn random_free_sector_pos(state: &State, player_id: PlayerId, line: Line) -> Option<PosHex> {
+    assert!(!state.deterministic_mode());
     let attempts = 30;
     let radius = state.map().radius();
     let (min, max) = line.to_range(radius);
@@ -123,8 +172,10 @@ pub fn default() -> Scenario {
     Scenario {
         map_radius: map::Distance(5),
         players_count: 2,
-        rocky_tiles_count: 12,
+        rocky_tiles_count: 0,
+        exact_tiles: HashMap::new(),
         objects: Vec::new(),
+        exact_objects: Vec::new(),
     }
 }
 

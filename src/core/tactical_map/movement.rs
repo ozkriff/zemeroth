@@ -61,7 +61,7 @@ pub fn tile_cost(state: &State, _: ObjId, _: PosHex, pos: PosHex) -> MovePoints 
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Path {
     tiles: Vec<PosHex>,
 }
