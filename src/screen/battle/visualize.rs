@@ -12,8 +12,7 @@ use scene::{action, Action, Boxed, Sprite};
 
 use crate::{
     core::{
-        map::{Dir, PosHex},
-        tactical_map::{
+        battle::{
             ability::Ability,
             component::{ObjType, WeaponType},
             effect::{self, Effect},
@@ -21,6 +20,7 @@ use crate::{
             execute::{hit_chance, ApplyPhase},
             state, ObjId, PlayerId, State,
         },
+        map::{Dir, PosHex},
     },
     geom,
     screen::battle::view::BattleView,

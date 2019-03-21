@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
+    battle::{Attacks, Strength},
     map::Distance,
-    tactical_map::{Attacks, Strength},
 };
 
 /// Active ability.

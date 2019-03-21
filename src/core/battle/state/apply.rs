@@ -1,6 +1,6 @@
 use log::debug;
 
-use crate::core::tactical_map::{
+use crate::core::battle::{
     ability::{self, Ability},
     component::{self, Component, PlannedAbility},
     effect::{self, Duration, Effect},

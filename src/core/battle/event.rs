@@ -1,4 +1,4 @@
-use crate::core::tactical_map::{
+use crate::core::battle::{
     ability::{Ability, PassiveAbility},
     component::{PlannedAbility, WeaponType},
     effect::{self, Effect},

@@ -1,13 +1,13 @@
 use log::trace;
 
 use crate::core::{
-    map::{self, Distance, PosHex},
-    tactical_map::{
+    battle::{
         self,
         ability::{self, Ability},
         command::{self, Command},
         state, Attacks, Jokers, Moves, ObjId, State,
     },
+    map::{self, Distance, PosHex},
 };
 
 pub fn check(state: &State, command: &Command) -> Result<(), Error> {
@@ -277,7 +277,7 @@ fn check_ability_heal(
     Ok(())
 }
 
-fn try_get_actor(state: &State, id: ObjId) -> Result<&tactical_map::component::Agent, Error> {
+fn try_get_actor(state: &State, id: ObjId) -> Result<&battle::component::Agent, Error> {
     match state.parts().agent.get_opt(id) {
         Some(agent) => Ok(agent),
         None => Err(Error::BadActorId),

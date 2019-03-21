@@ -11,8 +11,7 @@ use ui::{self, Gui};
 
 use crate::{
     core::{
-        map::PosHex,
-        tactical_map::{
+        battle::{
             self, ability,
             ability::Ability,
             ai::Ai,
@@ -24,6 +23,7 @@ use crate::{
             state::{self, BattleResult},
             ObjId, PlayerId, State,
         },
+        map::PosHex,
     },
     geom,
     screen::{
@@ -147,7 +147,7 @@ fn build_panel_agent_abilities(
         None => return Ok(None),
     };
     let agent = parts.agent.get(id);
-    if agent.attacks <= tactical_map::Attacks(0) && agent.jokers <= tactical_map::Jokers(0) {
+    if agent.attacks <= battle::Attacks(0) && agent.jokers <= battle::Jokers(0) {
         return Ok(None);
     }
     let mut layout = ui::VLayout::new();
@@ -309,7 +309,7 @@ impl Battle {
         let mut actions = Vec::new();
         let state = &mut self.state;
         let view = &mut self.view;
-        tactical_map::execute(state, command, &mut |state, event, phase| {
+        battle::execute(state, command, &mut |state, event, phase| {
             let action = visualize::visualize(state, view, context, event, phase)
                 .expect("Can't visualize the event");
             actions.push(action);

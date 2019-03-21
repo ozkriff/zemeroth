@@ -4,12 +4,12 @@ use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
-    map::{self, PosHex},
-    tactical_map::{
+    battle::{
         component::ObjType,
         state::{self, State},
         PlayerId, TileType,
     },
+    map::{self, PosHex},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

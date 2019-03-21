@@ -1,6 +1,6 @@
 use crate::core::{
+    battle::{ability::Ability, component::ObjType, movement::Path, ObjId, PlayerId},
     map::PosHex,
-    tactical_map::{ability::Ability, component::ObjType, movement::Path, ObjId, PlayerId},
 };
 
 #[derive(Debug, Clone, derive_more::From)]

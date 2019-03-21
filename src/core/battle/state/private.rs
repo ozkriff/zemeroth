@@ -1,8 +1,7 @@
 use log::error;
 
 use crate::core::{
-    map,
-    tactical_map::{
+    battle::{
         command,
         component::{Component, ObjType, Parts, Prototypes},
         event::Event,
@@ -11,6 +10,7 @@ use crate::core::{
         state::apply::apply,
         ObjId, PlayerId, TileType,
     },
+    map,
 };
 
 #[derive(Clone, Debug, PartialEq)]

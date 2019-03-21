@@ -9,11 +9,11 @@ use scene::{action, Action, Boxed, Layer, Scene, Sprite};
 
 use crate::{
     core::{
-        map::{self, Distance, HexMap, PosHex},
-        tactical_map::{
+        battle::{
             self, ability::Ability, command, execute::hit_chance, movement, Jokers, Moves, ObjId,
             State, TileType,
         },
+        map::{self, Distance, HexMap, PosHex},
     },
     geom::{self, hex_to_point},
     screen::battle::visualize,
@@ -347,7 +347,7 @@ impl BattleView {
             let id = selected_id;
             let ability = ability.clone();
             let command = command::UseAbility { id, ability, pos }.into();
-            if tactical_map::check(state, &command).is_ok() {
+            if battle::check(state, &command).is_ok() {
                 self.highlight_tile(context, pos, TILE_COLOR_ABILITY.into())?;
             }
         }
@@ -392,7 +392,7 @@ impl BattleView {
                 target_id,
             }
             .into();
-            if tactical_map::check(state, &command_attack).is_err() {
+            if battle::check(state, &command_attack).is_err() {
                 continue;
             }
             self.show_hit_chance_label(state, context, id, target_id)?;

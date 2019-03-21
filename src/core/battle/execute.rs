@@ -4,8 +4,7 @@ use log::{debug, error, trace};
 use rand::{thread_rng, Rng};
 
 use crate::core::{
-    map::{self, Dir, PosHex},
-    tactical_map::{
+    battle::{
         self,
         ability::{self, Ability, PassiveAbility},
         check::{check, Error},
@@ -17,6 +16,7 @@ use crate::core::{
         state::{self, BattleResult, State},
         utils, Moves, ObjId, Phase, PlayerId, Strength,
     },
+    map::{self, Dir, PosHex},
 };
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -187,7 +187,7 @@ fn execute_attack_internal(
 
 fn try_execute_passive_ability_burn(state: &mut State, target_id: ObjId) -> ExecuteContext {
     let mut context = ExecuteContext::default();
-    let damage = tactical_map::Strength(1);
+    let damage = battle::Strength(1);
     let target_effects = vec![wound_or_kill(state, target_id, damage)];
     context.instant_effects.push((target_id, target_effects));
     context
@@ -195,7 +195,7 @@ fn try_execute_passive_ability_burn(state: &mut State, target_id: ObjId) -> Exec
 
 fn try_execute_passive_ability_spike_trap(state: &mut State, target_id: ObjId) -> ExecuteContext {
     let mut context = ExecuteContext::default();
-    let damage = tactical_map::Strength(1);
+    let damage = battle::Strength(1);
     let target_effects = vec![wound_or_kill(state, target_id, damage)];
     context.instant_effects.push((target_id, target_effects));
     context
@@ -534,8 +534,8 @@ fn execute_effects(state: &mut State, cb: Cb) {
                 match effect.effect {
                     effect::Lasting::Poison => {
                         let strength = state.parts().strength.get(id).strength;
-                        if strength > tactical_map::Strength(1) {
-                            let damage = tactical_map::Strength(1);
+                        if strength > battle::Strength(1) {
+                            let damage = battle::Strength(1);
                             target_effects.push(wound_or_kill(state, id, damage));
                         }
                     }
@@ -799,21 +799,21 @@ fn execute_use_ability_explode_poison(
 fn correct_damage_with_armor(
     state: &State,
     target_id: ObjId,
-    damage: tactical_map::Strength,
-) -> tactical_map::Strength {
+    damage: battle::Strength,
+) -> battle::Strength {
     let id = target_id;
     let armor = state::get_armor(state, id);
-    tactical_map::Strength(utils::clamp_min(damage.0 - armor.0, 0))
+    battle::Strength(utils::clamp_min(damage.0 - armor.0, 0))
 }
 
-fn wound_or_kill(state: &State, id: ObjId, damage: tactical_map::Strength) -> Effect {
+fn wound_or_kill(state: &State, id: ObjId, damage: battle::Strength) -> Effect {
     let parts = state.parts();
     let strength = parts.strength.get(id).strength;
     let dir = None; // Let's assume that this is not a directed attack.
     if strength > damage {
         effect::Wound {
             damage,
-            armor_break: tactical_map::Strength(0), // !!!
+            armor_break: battle::Strength(0), // !!!
             dir,
         }
         .into()
@@ -901,7 +901,7 @@ fn execute_use_ability_explode_damage(
         if distance.0 > 1 || command.id == id {
             continue;
         }
-        let damage = tactical_map::Strength(1);
+        let damage = battle::Strength(1);
         let damage = correct_damage_with_armor(state, id, damage);
         let effects = vec![wound_or_kill(state, id, damage)];
         context.instant_effects.push((id, effects));
@@ -1178,11 +1178,11 @@ fn choose_who_to_summon(
 #[cfg(test)]
 mod tests {
     use crate::core::{
-        map::Dir,
-        tactical_map::{
+        battle::{
             effect::{self, Effect},
             ObjId,
         },
+        map::Dir,
     };
 
     use super::ExecuteContext;

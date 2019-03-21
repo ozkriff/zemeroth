@@ -3,8 +3,8 @@ use std::{collections::VecDeque, slice::Windows};
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
+    battle::{ability::PassiveAbility, state, ObjId, State, TileType},
     map::{dirs, Dir, Distance, HexMap, PosHex},
-    tactical_map::{ability::PassiveAbility, state, ObjId, State, TileType},
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -246,7 +246,7 @@ impl Pathfinder {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::tactical_map::{
+    use crate::core::battle::{
         movement::{Path, Step},
         PosHex,
     };

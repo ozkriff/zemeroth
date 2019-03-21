@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
-    map::Dir,
-    tactical_map::{
+    battle::{
         component::{Component, ObjType},
         Phase, PosHex, Strength,
     },
+    map::Dir,
 };
 
 #[derive(Clone, Debug, Copy, PartialEq, Serialize, Deserialize)]

@@ -2,9 +2,9 @@ use std::default::Default;
 
 use serde::{Deserialize, Serialize};
 
-use crate::core::{map::PosHex, tactical_map::movement::MovePoints};
+use crate::core::{battle::movement::MovePoints, map::PosHex};
 
-pub use crate::core::tactical_map::{check::check, execute::execute, state::State};
+pub use crate::core::battle::{check::check, execute::execute, state::State};
 
 pub mod ability;
 pub mod ai;
