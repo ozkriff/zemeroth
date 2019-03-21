@@ -10,7 +10,7 @@ use crate::core::{
         ability::{self, Ability, PassiveAbility},
         check::{check, Error},
         command::{self, Command},
-        component::{self, Component, ObjType},
+        component::{self, ObjType},
         effect::{self, Effect},
         event::{self, ActiveEvent, Event},
         movement::Path,
@@ -84,7 +84,7 @@ fn execute_move_to(state: &mut State, cb: Cb, command: &command::MoveTo) {
 
 fn do_move(state: &mut State, cb: Cb, id: ObjId, cost: Option<Moves>, path: Path) {
     let cost = cost.unwrap_or(Moves(0));
-    let active_event = ActiveEvent::MoveTo(event::MoveTo { id, path, cost });
+    let active_event = event::MoveTo { id, path, cost }.into();
     let event = Event {
         active_event,
         actor_ids: vec![id],
@@ -98,21 +98,22 @@ fn do_move(state: &mut State, cb: Cb, id: ObjId, cost: Option<Moves>, path: Path
 fn execute_create(state: &mut State, cb: Cb, command: &command::Create) {
     let mut components = state.prototype_for(&command.prototype);
     if let Some(player_id) = command.owner {
-        components.push(Component::BelongsTo(component::BelongsTo(player_id)));
+        components.push(component::BelongsTo(player_id).into());
     }
     let name = command.prototype.clone();
     components.extend_from_slice(&[
-        Component::Pos(component::Pos(command.pos)),
-        Component::Meta(component::Meta { name }),
+        component::Pos(command.pos).into(),
+        component::Meta { name }.into(),
     ]);
     let id = state.alloc_id();
 
     let mut instant_effects = Vec::new();
-    let effect_create = Effect::Create(effect::Create {
+    let effect_create = effect::Create {
         pos: command.pos,
         prototype: command.prototype.clone(),
         components,
-    });
+    }
+    .into();
     instant_effects.push((id, vec![effect_create]));
 
     let event = Event {
@@ -138,12 +139,13 @@ fn execute_attack_internal(
     mode: event::AttackMode,
 ) -> AttackStatus {
     let weapon_type = state.parts().agent.get(command.attacker_id).weapon_type;
-    let active_event = ActiveEvent::Attack(event::Attack {
+    let active_event = event::Attack {
         attacker_id: command.attacker_id,
         target_id: command.target_id,
         mode,
         weapon_type,
-    });
+    }
+    .into();
     let mut target_effects = Vec::new();
     let mut is_kill = false;
     if let Some(effect) = try_attack(state, command.attacker_id, command.target_id) {
@@ -227,11 +229,12 @@ fn do_passive_ability(
             || !context.timed_effects.is_empty()
             || !context.scheduled_abilities.is_empty()
     );
-    let active_event = ActiveEvent::UsePassiveAbility(event::UsePassiveAbility {
+    let active_event = event::UsePassiveAbility {
         pos: target_pos,
         id,
         ability,
-    });
+    }
+    .into();
     let event = Event {
         active_event,
         actor_ids: context.actor_ids,
@@ -321,15 +324,11 @@ fn try_execute_passive_abilities_on_begin_turn(state: &mut State, cb: Cb) {
                     {
                         continue;
                     }
-                    let active_event = ActiveEvent::UsePassiveAbility(event::UsePassiveAbility {
-                        pos: state.parts().pos.get(id).0,
-                        id,
-                        ability,
-                    });
+                    let pos = state.parts().pos.get(id).0;
+                    let active_event = event::UsePassiveAbility { pos, id, ability }.into();
                     let mut target_effects = Vec::new();
-                    target_effects.push(Effect::Heal(effect::Heal {
-                        strength: regenerate.0,
-                    }));
+                    let strength = regenerate.0;
+                    target_effects.push(effect::Heal { strength }.into());
                     let instant_effects = vec![(id, target_effects)];
                     let event = Event {
                         active_event,
@@ -369,7 +368,7 @@ fn try_execute_passive_abilities_on_attack(
                     let from = target_pos;
                     let to = Dir::get_neighbor_pos(target_pos, dir);
                     if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-                        let effect = Effect::FlyOff(effect::FlyOff { from, to });
+                        let effect = effect::FlyOff { from, to }.into();
                         effects.instant.push(effect);
                     }
                 }
@@ -413,7 +412,7 @@ fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: ObjId) -> 
             attacker_id: obj_id,
             target_id,
         };
-        let command = command::Command::Attack(command_attack.clone());
+        let command = command_attack.clone().into();
         state.set_player_id(this_agent_owner);
         if check(state, &command).is_err() {
             continue;
@@ -435,9 +434,10 @@ fn execute_attack(state: &mut State, cb: Cb, command: &command::Attack) {
 
 fn execute_event_end_turn(state: &mut State, cb: Cb) {
     let player_id_old = state.player_id();
-    let active_event = ActiveEvent::EndTurn(event::EndTurn {
+    let active_event = event::EndTurn {
         player_id: player_id_old,
-    });
+    }
+    .into();
     let actor_ids = state::players_agent_ids(state, player_id_old);
     let event = Event {
         active_event,
@@ -451,9 +451,10 @@ fn execute_event_end_turn(state: &mut State, cb: Cb) {
 
 fn execute_event_begin_turn(state: &mut State, cb: Cb) {
     let player_id_new = state.next_player_id();
-    let active_event = ActiveEvent::BeginTurn(event::BeginTurn {
+    let active_event = event::BeginTurn {
         player_id: player_id_new,
-    });
+    }
+    .into();
     let actor_ids = state::players_agent_ids(state, player_id_new);
     let event = Event {
         active_event,
@@ -502,9 +503,8 @@ fn try_execute_end_battle(state: &mut State, cb: Cb) {
                 winner_id: player_id,
                 survivor_types: state::players_agent_types(state, PlayerId(0)),
             };
-            let active_event = event::EndBattle { result };
             let event = Event {
-                active_event: ActiveEvent::EndBattle(active_event),
+                active_event: event::EndBattle { result }.into(),
                 actor_ids: Vec::new(),
                 instant_effects: Vec::new(),
                 timed_effects: Vec::new(),
@@ -678,7 +678,7 @@ fn execute_use_ability_knockback(
     let dir = Dir::get_dir_from_to(actor_pos, command.pos);
     let to = Dir::get_neighbor_pos(command.pos, dir);
     if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-        let effect = Effect::Knockback(effect::Knockback { from, to });
+        let effect = effect::Knockback { from, to }.into();
         context.instant_effects.push((id, vec![effect]));
         context.moved_actor_ids.push(id);
     }
@@ -694,7 +694,7 @@ fn execute_use_ability_club(state: &mut State, command: &command::UseAbility) ->
     let dir = Dir::get_dir_from_to(actor_pos, command.pos);
     let to = Dir::get_neighbor_pos(command.pos, dir);
     if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-        let effect = Effect::FlyOff(effect::FlyOff { from, to });
+        let effect = effect::FlyOff { from, to }.into();
         context.instant_effects.push((id, vec![effect]));
         context.moved_actor_ids.push(id);
     }
@@ -758,9 +758,10 @@ fn execute_use_ability_heal(
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let id = state::blocker_id_at(state, command.pos);
-    let effect = Effect::Heal(effect::Heal {
+    let effect = effect::Heal {
         strength: ability.0,
-    });
+    }
+    .into();
     context.instant_effects.push((id, vec![effect]));
     context
 }
@@ -810,13 +811,14 @@ fn wound_or_kill(state: &State, id: ObjId, damage: tactical_map::Strength) -> Ef
     let strength = parts.strength.get(id).strength;
     let dir = None; // Let's assume that this is not a directed attack.
     if strength > damage {
-        Effect::Wound(effect::Wound {
+        effect::Wound {
             damage,
             armor_break: tactical_map::Strength(0), // !!!
             dir,
-        })
+        }
+        .into()
     } else {
-        Effect::Kill(effect::Kill { dir })
+        effect::Kill { dir }.into()
     }
 }
 
@@ -875,13 +877,14 @@ fn try_attack(state: &State, attacker_id: ObjId, target_id: ObjId) -> Option<Eff
         }
     };
     let effect = if target_strength > damage {
-        Effect::Wound(effect::Wound {
+        effect::Wound {
             damage,
             armor_break: attack_break,
             dir,
-        })
+        }
+        .into()
     } else {
-        Effect::Kill(effect::Kill { dir })
+        effect::Kill { dir }.into()
     };
     Some(effect)
 }
@@ -929,7 +932,7 @@ fn execute_use_ability_explode_push(
         let to = Dir::get_neighbor_pos(pos, dir);
         let mut effects = Vec::new();
         if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-            effects.push(Effect::Knockback(effect::Knockback { from: pos, to }));
+            effects.push(effect::Knockback { from: pos, to }.into());
             context.moved_actor_ids.push(id);
         }
         context.instant_effects.push((id, effects));
@@ -962,15 +965,13 @@ fn execute_use_ability_poison(state: &mut State, command: &command::UseAbility) 
 fn effect_create_object(state: &State, prototype: &ObjType, pos: PosHex) -> Effect {
     let name = prototype.clone();
     let mut components = state.prototype_for(prototype);
-    components.extend_from_slice(&[
-        Component::Pos(component::Pos(pos)),
-        Component::Meta(component::Meta { name }),
-    ]);
-    Effect::Create(effect::Create {
+    components.extend_from_slice(&[component::Pos(pos).into(), component::Meta { name }.into()]);
+    effect::Create {
         pos,
         prototype: prototype.clone(),
         components,
-    })
+    }
+    .into()
 }
 
 fn effect_create_agent(
@@ -982,15 +983,16 @@ fn effect_create_agent(
     let name = prototype.clone();
     let mut components = state.prototype_for(prototype);
     components.extend_from_slice(&[
-        Component::Pos(component::Pos(pos)),
-        Component::Meta(component::Meta { name }),
-        Component::BelongsTo(component::BelongsTo(player_id)),
+        component::Pos(pos).into(),
+        component::Meta { name }.into(),
+        component::BelongsTo(player_id).into(),
     ]);
-    Effect::Create(effect::Create {
+    effect::Create {
         pos,
         prototype: prototype.clone(),
         components,
-    })
+    }
+    .into()
 }
 
 fn throw_bomb(
@@ -1004,10 +1006,11 @@ fn throw_bomb(
     let pos = state.parts().pos.get(command.id).0;
     let effect_create = effect_create_object(state, prototype, pos);
     let id = state.alloc_id();
-    let effect_throw = Effect::Throw(effect::Throw {
+    let effect_throw = effect::Throw {
         from: pos,
         to: command.pos,
-    });
+    }
+    .into();
     let effects = vec![effect_create, effect_throw];
     context.instant_effects.push((id, effects));
     let planned_ability = component::PlannedAbility {
@@ -1115,11 +1118,12 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
         Ability::Summon => execute_use_ability_summon(state, command),
     };
     context.actor_ids.push(command.id);
-    let active_event = ActiveEvent::UseAbility(event::UseAbility {
+    let active_event = event::UseAbility {
         id: command.id,
         pos: command.pos,
         ability: command.ability.clone(),
-    });
+    }
+    .into();
     let event = Event {
         active_event,
         actor_ids: context.actor_ids,
@@ -1206,9 +1210,8 @@ mod tests {
     #[test]
     fn test_merge_with_hashmap() {
         let mut instant_effects1 = Vec::new();
-        let effect_kill = Effect::Kill(effect::Kill {
-            dir: Some(Dir::East),
-        });
+        let dir = Some(Dir::East);
+        let effect_kill: Effect = effect::Kill { dir }.into();
         instant_effects1.push((ObjId(0), vec![effect_kill.clone(), Effect::Stun]));
         let mut context1 = ExecuteContext {
             instant_effects: instant_effects1,
