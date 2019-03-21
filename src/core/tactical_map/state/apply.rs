@@ -8,8 +8,6 @@ use crate::core::tactical_map::{
     state, Attacks, Jokers, Moves, ObjId, Phase, PlayerId, State,
 };
 
-// TODO: Move this mod _into_ `state` mod and make `parts_mut` private!
-
 pub fn apply(state: &mut State, event: &Event) {
     debug!("event::apply: {:?}", event);
     apply_event(state, event);
