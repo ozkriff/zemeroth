@@ -50,11 +50,6 @@ impl State {
         this
     }
 
-    #[allow(dead_code)]
-    pub fn set_deterministic_mode(&mut self, value: bool) {
-        self.deterministic_mode = value;
-    }
-
     pub fn deterministic_mode(&self) -> bool {
         self.deterministic_mode
     }
@@ -143,7 +138,7 @@ impl State {
     }
 }
 
-/// Mutators. Be careful with them!
+/// Public mutators. Be careful with them!
 impl State {
     pub(super) fn parts_mut(&mut self) -> &mut Parts {
         &mut self.parts
@@ -155,6 +150,11 @@ impl State {
 
     pub(super) fn set_battle_result(&mut self, result: BattleResult) {
         self.battle_result = Some(result);
+    }
+
+    #[allow(dead_code)]
+    pub fn set_deterministic_mode(&mut self, value: bool) {
+        self.deterministic_mode = value;
     }
 
     pub(in crate::core) fn alloc_id(&mut self) -> ObjId {
