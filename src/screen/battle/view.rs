@@ -344,11 +344,9 @@ impl BattleView {
         self.remove_highlights();
         let positions = state.map().iter();
         for pos in positions {
-            let command = command::Command::UseAbility(command::UseAbility {
-                id: selected_id,
-                ability: ability.clone(),
-                pos,
-            });
+            let id = selected_id;
+            let ability = ability.clone();
+            let command = command::UseAbility { id, ability, pos }.into();
             if tactical_map::check(state, &command).is_ok() {
                 self.highlight_tile(context, pos, TILE_COLOR_ABILITY.into())?;
             }
@@ -389,10 +387,11 @@ impl BattleView {
             if target_player_id == selected_agent_player_id {
                 continue;
             }
-            let command_attack = command::Command::Attack(command::Attack {
+            let command_attack = command::Attack {
                 attacker_id: id,
                 target_id,
-            });
+            }
+            .into();
             if tactical_map::check(state, &command_attack).is_err() {
                 continue;
             }

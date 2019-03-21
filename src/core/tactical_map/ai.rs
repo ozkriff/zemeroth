@@ -170,7 +170,7 @@ impl Ai {
 
     fn try_throw_bomb(&self, state: &State, agent_id: ObjId) -> Option<Command> {
         // TODO: find ability in the parts and use it here:
-        let ability = Ability::BombDemonic(ability::BombDemonic(Distance(3)));
+        let ability: Ability = ability::BombDemonic(Distance(3)).into();
         for &target_id in &shuffle_vec(state::enemy_agent_ids(state, self.id)) {
             let target_pos = state.parts().pos.get(target_id).0;
             for dir in shuffle_vec(map::dirs().collect()) {
@@ -178,11 +178,9 @@ impl Ai {
                 if !state.map().is_inboard(pos) || state::is_tile_blocked(state, pos) {
                     continue;
                 }
-                let command = Command::UseAbility(command::UseAbility {
-                    id: agent_id,
-                    pos,
-                    ability: ability.clone(),
-                });
+                let id = agent_id;
+                let ability = ability.clone();
+                let command = command::UseAbility { id, pos, ability }.into();
                 if check(state, &command).is_ok() {
                     return Some(command);
                 }
@@ -193,13 +191,10 @@ impl Ai {
 
     fn try_summon_imp(&self, state: &State, agent_id: ObjId) -> Option<Command> {
         // TODO: find ability in the parts and use it here:
-        let ability = ability::Ability::Summon;
-        let target_pos = state.parts().pos.get(agent_id).0;
-        let command = Command::UseAbility(command::UseAbility {
-            id: agent_id,
-            pos: target_pos,
-            ability,
-        });
+        let ability = Ability::Summon;
+        let pos = state.parts().pos.get(agent_id).0;
+        let id = agent_id;
+        let command = command::UseAbility { id, pos, ability }.into();
         if check(state, &command).is_ok() {
             return Some(command);
         }
@@ -344,6 +339,6 @@ impl Ai {
                 return Some(move_command);
             }
         }
-        Some(Command::EndTurn(command::EndTurn))
+        Some(command::EndTurn.into())
     }
 }

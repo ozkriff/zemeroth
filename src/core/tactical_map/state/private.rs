@@ -3,7 +3,7 @@ use log::error;
 use crate::core::{
     map,
     tactical_map::{
-        command::{self, Command},
+        command,
         component::{Component, ObjType, Parts, Prototypes},
         event::Event,
         execute,
@@ -85,11 +85,12 @@ impl State {
                         continue;
                     }
                 };
-                let command = Command::Create(command::Create {
+                let command = command::Create {
                     prototype: group.typename.clone(),
                     pos,
                     owner: group.owner,
-                });
+                }
+                .into();
                 execute::execute(self, &command, cb).expect("Can't create an object");
             }
         }
@@ -97,11 +98,12 @@ impl State {
             if let Some(player_id) = group.owner {
                 self.set_player_id(player_id);
             }
-            let command = Command::Create(command::Create {
+            let command = command::Create {
                 prototype: group.typename.clone(),
                 pos: group.pos,
                 owner: group.owner,
-            });
+            }
+            .into();
             execute::execute(self, &command, cb).expect("Can't create an object");
         }
         self.set_player_id(player_id_initial);

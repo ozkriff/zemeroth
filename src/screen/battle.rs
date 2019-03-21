@@ -260,7 +260,7 @@ impl Battle {
             return Ok(());
         }
         self.deselect()?;
-        let command = command::Command::EndTurn(command::EndTurn);
+        let command = command::EndTurn.into();
         let mut actions = Vec::new();
         actions.push(self.do_command_inner(context, &command));
         actions.push(self.do_ai(context));
@@ -392,10 +392,11 @@ impl Battle {
                 self.set_mode(context, id, SelectionMode::Normal)?;
                 return Ok(());
             }
-            let command_attack = command::Command::Attack(command::Attack {
+            let command_attack = command::Attack {
                 attacker_id: selected_agent_id,
                 target_id: id,
-            });
+            }
+            .into();
             if check(&self.state, &command_attack).is_err() {
                 return Ok(());
             }
@@ -422,7 +423,7 @@ impl Battle {
                 None => return,
             };
             assert_eq!(path.from(), self.state.parts().pos.get(id).0);
-            let command_move = command::Command::MoveTo(command::MoveTo { id, path });
+            let command_move = command::MoveTo { id, path }.into();
             if check(&self.state, &command_move).is_err() {
                 return;
             }
@@ -439,18 +440,14 @@ impl Battle {
         }
         if self.state.map().is_inboard(pos) {
             if let SelectionMode::Ability(ability) = self.mode.clone() {
-                let selected_id = self.selected_agent_id.unwrap();
-                let command = command::Command::UseAbility(command::UseAbility {
-                    id: selected_id,
-                    pos,
-                    ability,
-                });
+                let id = self.selected_agent_id.unwrap();
+                let command = command::UseAbility { id, pos, ability }.into();
                 if check(&self.state, &command).is_ok() {
                     self.do_command(context, &command);
                 } else {
                     self.view.message(context, pos, "cancelled")?;
                 }
-                self.set_mode(context, selected_id, SelectionMode::Normal)?;
+                self.set_mode(context, id, SelectionMode::Normal)?;
             } else if let Some(id) = state::agent_id_at_opt(&self.state, pos) {
                 self.handle_agent_click(context, id)?;
             } else {
