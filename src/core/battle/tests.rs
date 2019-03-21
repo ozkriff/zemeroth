@@ -5,8 +5,7 @@ use pretty_assertions::assert_eq;
 //     if I decide to create some intermediate object).
 
 use crate::core::{
-    map::{Dir, Distance, PosHex},
-    tactical_map::{
+    battle::{
         ability::{self, Ability, PassiveAbility, RechargeableAbility},
         check,
         command::{self, Command},
@@ -20,6 +19,7 @@ use crate::core::{
         Accuracy, Attacks, Dodge, Jokers, MovePoints, Moves, ObjId, Phase, PlayerId, State,
         Strength,
     },
+    map::{Dir, Distance, PosHex},
 };
 
 const P0: PlayerId = PlayerId(0);

@@ -13,7 +13,7 @@ use scene::{Layer, Scene, Sprite};
 use ui::{self, Gui};
 
 use crate::{
-    core::tactical_map::state,
+    core::battle::state,
     screen::{self, Screen, Transition},
     utils, ZResult,
 };

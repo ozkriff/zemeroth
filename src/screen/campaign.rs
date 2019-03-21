@@ -13,8 +13,8 @@ use ui::{self, Gui};
 
 use crate::{
     core::{
+        battle::{component::ObjType, scenario, state::BattleResult, PlayerId},
         campaign::{Mode, State},
-        tactical_map::{component::ObjType, scenario, state::BattleResult, PlayerId},
     },
     screen::{self, Screen, Transition},
     utils, ZResult,

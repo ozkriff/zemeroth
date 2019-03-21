@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 use zcomponents::zcomponents_storage;
 
 use crate::core::{
-    map,
-    tactical_map::{
+    battle::{
         self,
         ability::{Ability, PassiveAbility, RechargeableAbility},
         effect::Timed,
         Attacks, Jokers, MovePoints, Moves, ObjId, Phase, PlayerId,
     },
+    map,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -22,14 +22,14 @@ pub struct Blocker;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Strength {
     #[serde(default)]
-    pub base_strength: tactical_map::Strength,
+    pub base_strength: battle::Strength,
 
-    pub strength: tactical_map::Strength,
+    pub strength: battle::Strength,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Armor {
-    pub armor: tactical_map::Strength,
+    pub armor: battle::Strength,
 }
 
 #[serde(transparent)]
@@ -66,16 +66,16 @@ pub struct Agent {
     pub jokers: Jokers,
 
     // static
-    pub attack_strength: tactical_map::Strength,
+    pub attack_strength: battle::Strength,
     pub attack_distance: map::Distance,
-    pub attack_accuracy: tactical_map::Accuracy,
+    pub attack_accuracy: battle::Accuracy,
     pub weapon_type: WeaponType,
 
     #[serde(default)]
-    pub attack_break: tactical_map::Strength,
+    pub attack_break: battle::Strength,
 
     #[serde(default)]
-    pub dodge: tactical_map::Dodge,
+    pub dodge: battle::Dodge,
 
     pub move_points: MovePoints,
     pub reactive_attacks: Attacks,

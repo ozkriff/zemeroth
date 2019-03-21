@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::core::tactical_map::{
-    component::ObjType, scenario::Scenario, state::BattleResult, PlayerId,
-};
+use crate::core::battle::{component::ObjType, scenario::Scenario, state::BattleResult, PlayerId};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
 pub enum Mode {
@@ -160,13 +158,13 @@ impl State {
 #[cfg(test)]
 mod tests {
     use crate::core::{
-        campaign::{Award, CampaignNode, Mode, Plan, State},
-        tactical_map::{
+        battle::{
             component::ObjType,
             scenario::{self, Line, ObjectsGroup, Scenario},
             state::BattleResult,
             PlayerId,
         },
+        campaign::{Award, CampaignNode, Mode, Plan, State},
     };
 
     type GroupTuple<'a> = (Option<PlayerId>, &'a str, Line, i32);

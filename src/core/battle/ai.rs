@@ -1,8 +1,7 @@
 use log::info;
 
 use crate::core::{
-    map::{self, Distance, HexMap},
-    tactical_map::{
+    battle::{
         ability::{self, Ability},
         check,
         command::{self, Command},
@@ -11,6 +10,7 @@ use crate::core::{
         utils::shuffle_vec,
         ObjId, PlayerId, State,
     },
+    map::{self, Distance, HexMap},
 };
 
 fn does_agent_have_ability_summon(state: &State, id: ObjId) -> bool {
