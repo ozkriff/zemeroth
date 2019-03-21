@@ -8,7 +8,6 @@ use crate::core::{
     tactical_map::{
         self,
         ability::{self, Ability, PassiveAbility},
-        apply::apply,
         check::{check, Error},
         command::{self, Command},
         component::{self, Component, ObjType},
@@ -51,7 +50,7 @@ pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error
 
 fn do_event(state: &mut State, cb: Cb, event: &Event) {
     cb(state, event, ApplyPhase::Pre);
-    apply(state, event);
+    state.apply(event);
     cb(state, event, ApplyPhase::Post);
 }
 

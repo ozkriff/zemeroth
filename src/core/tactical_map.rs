@@ -18,7 +18,6 @@ pub mod scenario;
 pub mod state;
 pub mod utils;
 
-mod apply;
 mod check;
 
 #[cfg(test)]
