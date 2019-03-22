@@ -71,18 +71,26 @@ impl Scenario {
                 return Err(Error::PosOutsideOfMap(obj.pos));
             }
         }
-        if !self
+        let any_exact_player_agents = self
             .exact_objects
             .iter()
-            .any(|obj| obj.owner == Some(PlayerId(0)))
-        {
+            .any(|obj| obj.owner == Some(PlayerId(0)));
+        let any_random_player_agents = self
+            .objects
+            .iter()
+            .any(|obj| obj.owner == Some(PlayerId(0)));
+        if !any_exact_player_agents && !any_random_player_agents {
             return Err(Error::NoPlayerAgents);
         }
-        if !self
+        let any_exact_enemy_agents = self
             .exact_objects
             .iter()
-            .any(|obj| obj.owner == Some(PlayerId(1)))
-        {
+            .any(|obj| obj.owner == Some(PlayerId(1)));
+        let any_random_enemy_agents = self
+            .objects
+            .iter()
+            .any(|obj| obj.owner == Some(PlayerId(1)));
+        if !any_exact_enemy_agents && !any_random_enemy_agents {
             return Err(Error::NoEnemyAgents);
         }
         Ok(())
