@@ -49,3 +49,10 @@ jobs:
       - cargo clippy -V
     script:
       - cargo clippy --verbose -- -D warnings
+  - name: wasm
+    rust: stable
+    install:
+      - cargo install cargo-web
+      - cargo web -V
+    script:
+      - ./utils/wasm/build.sh
