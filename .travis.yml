@@ -55,4 +55,5 @@ jobs:
       - cargo install cargo-web
       - cargo web -V
     script:
+      - git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
       - ./utils/wasm/build.sh
