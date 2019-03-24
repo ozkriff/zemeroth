@@ -64,6 +64,32 @@ cargo build --release
 cargo run --release
 ```
 
+## WebAssembly
+
+```bash
+cargo install cargo-web
+./utils/wasm/build.sh
+cargo web start
+```
+
+Then open `http://localhost:8000` in your browser.
+
+The WASM version of the game uses
+[not-fl3/good-web-game](https://github.com/not-fl3/good-web-game):
+
+> [Note](https://github.com/ggez/ggez/issues/71#issuecomment-459875258)
+> that good-web-game is not really GGEZ's backend,
+> but a separate web-targeted engine with a similar API
+> that @not-fl3 uses for his prototypes.
+>
+> Zemeroth uses good-web-game for its web version as a quick-n-dirty
+> immediate solution until a proper WASM support arrives to GGEZ
+> (there're no plans of making good-web-game some kind of official GGEZ backend).
+>
+> The currently implemented subset of GGEZ API is quite limited
+> and while it may be used for something else that Zemeroth,
+> it will probably require a lot of work to do (contributions are welcome ;) ).
+
 ## Dependencies
 
 The key external dependency of Zemeroth is [ggez] game engine.

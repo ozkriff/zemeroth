@@ -148,7 +148,7 @@ pub fn free_neighbor_positions(state: &State, origin: PosHex, count: i32) -> Vec
         let pos = map::Dir::get_neighbor_pos(origin, dir);
         if state.map().is_inboard(pos) && !is_tile_blocked(state, pos) {
             positions.push(pos);
-            if positions.len() == count as _ {
+            if positions.len() == count as usize {
                 break;
             }
         }
