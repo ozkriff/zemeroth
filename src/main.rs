@@ -151,7 +151,6 @@ fn main() -> GameResult {
         },
         |mut context| {
             let state = MainState::new(&mut context).unwrap();
-
             event::run(context, state)
         },
     )

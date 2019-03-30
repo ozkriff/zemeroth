@@ -233,16 +233,25 @@ fn rechargeable(ability: Ability) -> RechargeableAbility {
     rechargeable_with_base_cooldown(ability, default_base_cooldown)
 }
 
+const BOMB_THROW_DISTANCE: Distance = Distance(2);
+
 fn ability_throw_bomb() -> Ability {
-    ability::Bomb(Distance(2)).into()
+    ability::Bomb(BOMB_THROW_DISTANCE).into()
 }
 
 fn ability_throw_bomb_fire() -> Ability {
-    ability::BombFire(Distance(2)).into()
+    ability::BombFire(BOMB_THROW_DISTANCE).into()
 }
 
 fn ability_throw_bomb_poison() -> Ability {
-    ability::BombPoison(Distance(2)).into()
+    ability::BombPoison(BOMB_THROW_DISTANCE).into()
+}
+
+fn ability_throw_bomb_push() -> Ability {
+    ability::BombPush {
+        throw_distance: BOMB_THROW_DISTANCE,
+    }
+    .into()
 }
 
 fn ability_club() -> Ability {
@@ -1293,6 +1302,100 @@ fn stun() {
                 .into(),
                 actor_ids: vec![ObjId(1)],
                 instant_effects: Vec::new(),
+                timed_effects: Vec::new(),
+                scheduled_abilities: Vec::new(),
+            },
+        ],
+    );
+}
+
+#[test]
+fn throw_bomb_push() {
+    let prototypes = prototypes(&[
+        (
+            "thrower",
+            vec![
+                component_agent_one_attack(),
+                component_abilities(&[ability_throw_bomb_push()]),
+            ],
+        ),
+        (
+            "weak",
+            [component_agent_dull(), component_strength(1)].to_vec(),
+        ),
+        ("bomb_push", Vec::new()),
+    ]);
+    let scenario = scenario::default()
+        .object(P0, "thrower", PosHex { q: 0, r: 0 })
+        .object(P1, "weak", PosHex { q: 0, r: 3 });
+    let mut state = debug_state(prototypes, scenario);
+    exec_and_check(
+        &mut state,
+        command::UseAbility {
+            id: ObjId(0),
+            pos: PosHex { q: 0, r: 2 },
+            ability: ability_throw_bomb_push(),
+        },
+        &[
+            Event {
+                active_event: event::UseAbility {
+                    id: ObjId(0),
+                    pos: PosHex { q: 0, r: 2 },
+                    ability: ability::BombPush {
+                        throw_distance: Distance(2),
+                    }
+                    .into(),
+                }
+                .into(),
+                actor_ids: vec![ObjId(0)],
+                instant_effects: vec![(
+                    ObjId(2),
+                    vec![
+                        effect::Create {
+                            pos: PosHex { q: 0, r: 0 },
+                            prototype: "bomb_push".into(),
+                            components: vec![
+                                component::Pos(PosHex { q: 0, r: 0 }).into(),
+                                component_meta("bomb_push"),
+                            ],
+                        }
+                        .into(),
+                        effect::Throw {
+                            from: PosHex { q: 0, r: 0 },
+                            to: PosHex { q: 0, r: 2 },
+                        }
+                        .into(),
+                    ],
+                )],
+                timed_effects: Vec::new(),
+                scheduled_abilities: vec![(
+                    ObjId(2),
+                    vec![PlannedAbility {
+                        rounds: 0,
+                        phase: Phase(0),
+                        ability: Ability::ExplodePush,
+                    }],
+                )],
+            },
+            Event {
+                active_event: event::UseAbility {
+                    id: ObjId(2),
+                    pos: PosHex { q: 0, r: 2 },
+                    ability: Ability::ExplodePush,
+                }
+                .into(),
+                actor_ids: vec![ObjId(2)],
+                instant_effects: vec![
+                    (
+                        ObjId(1),
+                        vec![effect::Knockback {
+                            from: PosHex { q: 0, r: 3 },
+                            to: PosHex { q: 0, r: 4 },
+                        }
+                        .into()],
+                    ),
+                    (ObjId(2), vec![Effect::Vanish]),
+                ],
                 timed_effects: Vec::new(),
                 scheduled_abilities: Vec::new(),
             },
