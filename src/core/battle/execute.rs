@@ -41,6 +41,7 @@ pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error
         Command::EndTurn(ref command) => execute_end_turn(state, cb, command),
         Command::UseAbility(ref command) => execute_use_ability(state, cb, command),
     }
+    execute_planned_abilities(state, cb);
     match *command {
         Command::Create(_) => {}
         _ => try_execute_end_battle(state, cb),
@@ -582,7 +583,6 @@ fn execute_end_turn(state: &mut State, cb: Cb, _: &command::EndTurn) {
     execute_event_end_turn(state, cb);
     execute_event_begin_turn(state, cb);
     try_execute_passive_abilities_on_begin_turn(state, cb);
-    execute_planned_abilities(state, cb);
     execute_effects(state, cb);
 }
 
