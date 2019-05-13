@@ -10,7 +10,7 @@ description = "A 2D turn-based hexagonal tactical game."
 members = ["zcomponents", "ggwp-zgui", "ggwp-zscene"]
 
 [dependencies]
-ron = "0.4"
+ron = "0.5"
 log = "0.4"
 env_logger = "0.6"
 derive_more = "0.14"
