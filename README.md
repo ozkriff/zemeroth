@@ -126,7 +126,6 @@ This repo contains a bunch of helper crates:
   - [x] Tests
   - [x] Hit chances
   - [ ] GUI icons ([#276](https://github.com/ozkriff/zemeroth/issues/276))
-  - [ ] Reduce text overlapping
   - [ ] Sound & Music ([#221](https://github.com/ozkriff/zemeroth/issues/221))
   - [ ] Reduce text overlapping ([#214](https://github.com/ozkriff/zemeroth/issues/214))
   - [ ] Agent upgrades
