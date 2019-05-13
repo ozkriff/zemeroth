@@ -110,6 +110,57 @@ This repo contains a bunch of helper crates:
 [ggwp-zscene]: ./ggwp-zscene
 [ggwp-zgui]: ./ggwp-zgui
 
+## Roadmap
+
+- [ ] Phase One: Linear Campaign Mode
+
+  An extended prototype focused just on tactical battles.
+
+  - [x] Basic gameplay with reaction attacks
+  - [x] Minimal text-based GUI
+  - [x] Basic agent abilities: jumps, bombs, dashes, etc
+  - [x] Basic campaign mode
+  - [x] Armor and Break stats ([#70](https://github.com/ozkriff/zemeroth/issues/70))
+  - [x] Dynamic blood splatters ([#86](https://github.com/ozkriff/zemeroth/issues/86))
+  - [x] Web version
+  - [x] Tests
+  - [x] Hit chances
+  - [ ] GUI icons ([#276](https://github.com/ozkriff/zemeroth/issues/276))
+  - [ ] Reduce text overlapping
+  - [ ] Sound & Music ([#221](https://github.com/ozkriff/zemeroth/issues/221))
+  - [ ] Reduce text overlapping ([#214](https://github.com/ozkriff/zemeroth/issues/214))
+  - [ ] Agent upgrades
+  - [ ] Flip agent sprites horizontally when needed ([#115](https://github.com/ozkriff/zemeroth/issues/115))
+  - [ ] Easing ([#26](https://github.com/ozkriff/zemeroth/issues/26))
+  - [ ] Move back after a successful dodge ([#117](https://github.com/ozkriff/zemeroth/issues/117))
+  - [ ] Multiple sprites per agent type ([#114](https://github.com/ozkriff/zemeroth/issues/114))
+  - [ ] Path selection ([#280](https://github.com/ozkriff/zemeroth/issues/280),
+    [#219](https://github.com/ozkriff/zemeroth/issues/219))
+  - [ ] Intermediate bosses
+  - [ ] Main boss
+  - [ ] Neutral agents ([#393](https://github.com/ozkriff/zemeroth/issues/393))
+  - [ ] Weight component ([#291](https://github.com/ozkriff/zemeroth/issues/291))
+  - [ ] Basic inventory system: slots for artifacts
+  - [ ] Ranged units
+  - [ ] More agent types
+  - [ ] More passive abilities that allow agents to make actions
+    during enemy's turn
+    ([#354](https://github.com/ozkriff/zemeroth/issues/354))
+  - [ ] More complex multieffect abilities/actions
+  - [ ] Guide ([#451](https://github.com/ozkriff/zemeroth/issues/451))
+  - [ ] Save/load ([#28](https://github.com/ozkriff/zemeroth/issues/28))
+  - [ ] Android version
+
+- [ ] Phase Two: Strategy Mode
+
+  A not-so-linear strategic layer will be added on top of tactical battles.
+  Simple non-linear story and meta-gameplay.
+
+  - [ ] Global map
+  - [ ] Dialog system
+  - [ ] Quest system
+  - [ ] NPC/Agent/Masters system
+
 ## Contribute
 
 If you want to help take a look at issues with `help-wanted` label attached:
