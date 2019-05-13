@@ -161,6 +161,18 @@ This repo contains a bunch of helper crates:
   - [ ] Quest system
   - [ ] NPC/Agent/Masters system
 
+## Inspiration
+
+Tactical battle mechanics are mostly inspired by these games:
+
+- [ENYO](https://play.google.com/store/apps/details?id=com.tinytouchtales.enyo)
+- [Hoplite](https://play.google.com/store/apps/details?id=com.magmafortress.hoplite)
+- [Into the Breach](https://store.steampowered.com/app/590380/Into_the_Breach)
+- [Banner Saga](https://store.steampowered.com/app/237990/The_Banner_Saga)
+  (Survival Mode)
+- [Auro](https://store.steampowered.com/app/459680/Auro_A_MonsterBumping_Adventure)
+- [Minos Strategos](https://store.steampowered.com/app/577490/Minos_Strategos)
+
 ## Contribute
 
 If you want to help take a look at issues with `help-wanted` label attached:
