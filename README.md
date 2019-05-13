@@ -27,6 +27,11 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 [appveyor-ci]: https://ci.appveyor.com/project/ozkriff/zemeroth
 [deps-rs]: https://deps.rs/repo/github/ozkriff/zemeroth
 
+## Online Version
+
+You can play an online WebAssembly version of Zemeroth at
+[ozkriff.itch.io/zemeroth](https://ozkriff.itch.io/zemeroth)
+
 ## Precompiled Binaries
 
 Precompiled binaries for Linux, Windows and macOS:
