@@ -724,7 +724,9 @@ fn visualize_event_use_ability_explode(
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     let scale = 2.5;
-    show_flare_scale(view, context, pos, [1.0, 0.0, 0.0, 0.7].into(), scale).map(fork)
+    let action_dust = show_dust_at_pos(view, context, pos)?;
+    let action_flare = show_flare_scale(view, context, pos, [1.0, 0.0, 0.0, 0.7].into(), scale)?;
+    Ok(seq(vec![fork(action_flare), action_dust]))
 }
 
 fn visualize_event_use_ability_summon(
