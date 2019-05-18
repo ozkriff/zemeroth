@@ -171,6 +171,7 @@ Tactical battle mechanics are mostly inspired by these games:
   (Survival Mode)
 - [Auro](https://store.steampowered.com/app/459680/Auro_A_MonsterBumping_Adventure)
 - [Minos Strategos](https://store.steampowered.com/app/577490/Minos_Strategos)
+- [Battle Brothers](https://store.steampowered.com/app/365360/Battle_Brothers)
 
 ## Contribute
 
