@@ -30,7 +30,7 @@ self.scene.add_action(action.boxed());
 
 See [examples/action.rs](./examples/action.rs) for a complete example.
 
-## What `ggwp-` prefix means?
+## What does a `ggwp-` prefix mean?
 
 As Icefoxen asked to [not use `ggez-` prefix][ggwp]
 I use `ggwp-` ("good game, well played!") to denote that the crate

@@ -22,7 +22,7 @@ From simple to complicated:
 - [pixel_coordinates.rs](./examples/pixel_coordinates.rs)
 - [absolute_coordinates.rs](./examples/absolute_coordinates.rs)
 
-## What `ggwp-` prefix means?
+## What does a `ggwp-` prefix mean?
 
 As Icefoxen asked to [not use `ggez-` prefix][ggwp]
 I use `ggwp-` ("good game, well played!") to denote that the crate
