@@ -110,6 +110,21 @@ This repo contains a bunch of helper crates:
 [ggwp-zscene]: ./ggwp-zscene
 [ggwp-zgui]: ./ggwp-zgui
 
+## Vision
+
+[The initial vision](https://ozkriff.github.io/2017-08-17--devlog/index.html#zemeroth)
+of the project is:
+
+- Random-based skirmish-level digital tabletop game;
+- Single player only;
+- 3-6 fighters under player’s control;
+- Small unscrollable maps;
+- Relatively short game session (under an hour);
+- Simple vector 2d graphics with just 3-5 sprites per unit;
+- Reaction attacks and action’s interruption;
+- Highly dynamic (lots of small unit moves as a side effect of other events);
+- Intentionally stupid and predictable AI;
+
 ## Roadmap
 
 - [ ] Phase One: Linear Campaign Mode
