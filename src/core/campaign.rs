@@ -167,7 +167,7 @@ mod tests {
         campaign::{Award, CampaignNode, Mode, Plan, State},
     };
 
-    type GroupTuple<'a> = (Option<PlayerId>, &'a str, Line, i32);
+    type GroupTuple<'a> = (Option<PlayerId>, &'a str, Option<Line>, i32);
 
     impl<'a> From<GroupTuple<'a>> for ObjectsGroup {
         fn from(tuple: GroupTuple) -> Self {
@@ -193,9 +193,9 @@ mod tests {
             let id_1 = Some(PlayerId(1));
             let scenario = Scenario {
                 objects: vec![
-                    (None, "boulder", Line::Any, 3).into(),
-                    (id_0, "swordsman", Line::Front, 1).into(),
-                    (id_1, "imp", Line::Front, 2).into(),
+                    (None, "boulder", None, 3).into(),
+                    (id_0, "swordsman", Some(Line::Front), 1).into(),
+                    (id_1, "imp", Some(Line::Front), 2).into(),
                 ],
                 ..scenario::default()
             };
@@ -217,9 +217,9 @@ mod tests {
             CampaignNode {
                 scenario: Scenario {
                     objects: vec![
-                        (None, "boulder", Line::Any, 3).into(),
-                        (id_0, "swordsman", Line::Front, 1).into(),
-                        (id_1, "imp", Line::Front, 2).into(),
+                        (None, "boulder", None, 3).into(),
+                        (id_0, "swordsman", Some(Line::Front), 1).into(),
+                        (id_1, "imp", Some(Line::Front), 2).into(),
                     ],
                     ..scenario::default()
                 },
@@ -230,8 +230,8 @@ mod tests {
             CampaignNode {
                 scenario: Scenario {
                     objects: vec![
-                        (None, "boulder", Line::Any, 3).into(),
-                        (id_1, "imp", Line::Front, 4).into(),
+                        (None, "boulder", None, 3).into(),
+                        (id_1, "imp", Some(Line::Front), 4).into(),
                     ],
                     ..scenario::default()
                 },

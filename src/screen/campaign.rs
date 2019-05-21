@@ -240,7 +240,7 @@ impl Campaign {
             scenario.objects.push(scenario::ObjectsGroup {
                 owner: Some(PlayerId(0)),
                 typename: typename.clone(),
-                line: scenario::Line::Middle,
+                line: Some(scenario::Line::Middle),
                 count: 1,
             });
         }

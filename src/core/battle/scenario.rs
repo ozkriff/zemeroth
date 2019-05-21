@@ -16,7 +16,7 @@ use crate::core::{
 pub struct ObjectsGroup {
     pub owner: Option<PlayerId>,
     pub typename: ObjType,
-    pub line: Line,
+    pub line: Option<Line>,
     pub count: i32,
 }
 
@@ -169,10 +169,10 @@ fn random_free_sector_pos(state: &State, player_id: PlayerId, line: Line) -> Opt
     None
 }
 
-pub fn random_pos(state: &State, owner: Option<PlayerId>, line: Line) -> Option<PosHex> {
-    match owner {
-        Some(player_id) => random_free_sector_pos(state, player_id, line),
-        None => random_free_pos(state),
+pub fn random_pos(state: &State, owner: Option<PlayerId>, line: Option<Line>) -> Option<PosHex> {
+    match (owner, line) {
+        (Some(player_id), Some(line)) => random_free_sector_pos(state, player_id, line),
+        _ => random_free_pos(state),
     }
 }
 
