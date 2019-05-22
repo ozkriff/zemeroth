@@ -40,9 +40,9 @@ Precompiled binaries for Linux, Windows and macOS:
 
 ## Screenshots
 
-!["big" screenshot](https://i.imgur.com/yPfO8eH.png)
+!["big" screenshot](https://i.imgur.com/iUkyqIq.png)
 
-!["campaign" screenshot](https://i.imgur.com/6FB77lz.png)
+!["campaign" screenshot](https://i.imgur.com/XXVOVMw.png)
 
 ![web version of a phone](https://i.imgur.com/cviYFkY.jpg)
 
