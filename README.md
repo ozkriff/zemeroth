@@ -51,65 +51,6 @@ Precompiled binaries for Linux, Windows and macOS:
 
 <https://www.youtube.com/user/ozkriff619/videos>
 
-## Building from Source
-
-```bash
-# Clone this repo
-git clone https://github.com/ozkriff/zemeroth
-cd zemeroth
-
-# Assets are stored in a separate repo.
-# Zemeroth expects them to be in `assets` directory.
-git clone https://github.com/ozkriff/zemeroth_assets assets
-
-# Compile a release version (debug builds give low FPS at the moment)
-cargo build --release
-
-# Run it
-cargo run --release
-```
-
-## WebAssembly
-
-```bash
-cargo install cargo-web
-./utils/wasm/build.sh
-cargo web start
-```
-
-Then open `http://localhost:8000` in your browser.
-
-The WASM version of the game uses
-[not-fl3/good-web-game](https://github.com/not-fl3/good-web-game):
-
-> [Note](https://github.com/ggez/ggez/issues/71#issuecomment-459875258)
-> that good-web-game is not really GGEZ's backend,
-> but a separate web-targeted engine with a similar API
-> that @not-fl3 uses for his prototypes.
->
-> Zemeroth uses good-web-game for its web version as a quick-n-dirty
-> immediate solution until a proper WASM support arrives to GGEZ
-> (there're no plans of making good-web-game some kind of official GGEZ backend).
->
-> The currently implemented subset of GGEZ API is quite limited
-> and while it may be used for something else that Zemeroth,
-> it will probably require a lot of work to do (contributions are welcome ;) ).
-
-## Dependencies
-
-The key external dependency of Zemeroth is [ggez] game engine.
-
-This repo contains a bunch of helper crates:
-
-- [zcomponents] is a simple component storage
-- [ggwp-zgui] is a simple and opinionated ggez-based GUI library
-- [ggwp-zscene] is a simple scene and declarative animation manager
-
-[ggez]: https://github.com/ggez/ggez
-[zcomponents]: ./zcomponents
-[ggwp-zscene]: ./ggwp-zscene
-[ggwp-zgui]: ./ggwp-zgui
-
 ## Vision
 
 [The initial vision](https://ozkriff.github.io/2017-08-17--devlog/index.html#zemeroth)
@@ -187,6 +128,65 @@ Tactical battle mechanics are mostly inspired by these games:
 - [Auro](https://store.steampowered.com/app/459680/Auro_A_MonsterBumping_Adventure)
 - [Minos Strategos](https://store.steampowered.com/app/577490/Minos_Strategos)
 - [Battle Brothers](https://store.steampowered.com/app/365360/Battle_Brothers)
+
+## Building from Source
+
+```bash
+# Clone this repo
+git clone https://github.com/ozkriff/zemeroth
+cd zemeroth
+
+# Assets are stored in a separate repo.
+# Zemeroth expects them to be in `assets` directory.
+git clone https://github.com/ozkriff/zemeroth_assets assets
+
+# Compile a release version (debug builds give low FPS at the moment)
+cargo build --release
+
+# Run it
+cargo run --release
+```
+
+## WebAssembly
+
+```bash
+cargo install cargo-web
+./utils/wasm/build.sh
+cargo web start
+```
+
+Then open `http://localhost:8000` in your browser.
+
+The WASM version of the game uses
+[not-fl3/good-web-game](https://github.com/not-fl3/good-web-game):
+
+> [Note](https://github.com/ggez/ggez/issues/71#issuecomment-459875258)
+> that good-web-game is not really GGEZ's backend,
+> but a separate web-targeted engine with a similar API
+> that @not-fl3 uses for his prototypes.
+>
+> Zemeroth uses good-web-game for its web version as a quick-n-dirty
+> immediate solution until a proper WASM support arrives to GGEZ
+> (there're no plans of making good-web-game some kind of official GGEZ backend).
+>
+> The currently implemented subset of GGEZ API is quite limited
+> and while it may be used for something else that Zemeroth,
+> it will probably require a lot of work to do (contributions are welcome ;) ).
+
+## Dependencies
+
+The key external dependency of Zemeroth is [ggez] game engine.
+
+This repo contains a bunch of helper crates:
+
+- [zcomponents] is a simple component storage
+- [ggwp-zgui] is a simple and opinionated ggez-based GUI library
+- [ggwp-zscene] is a simple scene and declarative animation manager
+
+[ggez]: https://github.com/ggez/ggez
+[zcomponents]: ./zcomponents
+[ggwp-zscene]: ./ggwp-zscene
+[ggwp-zgui]: ./ggwp-zgui
 
 ## Contribute
 
