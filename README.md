@@ -44,6 +44,8 @@ Precompiled binaries for Linux, Windows and macOS:
 
 !["campaign" screenshot](https://i.imgur.com/6FB77lz.png)
 
+![web version of a phone](https://i.imgur.com/cviYFkY.jpg)
+
 ## Gifs
 
 ![main gameplay animation](https://i.imgur.com/HqgHmOH.gif)
