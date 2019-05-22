@@ -36,7 +36,7 @@ You can play an online WebAssembly version of Zemeroth at
 ## Precompiled Binaries
 
 Precompiled binaries for Linux, Windows and macOS:
-<https://github.com/ozkriff/zemeroth/releases>
+[github.com/ozkriff/zemeroth/releases](https://github.com/ozkriff/zemeroth/releases)
 
 ## Screenshots
 
@@ -52,7 +52,7 @@ Precompiled binaries for Linux, Windows and macOS:
 
 ## Videos
 
-<https://www.youtube.com/user/ozkriff619/videos>
+[youtube.com/c/andreylesnikov/videos](https://youtube.com/c/andreylesnikov/videos)
 
 ## Vision
 
@@ -195,7 +195,7 @@ This repo contains a bunch of helper crates:
 
 If you want to help take a look at issues with `help-wanted` label attached:
 
-<https://github.com/ozkriff/zemeroth/labels/help-wanted>
+[github.com/ozkriff/zemeroth/labels/help-wanted](https://github.com/ozkriff/zemeroth/labels/help-wanted)
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license,
