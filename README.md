@@ -11,6 +11,7 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 
 **News**: [@ozkriff on twitter](https://twitter.com/ozkriff) |
 [ozkriff.github.io](https://ozkriff.github.io) |
+[facebook](https://fb.com/ozkriff.games) |
 [devlog on imgur](https://imgur.com/a/SMVqO)
 
 **Status**:
