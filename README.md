@@ -205,8 +205,10 @@ shall be dual licensed as above, without any additional terms or conditions.
 
 Zemeroth is distributed under the terms of both
 the MIT license and the Apache License (Version 2.0).
-
 See [LICENSE-APACHE] and [LICENSE-MIT] for details.
+
+Zemeroth's text logo is based on the "Old London" font
+by [Dieter Steffmann](http://www.steffmann.de).
 
 [LICENSE-MIT]: LICENSE-MIT
 [LICENSE-APACHE]: LICENSE-APACHE
