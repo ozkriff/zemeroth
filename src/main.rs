@@ -74,6 +74,14 @@ impl event::EventHandler for MainState {
             .expect("Can't handle click event");
     }
 
+    fn mouse_motion_event(&mut self, context: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
+        let window_pos = Point2::new(x, y);
+        let pos = ui::window_to_screen(context, window_pos);
+        self.screens
+            .move_mouse(context, pos)
+            .expect("Can't move the mouse");
+    }
+
     // This functions just overrides the default implementation,
     // because we don't want to quit from the game on `Esc`.
     #[cfg(not(target_arch = "wasm32"))] // <- we cant quit in wasm anyway

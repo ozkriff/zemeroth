@@ -26,6 +26,10 @@ pub trait Screen: Debug {
     fn draw(&self, context: &mut Context) -> ZResult;
     fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<Transition>;
     fn resize(&mut self, aspect_ratio: f32);
+
+    fn move_mouse(&mut self, _context: &mut Context, _pos: Point2<f32>) -> ZResult {
+        Ok(())
+    }
 }
 
 const ERR_MSG: &str = "Screen stack is empty";
@@ -58,6 +62,10 @@ impl Screens {
     pub fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult {
         let command = self.screen_mut().click(context, pos)?;
         self.handle_command(context, command)
+    }
+
+    pub fn move_mouse(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult {
+        self.screen_mut().move_mouse(context, pos)
     }
 
     pub fn resize(&mut self, aspect_ratio: f32) {

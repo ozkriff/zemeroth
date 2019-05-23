@@ -510,4 +510,14 @@ impl Screen for Battle {
         }
         Ok(Transition::None)
     }
+
+    fn move_mouse(&mut self, _context: &mut Context, point: Point2<f32>) -> ZResult {
+        let pos = geom::point_to_hex(self.view.tile_size(), point);
+        if self.state.map().is_inboard(pos) {
+            self.view.show_current_tile_marker(pos);
+        } else {
+            self.view.hide_current_tile_marker();
+        }
+        Ok(())
+    }
 }
