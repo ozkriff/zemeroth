@@ -39,6 +39,7 @@ pub struct Layers {
     pub grass: Layer,
     pub highlighted_tiles: Layer,
     pub selection_marker: Layer,
+    pub current_tile_marker: Layer,
     pub particles: Layer,
     pub objects: Layer,
     pub dots: Layer,
@@ -55,6 +56,7 @@ impl Layers {
             self.grass,
             self.highlighted_tiles,
             self.selection_marker,
+            self.current_tile_marker,
             self.particles,
             self.objects,
             self.dots,
@@ -81,6 +83,7 @@ struct DisappearingSprite {
 #[derive(Debug)]
 struct Sprites {
     selection_marker: Sprite,
+    current_tile_marker: Sprite,
     highlighted_tiles: Vec<Sprite>,
     labels: Vec<Sprite>,
     id_to_sprite_map: HashMap<ObjId, Sprite>,
@@ -142,15 +145,18 @@ impl BattleView {
         let scene = Scene::new(layers.clone().sorted());
         let map_diameter = map::radius_to_diameter(map_radius);
         let tile_size = tile_size(map_diameter);
-        let mut selection_marker = Sprite::from_image(
-            context,
-            images.selection.clone(),
-            tile_size * 2.0 * geom::FLATNESS_COEFFICIENT,
-        )?;
-        selection_marker.set_centered(true);
-        selection_marker.set_color([0.0, 0.0, 1.0, 0.8].into());
+        let mut make_marker_sprite = |color: Color| -> ZResult<Sprite> {
+            let h = tile_size * 2.0 * geom::FLATNESS_COEFFICIENT;
+            let mut sprite = Sprite::from_image(context, images.selection.clone(), h)?;
+            sprite.set_centered(true);
+            sprite.set_color(color);
+            Ok(sprite)
+        };
+        let selection_marker = make_marker_sprite([0.0, 0.0, 1.0, 0.8].into())?;
+        let current_tile_marker = make_marker_sprite([0.0, 0.0, 0.0, 0.5].into())?;
         let sprites = Sprites {
             selection_marker,
+            current_tile_marker,
             highlighted_tiles: Vec::new(),
             labels: Vec::new(),
             id_to_sprite_map: HashMap::new(),
@@ -314,6 +320,26 @@ impl BattleView {
         for sprite in self.sprites.labels.split_off(0) {
             let action = action::Hide::new(&self.layers().text, &sprite).boxed();
             self.add_action(action);
+        }
+    }
+
+    pub fn hide_current_tile_marker(&mut self) {
+        let layer = &self.layers.current_tile_marker;
+        let sprite = &mut self.sprites.current_tile_marker;
+        if layer.has_sprite(sprite) {
+            let hide_marker = action::Hide::new(layer, sprite).boxed();
+            self.scene.add_action(hide_marker);
+        }
+    }
+
+    pub fn show_current_tile_marker(&mut self, pos: PosHex) {
+        let point = hex_to_point(self.tile_size(), pos);
+        let layer = &self.layers.current_tile_marker;
+        let sprite = &mut self.sprites.current_tile_marker;
+        sprite.set_pos(point);
+        if !layer.has_sprite(sprite) {
+            let action = action::Show::new(layer, sprite).boxed();
+            self.scene.add_action(action);
         }
     }
 

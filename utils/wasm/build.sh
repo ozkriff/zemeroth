@@ -2,6 +2,6 @@
 
 cp -r assets static
 cp utils/wasm/index.html static
-ls static > static/index.txt
+ls static | sed 's:^:/:' > static/index.txt
 cargo web build
 
