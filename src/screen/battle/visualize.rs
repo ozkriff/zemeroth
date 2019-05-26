@@ -394,10 +394,17 @@ fn generate_brief_obj_info(
     Ok(seq(actions))
 }
 
+struct SpriteInfo {
+    path: &'static str,
+    offset_x: f32,
+    offset_y: f32,
+    shadow_size_coefficient: f32,
+}
+
 pub fn sprite_params(name: &str) -> 
     (&'static str, f32, f32, f32) //path to sprite, offset by x, offset by y, shadow size coefficient
 {
-    match name {
+    let (path, offset_x, offset_y, shadow_size_coefficient) = match name {
         "swordsman" => ("/swordsman.png", 0.15, 0.1, 1.0),
         "spearman" => ("/spearman.png", 0.2, 0.05, 1.0),
         "hammerman" => ("/hammerman.png", 0.05, 0.1, 1.0),
@@ -416,6 +423,13 @@ pub fn sprite_params(name: &str) ->
         "poison_cloud" => ("/poison_cloud.png", 0.0, 0.2, 2.0),
         "spike_trap" => ("/spike_trap.png", 0.0, 0.5, 1.4),
         _ => unimplemented!("Don't know such object type: {}", name),
+    };
+    
+    SpriteInfo {
+        path,
+        offset_x,
+        offset_y,
+        shadow_size_coefficient,
     }
 }
 
@@ -518,12 +532,17 @@ fn visualize_create(
     prototype: &ObjType,
 ) -> ZResult<Box<dyn Action>> {
     // TODO: Move to some .ron config:
-    let (sprite_name, offset_x, offset_y, shadow_size_coefficient) = sprite_params(prototype.0.as_str());
+    let SpriteInfo { 
+        path,
+        offset_x,
+        offset_y,
+        shadow_size_coefficient
+    } = sprite_params(prototype.0.as_str());
     let point = geom::hex_to_point(view.tile_size(), pos);
     let color = [1.0, 1.0, 1.0, 1.0].into();
     let size = view.tile_size() * 2.0;
     let sprite_object = {
-        let mut sprite = Sprite::from_path(context, sprite_name, size)?;
+        let mut sprite = Sprite::from_path(context, path, size)?;
         sprite.set_color(Color { a: 0.0, ..color });
         sprite.set_offset(Vector2::new(0.5 - offset_x, 1.0 - offset_y));
         sprite.set_pos(point);
