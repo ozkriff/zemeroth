@@ -529,7 +529,7 @@ fn visualize_create(
     prototype: &ObjType,
 ) -> ZResult<Box<dyn Action>> {
     // TODO: Move to some .ron config:
-    let SpriteInfo { 
+    let SpriteInfo {
         path,
         offset_x,
         offset_y,
