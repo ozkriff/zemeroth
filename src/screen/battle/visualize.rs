@@ -424,7 +424,6 @@ pub fn sprite_params(name: &str) ->
         "spike_trap" => ("/spike_trap.png", 0.0, 0.5, 1.4),
         _ => unimplemented!("Don't know such object type: {}", name),
     };
-    
     SpriteInfo {
         path,
         offset_x,
