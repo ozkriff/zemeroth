@@ -533,7 +533,7 @@ fn visualize_create(
         path,
         offset_x,
         offset_y,
-        shadow_size_coefficient
+        shadow_size_coefficient,
     } = sprite_params(prototype.0.as_str());
     let point = geom::hex_to_point(view.tile_size(), pos);
     let color = [1.0, 1.0, 1.0, 1.0].into();
