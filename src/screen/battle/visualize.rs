@@ -401,7 +401,7 @@ struct SpriteInfo {
     shadow_size_coefficient: f32,
 }
 
-pub fn sprite_params(name: &str) -> SpriteInfo {
+fn sprite_params(name: &str) -> SpriteInfo {
     let (path, offset_x, offset_y, shadow_size_coefficient) = match name {
         "swordsman" => ("/swordsman.png", 0.15, 0.1, 1.0),
         "spearman" => ("/spearman.png", 0.2, 0.05, 1.0),
