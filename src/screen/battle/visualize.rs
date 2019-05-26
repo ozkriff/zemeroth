@@ -394,6 +394,42 @@ fn generate_brief_obj_info(
     Ok(seq(actions))
 }
 
+struct SpriteInfo {
+    path: &'static str,
+    offset_x: f32,
+    offset_y: f32,
+    shadow_size_coefficient: f32,
+}
+
+fn sprite_params(name: &str) -> SpriteInfo {
+    let (path, offset_x, offset_y, shadow_size_coefficient) = match name {
+        "swordsman" => ("/swordsman.png", 0.15, 0.1, 1.0),
+        "spearman" => ("/spearman.png", 0.2, 0.05, 1.0),
+        "hammerman" => ("/hammerman.png", 0.05, 0.1, 1.0),
+        "alchemist" => ("/alchemist.png", 0.05, 0.1, 1.0),
+        "imp" => ("/imp.png", -0.05, 0.15, 1.3),
+        "imp_toxic" => ("/imp_toxic.png", -0.05, 0.15, 1.2),
+        "imp_bomber" => ("/imp_bomber.png", -0.05, 0.15, 1.2),
+        "imp_summoner" => ("/imp_summoner.png", -0.05, 0.15, 1.3),
+        "boulder" => ("/boulder.png", 0.0, 0.4, 2.5),
+        "bomb_damage" => ("/bomb.png", 0.0, 0.2, 0.7),
+        "bomb_push" => ("/bomb.png", 0.0, 0.2, 0.7),
+        "bomb_fire" => ("/bomb_fire.png", 0.0, 0.2, 0.7),
+        "bomb_poison" => ("/bomb_poison.png", 0.0, 0.2, 0.7),
+        "bomb_demonic" => ("/bomb_demonic.png", 0.0, 0.2, 0.7),
+        "fire" => ("/fire.png", 0.0, 0.2, 0.001),
+        "poison_cloud" => ("/poison_cloud.png", 0.0, 0.2, 2.0),
+        "spike_trap" => ("/spike_trap.png", 0.0, 0.5, 1.4),
+        _ => unimplemented!("Don't know such object type: {}", name),
+    };
+    SpriteInfo {
+        path,
+        offset_x,
+        offset_y,
+        shadow_size_coefficient,
+    }
+}
+
 pub fn refresh_brief_agent_info(
     state: &State,
     view: &mut BattleView,
@@ -493,32 +529,17 @@ fn visualize_create(
     prototype: &ObjType,
 ) -> ZResult<Box<dyn Action>> {
     // TODO: Move to some .ron config:
-    // TODO: At lest, extract this to a separate function
-    let (sprite_name, offset_x, offset_y, shadow_size_coefficient) = match prototype.0.as_str() {
-        "swordsman" => ("/swordsman.png", 0.15, 0.1, 1.0),
-        "spearman" => ("/spearman.png", 0.2, 0.05, 1.0),
-        "hammerman" => ("/hammerman.png", 0.05, 0.1, 1.0),
-        "alchemist" => ("/alchemist.png", 0.05, 0.1, 1.0),
-        "imp" => ("/imp.png", -0.05, 0.15, 1.3),
-        "imp_toxic" => ("/imp_toxic.png", -0.05, 0.15, 1.2),
-        "imp_bomber" => ("/imp_bomber.png", -0.05, 0.15, 1.2),
-        "imp_summoner" => ("/imp_summoner.png", -0.05, 0.15, 1.3),
-        "boulder" => ("/boulder.png", 0.0, 0.4, 2.5),
-        "bomb_damage" => ("/bomb.png", 0.0, 0.2, 0.7),
-        "bomb_push" => ("/bomb.png", 0.0, 0.2, 0.7),
-        "bomb_fire" => ("/bomb_fire.png", 0.0, 0.2, 0.7),
-        "bomb_poison" => ("/bomb_poison.png", 0.0, 0.2, 0.7),
-        "bomb_demonic" => ("/bomb_demonic.png", 0.0, 0.2, 0.7),
-        "fire" => ("/fire.png", 0.0, 0.2, 0.001),
-        "poison_cloud" => ("/poison_cloud.png", 0.0, 0.2, 2.0),
-        "spike_trap" => ("/spike_trap.png", 0.0, 0.5, 1.4),
-        _ => unimplemented!("Don't know such object type: {}", prototype.0),
-    };
+    let SpriteInfo {
+        path,
+        offset_x,
+        offset_y,
+        shadow_size_coefficient,
+    } = sprite_params(prototype.0.as_str());
     let point = geom::hex_to_point(view.tile_size(), pos);
     let color = [1.0, 1.0, 1.0, 1.0].into();
     let size = view.tile_size() * 2.0;
     let sprite_object = {
-        let mut sprite = Sprite::from_path(context, sprite_name, size)?;
+        let mut sprite = Sprite::from_path(context, path, size)?;
         sprite.set_color(Color { a: 0.0, ..color });
         sprite.set_offset(Vector2::new(0.5 - offset_x, 1.0 - offset_y));
         sprite.set_pos(point);
