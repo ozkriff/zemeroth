@@ -268,7 +268,7 @@ fn apply_effect_instant(state: &mut State, id: ObjId, effect: &Effect) {
         Effect::Knockback(ref effect) => apply_effect_knockback(state, id, effect),
         Effect::FlyOff(ref effect) => apply_effect_fly_off(state, id, effect),
         Effect::Throw(ref effect) => apply_effect_throw(state, id, effect),
-        Effect::Miss => {}
+        Effect::Dodge(_) => {}
     }
 }
 

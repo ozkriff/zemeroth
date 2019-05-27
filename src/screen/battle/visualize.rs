@@ -846,7 +846,7 @@ pub fn visualize_instant_effect(
         Effect::Knockback(ref e) => visualize_effect_knockback(state, view, context, target_id, e)?,
         Effect::FlyOff(ref e) => visualize_effect_fly_off(state, view, context, target_id, e)?,
         Effect::Throw(ref e) => visualize_effect_throw(state, view, context, target_id, e)?,
-        Effect::Miss => visualize_effect_miss(state, view, context, target_id)?,
+        Effect::Dodge(ref e) => visualize_effect_dodge(state, view, context, target_id, e)?,
     };
     Ok(action)
 }
@@ -1025,12 +1025,34 @@ fn visualize_effect_throw(
     Ok(seq(vec![fork(action_move_shadow), arc_move, action_dust]))
 }
 
-fn visualize_effect_miss(
+fn visualize_effect_dodge(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
     target_id: ObjId,
+    effect: &effect::Dodge,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
-    message(view, context, pos, "missed")
+    let time_to = time_s(0.05);
+    let time_from = time_s(0.3);
+    let mut actions = Vec::new();
+    actions.push(message(view, context, pos, "dodged")?);
+    if let Some(dir) = effect.dir {
+        // TODO: code duplication with visualize_event_attack?
+        let sprite = view.id_to_sprite(target_id).clone();
+        let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
+        let pos_b = Dir::get_neighbor_pos(pos, dir);
+        let point_a = geom::hex_to_point(view.tile_size(), pos);
+        let point_b = geom::hex_to_point(view.tile_size(), pos_b);
+        let diff = (point_b - point_a) * 0.3;
+        let action_sprite_move_to = action::MoveBy::new(&sprite, diff, time_to).boxed();
+        let action_shadow_move_to = action::MoveBy::new(&sprite_shadow, diff, time_to).boxed();
+        let action_sprite_move_from = action::MoveBy::new(&sprite, -diff, time_from).boxed();
+        let action_shadow_move_from = action::MoveBy::new(&sprite_shadow, -diff, time_from).boxed();
+        actions.push(fork(action_shadow_move_to));
+        actions.push(action_sprite_move_to);
+        actions.push(fork(action_shadow_move_from));
+        actions.push(action_sprite_move_from);
+    }
+    Ok(seq(actions))
 }
