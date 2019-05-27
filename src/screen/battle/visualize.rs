@@ -573,7 +573,7 @@ fn visualize_event_move_to(
     let sprite = view.id_to_sprite(event.id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
     let mut actions = Vec::new();
-    if let &[pos] = &event.path.tiles() {
+    if let [pos] = event.path.tiles() {
         let action = fork(seq(vec![
             action::Sleep::new(time_s(0.4)).boxed(), // to avoid overlapping with a damage msg
             message(view, context, *pos, "move interrupted")?,
