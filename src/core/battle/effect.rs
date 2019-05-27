@@ -42,7 +42,7 @@ pub enum Effect {
     Knockback(Knockback),
     FlyOff(FlyOff), // TODO: flying boulders should make some damage
     Throw(Throw),
-    Dodge,
+    Dodge(Dodge),
 }
 
 impl Effect {
@@ -57,7 +57,7 @@ impl Effect {
             Effect::Knockback(_) => "Knockback",
             Effect::FlyOff(_) => "Fly off",
             Effect::Throw(_) => "Throw",
-            Effect::Dodge => "Dodge",
+            Effect::Dodge(_) => "Dodge",
         }
     }
 }
@@ -112,6 +112,11 @@ pub struct FlyOff {
 pub struct Throw {
     pub from: PosHex,
     pub to: PosHex,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct Dodge {
+    pub dir: Option<Dir>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]

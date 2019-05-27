@@ -147,6 +147,7 @@ fn execute_attack_internal(
         weapon_type,
     }
     .into();
+    let dir = dir_between_objects(state, command.attacker_id, command.target_id);
     let mut target_effects = Vec::new();
     let mut is_kill = false;
     if let Some(effect) = try_attack(state, command.attacker_id, command.target_id) {
@@ -157,7 +158,7 @@ fn execute_attack_internal(
     }
     let mut timed_effects = Vec::new();
     let status = if target_effects.is_empty() {
-        target_effects.push(Effect::Dodge);
+        target_effects.push(effect::Dodge { dir }.into());
         AttackStatus::Miss
     } else {
         if !is_kill {
@@ -840,6 +841,17 @@ pub fn hit_chance(state: &State, attacker_id: ObjId, target_id: ObjId) -> (i32, 
     (k_min, k_max)
 }
 
+fn dir_between_objects(state: &State, id_a: ObjId, id_b: ObjId) -> Option<Dir> {
+    let pos_a = state.parts().pos.get(id_a).0;
+    let pos_b = state.parts().pos.get(id_b).0;
+    if map::distance_hex(pos_a, pos_b).0 > 1 {
+        // TODO: detect approximate direction even for greater distances
+        None
+    } else {
+        Some(Dir::get_dir_from_to(pos_a, pos_b))
+    }
+}
+
 fn try_attack(state: &State, attacker_id: ObjId, target_id: ObjId) -> Option<Effect> {
     let parts = state.parts();
     let agent_attacker = state.parts().agent.get(attacker_id);
@@ -867,15 +879,7 @@ fn try_attack(state: &State, attacker_id: ObjId, target_id: ObjId) -> Option<Eff
     }
     let damage = correct_damage_with_armor(state, target_id, damage);
     let attack_break = utils::clamp_max(agent_attacker.attack_break, target_armor);
-    let dir = {
-        let attacker_pos = state.parts().pos.get(attacker_id).0;
-        let target_pos = state.parts().pos.get(target_id).0;
-        if map::distance_hex(attacker_pos, target_pos).0 > 1 {
-            None
-        } else {
-            Some(Dir::get_dir_from_to(attacker_pos, target_pos))
-        }
-    };
+    let dir = dir_between_objects(state, attacker_id, target_id);
     let effect = if target_strength > damage {
         effect::Wound {
             damage,
@@ -1217,8 +1221,9 @@ mod tests {
             instant_effects: instant_effects1,
             ..Default::default()
         };
+        let effect_dodge = effect::Dodge { dir };
         let mut instant_effects2 = Vec::new();
-        instant_effects2.push((ObjId(0), vec![Effect::Vanish, Effect::Dodge]));
+        instant_effects2.push((ObjId(0), vec![Effect::Vanish, effect_dodge.clone().into()]));
         let context2 = ExecuteContext {
             instant_effects: instant_effects2,
             ..Default::default()
@@ -1226,7 +1231,12 @@ mod tests {
         let mut instant_effects_expected = Vec::new();
         instant_effects_expected.push((
             ObjId(0),
-            vec![effect_kill, Effect::Stun, Effect::Vanish, Effect::Dodge],
+            vec![
+                effect_kill,
+                Effect::Stun,
+                Effect::Vanish,
+                effect_dodge.into(),
+            ],
         ));
         let context_expected = ExecuteContext {
             instant_effects: instant_effects_expected,
