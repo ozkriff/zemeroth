@@ -846,7 +846,7 @@ pub fn visualize_instant_effect(
         Effect::Knockback(ref e) => visualize_effect_knockback(state, view, context, target_id, e)?,
         Effect::FlyOff(ref e) => visualize_effect_fly_off(state, view, context, target_id, e)?,
         Effect::Throw(ref e) => visualize_effect_throw(state, view, context, target_id, e)?,
-        Effect::Miss => visualize_effect_miss(state, view, context, target_id)?,
+        Effect::Dodge => visualize_effect_dodge(state, view, context, target_id)?,
     };
     Ok(action)
 }
@@ -1025,12 +1025,12 @@ fn visualize_effect_throw(
     Ok(seq(vec![fork(action_move_shadow), arc_move, action_dust]))
 }
 
-fn visualize_effect_miss(
+fn visualize_effect_dodge(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
     target_id: ObjId,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
-    message(view, context, pos, "missed")
+    message(view, context, pos, "dodged")
 }

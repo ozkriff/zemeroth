@@ -42,7 +42,7 @@ pub enum Effect {
     Knockback(Knockback),
     FlyOff(FlyOff), // TODO: flying boulders should make some damage
     Throw(Throw),
-    Miss,
+    Dodge,
 }
 
 impl Effect {
@@ -57,7 +57,7 @@ impl Effect {
             Effect::Knockback(_) => "Knockback",
             Effect::FlyOff(_) => "Fly off",
             Effect::Throw(_) => "Throw",
-            Effect::Miss => "Miss",
+            Effect::Dodge => "Dodge",
         }
     }
 }

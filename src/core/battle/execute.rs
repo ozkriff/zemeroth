@@ -157,7 +157,7 @@ fn execute_attack_internal(
     }
     let mut timed_effects = Vec::new();
     let status = if target_effects.is_empty() {
-        target_effects.push(Effect::Miss);
+        target_effects.push(Effect::Dodge);
         AttackStatus::Miss
     } else {
         if !is_kill {
@@ -1218,7 +1218,7 @@ mod tests {
             ..Default::default()
         };
         let mut instant_effects2 = Vec::new();
-        instant_effects2.push((ObjId(0), vec![Effect::Vanish, Effect::Miss]));
+        instant_effects2.push((ObjId(0), vec![Effect::Vanish, Effect::Dodge]));
         let context2 = ExecuteContext {
             instant_effects: instant_effects2,
             ..Default::default()
@@ -1226,7 +1226,7 @@ mod tests {
         let mut instant_effects_expected = Vec::new();
         instant_effects_expected.push((
             ObjId(0),
-            vec![effect_kill, Effect::Stun, Effect::Vanish, Effect::Miss],
+            vec![effect_kill, Effect::Stun, Effect::Vanish, Effect::Dodge],
         ));
         let context_expected = ExecuteContext {
             instant_effects: instant_effects_expected,
