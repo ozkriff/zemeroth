@@ -2,7 +2,7 @@ use std::{fmt::Debug, time::Duration};
 
 pub use crate::action::{
     change_color_to::ChangeColorTo, empty::Empty, fork::Fork, hide::Hide, move_by::MoveBy,
-    sequence::Sequence, set_color::SetColor, show::Show, sleep::Sleep,
+    sequence::Sequence, set_color::SetColor, set_facing::SetFacing, show::Show, sleep::Sleep,
 };
 
 mod change_color_to;
@@ -12,6 +12,7 @@ mod hide;
 mod move_by;
 mod sequence;
 mod set_color;
+mod set_facing;
 mod show;
 mod sleep;
 

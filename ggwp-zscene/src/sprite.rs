@@ -8,12 +8,19 @@ use ggez::{
 
 use crate::{Error, Result};
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Facing {
+    Left,
+    Right,
+}
+
 struct SpriteData {
     drawable: Box<dyn Drawable>,
     dimensions: Rect,
     basic_scale: f32,
     param: graphics::DrawParam,
     offset: Vector2<f32>,
+    facing: Facing,
 }
 
 impl fmt::Debug for SpriteData {
@@ -24,6 +31,7 @@ impl fmt::Debug for SpriteData {
             .field("basic_scale", &self.basic_scale)
             .field("param", &self.param)
             .field("offset", &self.offset)
+            .field("facing", &self.facing)
             .finish()
     }
 }
@@ -54,6 +62,7 @@ impl Sprite {
             basic_scale: scale,
             param,
             offset: Vector2::new(0.0, 0.0),
+            facing: Facing::Right,
         };
         let data = Rc::new(RefCell::new(data));
         Ok(Self { data })
@@ -69,6 +78,24 @@ impl Sprite {
     }
 
     // TODO: some method to change the image.
+
+    pub fn set_facing(&mut self, facing: Facing) {
+        if facing == self.data.borrow().facing {
+            return;
+        }
+        let offset;
+        {
+            let mut data = self.data.borrow_mut();
+            data.facing = facing;
+            data.param.scale.x *= -1.0;
+            let mut dimensions = data.dimensions;
+            dimensions.scale(data.param.scale.x, data.param.scale.y);
+            let off_x = -data.offset.x / dimensions.w;
+            let off_y = -data.offset.y / dimensions.h;
+            offset = Vector2::new(-off_x, off_y);
+        }
+        self.set_offset(offset);
+    }
 
     pub fn set_centered(&mut self, is_centered: bool) {
         let offset = if is_centered {
