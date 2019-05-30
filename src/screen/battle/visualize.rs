@@ -8,13 +8,13 @@ use ggez::{
 };
 use log::{debug, info};
 use rand::{thread_rng, Rng};
-use scene::{action, Action, Boxed, Sprite};
+use scene::{action, Action, Boxed, Facing, Sprite};
 
 use crate::{
     core::{
         battle::{
             ability::Ability,
-            component::{ObjType, WeaponType},
+            component::{Component, WeaponType},
             effect::{self, Effect},
             event::{self, ActiveEvent, Event},
             execute::{hit_chance, ApplyPhase},
@@ -407,10 +407,10 @@ fn sprite_params(name: &str) -> SpriteInfo {
         "spearman" => ("/spearman.png", 0.2, 0.05, 1.0),
         "hammerman" => ("/hammerman.png", 0.05, 0.1, 1.0),
         "alchemist" => ("/alchemist.png", 0.05, 0.1, 1.0),
-        "imp" => ("/imp.png", -0.05, 0.15, 1.3),
-        "imp_toxic" => ("/imp_toxic.png", -0.05, 0.15, 1.2),
-        "imp_bomber" => ("/imp_bomber.png", -0.05, 0.15, 1.2),
-        "imp_summoner" => ("/imp_summoner.png", -0.05, 0.15, 1.3),
+        "imp" => ("/imp.png", 0.0, 0.15, 1.3),
+        "imp_toxic" => ("/imp_toxic.png", 0.0, 0.15, 1.2),
+        "imp_bomber" => ("/imp_bomber.png", 0.0, 0.15, 1.2),
+        "imp_summoner" => ("/imp_summoner.png", 0.0, 0.15, 1.3),
         "boulder" => ("/boulder.png", 0.0, 0.4, 2.5),
         "bomb_damage" => ("/bomb.png", 0.0, 0.2, 0.7),
         "bomb_push" => ("/bomb.png", 0.0, 0.2, 0.7),
@@ -521,49 +521,6 @@ fn visualize_event(
     Ok(action)
 }
 
-fn visualize_create(
-    view: &mut BattleView,
-    context: &mut Context,
-    id: ObjId,
-    pos: PosHex,
-    prototype: &ObjType,
-) -> ZResult<Box<dyn Action>> {
-    // TODO: Move to some .ron config:
-    let SpriteInfo {
-        path,
-        offset_x,
-        offset_y,
-        shadow_size_coefficient,
-    } = sprite_params(prototype.0.as_str());
-    let point = geom::hex_to_point(view.tile_size(), pos);
-    let color = [1.0, 1.0, 1.0, 1.0].into();
-    let size = view.tile_size() * 2.0;
-    let sprite_object = {
-        let mut sprite = Sprite::from_path(context, path, size)?;
-        sprite.set_color(Color { a: 0.0, ..color });
-        sprite.set_offset(Vector2::new(0.5 - offset_x, 1.0 - offset_y));
-        sprite.set_pos(point);
-        sprite
-    };
-    let sprite_shadow = {
-        let image_shadow = view.images().shadow.clone();
-        let mut sprite = Sprite::from_image(context, image_shadow, size * shadow_size_coefficient)?;
-        sprite.set_centered(true);
-        sprite.set_color(Color { a: 0.0, ..color });
-        sprite.set_pos(point);
-        sprite
-    };
-    view.add_object(id, &sprite_object, &sprite_shadow);
-    let action_change_shadow_color =
-        action::ChangeColorTo::new(&sprite_shadow, color, time_s(0.2)).boxed();
-    Ok(seq(vec![
-        action::Show::new(&view.layers().shadows, &sprite_shadow).boxed(),
-        action::Show::new(&view.layers().objects, &sprite_object).boxed(),
-        fork(action_change_shadow_color),
-        action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed(),
-    ]))
-}
-
 fn visualize_event_move_to(
     _: &State,
     view: &mut BattleView,
@@ -583,6 +540,8 @@ fn visualize_event_move_to(
     for step in event.path.steps() {
         let from = geom::hex_to_point(view.tile_size(), step.from);
         let to = geom::hex_to_point(view.tile_size(), step.to);
+        let facing = geom::Facing::from_positions(view.tile_size(), step.from, step.to)
+            .expect("Bad path step");
         let diff = to - from;
         let step_height = view.tile_size() * 0.25;
         let step_time = time_s(0.13);
@@ -590,6 +549,7 @@ fn visualize_event_move_to(
         let main_move = action::MoveBy::new(&sprite, diff, move_time).boxed();
         let shadow_move = action::MoveBy::new(&sprite_shadow, diff, move_time).boxed();
         let action = seq(vec![
+            action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed(),
             fork(main_move),
             fork(shadow_move),
             up_and_down_move(view, &sprite, step_height, step_time),
@@ -628,6 +588,9 @@ fn visualize_event_attack(
     let action_shadow_move_to = action::MoveBy::new(&sprite_shadow, diff, time_to).boxed();
     let action_sprite_move_from = action::MoveBy::new(&sprite, -diff, time_from).boxed();
     let action_shadow_move_from = action::MoveBy::new(&sprite_shadow, -diff, time_from).boxed();
+    if let Some(facing) = geom::Facing::from_positions(view.tile_size(), map_from, map_to) {
+        actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
+    }
     actions.push(fork(action_shadow_move_to));
     actions.push(action_sprite_move_to);
     actions.push(show_weapon_flash(view, context, map_to, event.weapon_type)?);
@@ -786,10 +749,14 @@ fn visualize_event_use_ability(
     };
     let pos = state.parts().pos.get(event.id).0;
     let text = event.ability.to_string();
-    Ok(seq(vec![
-        action_main,
-        message(view, context, pos, &format!("<{}>", text))?,
-    ]))
+    let mut actions = Vec::new();
+    if let Some(facing) = geom::Facing::from_positions(view.tile_size(), pos, event.pos) {
+        let sprite = view.id_to_sprite(event.id).clone();
+        actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
+    }
+    actions.push(action_main);
+    actions.push(message(view, context, pos, &format!("<{}>", text))?);
+    Ok(seq(actions))
 }
 
 fn visualize_event_effect_tick(
@@ -865,7 +832,47 @@ fn visualize_effect_create(
     target_id: ObjId,
     effect: &effect::Create,
 ) -> ZResult<Box<dyn Action>> {
-    visualize_create(view, context, target_id, effect.pos, &effect.prototype).map(fork)
+    // TODO: Move to some .ron config:
+    let SpriteInfo {
+        path,
+        offset_x,
+        offset_y,
+        shadow_size_coefficient,
+    } = sprite_params(effect.prototype.0.as_str());
+    let point = geom::hex_to_point(view.tile_size(), effect.pos);
+    let color = [1.0, 1.0, 1.0, 1.0].into();
+    let size = view.tile_size() * 2.0;
+    let sprite_object = {
+        let mut sprite = Sprite::from_path(context, path, size)?;
+        sprite.set_color(Color { a: 0.0, ..color });
+        sprite.set_offset(Vector2::new(0.5 - offset_x, 1.0 - offset_y));
+        sprite.set_pos(point);
+        for component in &effect.components {
+            if let Component::BelongsTo(belongs_to) = component {
+                if belongs_to.0 == PlayerId(1) {
+                    sprite.set_facing(Facing::Left);
+                }
+            }
+        }
+        sprite
+    };
+    let sprite_shadow = {
+        let image_shadow = view.images().shadow.clone();
+        let mut sprite = Sprite::from_image(context, image_shadow, size * shadow_size_coefficient)?;
+        sprite.set_centered(true);
+        sprite.set_color(Color { a: 0.0, ..color });
+        sprite.set_pos(point);
+        sprite
+    };
+    view.add_object(target_id, &sprite_object, &sprite_shadow);
+    let action_change_shadow_color =
+        action::ChangeColorTo::new(&sprite_shadow, color, time_s(0.2)).boxed();
+    Ok(fork(seq(vec![
+        action::Show::new(&view.layers().shadows, &sprite_shadow).boxed(),
+        action::Show::new(&view.layers().objects, &sprite_object).boxed(),
+        fork(action_change_shadow_color),
+        action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed(),
+    ])))
 }
 
 fn visualize_effect_kill(

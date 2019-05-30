@@ -30,3 +30,31 @@ pub fn rand_tile_offset(size: f32, radius: f32) -> Vector2<f32> {
         thread_rng().gen_range(-r, r) * FLATNESS_COEFFICIENT,
     )
 }
+
+#[derive(Clone, Copy, Debug)]
+pub enum Facing {
+    Left,
+    Right,
+}
+
+impl Facing {
+    pub fn from_positions(tile_size: f32, from: PosHex, to: PosHex) -> Option<Self> {
+        if from == to {
+            return None;
+        }
+        let from = hex_to_point(tile_size, from);
+        let to = hex_to_point(tile_size, to);
+        Some(if to.x > from.x {
+            Facing::Right
+        } else {
+            Facing::Left
+        })
+    }
+
+    pub fn to_scene_facing(self) -> scene::Facing {
+        match self {
+            Facing::Left => scene::Facing::Left,
+            Facing::Right => scene::Facing::Right,
+        }
+    }
+}

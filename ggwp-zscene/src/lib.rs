@@ -14,7 +14,7 @@ use ggez::{Context, GameResult};
 pub use crate::{
     action::{Action, Boxed},
     error::Error,
-    sprite::Sprite,
+    sprite::{Facing, Sprite},
 };
 
 pub mod action;
