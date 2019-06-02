@@ -1,4 +1,4 @@
-use std::{cell::RefCell, fmt, path::Path, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, fmt, path::Path, rc::Rc};
 
 use ggez::{
     graphics::{self, Drawable, Rect},
@@ -15,7 +15,9 @@ pub enum Facing {
 }
 
 struct SpriteData {
-    drawable: Box<dyn Drawable>,
+    drawable: Option<Box<dyn Drawable>>,
+    drawables: HashMap<String, Option<Box<dyn Drawable>>>,
+    current_frame_name: String,
     dimensions: Rect,
     basic_scale: f32,
     param: graphics::DrawParam,
@@ -26,7 +28,9 @@ struct SpriteData {
 impl fmt::Debug for SpriteData {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("SpriteData")
-            .field("drawable", &format_args!("{:p}", self.drawable))
+            .field("drawable", &self.drawable.as_ref().map(|d| d as *const _))
+            .field("drawables", &format_args!("{:?}", self.drawables.keys()))
+            .field("current_frame_name", &self.current_frame_name)
             .field("dimensions", &self.dimensions)
             .field("basic_scale", &self.basic_scale)
             .field("param", &self.param)
@@ -56,8 +60,12 @@ impl Sprite {
             scale: [scale, scale].into(),
             ..Default::default()
         };
+        let mut drawables = HashMap::new();
+        drawables.insert("".into(), None);
         let data = SpriteData {
-            drawable,
+            drawable: Some(drawable),
+            drawables,
+            current_frame_name: "".into(),
             dimensions,
             basic_scale: scale,
             param,
@@ -77,7 +85,50 @@ impl Sprite {
         Self::from_image(context, image, height)
     }
 
-    // TODO: some method to change the image.
+    pub fn add_frame(&mut self, frame_name: String, drawable: Box<dyn Drawable>) {
+        let mut data = self.data.borrow_mut();
+        data.drawables.insert(frame_name.into(), Some(drawable));
+    }
+
+    pub fn from_paths<P: AsRef<Path>>(
+        context: &mut Context,
+        paths: &[(&str, P)],
+        height: f32,
+    ) -> Result<Self> {
+        assert!(paths.len() >= 1);
+        assert_eq!(paths[0].0, "");
+        let mut this = Self::from_path(context, &paths[0].1, height)?;
+        for (frame_name, path) in paths {
+            let image = graphics::Image::new(context, &path)?;
+            this.add_frame(frame_name.to_string(), Box::new(image));
+        }
+        Ok(this)
+    }
+
+    pub fn has_frame(&self, frame_name: &str) -> bool {
+        let data = self.data.borrow();
+        data.drawables.contains_key(frame_name)
+    }
+
+    // TODO: Add a usage example
+    pub fn set_frame(&mut self, frame_name: &str) {
+        assert!(self.has_frame(frame_name));
+        let mut data = self.data.borrow_mut();
+        let previous_frame_name = data.current_frame_name.clone();
+        let previous_drawable = data.drawable.take().expect("no active drawable");
+        let previous_slot = data
+            .drawables
+            .get_mut(&previous_frame_name)
+            .expect("bad frame name");
+        *previous_slot = Some(previous_drawable);
+        data.drawable = data
+            .drawables
+            .get_mut(frame_name)
+            .expect("bad frame name")
+            .take();
+        assert!(data.drawable.is_some());
+        data.current_frame_name = frame_name.into();
+    }
 
     pub fn set_facing(&mut self, facing: Facing) {
         if facing == self.data.borrow().facing {
@@ -121,7 +172,8 @@ impl Sprite {
 
     pub fn draw(&self, context: &mut Context) -> GameResult<()> {
         let data = self.data.borrow();
-        data.drawable.draw(context, data.param)
+        let drawable = data.drawable.as_ref().expect("no active drawable");
+        drawable.draw(context, data.param)
     }
 
     pub fn pos(&self) -> Point2<f32> {
