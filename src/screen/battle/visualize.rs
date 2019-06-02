@@ -395,35 +395,63 @@ fn generate_brief_obj_info(
 }
 
 struct SpriteInfo {
-    path: &'static str,
+    paths: Vec<(&'static str, &'static str)>,
     offset_x: f32,
     offset_y: f32,
     shadow_size_coefficient: f32,
 }
 
 fn sprite_params(name: &str) -> SpriteInfo {
-    let (path, offset_x, offset_y, shadow_size_coefficient) = match name {
-        "swordsman" => ("/swordsman.png", 0.15, 0.1, 1.0),
-        "spearman" => ("/spearman.png", 0.2, 0.05, 1.0),
-        "hammerman" => ("/hammerman.png", 0.05, 0.1, 1.0),
-        "alchemist" => ("/alchemist.png", 0.05, 0.1, 1.0),
-        "imp" => ("/imp.png", 0.0, 0.15, 1.3),
-        "imp_toxic" => ("/imp_toxic.png", 0.0, 0.15, 1.2),
-        "imp_bomber" => ("/imp_bomber.png", 0.0, 0.15, 1.2),
-        "imp_summoner" => ("/imp_summoner.png", 0.0, 0.15, 1.3),
-        "boulder" => ("/boulder.png", 0.0, 0.4, 2.5),
-        "bomb_damage" => ("/bomb.png", 0.0, 0.2, 0.7),
-        "bomb_push" => ("/bomb.png", 0.0, 0.2, 0.7),
-        "bomb_fire" => ("/bomb_fire.png", 0.0, 0.2, 0.7),
-        "bomb_poison" => ("/bomb_poison.png", 0.0, 0.2, 0.7),
-        "bomb_demonic" => ("/bomb_demonic.png", 0.0, 0.2, 0.7),
-        "fire" => ("/fire.png", 0.0, 0.2, 0.001),
-        "poison_cloud" => ("/poison_cloud.png", 0.0, 0.2, 2.0),
-        "spike_trap" => ("/spike_trap.png", 0.0, 0.5, 1.4),
+    // TODO: Move this table to a `.ron` config
+    let (paths, offset_x, offset_y, shadow_size_coefficient) = match name {
+        "swordsman" => (
+            vec![("", "/swordsman.png"), ("rage", "/swordsman_rage.png")],
+            0.15,
+            0.1,
+            1.0,
+        ),
+        "spearman" => (vec![("", "/spearman.png")], 0.2, 0.05, 1.0),
+        "hammerman" => (vec![("", "/hammerman.png")], 0.05, 0.1, 1.0),
+        "alchemist" => (
+            vec![
+                ("", "/alchemist.png"),
+                ("throw", "/alchemist_throw.png"),
+                ("heal", "/alchemist_heal.png"),
+            ],
+            0.05,
+            0.1,
+            1.0,
+        ),
+        "imp" => (vec![("", "/imp.png")], 0.0, 0.15, 1.3),
+        "imp_toxic" => (vec![("", "/imp_toxic.png")], 0.0, 0.15, 1.2),
+        "imp_bomber" => (
+            vec![("", "/imp_bomber.png"), ("throw", "/imp_bomber_throw.png")],
+            0.0,
+            0.15,
+            1.2,
+        ),
+        "imp_summoner" => (
+            vec![
+                ("", "/imp_summoner.png"),
+                ("summon", "/imp_summoner_summon.png"),
+            ],
+            0.0,
+            0.15,
+            1.3,
+        ),
+        "boulder" => (vec![("", "/boulder.png")], 0.0, 0.4, 2.5),
+        "bomb_damage" => (vec![("", "/bomb.png")], 0.0, 0.2, 0.7),
+        "bomb_push" => (vec![("", "/bomb.png")], 0.0, 0.2, 0.7),
+        "bomb_fire" => (vec![("", "/bomb_fire.png")], 0.0, 0.2, 0.7),
+        "bomb_poison" => (vec![("", "/bomb_poison.png")], 0.0, 0.2, 0.7),
+        "bomb_demonic" => (vec![("", "/bomb_demonic.png")], 0.0, 0.2, 0.7),
+        "fire" => (vec![("", "/fire.png")], 0.0, 0.2, 0.001),
+        "poison_cloud" => (vec![("", "/poison_cloud.png")], 0.0, 0.2, 2.0),
+        "spike_trap" => (vec![("", "/spike_trap.png")], 0.0, 0.5, 1.4),
         _ => unimplemented!("Don't know such object type: {}", name),
     };
     SpriteInfo {
-        path,
+        paths,
         offset_x,
         offset_y,
         shadow_size_coefficient,
@@ -591,11 +619,17 @@ fn visualize_event_attack(
     if let Some(facing) = geom::Facing::from_positions(view.tile_size(), map_from, map_to) {
         actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
     }
+    if sprite.has_frame("attack") {
+        actions.push(action::SetFrame::new(&sprite, "attack").boxed());
+    }
     actions.push(fork(action_shadow_move_to));
     actions.push(action_sprite_move_to);
     actions.push(show_weapon_flash(view, context, map_to, event.weapon_type)?);
     actions.push(fork(action_shadow_move_from));
     actions.push(action_sprite_move_from);
+    if sprite.has_frame("attack") {
+        actions.push(action::SetFrame::new(&sprite, "").boxed());
+    }
     Ok(seq(actions))
 }
 
@@ -682,11 +716,17 @@ fn visualize_event_use_ability_jump(
     let time = action_arc_move.duration();
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
     let action_dust = show_dust_at_pos(view, context, event.pos)?;
-    Ok(seq(vec![
-        fork(action_move_shadow),
-        action_arc_move,
-        action_dust,
-    ]))
+    let mut actions = Vec::new();
+    if sprite_object.has_frame("jump") {
+        actions.push(action::SetFrame::new(&sprite_object, "jump").boxed());
+    }
+    actions.push(fork(action_move_shadow));
+    actions.push(action_arc_move);
+    if sprite_object.has_frame("jump") {
+        actions.push(action::SetFrame::new(&sprite_object, "").boxed());
+    }
+    actions.push(action_dust);
+    Ok(seq(actions))
 }
 
 fn visualize_event_use_ability_dash(
@@ -705,6 +745,38 @@ fn visualize_event_use_ability_dash(
     let main_move = action::MoveBy::new(&sprite_object, diff, time).boxed();
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
     Ok(seq(vec![fork(action_move_shadow), main_move]))
+}
+
+fn visualize_event_use_ability_heal(
+    _: &State,
+    view: &mut BattleView,
+    _: &mut Context,
+    event: &event::UseAbility,
+) -> ZResult<Box<dyn Action>> {
+    let sprite = view.id_to_sprite(event.id).clone();
+    let frame_name = "heal";
+    assert!(sprite.has_frame(frame_name));
+    Ok(fork(seq(vec![
+        action::SetFrame::new(&sprite, frame_name).boxed(),
+        action::Sleep::new(time_s(1.0)).boxed(),
+        action::SetFrame::new(&sprite, "").boxed(),
+    ])))
+}
+
+fn visualize_event_use_ability_rage(
+    _: &State,
+    view: &mut BattleView,
+    _: &mut Context,
+    event: &event::UseAbility,
+) -> ZResult<Box<dyn Action>> {
+    let sprite = view.id_to_sprite(event.id).clone();
+    let frame_name = "rage";
+    assert!(sprite.has_frame(frame_name));
+    Ok(fork(seq(vec![
+        action::SetFrame::new(&sprite, frame_name).boxed(),
+        action::Sleep::new(time_s(1.0)).boxed(),
+        action::SetFrame::new(&sprite, "").boxed(),
+    ])))
 }
 
 fn visualize_event_use_ability_explode(
@@ -726,9 +798,34 @@ fn visualize_event_use_ability_summon(
     context: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
+    let sprite = view.id_to_sprite(event.id).clone();
+    let frame_name = "summon";
+    assert!(sprite.has_frame(frame_name));
     let pos = state.parts().pos.get(event.id).0;
     let scale = 2.0;
-    show_flare_scale(view, context, pos, [1.0, 1.0, 1.0, 0.7].into(), scale)
+    let action_flare = show_flare_scale(view, context, pos, [1.0, 1.0, 1.0, 0.7].into(), scale)?;
+    Ok(seq(vec![
+        action::SetFrame::new(&sprite, frame_name).boxed(),
+        action::Sleep::new(time_s(0.3)).boxed(),
+        fork(seq(vec![
+            action_flare,
+            action::SetFrame::new(&sprite, "").boxed(),
+        ])),
+    ]))
+}
+
+fn visualize_event_use_ability_throw_bomb(
+    _: &State,
+    view: &mut BattleView,
+    _: &mut Context,
+    event: &event::UseAbility,
+) -> ZResult<Box<dyn Action>> {
+    let sprite = view.id_to_sprite(event.id).clone();
+    Ok(fork(seq(vec![
+        action::SetFrame::new(&sprite, "throw").boxed(),
+        action::Sleep::new(time_s(0.5)).boxed(),
+        action::SetFrame::new(&sprite, "").boxed(),
+    ])))
 }
 
 fn visualize_event_use_ability(
@@ -740,11 +837,20 @@ fn visualize_event_use_ability(
     let action_main = match event.ability {
         Ability::Jump(_) => visualize_event_use_ability_jump(state, view, context, event)?,
         Ability::Dash => visualize_event_use_ability_dash(state, view, context, event)?,
-        Ability::ExplodePush => visualize_event_use_ability_explode(state, view, context, event)?,
-        Ability::ExplodeDamage => visualize_event_use_ability_explode(state, view, context, event)?,
-        Ability::ExplodeFire => visualize_event_use_ability_explode(state, view, context, event)?,
-        Ability::ExplodePoison => visualize_event_use_ability_explode(state, view, context, event)?,
         Ability::Summon => visualize_event_use_ability_summon(state, view, context, event)?,
+        Ability::Heal(_) => visualize_event_use_ability_heal(state, view, context, event)?,
+        Ability::Rage(_) => visualize_event_use_ability_rage(state, view, context, event)?,
+        Ability::ExplodePush
+        | Ability::ExplodeDamage
+        | Ability::ExplodeFire
+        | Ability::ExplodePoison => {
+            visualize_event_use_ability_explode(state, view, context, event)?
+        }
+        Ability::BombPush(_)
+        | Ability::BombDemonic(_)
+        | Ability::BombFire(_)
+        | Ability::BombPoison(_)
+        | Ability::Bomb(_) => visualize_event_use_ability_throw_bomb(state, view, context, event)?,
         _ => action::Empty::new().boxed(),
     };
     let pos = state.parts().pos.get(event.id).0;
@@ -832,9 +938,8 @@ fn visualize_effect_create(
     target_id: ObjId,
     effect: &effect::Create,
 ) -> ZResult<Box<dyn Action>> {
-    // TODO: Move to some .ron config:
     let SpriteInfo {
-        path,
+        paths,
         offset_x,
         offset_y,
         shadow_size_coefficient,
@@ -843,7 +948,11 @@ fn visualize_effect_create(
     let color = [1.0, 1.0, 1.0, 1.0].into();
     let size = view.tile_size() * 2.0;
     let sprite_object = {
-        let mut sprite = Sprite::from_path(context, path, size)?;
+        let mut sprite = if let [path] = paths.as_slice() {
+            Sprite::from_path(context, path.1, size)?
+        } else {
+            Sprite::from_paths(context, &paths, size)?
+        };
         sprite.set_color(Color { a: 0.0, ..color });
         sprite.set_offset(Vector2::new(0.5 - offset_x, 1.0 - offset_y));
         sprite.set_pos(point);
