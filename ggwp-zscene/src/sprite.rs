@@ -87,7 +87,7 @@ impl Sprite {
 
     pub fn add_frame(&mut self, frame_name: String, drawable: Box<dyn Drawable>) {
         let mut data = self.data.borrow_mut();
-        data.drawables.insert(frame_name.into(), Some(drawable));
+        data.drawables.insert(frame_name, Some(drawable));
     }
 
     pub fn from_paths<P: AsRef<Path>>(
@@ -95,7 +95,7 @@ impl Sprite {
         paths: &[(&str, P)],
         height: f32,
     ) -> Result<Self> {
-        assert!(paths.len() >= 1);
+        assert!(!paths.is_empty());
         assert_eq!(paths[0].0, "");
         let mut this = Self::from_path(context, &paths[0].1, height)?;
         for (frame_name, path) in paths {
