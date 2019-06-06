@@ -237,6 +237,7 @@ fn show_weapon_flash(
     context: &mut Context,
     at: PosHex,
     weapon_type: WeaponType,
+    facing_opt: Option<geom::Facing>,
 ) -> ZResult<Box<dyn Action>> {
     let visible = [1.0, 1.0, 1.0, 0.8].into();
     let invisible = Color { a: 0.1, ..visible };
@@ -253,12 +254,15 @@ fn show_weapon_flash(
     sprite.set_centered(true);
     sprite.set_pos(point);
     sprite.set_color(invisible);
-    Ok(fork(seq(vec![
-        action::Show::new(&view.layers().flares, &sprite).boxed(),
-        action::ChangeColorTo::new(&sprite, visible, time_s(0.1)).boxed(),
-        action::ChangeColorTo::new(&sprite, invisible, time_s(0.4)).boxed(),
-        action::Hide::new(&view.layers().flares, &sprite).boxed(),
-    ])))
+    let mut actions = Vec::new();
+    actions.push(action::Show::new(&view.layers().flares, &sprite).boxed());
+    if let Some(facing) = facing_opt {
+        actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
+    }
+    actions.push(action::ChangeColorTo::new(&sprite, visible, time_s(0.1)).boxed());
+    actions.push(action::ChangeColorTo::new(&sprite, invisible, time_s(0.4)).boxed());
+    actions.push(action::Hide::new(&view.layers().flares, &sprite).boxed());
+    Ok(fork(seq(actions)))
 }
 
 fn show_flare(
@@ -616,7 +620,8 @@ fn visualize_event_attack(
     let action_shadow_move_to = action::MoveBy::new(&sprite_shadow, diff, time_to).boxed();
     let action_sprite_move_from = action::MoveBy::new(&sprite, -diff, time_from).boxed();
     let action_shadow_move_from = action::MoveBy::new(&sprite_shadow, -diff, time_from).boxed();
-    if let Some(facing) = geom::Facing::from_positions(view.tile_size(), map_from, map_to) {
+    let facing_opt = geom::Facing::from_positions(view.tile_size(), map_from, map_to);
+    if let Some(facing) = facing_opt {
         actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
     }
     if sprite.has_frame("attack") {
@@ -624,7 +629,13 @@ fn visualize_event_attack(
     }
     actions.push(fork(action_shadow_move_to));
     actions.push(action_sprite_move_to);
-    actions.push(show_weapon_flash(view, context, map_to, event.weapon_type)?);
+    actions.push(show_weapon_flash(
+        view,
+        context,
+        map_to,
+        event.weapon_type,
+        facing_opt,
+    )?);
     actions.push(fork(action_shadow_move_from));
     actions.push(action_sprite_move_from);
     if sprite.has_frame("attack") {
