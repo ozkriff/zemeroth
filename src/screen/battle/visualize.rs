@@ -68,6 +68,29 @@ pub fn message(
     Ok(fork(seq(vec![fork(action_move), action_show_hide])))
 }
 
+fn announce(
+    view: &mut BattleView,
+    context: &mut Context,
+    text: &str,
+    time: Duration,
+) -> ZResult<Box<dyn Action>> {
+    let text_height = 0.2;
+    let visible = [0.0, 0.0, 0.0, 1.0].into();
+    let invisible = Color { a: 0.0, ..visible };
+    let text = Box::new(Text::new((text, view.font(), font_size())));
+    let mut sprite = Sprite::from_drawable(context, text, text_height)?;
+    sprite.set_centered(true);
+    sprite.set_color(invisible);
+    let time_8 = time / 8;
+    Ok(seq(vec![
+        action::Show::new(&view.layers().text, &sprite).boxed(),
+        action::ChangeColorTo::new(&sprite, visible, time_8).boxed(),
+        action::Sleep::new(time_8 * 5).boxed(),
+        action::ChangeColorTo::new(&sprite, invisible, time_8 * 2).boxed(),
+        action::Hide::new(&view.layers().text, &sprite).boxed(),
+    ]))
+}
+
 pub fn attack_message(
     view: &mut BattleView,
     context: &mut Context,
@@ -644,31 +667,20 @@ fn visualize_event_attack(
     Ok(seq(actions))
 }
 
-// TODO: code duplication with `visualize_event_begin_turn` - extract a helper function
 fn visualize_event_end_battle(
     _: &State,
     view: &mut BattleView,
     context: &mut Context,
     event: &event::EndBattle,
 ) -> ZResult<Box<dyn Action>> {
-    let visible = [0.0, 0.0, 0.0, 1.0].into();
-    let invisible = Color { a: 0.0, ..visible };
     let text = match event.result.winner_id {
         PlayerId(0) => "YOU WON!",
         PlayerId(1) => "YOU LOSE!",
         _ => unreachable!(),
     };
-    let text = Box::new(Text::new((text, view.font(), font_size())));
-    let mut sprite = Sprite::from_drawable(context, text, 0.2)?;
-    sprite.set_centered(true);
-    sprite.set_color(invisible);
     Ok(seq(vec![
         action::Sleep::new(time_s(1.0)).boxed(),
-        action::Show::new(&view.layers().text, &sprite).boxed(),
-        action::ChangeColorTo::new(&sprite, visible, time_s(0.5)).boxed(),
-        action::Sleep::new(time_s(2.0)).boxed(),
-        action::ChangeColorTo::new(&sprite, invisible, time_s(1.0)).boxed(),
-        action::Hide::new(&view.layers().text, &sprite).boxed(),
+        announce(view, context, text, time_s(4.0))?,
         action::Sleep::new(time_s(1.0)).boxed(),
     ]))
 }
@@ -691,24 +703,12 @@ fn visualize_event_begin_turn(
     context: &mut Context,
     event: &event::BeginTurn,
 ) -> ZResult<Box<dyn Action>> {
-    let visible = [0.0, 0.0, 0.0, 1.0].into();
-    let invisible = Color { a: 0.0, ..visible };
     let text = match event.player_id {
         PlayerId(0) => "YOUR TURN",
         PlayerId(1) => "ENEMY TURN",
         _ => unreachable!(),
     };
-    let text = Box::new(Text::new((text, view.font(), font_size())));
-    let mut sprite = Sprite::from_drawable(context, text, 0.2)?;
-    sprite.set_centered(true);
-    sprite.set_color(invisible);
-    Ok(seq(vec![
-        action::Show::new(&view.layers().text, &sprite).boxed(),
-        action::ChangeColorTo::new(&sprite, visible, time_s(0.2)).boxed(),
-        action::Sleep::new(time_s(1.0)).boxed(),
-        action::ChangeColorTo::new(&sprite, invisible, time_s(0.3)).boxed(),
-        action::Hide::new(&view.layers().text, &sprite).boxed(),
-    ]))
+    announce(view, context, text, time_s(1.5))
 }
 
 fn visualize_event_use_ability_jump(
