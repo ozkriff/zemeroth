@@ -11,7 +11,7 @@ keywords = ["ggez", "gamedev", "gui"]
 log = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-ggez = "0.5.0-rc.1"
+ggez = "0.5.0-rc.2"
 
 [target.wasm32-unknown-unknown.dependencies]
 good-web-game = { git = "https://github.com/not-fl3/good-web-game", features = ["nalgebra"] }
