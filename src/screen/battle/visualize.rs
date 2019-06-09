@@ -1,4 +1,5 @@
 use std::time::Duration;
+use std::collections::HashMap;
 
 use ggez::{
     graphics::{Color, Text},
@@ -9,6 +10,9 @@ use ggez::{
 use log::{debug, info};
 use rand::{thread_rng, Rng};
 use scene::{action, Action, Boxed, Facing, Sprite};
+use ron;
+use serde::Deserialize;
+use lazy_static::lazy_static;
 
 use crate::{
     core::{
@@ -29,6 +33,11 @@ use crate::{
 };
 
 const BLOOD_SPRITE_DURATION: i32 = 6;
+
+lazy_static! {
+    static ref SPRITES: HashMap<String, SpriteInfo> = ron::de::from_str(include_str!("../../../assets/sprites.ron"))
+        .expect("Cannot load sprites config");
+}
 
 pub fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
     action::Sequence::new(actions).boxed()
@@ -421,68 +430,16 @@ fn generate_brief_obj_info(
     Ok(seq(actions))
 }
 
+#[derive(Deserialize)]
 struct SpriteInfo {
-    paths: Vec<(&'static str, &'static str)>,
+    paths: HashMap<String, String>,
     offset_x: f32,
     offset_y: f32,
     shadow_size_coefficient: f32,
 }
 
-fn sprite_params(name: &str) -> SpriteInfo {
-    // TODO: Move this table to a `.ron` config
-    let (paths, offset_x, offset_y, shadow_size_coefficient) = match name {
-        "swordsman" => (
-            vec![("", "/swordsman.png"), ("rage", "/swordsman_rage.png")],
-            0.15,
-            0.1,
-            1.0,
-        ),
-        "spearman" => (vec![("", "/spearman.png")], 0.2, 0.05, 1.0),
-        "hammerman" => (vec![("", "/hammerman.png")], 0.05, 0.1, 1.0),
-        "alchemist" => (
-            vec![
-                ("", "/alchemist.png"),
-                ("throw", "/alchemist_throw.png"),
-                ("heal", "/alchemist_heal.png"),
-            ],
-            0.05,
-            0.1,
-            1.0,
-        ),
-        "imp" => (vec![("", "/imp.png")], 0.0, 0.15, 1.3),
-        "imp_toxic" => (vec![("", "/imp_toxic.png")], 0.0, 0.15, 1.2),
-        "imp_bomber" => (
-            vec![("", "/imp_bomber.png"), ("throw", "/imp_bomber_throw.png")],
-            0.0,
-            0.15,
-            1.2,
-        ),
-        "imp_summoner" => (
-            vec![
-                ("", "/imp_summoner.png"),
-                ("summon", "/imp_summoner_summon.png"),
-            ],
-            0.0,
-            0.15,
-            1.3,
-        ),
-        "boulder" => (vec![("", "/boulder.png")], 0.0, 0.4, 2.5),
-        "bomb_damage" => (vec![("", "/bomb.png")], 0.0, 0.2, 0.7),
-        "bomb_push" => (vec![("", "/bomb.png")], 0.0, 0.2, 0.7),
-        "bomb_fire" => (vec![("", "/bomb_fire.png")], 0.0, 0.2, 0.7),
-        "bomb_poison" => (vec![("", "/bomb_poison.png")], 0.0, 0.2, 0.7),
-        "bomb_demonic" => (vec![("", "/bomb_demonic.png")], 0.0, 0.2, 0.7),
-        "fire" => (vec![("", "/fire.png")], 0.0, 0.2, 0.001),
-        "poison_cloud" => (vec![("", "/poison_cloud.png")], 0.0, 0.2, 2.0),
-        "spike_trap" => (vec![("", "/spike_trap.png")], 0.0, 0.5, 1.4),
-        _ => unimplemented!("Don't know such object type: {}", name),
-    };
-    SpriteInfo {
-        paths,
-        offset_x,
-        offset_y,
-        shadow_size_coefficient,
-    }
+fn sprite_params(name: &str) -> &'static SpriteInfo {
+    &SPRITES[name]
 }
 
 pub fn refresh_brief_agent_info(
@@ -959,11 +916,7 @@ fn visualize_effect_create(
     let color = [1.0, 1.0, 1.0, 1.0].into();
     let size = view.tile_size() * 2.0;
     let sprite_object = {
-        let mut sprite = if let [path] = paths.as_slice() {
-            Sprite::from_path(context, path.1, size)?
-        } else {
-            Sprite::from_paths(context, &paths, size)?
-        };
+        let mut sprite = Sprite::from_paths(context, &paths, size)?;
         sprite.set_color(Color { a: 0.0, ..color });
         sprite.set_offset(Vector2::new(0.5 - offset_x, 1.0 - offset_y));
         sprite.set_pos(point);
