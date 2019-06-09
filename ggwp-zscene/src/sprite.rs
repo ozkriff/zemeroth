@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, fmt, path::Path, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, fmt, path::Path, rc::Rc, hash::Hash};
 
 use ggez::{
     graphics::{self, Drawable, Rect},
@@ -90,17 +90,16 @@ impl Sprite {
         data.drawables.insert(frame_name, Some(drawable));
     }
 
-    pub fn from_paths<P: AsRef<Path>>(
+    pub fn from_paths<S: Eq + Hash + ::std::borrow::Borrow<str>, P: AsRef<Path>>(
         context: &mut Context,
-        paths: &[(&str, P)],
+        paths: &HashMap<S, P>,
         height: f32,
     ) -> Result<Self> {
-        assert!(!paths.is_empty());
-        assert_eq!(paths[0].0, "");
-        let mut this = Self::from_path(context, &paths[0].1, height)?;
-        for (frame_name, path) in paths {
-            let image = graphics::Image::new(context, &path)?;
-            this.add_frame(frame_name.to_string(), Box::new(image));
+        let path = paths.get(&"").expect("missing default path");
+        let mut this = Self::from_path(context, path.as_ref(), height)?;
+        for (frame_name, frame_path) in paths.into_iter() {
+            let image = graphics::Image::new(context, frame_path)?;
+            this.add_frame(frame_name.borrow().to_string(), Box::new(image));
         }
         Ok(this)
     }
