@@ -415,7 +415,6 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
 
     fn move_mouse(&mut self, pos: Point2<f32>) {
         let highlighted = self.sprite.rect().contains(pos);
-
         if highlighted {
             self.sprite.param.color = SPRITE_COLOR_HIGHLIGHTED;
             self.bg.param.color = SPRITE_COLOR_BG_HIGHLIGHTED;
