@@ -139,6 +139,27 @@ Tactical battle mechanics are mostly inspired by these games:
 
 ## Building from Source
 
+### Setup Rust
+
+[Install](https://www.rust-lang.org/) or update Rust:
+```bash
+rustup update
+```
+
+### Setup Dependencies
+
+#### Linux
+
+The [CPAL](https://github.com/tomaka/cpal) dependency supports Linux but requires [ALSA](https://github.com/diwic/alsa-sys) development files to be installed that are provided as part of the `libasound2-dev` package on Debian and Ubuntu distributions, and `alsa-lib-devel` on Fedora.
+
+##### Debian
+
+```bash
+apt-get install libasound2-dev
+```
+
+### Clone Repositories
+
 ```bash
 # Clone this repo
 git clone https://github.com/ozkriff/zemeroth
@@ -147,7 +168,11 @@ cd zemeroth
 # Assets are stored in a separate repo.
 # Zemeroth expects them to be in `assets` directory.
 git clone https://github.com/ozkriff/zemeroth_assets assets
+```
 
+### Compile & Run
+
+```
 # Compile a release version (debug builds give low FPS at the moment)
 cargo build --release
 
