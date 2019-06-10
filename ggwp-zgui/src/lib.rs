@@ -25,12 +25,7 @@ pub use error::Error;
 pub type Result<T = ()> = std::result::Result<T, Error>;
 
 const SPRITE_COLOR: Color = graphics::BLACK;
-const SPRITE_COLOR_HIGHLIGHTED: Color = Color {
-    r: 1.0,
-    g: 0.0,
-    b: 0.0,
-    a: 1.0,
-};
+const SPRITE_COLOR_HIGHLIGHTED: Color = graphics::BLACK;
 const SPRITE_COLOR_BG: Color = Color {
     r: 0.8,
     g: 0.8,
@@ -38,10 +33,10 @@ const SPRITE_COLOR_BG: Color = Color {
     a: 0.5,
 };
 const SPRITE_COLOR_BG_HIGHLIGHTED: Color = Color {
-    r: 0.6,
-    g: 0.6,
-    b: 0.6,
-    a: 0.9,
+    r: 0.9,
+    g: 0.9,
+    b: 0.9,
+    a: 1.0,
 };
 
 // TODO: What should we do if some widget changes its size?
