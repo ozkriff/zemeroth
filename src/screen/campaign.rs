@@ -293,4 +293,9 @@ impl Screen for Campaign {
             None => Ok(Transition::None),
         }
     }
+
+    fn move_mouse(&mut self, _context: &mut Context, pos: Point2<f32>) -> ZResult {
+        self.gui.move_mouse(pos);
+        Ok(())
+    }
 }
