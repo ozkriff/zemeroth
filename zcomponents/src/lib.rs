@@ -133,7 +133,7 @@ impl<Id: Hash + Eq + Copy + Debug, V: Clone> ComponentContainer<Id, V> {
             .unwrap_or_else(|| panic!("Can't find {:?} id", id))
     }
 
-    /// Note: panics if there's no such entity.
+    /// Note: panics if such an entity already exists.
     pub fn insert(&mut self, id: Id, data: V) {
         assert!(self.get_opt(id).is_none());
         self.data.insert(id, data);
