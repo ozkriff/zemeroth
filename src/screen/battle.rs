@@ -518,7 +518,6 @@ impl Screen for Battle {
         } else {
             self.view.hide_current_tile_marker();
         }
-
         self.gui.move_mouse(point);
         Ok(())
     }
