@@ -24,6 +24,26 @@ pub use error::Error;
 
 pub type Result<T = ()> = std::result::Result<T, Error>;
 
+const SPRITE_COLOR: Color = graphics::BLACK;
+const SPRITE_COLOR_HIGHLIGHTED: Color = Color {
+    r: 1.0,
+    g: 0.0,
+    b: 0.0,
+    a: 1.0,
+};
+const SPRITE_COLOR_BG: Color = Color {
+    r: 0.8,
+    g: 0.8,
+    b: 0.8,
+    a: 0.5,
+};
+const SPRITE_COLOR_BG_HIGHLIGHTED: Color = Color {
+    r: 0.6,
+    g: 0.6,
+    b: 0.6,
+    a: 0.9,
+};
+
 // TODO: What should we do if some widget changes its size?
 
 pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
@@ -93,7 +113,7 @@ impl Sprite {
         let basic_scale = height / dimensions.h;
         let param = graphics::DrawParam {
             scale: [basic_scale, basic_scale].into(),
-            color: graphics::BLACK,
+            color: SPRITE_COLOR,
             ..Default::default()
         };
         Ok(Self {
@@ -154,7 +174,7 @@ fn make_bg(context: &mut Context, sprite: &Sprite) -> Result<Sprite> {
         .collect();
     let image = Image::from_rgba8(context, w as _, h as _, &data)?;
     let mut bg = sprite.clone_with_another_drawable(Box::new(image));
-    bg.set_color([0.8, 0.8, 0.8, 0.5].into());
+    bg.set_color(SPRITE_COLOR_BG);
     Ok(bg)
 }
 
@@ -190,6 +210,7 @@ pub struct Anchor(pub HAnchor, pub VAnchor);
 pub trait Widget: Debug {
     fn draw(&self, _: &mut Context) -> GameResult<()>;
     fn click(&self, _: Point2<f32>) {}
+    fn move_mouse(&mut self, _: Point2<f32>) {}
     fn rect(&self) -> Rect;
     fn set_pos(&mut self, pos: Point2<f32>);
 }
@@ -265,6 +286,12 @@ impl<Message: Clone> Gui<Message> {
             widget.borrow_mut().click(pos);
         }
         self.receiver.try_recv().ok()
+    }
+
+    pub fn move_mouse(&mut self, pos: Point2<f32>) {
+        for AnchoredWidget { widget, .. } in &self.anchored_widgets {
+            widget.borrow_mut().move_mouse(pos);
+        }
     }
 
     pub fn resize(&mut self, ratio: f32) {
@@ -386,6 +413,18 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
         }
     }
 
+    fn move_mouse(&mut self, pos: Point2<f32>) {
+        let highlighted = self.sprite.rect().contains(pos);
+
+        if highlighted {
+            self.sprite.param.color = SPRITE_COLOR_HIGHLIGHTED;
+            self.bg.param.color = SPRITE_COLOR_BG_HIGHLIGHTED;
+        } else {
+            self.sprite.param.color = SPRITE_COLOR;
+            self.bg.param.color = SPRITE_COLOR_BG;
+        };
+    }
+
     fn rect(&self) -> Rect {
         self.sprite.rect()
     }
@@ -439,6 +478,12 @@ impl Widget for VLayout {
     fn click(&self, pos: Point2<f32>) {
         for widget in &self.widgets {
             widget.click(pos);
+        }
+    }
+
+    fn move_mouse(&mut self, pos: Point2<f32>) {
+        for widget in &mut self.widgets {
+            widget.move_mouse(pos);
         }
     }
 
@@ -500,6 +545,12 @@ impl Widget for HLayout {
     fn click(&self, pos: Point2<f32>) {
         for widget in &self.widgets {
             widget.click(pos);
+        }
+    }
+
+    fn move_mouse(&mut self, pos: Point2<f32>) {
+        for widget in &mut self.widgets {
+            widget.move_mouse(pos);
         }
     }
 
