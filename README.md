@@ -139,6 +139,8 @@ Tactical battle mechanics are mostly inspired by these games:
 
 ## Building from Source
 
+Install all [ggez's system dependencies][ggez_sys_deps].
+
 ```bash
 # Clone this repo
 git clone https://github.com/ozkriff/zemeroth
@@ -154,6 +156,8 @@ cargo build --release
 # Run it
 cargo run --release
 ```
+
+[ggez_sys_deps]: https://github.com/ggez/ggez/blob/a62acaa24/docs/BuildingForEveryPlatform.md
 
 ## WebAssembly
 
