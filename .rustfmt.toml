@@ -1,0 +1,4 @@
+# This project uses rustfmt with default options.
+
+# Let's just make sure that files use `\n` line endings.
+newline_style = "Unix"
