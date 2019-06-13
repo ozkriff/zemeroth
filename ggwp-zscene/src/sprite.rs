@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, fmt, path::Path, rc::Rc, hash::Hash};
+use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::Rc};
 
 use ggez::{
     graphics::{self, Drawable, Rect},
@@ -90,7 +90,7 @@ impl Sprite {
         data.drawables.insert(frame_name, Some(drawable));
     }
 
-    pub fn from_paths<S: Eq + Hash + ::std::borrow::Borrow<str>, P: AsRef<Path>>(
+    pub fn from_paths<S: Eq + Hash + std::borrow::Borrow<str>, P: AsRef<Path>>(
         context: &mut Context,
         paths: &HashMap<S, P>,
         height: f32,

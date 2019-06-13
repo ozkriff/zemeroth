@@ -1,5 +1,4 @@
 use std::time::Duration;
-use std::collections::HashMap;
 
 use ggez::{
     graphics::{Color, Text},
@@ -10,9 +9,6 @@ use ggez::{
 use log::{debug, info};
 use rand::{thread_rng, Rng};
 use scene::{action, Action, Boxed, Facing, Sprite};
-use ron;
-use serde::Deserialize;
-use lazy_static::lazy_static;
 
 use crate::{
     core::{
@@ -27,17 +23,12 @@ use crate::{
         map::{Dir, PosHex},
     },
     geom,
-    screen::battle::view::BattleView,
+    screen::battle::view::{BattleView, SpriteInfo},
     utils::{font_size, time_s},
     ZResult,
 };
 
 const BLOOD_SPRITE_DURATION: i32 = 6;
-
-lazy_static! {
-    static ref SPRITES: HashMap<String, SpriteInfo> = ron::de::from_str(include_str!("../../../assets/sprites.ron"))
-        .expect("Cannot load sprites config");
-}
 
 pub fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
     action::Sequence::new(actions).boxed()
@@ -428,18 +419,6 @@ fn generate_brief_obj_info(
     }
     view.agent_info_set(id, sprites);
     Ok(seq(actions))
-}
-
-#[derive(Deserialize)]
-struct SpriteInfo {
-    paths: HashMap<String, String>,
-    offset_x: f32,
-    offset_y: f32,
-    shadow_size_coefficient: f32,
-}
-
-fn sprite_params(name: &str) -> &'static SpriteInfo {
-    &SPRITES[name]
 }
 
 pub fn refresh_brief_agent_info(
@@ -911,7 +890,7 @@ fn visualize_effect_create(
         offset_x,
         offset_y,
         shadow_size_coefficient,
-    } = sprite_params(effect.prototype.0.as_str());
+    } = view.sprite_info(&effect.prototype);
     let point = geom::hex_to_point(view.tile_size(), effect.pos);
     let color = [1.0, 1.0, 1.0, 1.0].into();
     let size = view.tile_size() * 2.0;

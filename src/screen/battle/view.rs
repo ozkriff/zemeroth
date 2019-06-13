@@ -6,18 +6,19 @@ use ggez::{
 };
 use rand::{thread_rng, Rng};
 use scene::{action, Action, Boxed, Layer, Scene, Sprite};
+use serde::Deserialize;
 
 use crate::{
     core::{
         battle::{
-            self, ability::Ability, command, execute::hit_chance, movement, Jokers, Moves, ObjId,
-            State, TileType,
+            self, ability::Ability, command, component::ObjType, execute::hit_chance, movement,
+            Jokers, Moves, ObjId, State, TileType,
         },
         map::{self, Distance, HexMap, PosHex},
     },
     geom::{self, hex_to_point},
     screen::battle::visualize,
-    utils::{default_font, font_size, time_s},
+    utils::{self, font_size, time_s},
     ZResult,
 };
 
@@ -127,6 +128,14 @@ impl Images {
     }
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct SpriteInfo {
+    pub paths: HashMap<String, String>,
+    pub offset_x: f32,
+    pub offset_y: f32,
+    pub shadow_size_coefficient: f32,
+}
+
 #[derive(Debug)]
 pub struct BattleView {
     font: Font,
@@ -135,11 +144,12 @@ pub struct BattleView {
     scene: Scene,
     sprites: Sprites,
     images: Images,
+    sprite_info: HashMap<String, SpriteInfo>,
 }
 
 impl BattleView {
     pub fn new(map_radius: Distance, context: &mut Context) -> ZResult<Self> {
-        let font = default_font(context);
+        let font = utils::default_font(context);
         let images = Images::new(context)?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
@@ -154,6 +164,7 @@ impl BattleView {
         };
         let selection_marker = make_marker_sprite([0.0, 0.0, 1.0, 0.8].into())?;
         let current_tile_marker = make_marker_sprite([0.0, 0.0, 0.0, 0.5].into())?;
+        let sprite_info = utils::deserialize_from_file(context, "/sprites.ron")?;
         let sprites = Sprites {
             selection_marker,
             current_tile_marker,
@@ -171,6 +182,7 @@ impl BattleView {
             layers,
             tile_size,
             images,
+            sprite_info,
         })
     }
 
@@ -275,6 +287,10 @@ impl BattleView {
 
     pub fn agent_info_set(&mut self, id: ObjId, sprites: Vec<Sprite>) {
         self.sprites.agent_info.insert(id, sprites);
+    }
+
+    pub fn sprite_info(&self, obj_type: &ObjType) -> SpriteInfo {
+        self.sprite_info[&obj_type.0].clone()
     }
 
     pub fn set_mode(
