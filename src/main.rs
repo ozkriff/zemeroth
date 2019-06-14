@@ -110,7 +110,9 @@ fn main() -> ZResult {
     }
 
     fn context() -> GameResult<(Context, event::EventsLoop)> {
-        let window_conf = conf::WindowSetup::default().title("Zemeroth");
+        let window_conf = conf::WindowSetup::default()
+            .title("Zemeroth")
+            .icon("/fire.png");
         let window_mode = conf::WindowMode::default().resizable(true);
         ggez::ContextBuilder::new(APP_ID, APP_AUTHOR)
             .window_setup(window_conf)
