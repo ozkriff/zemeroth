@@ -5,13 +5,15 @@ use ggez::{self, graphics, nalgebra::Point2, Context};
 
 use crate::ZResult;
 
+mod agent_info;
 mod battle;
 mod campaign;
 mod main_menu;
 mod strategy_map;
 
 pub use self::{
-    battle::Battle, campaign::Campaign, main_menu::MainMenu, strategy_map::StrategyMap,
+    agent_info::AgentInfo, battle::Battle, campaign::Campaign, main_menu::MainMenu,
+    strategy_map::StrategyMap,
 };
 
 #[derive(Debug)]

@@ -1,4 +1,4 @@
-use std::{path::Path, sync::mpsc::Sender, time::Duration};
+use std::{sync::mpsc::Sender, time::Duration};
 
 use ggez::{
     graphics::{self, Font, Text},
@@ -197,13 +197,6 @@ fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     Ok(gui)
 }
 
-pub fn load_prototypes(context: &mut Context, path: &Path) -> ZResult<Prototypes> {
-    let buf = utils::read_file_to_string(context, path)?;
-    let prototypes = Prototypes::from_string(&buf);
-    debug!("{:?}", prototypes);
-    Ok(prototypes)
-}
-
 #[derive(Debug)]
 pub struct Battle {
     font: graphics::Font,
@@ -224,11 +217,11 @@ impl Battle {
     pub fn new(
         context: &mut Context,
         scenario: scenario::Scenario,
+        prototypes: Prototypes,
         sender: Sender<BattleResult>,
     ) -> ZResult<Self> {
         let font = default_font(context);
         let gui = make_gui(context, font)?;
-        let prototypes = load_prototypes(context, Path::new("/objects.ron"))?;
         let radius = scenario.map_radius;
         let mut view = BattleView::new(radius, context)?;
         let mut actions = Vec::new();

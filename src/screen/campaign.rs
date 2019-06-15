@@ -13,7 +13,12 @@ use ui::{self, Gui};
 
 use crate::{
     core::{
-        battle::{component::ObjType, scenario, state::BattleResult, PlayerId},
+        battle::{
+            component::{ObjType, Prototypes},
+            scenario,
+            state::BattleResult,
+            PlayerId,
+        },
         campaign::{Mode, State},
     },
     screen::{self, Screen, Transition},
@@ -24,6 +29,7 @@ use crate::{
 enum Message {
     Menu,
     StartBattle,
+    AgentInfo(ObjType),
     Recruit(ObjType),
 }
 
@@ -46,9 +52,10 @@ fn basic_gui(context: &mut Context, font: Font) -> ZResult<Gui<Message>> {
 fn add_agents_panel(
     context: &mut Context,
     font: Font,
-    layout: &mut ui::VLayout,
+    gui: &mut ui::Gui<Message>,
     agents: &[ObjType],
-) -> ZResult {
+) -> ZResult<Box<dyn ui::Widget>> {
+    let mut layout = ui::VLayout::new();
     let h = utils::line_heights().big;
     {
         let text = "Your group consists of:";
@@ -56,12 +63,29 @@ fn add_agents_panel(
         layout.add(Box::new(ui::Label::new(context, text, h)?));
     }
     for agent_type in agents {
-        let text = format!("- {}", agent_type.0);
-        let text = Box::new(Text::new((text.as_str(), font, FONT_SIZE)));
-        let label = ui::Label::new(context, text, h)?;
-        layout.add(Box::new(label));
+        let mut line = ui::HLayout::new();
+        {
+            let text = format!("- {}", agent_type.0);
+            let text = Box::new(Text::new((text.as_str(), font, FONT_SIZE)));
+            let label = ui::Label::new(context, text, h)?;
+            line.add(Box::new(label));
+        }
+        {
+            let rect = graphics::Rect {
+                w: h / 2.0,
+                ..Default::default()
+            };
+            line.add(Box::new(ui::Spacer::new(rect)));
+        }
+        {
+            let text = Box::new(Text::new(("[i]", font, FONT_SIZE)));
+            let message = Message::AgentInfo(agent_type.clone());
+            let button = ui::Button::new(context, text, h, gui.sender(), message)?;
+            line.add(Box::new(button));
+        }
+        layout.add(Box::new(line));
     }
-    Ok(())
+    Ok(Box::new(layout))
 }
 
 fn add_spacer(layout: &mut ui::VLayout) {
@@ -142,7 +166,8 @@ impl Campaign {
         }
 
         add_spacer(&mut layout);
-        add_agents_panel(context, self.font, &mut layout, self.state.agents())?;
+        let panel = add_agents_panel(context, self.font, &mut self.gui, self.state.agents())?;
+        layout.add(panel);
         add_spacer(&mut layout);
 
         if let Mode::PreparingForBattle = self.state.mode() {
@@ -150,13 +175,31 @@ impl Campaign {
                 let text = Box::new(Text::new(("Choose:", self.font, FONT_SIZE)));
                 layout.add(Box::new(ui::Label::new(context, text, h)?));
             }
-            for agent_type in self.state.aviable_recruits() {
-                let text = format!("- [Recruit {}]", agent_type.0);
-                let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
-                let sender = self.gui.sender();
-                let message = Message::Recruit(agent_type.clone());
-                let button = ui::Button::new(context, text, h, sender, message)?;
-                layout.add(Box::new(button));
+            for agent_type in self.state.available_recruits() {
+                let mut line = ui::HLayout::new();
+                {
+                    let text = format!("- [Recruit {}]", agent_type.0);
+                    let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
+                    let sender = self.gui.sender();
+                    let message = Message::Recruit(agent_type.clone());
+                    let button = ui::Button::new(context, text, h, sender, message)?;
+                    line.add(Box::new(button));
+                }
+                {
+                    let rect = graphics::Rect {
+                        w: h / 2.0,
+                        ..Default::default()
+                    };
+                    line.add(Box::new(ui::Spacer::new(rect)));
+                }
+                {
+                    let text = Box::new(Text::new(("[i]", self.font, FONT_SIZE)));
+                    let message = Message::AgentInfo(agent_type.clone());
+                    let sender = self.gui.sender();
+                    let button = ui::Button::new(context, text, h, sender, message)?;
+                    line.add(Box::new(button));
+                }
+                layout.add(Box::new(line));
             }
         }
 
@@ -170,7 +213,8 @@ impl Campaign {
 
     fn set_mode_ready(&mut self, context: &mut Context) -> ZResult {
         let mut layout = ui::VLayout::new();
-        add_agents_panel(context, self.font, &mut layout, self.state.agents())?;
+        let panel = add_agents_panel(context, self.font, &mut self.gui, self.state.agents())?;
+        layout.add(panel);
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         let layout = ui::pack(layout);
         self.gui.add(&layout, anchor);
@@ -246,7 +290,8 @@ impl Campaign {
         }
         let (sender, receiver) = channel();
         self.receiver = Some(receiver);
-        let screen = screen::Battle::new(context, scenario, sender)?;
+        let prototypes = Prototypes::from_str(&utils::read_file(context, "/objects.ron")?);
+        let screen = screen::Battle::new(context, scenario, prototypes, sender)?;
         Ok(Box::new(screen))
     }
 }
@@ -290,6 +335,11 @@ impl Screen for Campaign {
                 Ok(Transition::None)
             }
             Some(Message::Menu) => Ok(Transition::Pop),
+            Some(Message::AgentInfo(typename)) => {
+                let prototypes = Prototypes::from_str(&utils::read_file(context, "/objects.ron")?);
+                let screen = screen::AgentInfo::new(context, prototypes, &typename)?;
+                Ok(Transition::Push(Box::new(screen)))
+            }
             None => Ok(Transition::None),
         }
     }

@@ -2,7 +2,7 @@ use log::debug;
 
 use crate::core::battle::{
     ability::{self, Ability},
-    component::{self, Component, PlannedAbility},
+    component::{self, Component, Parts, PlannedAbility},
     effect::{self, Duration, Effect},
     event::{self, ActiveEvent, Event},
     state, Attacks, Jokers, Moves, ObjId, Phase, PlayerId, State,
@@ -44,8 +44,9 @@ fn apply_event(state: &mut State, event: &Event) {
 }
 
 fn add_components(state: &mut State, id: ObjId, components: &[Component]) {
+    let parts = state.parts_mut();
     for component in components {
-        add_component(state, id, component.clone());
+        add_component(parts, id, component.clone());
     }
 }
 
@@ -207,8 +208,7 @@ fn apply_event_effect_tick(_: &mut State, _: &event::EffectTick) {}
 
 fn apply_event_effect_end(_: &mut State, _: &event::EffectEnd) {}
 
-fn add_component(state: &mut State, id: ObjId, component: Component) {
-    let parts = state.parts_mut();
+fn add_component(parts: &mut Parts, id: ObjId, component: Component) {
     match component {
         Component::Pos(c) => parts.pos.insert(id, c),
         Component::Strength(c) => parts.strength.insert(id, c),

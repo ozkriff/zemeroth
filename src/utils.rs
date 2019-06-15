@@ -30,7 +30,8 @@ pub fn check_assets_hash(_fs: &mut Filesystem, expected: &str) -> ZResult {
     Ok(())
 }
 
-pub fn read_file_to_string<P: AsRef<Path>>(context: &mut Context, path: P) -> ZResult<String> {
+/// Read a file to a string.
+pub fn read_file<P: AsRef<Path>>(context: &mut Context, path: P) -> ZResult<String> {
     let mut buf = String::new();
     let mut file = ggez::filesystem::open(context, path)?;
     file.read_to_string(&mut buf)?;
@@ -43,7 +44,7 @@ where
     D: DeserializeOwned,
 {
     let path = path.as_ref();
-    let s = read_file_to_string(context, path)?;
+    let s = read_file(context, path)?;
     ron::de::from_str(&s).map_err(|e| ZError::from_ron_de_error(e, path.into()))
 }
 
