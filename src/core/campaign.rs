@@ -104,7 +104,7 @@ impl State {
         self.mode = Mode::ReadyForBattle;
     }
 
-    pub fn aviable_recruits(&self) -> &[ObjType] {
+    pub fn available_recruits(&self) -> &[ObjType] {
         if self.mode != Mode::PreparingForBattle {
             assert!(self.recruits.is_empty());
         }
@@ -145,7 +145,7 @@ impl State {
             self.current_scenario_index += 1;
 
             self.mode = Mode::PreparingForBattle;
-            if self.aviable_recruits().is_empty() {
+            if self.available_recruits().is_empty() {
                 // Skip the preparation step.
                 self.mode = Mode::ReadyForBattle;
             }
@@ -257,7 +257,7 @@ mod tests {
     #[test]
     fn short_happy_path() {
         let mut state = State::from_plan(campaign_plan_short());
-        assert!(state.aviable_recruits().is_empty());
+        assert!(state.available_recruits().is_empty());
         assert_eq!(state.mode(), Mode::ReadyForBattle);
         let battle_result = BattleResult {
             winner_id: PlayerId(0),
@@ -270,7 +270,7 @@ mod tests {
     #[test]
     fn short_fail_path() {
         let mut state = State::from_plan(campaign_plan_short());
-        assert!(state.aviable_recruits().is_empty());
+        assert!(state.available_recruits().is_empty());
         assert_eq!(state.mode(), Mode::ReadyForBattle);
         let battle_result = BattleResult {
             winner_id: PlayerId(1),
@@ -304,7 +304,7 @@ mod tests {
     #[test]
     fn upgrade() {
         let mut state = State::from_plan(campaign_plan_two_battles());
-        assert!(state.aviable_recruits().is_empty());
+        assert!(state.available_recruits().is_empty());
         assert_eq!(state.mode(), Mode::ReadyForBattle);
         {
             let battle_result = BattleResult {
@@ -313,11 +313,11 @@ mod tests {
             };
             state.report_battle_results(&battle_result).unwrap();
         }
-        assert_eq!(state.aviable_recruits(), &["spearman".into()]);
+        assert_eq!(state.available_recruits(), &["spearman".into()]);
         assert!(state.last_battle_casualties().is_empty());
         assert_eq!(state.mode(), Mode::PreparingForBattle);
         state.recruit("spearman".into());
-        assert!(state.aviable_recruits().is_empty());
+        assert!(state.available_recruits().is_empty());
         assert_eq!(state.mode(), Mode::ReadyForBattle);
         {
             let battle_result = BattleResult {

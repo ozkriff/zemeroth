@@ -13,7 +13,7 @@ use scene::Sprite;
 use ui::{self, Gui};
 
 use crate::{
-    core::battle::state,
+    core::battle::{component::Prototypes, state},
     screen::{self, Screen, Transition},
     utils, ZResult,
 };
@@ -102,7 +102,8 @@ impl Screen for MainMenu {
                 let scenario = utils::deserialize_from_file(context, "/scenario_01.ron")?;
                 let (sender, receiver) = channel();
                 self.receiver = Some(receiver);
-                let screen = screen::Battle::new(context, scenario, sender)?;
+                let prototypes = Prototypes::from_str(&utils::read_file(context, "/objects.ron")?);
+                let screen = screen::Battle::new(context, scenario, prototypes, sender)?;
                 Ok(Transition::Push(Box::new(screen)))
             }
             Some(Message::StartCampaign) => {

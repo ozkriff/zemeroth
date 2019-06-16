@@ -6,7 +6,6 @@ use ggez::{
 };
 use rand::{thread_rng, Rng};
 use scene::{action, Action, Boxed, Layer, Scene, Sprite};
-use serde::Deserialize;
 
 use crate::{
     core::{
@@ -18,6 +17,7 @@ use crate::{
     },
     geom::{self, hex_to_point},
     screen::battle::visualize,
+    sprite_info::SpriteInfo,
     utils::{self, font_size, time_s},
     ZResult,
 };
@@ -126,14 +126,6 @@ impl Images {
             attack_claws: Image::new(context, "/claw.png")?,
         })
     }
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct SpriteInfo {
-    pub paths: HashMap<String, String>,
-    pub offset_x: f32,
-    pub offset_y: f32,
-    pub shadow_size_coefficient: f32,
 }
 
 #[derive(Debug)]

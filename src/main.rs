@@ -17,6 +17,7 @@ mod core;
 mod error;
 mod geom;
 mod screen;
+mod sprite_info;
 mod utils;
 
 type ZResult<T = ()> = Result<T, error::ZError>;

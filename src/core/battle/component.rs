@@ -168,7 +168,7 @@ fn init_component(component: &mut Component) {
 }
 
 impl Prototypes {
-    pub fn from_string(s: &str) -> Self {
+    pub fn from_str(s: &str) -> Self {
         let mut prototypes: Prototypes = ron::de::from_str(s).expect("Can't parse the prototypes");
         prototypes.init_components();
         prototypes

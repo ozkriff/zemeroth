@@ -23,7 +23,8 @@ use crate::{
         map::{Dir, PosHex},
     },
     geom,
-    screen::battle::view::{BattleView, SpriteInfo},
+    screen::battle::view::BattleView,
+    sprite_info::SpriteInfo,
     utils::{font_size, time_s},
     ZResult,
 };
