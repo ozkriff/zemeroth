@@ -19,7 +19,7 @@ use crate::{
             state::BattleResult,
             PlayerId,
         },
-        campaign::{Mode, State},
+        campaign::{Action, Mode, State},
     },
     screen::{self, Screen, Transition},
     utils, ZResult,
@@ -30,7 +30,7 @@ enum Message {
     Menu,
     StartBattle,
     AgentInfo(ObjType),
-    Recruit(ObjType),
+    Action(Action),
 }
 
 const FONT_SIZE: f32 = utils::font_size();
@@ -119,7 +119,8 @@ pub struct Campaign {
 impl Campaign {
     pub fn new(context: &mut Context) -> ZResult<Self> {
         let plan = utils::deserialize_from_file(context, "/campaign_01.ron")?;
-        let state = State::from_plan(plan);
+        let upgrades = utils::deserialize_from_file(context, "/agent_upgrades.ron")?;
+        let state = State::new(plan, upgrades);
         let font = utils::default_font(context);
         let gui = basic_gui(context, font)?;
         let mut this = Self {
@@ -175,13 +176,18 @@ impl Campaign {
                 let text = Box::new(Text::new(("Choose:", self.font, FONT_SIZE)));
                 layout.add(Box::new(ui::Label::new(context, text, h)?));
             }
-            for agent_type in self.state.available_recruits() {
+            for action in self.state.available_actions() {
                 let mut line = ui::HLayout::new();
                 {
-                    let text = format!("- [Recruit {}]", agent_type.0);
+                    let text = match action {
+                        Action::Recruit(agent_type) => format!("- [Recruit {}]", agent_type.0),
+                        Action::Upgrade { from, to } => {
+                            format!("- [Upgrade {} to {}]", from.0, to.0)
+                        }
+                    };
                     let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
                     let sender = self.gui.sender();
-                    let message = Message::Recruit(agent_type.clone());
+                    let message = Message::Action(action.clone());
                     let button = ui::Button::new(context, text, h, sender, message)?;
                     line.add(Box::new(button));
                 }
@@ -194,7 +200,10 @@ impl Campaign {
                 }
                 {
                     let text = Box::new(Text::new(("[i]", self.font, FONT_SIZE)));
-                    let message = Message::AgentInfo(agent_type.clone());
+                    let message = match action {
+                        Action::Recruit(agent_type) => Message::AgentInfo(agent_type.clone()),
+                        Action::Upgrade { to, .. } => Message::AgentInfo(to.clone()),
+                    };
                     let sender = self.gui.sender();
                     let button = ui::Button::new(context, text, h, sender, message)?;
                     line.add(Box::new(button));
@@ -328,8 +337,8 @@ impl Screen for Campaign {
                 let screen = self.start_battle(context)?;
                 Ok(Transition::Push(screen))
             }
-            Some(Message::Recruit(typename)) => {
-                self.state.recruit(typename);
+            Some(Message::Action(action)) => {
+                self.state.exectute_action(action);
                 let new_mode = self.state.mode();
                 self.set_mode(context, new_mode)?;
                 Ok(Transition::None)
