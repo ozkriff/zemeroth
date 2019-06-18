@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 
 use crate::core::battle::{component::ObjType, scenario::Scenario, state::BattleResult, PlayerId};
@@ -21,6 +24,12 @@ pub enum Mode {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Award {
     pub recruits: Vec<ObjType>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub enum Action {
+    Recruit(ObjType),
+    Upgrade { from: ObjType, to: ObjType },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -50,15 +59,14 @@ pub struct State {
     scenarios: Vec<CampaignNode>,
     current_scenario_index: i32,
     mode: Mode,
-
     agents: Vec<ObjType>,
-
     last_battle_casualties: Vec<ObjType>,
-    recruits: Vec<ObjType>,
+    upgrades: HashMap<ObjType, Vec<ObjType>>,
+    actions: Vec<Action>,
 }
 
 impl State {
-    pub fn from_plan(plan: Plan) -> Self {
+    pub fn new(plan: Plan, upgrades: HashMap<ObjType, Vec<ObjType>>) -> Self {
         assert!(!plan.nodes.is_empty(), "No scenarios");
         Self {
             current_scenario_index: 0,
@@ -66,7 +74,8 @@ impl State {
             mode: Mode::ReadyForBattle,
             agents: plan.initial_agents,
             last_battle_casualties: vec![],
-            recruits: vec![],
+            actions: vec![],
+            upgrades,
         }
     }
 
@@ -96,19 +105,26 @@ impl State {
         &self.agents
     }
 
-    pub fn recruit(&mut self, typename: ObjType) {
-        assert_eq!(self.mode(), Mode::PreparingForBattle);
-        assert!(self.recruits.contains(&typename));
-        self.agents.push(typename);
-        self.recruits = Vec::new();
-        self.mode = Mode::ReadyForBattle;
+    pub fn available_actions(&self) -> &[Action] {
+        &self.actions
     }
 
-    pub fn available_recruits(&self) -> &[ObjType] {
-        if self.mode != Mode::PreparingForBattle {
-            assert!(self.recruits.is_empty());
+    pub fn exectute_action(&mut self, action: Action) {
+        assert_eq!(self.mode(), Mode::PreparingForBattle);
+        assert!(self.actions.contains(&action));
+        match action {
+            Action::Recruit(typename) => self.agents.push(typename),
+            Action::Upgrade { from, to } => {
+                self.agents
+                    .iter()
+                    .position(|a| a == &from)
+                    .map(|e| self.agents.remove(e))
+                    .unwrap_or_else(|| panic!("Can't find agent {:?}", from));
+                self.agents.push(to);
+            }
         }
-        &self.recruits
+        self.actions = Vec::new();
+        self.mode = Mode::ReadyForBattle;
     }
 
     pub fn report_battle_results(&mut self, result: &BattleResult) -> Result<(), ()> {
@@ -140,12 +156,34 @@ impl State {
             self.mode = Mode::Won;
         } else {
             let i = self.current_scenario_index as usize;
-            self.recruits = self.scenarios[i].award.recruits.clone();
+
+            for recruit in &self.scenarios[i].award.recruits {
+                self.actions.push(Action::Recruit(recruit.clone()));
+            }
+
+            // Add one random upgrade (if available).
+            {
+                let mut upgrade_candidates = Vec::new();
+                for agent in &self.agents {
+                    for (from, upgrades) in &self.upgrades {
+                        if from == agent {
+                            for upgrade in upgrades {
+                                let from = agent.clone();
+                                let to = upgrade.clone();
+                                upgrade_candidates.push(Action::Upgrade { from, to });
+                            }
+                        }
+                    }
+                }
+                if let Some(final_action) = upgrade_candidates.choose(&mut thread_rng()) {
+                    self.actions.push(final_action.clone());
+                }
+            }
 
             self.current_scenario_index += 1;
 
             self.mode = Mode::PreparingForBattle;
-            if self.available_recruits().is_empty() {
+            if self.available_actions().is_empty() {
                 // Skip the preparation step.
                 self.mode = Mode::ReadyForBattle;
             }
@@ -157,6 +195,8 @@ impl State {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use crate::core::{
         battle::{
             component::ObjType,
@@ -164,7 +204,7 @@ mod tests {
             state::BattleResult,
             PlayerId,
         },
-        campaign::{Award, CampaignNode, Mode, Plan, State},
+        campaign::{Action, Award, CampaignNode, Mode, Plan, State},
     };
 
     type GroupTuple<'a> = (Option<PlayerId>, &'a str, Option<Line>, i32);
@@ -184,6 +224,10 @@ mod tests {
 
     fn initial_agents() -> Vec<ObjType> {
         vec!["swordsman".into(), "alchemist".into()]
+    }
+
+    fn upgrades() -> HashMap<ObjType, Vec<ObjType>> {
+        HashMap::new()
     }
 
     fn campaign_plan_short() -> Plan {
@@ -251,13 +295,13 @@ mod tests {
             nodes: Vec::new(),
             initial_agents: Vec::new(),
         };
-        let _state = State::from_plan(empty_plan);
+        let _state = State::new(empty_plan, upgrades());
     }
 
     #[test]
     fn short_happy_path() {
-        let mut state = State::from_plan(campaign_plan_short());
-        assert!(state.available_recruits().is_empty());
+        let mut state = State::new(campaign_plan_short(), upgrades());
+        assert!(state.available_actions().is_empty());
         assert_eq!(state.mode(), Mode::ReadyForBattle);
         let battle_result = BattleResult {
             winner_id: PlayerId(0),
@@ -269,8 +313,8 @@ mod tests {
 
     #[test]
     fn short_fail_path() {
-        let mut state = State::from_plan(campaign_plan_short());
-        assert!(state.available_recruits().is_empty());
+        let mut state = State::new(campaign_plan_short(), upgrades());
+        assert!(state.available_actions().is_empty());
         assert_eq!(state.mode(), Mode::ReadyForBattle);
         let battle_result = BattleResult {
             winner_id: PlayerId(1),
@@ -283,7 +327,7 @@ mod tests {
 
     #[test]
     fn bad_survivors() {
-        let mut state = State::from_plan(campaign_plan_short());
+        let mut state = State::new(campaign_plan_short(), upgrades());
         let battle_result = BattleResult {
             winner_id: PlayerId(1),
             survivor_types: vec!["imp".into()],
@@ -293,7 +337,7 @@ mod tests {
 
     #[test]
     fn bad_battle_win_no_survivors() {
-        let mut state = State::from_plan(campaign_plan_short());
+        let mut state = State::new(campaign_plan_short(), upgrades());
         let battle_result = BattleResult {
             winner_id: PlayerId(0),
             survivor_types: vec![],
@@ -302,9 +346,9 @@ mod tests {
     }
 
     #[test]
-    fn upgrade() {
-        let mut state = State::from_plan(campaign_plan_two_battles());
-        assert!(state.available_recruits().is_empty());
+    fn recruit_and_casualty() {
+        let mut state = State::new(campaign_plan_two_battles(), upgrades());
+        assert!(state.available_actions().is_empty());
         assert_eq!(state.mode(), Mode::ReadyForBattle);
         {
             let battle_result = BattleResult {
@@ -313,11 +357,14 @@ mod tests {
             };
             state.report_battle_results(&battle_result).unwrap();
         }
-        assert_eq!(state.available_recruits(), &["spearman".into()]);
+        assert_eq!(
+            state.available_actions(),
+            &[Action::Recruit("spearman".into())]
+        );
         assert!(state.last_battle_casualties().is_empty());
         assert_eq!(state.mode(), Mode::PreparingForBattle);
-        state.recruit("spearman".into());
-        assert!(state.available_recruits().is_empty());
+        state.exectute_action(Action::Recruit("spearman".into()));
+        assert!(state.available_actions().is_empty());
         assert_eq!(state.mode(), Mode::ReadyForBattle);
         {
             let battle_result = BattleResult {
@@ -328,5 +375,44 @@ mod tests {
         }
         assert_eq!(state.mode(), Mode::Won);
         assert_eq!(state.last_battle_casualties(), &["spearman".into()]);
+    }
+
+    #[test]
+    fn upgrade_and_casualty() {
+        let mut upgrades = HashMap::new();
+        upgrades.insert("swordsman".into(), vec!["heavy_swordsman".into()]);
+        let mut state = State::new(campaign_plan_two_battles(), upgrades);
+        assert!(state.available_actions().is_empty());
+        assert_eq!(state.mode(), Mode::ReadyForBattle);
+        {
+            let battle_result = BattleResult {
+                winner_id: PlayerId(0),
+                survivor_types: initial_agents(),
+            };
+            state.report_battle_results(&battle_result).unwrap();
+        }
+        let action_upgrade = Action::Upgrade {
+            from: "swordsman".into(),
+            to: "heavy_swordsman".into(),
+        };
+        let action_reqruit = Action::Recruit("spearman".into());
+        assert_eq!(
+            state.available_actions(),
+            &[action_reqruit, action_upgrade.clone()]
+        );
+        assert!(state.last_battle_casualties().is_empty());
+        assert_eq!(state.mode(), Mode::PreparingForBattle);
+        state.exectute_action(action_upgrade);
+        assert!(state.available_actions().is_empty());
+        assert_eq!(state.mode(), Mode::ReadyForBattle);
+        {
+            let battle_result = BattleResult {
+                winner_id: PlayerId(0),
+                survivor_types: vec!["alchemist".into()],
+            };
+            state.report_battle_results(&battle_result).unwrap();
+        }
+        assert_eq!(state.mode(), Mode::Won);
+        assert_eq!(state.last_battle_casualties(), &["heavy_swordsman".into()]);
     }
 }
