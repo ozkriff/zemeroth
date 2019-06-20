@@ -179,6 +179,24 @@ fn show_blood_spot(
     ]))
 }
 
+fn show_explosion_ground_mark(
+    view: &mut BattleView,
+    context: &mut Context,
+    at: PosHex,
+) -> ZResult<Box<dyn Action>> {
+    let mut sprite = Sprite::from_image(
+        context,
+        view.images().explosion_ground_mark.clone(),
+        view.tile_size() * 2.0,
+    )?;
+    sprite.set_centered(true);
+    sprite.set_color([1.0, 1.0, 1.0, 1.0].into());
+    sprite.set_pos(geom::hex_to_point(view.tile_size(), at));
+    let layer = view.layers().blood.clone();
+    view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION, sprite.color().a);
+    Ok(action::Show::new(&layer, &sprite).boxed())
+}
+
 fn show_dust_at_pos(
     view: &mut BattleView,
     context: &mut Context,
@@ -737,7 +755,12 @@ fn visualize_event_use_ability_explode(
     let scale = 2.5;
     let action_dust = show_dust_at_pos(view, context, pos)?;
     let action_flare = show_flare_scale(view, context, pos, [1.0, 0.0, 0.0, 0.7].into(), scale)?;
-    Ok(seq(vec![fork(action_flare), action_dust]))
+    let action_ground_mark = show_explosion_ground_mark(view, context, pos)?;
+    Ok(seq(vec![
+        fork(action_flare),
+        fork(action_ground_mark),
+        action_dust,
+    ]))
 }
 
 fn visualize_event_use_ability_summon(
