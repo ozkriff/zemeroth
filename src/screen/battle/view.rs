@@ -138,7 +138,7 @@ pub struct BattleView {
     scene: Scene,
     sprites: Sprites,
     images: Images,
-    sprite_info: HashMap<String, SpriteInfo>,
+    sprite_info: HashMap<ObjType, SpriteInfo>,
 }
 
 impl BattleView {
@@ -284,7 +284,7 @@ impl BattleView {
     }
 
     pub fn sprite_info(&self, obj_type: &ObjType) -> SpriteInfo {
-        self.sprite_info[&obj_type.0].clone()
+        self.sprite_info[&obj_type].clone()
     }
 
     pub fn set_mode(
