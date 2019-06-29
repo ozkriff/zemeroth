@@ -3,7 +3,10 @@ use std::collections::HashMap;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 
-use crate::core::battle::{component::ObjType, scenario::Scenario, state::BattleResult, PlayerId};
+use crate::core::{
+    battle::{component::ObjType, scenario::Scenario, state::BattleResult, PlayerId},
+    utils,
+};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
 pub enum Mode {
@@ -41,9 +44,7 @@ pub struct CampaignNode {
 fn casualties(initial_agents: &[ObjType], survivors: &[ObjType]) -> Vec<ObjType> {
     let mut agents = initial_agents.to_vec();
     for typename in survivors {
-        if let Some(i) = agents.iter().position(|v| v == typename) {
-            agents.remove(i);
-        }
+        assert!(utils::try_remove_item(&mut agents, typename));
     }
     agents
 }
@@ -115,11 +116,7 @@ impl State {
         match action {
             Action::Recruit(typename) => self.agents.push(typename),
             Action::Upgrade { from, to } => {
-                self.agents
-                    .iter()
-                    .position(|a| a == &from)
-                    .map(|e| self.agents.remove(e))
-                    .unwrap_or_else(|| panic!("Can't find agent {:?}", from));
+                assert!(utils::try_remove_item(&mut self.agents, &from));
                 self.agents.push(to);
             }
         }
