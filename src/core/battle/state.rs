@@ -1,9 +1,9 @@
 use crate::core::{
     battle::{
-        ability::PassiveAbility, component::ObjType, effect, utils, ObjId, PlayerId, Strength,
-        TileType,
+        ability::PassiveAbility, component::ObjType, effect, ObjId, PlayerId, Strength, TileType,
     },
     map::{self, PosHex},
+    utils,
 };
 
 pub use self::{

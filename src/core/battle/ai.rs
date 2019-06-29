@@ -6,11 +6,10 @@ use crate::core::{
         check,
         command::{self, Command},
         movement::{self, Path, Pathfinder},
-        state,
-        utils::shuffle_vec,
-        ObjId, PlayerId, State,
+        state, ObjId, PlayerId, State,
     },
     map::{self, Distance, HexMap},
+    utils::shuffle_vec,
 };
 
 fn does_agent_have_ability_summon(state: &State, id: ObjId) -> bool {
