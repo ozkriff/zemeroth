@@ -16,7 +16,6 @@ pub mod execute;
 pub mod movement;
 pub mod scenario;
 pub mod state;
-pub mod utils;
 
 mod check;
 

@@ -1,8 +1,18 @@
+use std::fmt::Debug;
+
 use rand::{seq::SliceRandom, thread_rng};
 
 pub fn shuffle_vec<T>(mut vec: Vec<T>) -> Vec<T> {
     vec.shuffle(&mut thread_rng());
     vec
+}
+
+/// Remove an element from a vector.
+pub fn try_remove_item<T: Debug + PartialEq>(vec: &mut Vec<T>, e: &T) -> bool {
+    vec.iter()
+        .position(|current| current == e)
+        .map(|e| vec.remove(e))
+        .is_some()
 }
 
 pub fn clamp_min<T: PartialOrd>(value: T, min: T) -> T {
@@ -58,5 +68,13 @@ mod tests {
         assert_eq!(super::clamp(1, min, max), 1);
         assert_eq!(super::clamp(2, min, max), 2);
         assert_eq!(super::clamp(3, min, max), 2);
+    }
+
+    #[test]
+    fn test_try_remove_item() {
+        let mut a = vec![1, 2, 3];
+        assert!(super::try_remove_item(&mut a, &1));
+        assert_eq!(&a, &[2, 3]);
+        assert!(!super::try_remove_item(&mut a, &666));
     }
 }

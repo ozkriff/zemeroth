@@ -57,26 +57,11 @@ fn add_agents_panel(
 ) -> ZResult<Box<dyn ui::Widget>> {
     let mut layout = ui::VLayout::new();
     let h = utils::line_heights().big;
-    {
-        let text = "Your group consists of:";
-        let text = Box::new(Text::new((text, font, FONT_SIZE)));
-        layout.add(Box::new(ui::Label::new(context, text, h)?));
-    }
+    layout.add(label(context, font, "Your group consists of:")?);
     for agent_type in agents {
         let mut line = ui::HLayout::new();
-        {
-            let text = format!("- {}", agent_type.0);
-            let text = Box::new(Text::new((text.as_str(), font, FONT_SIZE)));
-            let label = ui::Label::new(context, text, h)?;
-            line.add(Box::new(label));
-        }
-        {
-            let rect = graphics::Rect {
-                w: h / 2.0,
-                ..Default::default()
-            };
-            line.add(Box::new(ui::Spacer::new(rect)));
-        }
+        line.add(label(context, font, &format!("- {}", agent_type.0))?);
+        line.add(spacer_h());
         {
             let text = Box::new(Text::new(("[i]", font, FONT_SIZE)));
             let message = Message::AgentInfo(agent_type.clone());
@@ -88,15 +73,24 @@ fn add_agents_panel(
     Ok(Box::new(layout))
 }
 
-fn add_spacer(layout: &mut ui::VLayout) {
+fn spacer() -> Box<dyn ui::Widget> {
     let h = utils::line_heights().big;
     let rect = graphics::Rect {
-        w: 0.0,
         h,
-        x: 0.0,
-        y: 0.0,
+        ..Default::default()
     };
-    layout.add(Box::new(ui::Spacer::new(rect)));
+    Box::new(ui::Spacer::new(rect))
+}
+
+/// Horizontal spacer.
+fn spacer_h() -> Box<dyn ui::Widget> {
+    let h = utils::line_heights().big;
+    let rect = graphics::Rect {
+        w: h / 2.0,
+        h: 0.0,
+        ..Default::default()
+    };
+    Box::new(ui::Spacer::new(rect))
 }
 
 fn label(context: &mut Context, font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
@@ -119,7 +113,7 @@ pub struct Campaign {
 impl Campaign {
     pub fn new(context: &mut Context) -> ZResult<Self> {
         let plan = utils::deserialize_from_file(context, "/campaign_01.ron")?;
-        let upgrades = utils::deserialize_from_file(context, "/agent_upgrades.ron")?;
+        let upgrades = utils::deserialize_from_file(context, "/agent_campaign_info.ron")?;
         let state = State::new(plan, upgrades);
         let font = utils::default_font(context);
         let gui = basic_gui(context, font)?;
@@ -132,7 +126,7 @@ impl Campaign {
             button_start_battle: None,
             label_central_message: None,
         };
-        this.set_mode(context, Mode::ReadyForBattle)?;
+        this.set_mode(context, Mode::PreparingForBattle)?;
         Ok(this)
     }
 
@@ -140,7 +134,6 @@ impl Campaign {
         self.clean_ui()?;
         match mode {
             Mode::PreparingForBattle => self.set_mode_preparing(context)?,
-            Mode::ReadyForBattle => self.set_mode_ready(context)?,
             Mode::Won => self.set_mode_won(context)?,
             Mode::Failed => self.set_mode_failed(context)?,
         }
@@ -150,7 +143,6 @@ impl Campaign {
     fn set_mode_preparing(&mut self, context: &mut Context) -> ZResult {
         let mut layout = ui::VLayout::new();
         let h = utils::line_heights().big;
-
         let casualties = self.state.last_battle_casualties();
         if !casualties.is_empty() {
             layout.add(label(
@@ -159,101 +151,80 @@ impl Campaign {
                 "In the last battle you have lost:",
             )?);
             for agent_type in casualties {
-                let text = format!("- {} (killed)", agent_type.0);
-                let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
-                let label = ui::Label::new(context, text, h)?;
-                layout.add(Box::new(label));
+                let text = &format!("- {} (killed)", agent_type.0);
+                layout.add(label(context, self.font, text)?);
             }
         }
-
-        add_spacer(&mut layout);
+        layout.add(spacer());
         let panel = add_agents_panel(context, self.font, &mut self.gui, self.state.agents())?;
         layout.add(panel);
-        add_spacer(&mut layout);
-
-        if let Mode::PreparingForBattle = self.state.mode() {
+        layout.add(spacer());
+        layout.add(label(
+            context,
+            self.font,
+            &format!("Your renown is: {}", self.state.renown().0),
+        )?);
+        layout.add(spacer());
+        layout.add(label(context, self.font, &"Actions:")?);
+        for action in self.state.available_actions() {
+            let mut line = ui::HLayout::new();
             {
-                let text = Box::new(Text::new(("Choose:", self.font, FONT_SIZE)));
-                layout.add(Box::new(ui::Label::new(context, text, h)?));
-            }
-            for action in self.state.available_actions() {
-                let mut line = ui::HLayout::new();
-                {
-                    let text = match action {
-                        Action::Recruit(agent_type) => format!("- [Recruit {}]", agent_type.0),
-                        Action::Upgrade { from, to } => {
-                            format!("- [Upgrade {} to {}]", from.0, to.0)
-                        }
-                    };
+                let cost = self.state.action_cost(action);
+                let text = match action {
+                    Action::Recruit { agent_type } => {
+                        format!("- [Recruit {} for {}r]", agent_type.0, cost.0)
+                    }
+                    Action::Upgrade { from, to } => {
+                        format!("- [Upgrade {} to {} for {}r ]", from.0, to.0, cost.0)
+                    }
+                };
+                if cost.0 <= self.state.renown().0 {
                     let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
                     let sender = self.gui.sender();
                     let message = Message::Action(action.clone());
                     let button = ui::Button::new(context, text, h, sender, message)?;
                     line.add(Box::new(button));
+                } else {
+                    line.add(label(context, self.font, &text)?);
                 }
-                {
-                    let rect = graphics::Rect {
-                        w: h / 2.0,
-                        ..Default::default()
-                    };
-                    line.add(Box::new(ui::Spacer::new(rect)));
-                }
-                {
-                    let text = Box::new(Text::new(("[i]", self.font, FONT_SIZE)));
-                    let message = match action {
-                        Action::Recruit(agent_type) => Message::AgentInfo(agent_type.clone()),
-                        Action::Upgrade { to, .. } => Message::AgentInfo(to.clone()),
-                    };
-                    let sender = self.gui.sender();
-                    let button = ui::Button::new(context, text, h, sender, message)?;
-                    line.add(Box::new(button));
-                }
-                layout.add(Box::new(line));
             }
+            line.add(spacer_h());
+            {
+                let text = Box::new(Text::new(("[i]", self.font, FONT_SIZE)));
+                let message = match action {
+                    Action::Recruit { agent_type, .. } => Message::AgentInfo(agent_type.clone()),
+                    Action::Upgrade { to, .. } => Message::AgentInfo(to.clone()),
+                };
+                let sender = self.gui.sender();
+                let button = ui::Button::new(context, text, h, sender, message)?;
+                line.add(Box::new(button));
+            }
+            layout.add(Box::new(line));
         }
-
-        let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
-        let layout = ui::pack(layout);
-        self.gui.add(&layout, anchor);
-        self.layout = Some(layout);
-
-        Ok(())
-    }
-
-    fn set_mode_ready(&mut self, context: &mut Context) -> ZResult {
-        let mut layout = ui::VLayout::new();
-        let panel = add_agents_panel(context, self.font, &mut self.gui, self.state.agents())?;
-        layout.add(panel);
-        let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
-        let layout = ui::pack(layout);
-        self.gui.add(&layout, anchor);
-        self.layout = Some(layout);
         {
-            let h = utils::line_heights().large;
             let text = &format!(
-                "[start battle - {}/{}]",
+                "- [Start battle - {}/{}]",
                 self.state.current_scenario_index() + 1,
                 self.state.scenarios_count()
             );
             let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
             let button =
                 ui::Button::new(context, text, h, self.gui.sender(), Message::StartBattle)?;
-            let rc_button = ui::pack(button);
-            let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Bottom);
-            self.gui.add(&rc_button, anchor);
-            self.button_start_battle = Some(rc_button);
+            layout.add(Box::new(button));
         }
+        let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
+        let layout = ui::pack(layout);
+        self.gui.add(&layout, anchor);
+        self.layout = Some(layout);
         Ok(())
     }
 
     fn set_mode_won(&mut self, context: &mut Context) -> ZResult {
-        self.add_label_central_message(context, "You have won!")?;
-        Ok(())
+        self.add_label_central_message(context, "You have won!")
     }
 
     fn set_mode_failed(&mut self, context: &mut Context) -> ZResult {
-        self.add_label_central_message(context, "You have failed!")?;
-        Ok(())
+        self.add_label_central_message(context, "You have failed!")
     }
 
     fn clean_ui(&mut self) -> ZResult {

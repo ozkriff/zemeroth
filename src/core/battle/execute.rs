@@ -14,9 +14,10 @@ use crate::core::{
         event::{self, ActiveEvent, Event},
         movement::Path,
         state::{self, BattleResult, State},
-        utils, Moves, ObjId, Phase, PlayerId, Strength,
+        Moves, ObjId, Phase, PlayerId, Strength,
     },
     map::{self, Dir, PosHex},
+    utils,
 };
 
 #[derive(PartialEq, Clone, Copy, Debug)]
