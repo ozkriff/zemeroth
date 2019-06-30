@@ -26,6 +26,7 @@ pub enum Mode {
 /// An award that is given to the player after the successful battle.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Award {
+    #[serde(default)]
     pub recruits: Vec<ObjType>,
 }
 
