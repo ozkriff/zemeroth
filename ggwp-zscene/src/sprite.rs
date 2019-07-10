@@ -97,7 +97,7 @@ impl Sprite {
     ) -> Result<Self> {
         let path = paths.get(&"").expect("missing default path");
         let mut this = Self::from_path(context, path.as_ref(), height)?;
-        for (frame_name, frame_path) in paths.into_iter() {
+        for (frame_name, frame_path) in paths.iter() {
             let image = graphics::Image::new(context, frame_path)?;
             this.add_frame(frame_name.borrow().to_string(), Box::new(image));
         }
