@@ -204,7 +204,7 @@ impl State {
                 for agent in &self.agents {
                     for (agent_type, agent_info) in &self.agent_info {
                         if agent_type == agent {
-                            for upgrade in &agent_info.upgrades {
+                            if let Some(upgrade) = agent_info.upgrades.choose(&mut thread_rng()) {
                                 let from = agent.clone();
                                 let to = upgrade.clone();
                                 upgrade_candidates.push(Action::Upgrade { from, to });
