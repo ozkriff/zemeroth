@@ -809,13 +809,23 @@ fn correct_damage_with_armor(
 }
 
 fn wound_or_kill(state: &State, id: ObjId, damage: battle::Strength) -> Effect {
+    let armor_break = battle::Strength(0);
+    wound_break_kill(state, id, damage, armor_break)
+}
+
+fn wound_break_kill(
+    state: &State,
+    id: ObjId,
+    damage: battle::Strength,
+    armor_break: battle::Strength,
+) -> Effect {
     let parts = state.parts();
     let strength = parts.strength.get(id).strength;
     let dir = None; // Let's assume that this is not a directed attack.
     if strength > damage {
         effect::Wound {
             damage,
-            armor_break: battle::Strength(0), // !!!
+            armor_break,
             dir,
         }
         .into()
@@ -908,7 +918,8 @@ fn execute_use_ability_explode_damage(
         }
         let damage = battle::Strength(1);
         let damage = correct_damage_with_armor(state, id, damage);
-        let effects = vec![wound_or_kill(state, id, damage)];
+        let armor_break = Strength(1);
+        let effects = vec![wound_break_kill(state, id, damage, armor_break)];
         context.instant_effects.push((id, effects));
     }
     assert!(context
