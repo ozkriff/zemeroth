@@ -290,14 +290,14 @@ impl Ai {
     fn try_to_move(&mut self, state: &State, agent_id: ObjId) -> Option<Command> {
         let path_result = if does_agent_have_ability_summon(state, agent_id) {
             let range = DistanceRange {
-                min: Distance(4),
-                max: Distance(6),
+                min: Distance(2),
+                max: Distance(4),
             };
             self.try_to_keep_distance(state, agent_id, range)
         } else if does_agent_have_ability_bomb(state, agent_id) {
             let range = DistanceRange {
-                min: Distance(2),
-                max: Distance(4),
+                min: Distance(1),
+                max: Distance(3),
             };
             self.try_to_keep_distance(state, agent_id, range)
         } else {
