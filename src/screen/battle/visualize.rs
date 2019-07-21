@@ -388,7 +388,7 @@ fn generate_brief_obj_info(
     context: &mut Context,
     id: ObjId,
 ) -> ZResult<Box<dyn Action>> {
-    let image = view.images().dot.clone();
+    let dot_image = view.images().dot.clone();
     let mut actions = Vec::new();
     let parts = state.parts();
     let agent = parts.agent.get(id);
@@ -401,7 +401,7 @@ fn generate_brief_obj_info(
     point.x += view.tile_size() * 0.8;
     point.y -= view.tile_size() * 1.6;
     let mut dots = Vec::new();
-    let base_x = point.x;
+    let base = point;
     let rows: &[&[_]] = &[
         &[
             ([0.0, 0.7, 0.0, 1.0], strength.strength.0),
@@ -419,13 +419,13 @@ fn generate_brief_obj_info(
                 point.x -= size;
             }
         }
-        point.x = base_x;
+        point.x = base.x;
         point.y += size;
     }
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
         let color = color.into();
-        let mut sprite = Sprite::from_image(context, image.clone(), size)?;
+        let mut sprite = Sprite::from_image(context, dot_image.clone(), size)?;
         sprite.set_centered(true);
         sprite.set_pos(point);
         sprite.set_color(Color { a: 0.0, ..color });
@@ -435,6 +435,29 @@ fn generate_brief_obj_info(
         ]));
         sprites.push(sprite);
         actions.push(action);
+    }
+    {
+        let health_points = strength.strength.0 + damage + armor.0;
+        let health_bar_width = health_points as f32 * size;
+        if let Some(effects) = parts.effects.get_opt(id) {
+            let icon_size = size * 2.0;
+            let mut icon_point = base;
+            icon_point.y -= icon_size;
+            icon_point.x -= health_bar_width + icon_size * 0.3;
+            for timed_effect in &effects.0 {
+                icon_point.y += icon_size;
+                let effect = &timed_effect.effect;
+                let image = match effect {
+                    effect::Lasting::Poison => view.images().effect_poison.clone(),
+                    effect::Lasting::Stun => view.images().effect_stun.clone(),
+                };
+                let mut sprite = Sprite::from_image(context, image, icon_size)?;
+                sprite.set_pos(icon_point);
+                sprite.set_centered(true);
+                actions.push(action::Show::new(&view.layers().dots, &sprite).boxed());
+                sprites.push(sprite);
+            }
+        }
     }
     view.agent_info_set(id, sprites);
     Ok(seq(actions))
