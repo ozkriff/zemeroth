@@ -1227,21 +1227,11 @@ fn stun() {
             }
             .into(),
             actor_ids: vec![ObjId(1), ObjId(0)],
-            instant_effects: vec![(
-                ObjId(1),
-                vec![
-                    effect::FlyOff {
-                        from: PosHex { q: 0, r: 1 },
-                        to: PosHex { q: 0, r: 2 },
-                    }
-                    .into(),
-                    Effect::Stun,
-                ],
-            )],
+            instant_effects: vec![(ObjId(1), vec![Effect::Stun])],
             timed_effects: vec![(
                 ObjId(1),
                 vec![effect::Timed {
-                    duration: effect::Duration::Rounds(2),
+                    duration: effect::Duration::Rounds(1),
                     phase: Phase(1),
                     effect: effect::Lasting::Stun,
                 }
@@ -1249,33 +1239,6 @@ fn stun() {
             )],
             scheduled_abilities: Vec::new(),
         }],
-    );
-    exec_and_check(
-        &mut state,
-        command::EndTurn,
-        &[
-            event_end_turn(P0, &[ObjId(0)]),
-            event_begin_turn(P1, &[ObjId(1)]),
-            Event {
-                active_event: event::EffectTick {
-                    id: ObjId(1),
-                    effect: effect::Lasting::Stun,
-                }
-                .into(),
-                actor_ids: vec![ObjId(1)],
-                instant_effects: vec![(ObjId(1), vec![Effect::Stun])],
-                timed_effects: Vec::new(),
-                scheduled_abilities: Vec::new(),
-            },
-        ],
-    );
-    exec_and_check(
-        &mut state,
-        command::EndTurn,
-        &[
-            event_end_turn(P1, &[ObjId(1)]),
-            event_begin_turn(P0, &[ObjId(0)]),
-        ],
     );
     exec_and_check(
         &mut state,

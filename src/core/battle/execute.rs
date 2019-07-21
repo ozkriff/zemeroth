@@ -691,20 +691,11 @@ fn execute_use_ability_knockback(
 fn execute_use_ability_club(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let id = state::blocker_id_at(state, command.pos);
-    let from = command.pos;
-    let actor_pos = state.parts().pos.get(command.id).0;
-    let dir = Dir::get_dir_from_to(actor_pos, command.pos);
-    let to = Dir::get_neighbor_pos(command.pos, dir);
-    if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-        let effect = effect::FlyOff { from, to }.into();
-        context.instant_effects.push((id, vec![effect]));
-        context.moved_actor_ids.push(id);
-    }
     if state.parts().belongs_to.get_opt(id).is_some() {
         let owner = state.parts().belongs_to.get(id).0;
         let phase = Phase::from_player_id(owner);
         let effect = effect::Timed {
-            duration: effect::Duration::Rounds(2),
+            duration: effect::Duration::Rounds(1),
             phase,
             effect: effect::Lasting::Stun,
         };
