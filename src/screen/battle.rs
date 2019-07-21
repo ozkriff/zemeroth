@@ -173,9 +173,10 @@ fn build_panel_agent_abilities(
 
 fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
+    let h = line_heights().big;
     {
         let text = Box::new(Text::new(("[deselect]", font, FONT_SIZE)));
-        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::Deselect)?;
+        let button = ui::Button::new(context, text, h, gui.sender(), Message::Deselect)?;
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Top);
@@ -183,7 +184,7 @@ fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     }
     {
         let text = Box::new(Text::new(("[end turn]", font, FONT_SIZE)));
-        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::EndTurn)?;
+        let button = ui::Button::new(context, text, h, gui.sender(), Message::EndTurn)?;
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
@@ -191,7 +192,7 @@ fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     }
     {
         let text = Box::new(Text::new(("[exit]", font, FONT_SIZE)));
-        let button = ui::Button::new(context, text, 0.1, gui.sender(), Message::Exit)?;
+        let button = ui::Button::new(context, text, h, gui.sender(), Message::Exit)?;
         let mut layout = ui::VLayout::new();
         layout.add(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
