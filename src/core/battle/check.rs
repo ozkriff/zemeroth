@@ -149,7 +149,7 @@ fn check_ability_club(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error
     let selected_pos = state.parts().pos.get(id).0;
     check_min_distance(selected_pos, pos, Distance(1))?;
     check_max_distance(selected_pos, pos, Distance(1))?;
-    if state::blocker_id_at_opt(state, pos).is_none() {
+    if state::agent_id_at_opt(state, pos).is_none() {
         return Err(Error::NoTarget);
     }
     Ok(())
