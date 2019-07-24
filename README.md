@@ -89,13 +89,13 @@ of the project is:
     - [x] Tests
     - [x] Hit chances
   - [ ] [v0.6](https://github.com/ozkriff/zemeroth/projects/3)
+    - [x] Agent upgrades ([#399](https://github.com/ozkriff/zemeroth/issues/399))
+    - [x] Flip agent sprites horizontally when needed ([#115](https://github.com/ozkriff/zemeroth/issues/115))
+    - [x] Multiple sprites per agent type ([#114](https://github.com/ozkriff/zemeroth/issues/114))
     - [ ] GUI icons ([#276](https://github.com/ozkriff/zemeroth/issues/276))
     - [ ] Sound & Music ([#221](https://github.com/ozkriff/zemeroth/issues/221))
     - [ ] Reduce text overlapping ([#214](https://github.com/ozkriff/zemeroth/issues/214))
-    - [ ] Agent upgrades
-    - [ ] Flip agent sprites horizontally when needed ([#115](https://github.com/ozkriff/zemeroth/issues/115))
     - [ ] Move back after a successful dodge ([#117](https://github.com/ozkriff/zemeroth/issues/117))
-    - [ ] Multiple sprites per agent type ([#114](https://github.com/ozkriff/zemeroth/issues/114))
   - [ ] v0.7
     - [ ] Easing ([#26](https://github.com/ozkriff/zemeroth/issues/26))
     - [ ] Path selection ([#280](https://github.com/ozkriff/zemeroth/issues/280),
