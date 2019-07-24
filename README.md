@@ -88,33 +88,30 @@ of the project is:
     - [x] Web version
     - [x] Tests
     - [x] Hit chances
-  - [ ] [v0.6](https://github.com/ozkriff/zemeroth/projects/3)
-    - [x] Agent upgrades ([#399](https://github.com/ozkriff/zemeroth/issues/399))
-    - [x] Flip agent sprites horizontally when needed ([#115](https://github.com/ozkriff/zemeroth/issues/115))
-    - [x] Multiple sprites per agent type ([#114](https://github.com/ozkriff/zemeroth/issues/114))
-    - [ ] GUI icons ([#276](https://github.com/ozkriff/zemeroth/issues/276))
-    - [ ] Sound & Music ([#221](https://github.com/ozkriff/zemeroth/issues/221))
-    - [ ] Reduce text overlapping ([#214](https://github.com/ozkriff/zemeroth/issues/214))
-    - [ ] Move back after a successful dodge ([#117](https://github.com/ozkriff/zemeroth/issues/117))
-  - [ ] v0.7
-    - [ ] Easing ([#26](https://github.com/ozkriff/zemeroth/issues/26))
-    - [ ] Path selection ([#280](https://github.com/ozkriff/zemeroth/issues/280),
-      [#219](https://github.com/ozkriff/zemeroth/issues/219))
-    - [ ] Intermediate bosses
-    - [ ] Main boss
-    - [ ] Neutral agents ([#393](https://github.com/ozkriff/zemeroth/issues/393))
-    - [ ] Weight component ([#291](https://github.com/ozkriff/zemeroth/issues/291))
-  - [ ] v0.?
-    - [ ] Basic inventory system: slots for artifacts
-    - [ ] Ranged units
-    - [ ] More agent types
-    - [ ] More passive abilities that allow agents to make actions
-      during enemy's turn
-      ([#354](https://github.com/ozkriff/zemeroth/issues/354))
-    - [ ] More complex multieffect abilities/actions
-    - [ ] Guide ([#451](https://github.com/ozkriff/zemeroth/issues/451))
-    - [ ] Save/load ([#28](https://github.com/ozkriff/zemeroth/issues/28))
-    - [ ] Android version
+  - [x] Agent upgrades ([#399](https://github.com/ozkriff/zemeroth/issues/399))
+  - [x] Flip agent sprites horizontally when needed ([#115](https://github.com/ozkriff/zemeroth/issues/115))
+  - [x] Multiple sprites per agent type ([#114](https://github.com/ozkriff/zemeroth/issues/114))
+  - [ ] GUI icons ([#276](https://github.com/ozkriff/zemeroth/issues/276))
+  - [ ] Sound & Music ([#221](https://github.com/ozkriff/zemeroth/issues/221))
+  - [ ] Reduce text overlapping ([#214](https://github.com/ozkriff/zemeroth/issues/214))
+  - [ ] Move back after a successful dodge ([#117](https://github.com/ozkriff/zemeroth/issues/117))
+  - [ ] Easing ([#26](https://github.com/ozkriff/zemeroth/issues/26))
+  - [ ] Path selection ([#280](https://github.com/ozkriff/zemeroth/issues/280),
+    [#219](https://github.com/ozkriff/zemeroth/issues/219))
+  - [ ] Intermediate bosses
+  - [ ] Main boss
+  - [ ] Neutral agents ([#393](https://github.com/ozkriff/zemeroth/issues/393))
+  - [ ] Weight component ([#291](https://github.com/ozkriff/zemeroth/issues/291))
+  - [ ] Basic inventory system: slots for artifacts
+  - [ ] Ranged units
+  - [ ] More agent types
+  - [ ] More passive abilities that allow agents to make actions
+    during enemy's turn
+    ([#354](https://github.com/ozkriff/zemeroth/issues/354))
+  - [ ] More complex multieffect abilities/actions
+  - [ ] Guide ([#451](https://github.com/ozkriff/zemeroth/issues/451))
+  - [ ] Save/load ([#28](https://github.com/ozkriff/zemeroth/issues/28))
+  - [ ] Android version
 
 - [ ] Phase Two: Strategy Mode
 
