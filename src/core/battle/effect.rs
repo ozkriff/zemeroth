@@ -43,6 +43,7 @@ pub enum Effect {
     FlyOff(FlyOff), // TODO: flying boulders should make some damage
     Throw(Throw),
     Dodge(Dodge),
+    Possess,
 }
 
 impl Effect {
@@ -58,6 +59,7 @@ impl Effect {
             Effect::FlyOff(_) => "Fly off",
             Effect::Throw(_) => "Throw",
             Effect::Dodge(_) => "Dodge",
+            Effect::Possess => "Possess",
         }
     }
 }
@@ -66,6 +68,7 @@ impl Effect {
 pub enum Lasting {
     Poison,
     Stun,
+    Possession,
 }
 
 impl Lasting {
@@ -73,6 +76,7 @@ impl Lasting {
         match *self {
             Lasting::Poison => "Poison",
             Lasting::Stun => "Stun",
+            Lasting::Possession => "Possession",
         }
     }
 }

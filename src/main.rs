@@ -102,7 +102,7 @@ fn main() -> ZResult {
     const APP_ID: &str = "zemeroth";
     const APP_AUTHOR: &str = "ozkriff";
     const ASSETS_DIR_NAME: &str = "assets";
-    const ASSETS_HASHSUM: &str = "4350bd7677e7578a8f4725930fac8189";
+    const ASSETS_HASHSUM: &str = "06a35e2d7a43a5c64ca9d30859cd2777";
 
     fn enable_backtrace() {
         if std::env::var("RUST_BACKTRACE").is_err() {

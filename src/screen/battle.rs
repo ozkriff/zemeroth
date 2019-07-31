@@ -12,8 +12,8 @@ use ui::{self, Gui};
 use crate::{
     core::{
         battle::{
-            self, ability,
-            ability::Ability,
+            self,
+            ability::{self, Ability},
             ai::Ai,
             check, command,
             component::Prototypes,

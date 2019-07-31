@@ -545,6 +545,7 @@ fn execute_effects(state: &mut State, cb: Cb) {
                     effect::Lasting::Stun => {
                         target_effects.push(Effect::Stun);
                     }
+                    effect::Lasting::Possession => target_effects.push(Effect::Possess),
                 }
                 let instant_effects = vec![(id, target_effects)];
                 let event = Event {
@@ -1103,6 +1104,23 @@ fn execute_use_ability_summon(state: &mut State, command: &command::UseAbility) 
     context
 }
 
+fn execute_use_ability_possess(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
+    let mut context = ExecuteContext::default();
+    let id = state::blocker_id_at(state, command.pos);
+    if state.parts().belongs_to.get_opt(id).is_some() {
+        let owner = state.parts().belongs_to.get(id).0;
+        let phase = Phase::from_player_id(owner);
+        let effect = effect::Timed {
+            duration: effect::Duration::Rounds(3),
+            phase,
+            effect: effect::Lasting::Possession,
+        };
+        context.timed_effects.push((id, vec![effect]));
+    }
+    context.actor_ids.push(id);
+    context
+}
+
 fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility) {
     let mut context = match command.ability {
         Ability::Knockback => execute_use_ability_knockback(state, command),
@@ -1123,6 +1141,7 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
         Ability::BombPoison(_) => execute_use_ability_bomb_poison(state, command),
         Ability::BombDemonic(_) => execute_use_ability_bomb_demonic(state, command),
         Ability::Summon => execute_use_ability_summon(state, command),
+        Ability::Possess => execute_use_ability_possess(state, command),
     };
     context.actor_ids.push(command.id);
     let active_event = event::UseAbility {

@@ -110,6 +110,7 @@ pub struct Images {
     pub attack_claws: Image,
     pub effect_stun: Image,
     pub effect_poison: Image,
+    pub effect_possession: Image,
 }
 
 impl Images {
@@ -130,6 +131,7 @@ impl Images {
             attack_claws: Image::new(context, "/claw.png")?,
             effect_stun: Image::new(context, "/effect_stun.png")?,
             effect_poison: Image::new(context, "/effect_poison.png")?,
+            effect_possession: Image::new(context, "/effect_possession.png")?,
         })
     }
 }

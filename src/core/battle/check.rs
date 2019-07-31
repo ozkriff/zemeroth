@@ -114,6 +114,7 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
         Ability::Dash => check_ability_dash(state, command.id, command.pos),
         Ability::Rage(a) => check_ability_rage(state, command.id, command.pos, a),
         Ability::Heal(a) => check_ability_heal(state, command.id, command.pos, a),
+        Ability::Possess => check_ability_possess(state, command.id, command.pos),
         Ability::ExplodePush
         | Ability::ExplodeDamage
         | Ability::ExplodeFire
@@ -271,6 +272,14 @@ fn check_ability_heal(
 ) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, Distance(1))?;
+    if state::agent_id_at_opt(state, pos).is_none() {
+        return Err(Error::NoTarget);
+    }
+    Ok(())
+}
+
+fn check_ability_possess(state: &State, _id: ObjId, pos: PosHex) -> Result<(), Error> {
+    // TODO: check that the target belongs to the same player
     if state::agent_id_at_opt(state, pos).is_none() {
         return Err(Error::NoTarget);
     }
