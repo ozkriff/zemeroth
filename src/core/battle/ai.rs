@@ -5,6 +5,7 @@ use crate::core::{
         ability::{self, Ability},
         check,
         command::{self, Command},
+        effect,
         movement::{self, Path, Pathfinder},
         state, ObjId, PlayerId, State,
     },
@@ -200,6 +201,37 @@ impl Ai {
         None
     }
 
+    fn try_possess_imp(&self, state: &State, agent_id: ObjId) -> Option<Command> {
+        let imps = ["imp", "imp_toxic"];
+        for target_id in shuffle_vec(state::players_agent_ids(state, self.id)) {
+            // AI can possess only imps for now.
+            let type_name = state.parts().meta.get(target_id).name.0.as_str();
+            if !imps.contains(&type_name) {
+                continue;
+            }
+            // Make sure we won't try to possess an already possessed imp.
+            if let Some(effects) = state.parts().effects.get_opt(target_id) {
+                for effect in &effects.0 {
+                    if effect.effect == effect::Lasting::Possession {
+                        continue;
+                    }
+                }
+            }
+            let ability = Ability::Possess;
+            let pos = state.parts().pos.get(target_id).0;
+            let command = command::UseAbility {
+                id: agent_id,
+                pos,
+                ability,
+            }
+            .into();
+            if check(state, &command).is_ok() {
+                return Some(command);
+            }
+        }
+        None
+    }
+
     fn try_to_attack(&self, state: &State, agent_id: ObjId) -> Option<Command> {
         for &target_id in &shuffle_vec(state::enemy_agent_ids(state, self.id)) {
             let attacker_id = agent_id;
@@ -327,6 +359,9 @@ impl Ai {
         for agent_id in ids {
             if let Some(summon_command) = self.try_summon_imp(state, agent_id) {
                 return Some(summon_command);
+            }
+            if let Some(possess_command) = self.try_possess_imp(state, agent_id) {
+                return Some(possess_command);
             }
             if let Some(bomb_command) = self.try_throw_bomb(state, agent_id) {
                 return Some(bomb_command);

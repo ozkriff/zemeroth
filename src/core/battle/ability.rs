@@ -26,6 +26,7 @@ pub enum Ability {
     Dash,
     Rage(Rage),
     Heal(Heal),
+    Possess,
 }
 
 // TODO: use named fields?
@@ -107,6 +108,7 @@ impl Ability {
             Ability::Dash => "Dash".into(),
             Ability::Rage(a) => format!("Rage-{}", (a.0).0),
             Ability::Heal(a) => format!("Heal-{}", (a.0).0),
+            Ability::Possess => "Possess".into(),
         }
     }
 }
