@@ -273,10 +273,11 @@ fn check_ability_heal(
 ) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, Distance(1))?;
-    if state::agent_id_at_opt(state, pos).is_none() {
-        return Err(Error::NoTarget);
-    }
-    match state.parts().strength.get_opt(id) {
+    let target_id = match state::agent_id_at_opt(state, pos) {
+        Some(id) => id,
+        None => return Err(Error::NoTarget),
+    };
+    match state.parts().strength.get_opt(target_id) {
         Some(strength) => {
             if strength.strength == strength.base_strength {
                 return Err(Error::BadTargeType);
