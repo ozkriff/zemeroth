@@ -3,11 +3,6 @@ environment:
         - TARGET: x86_64-pc-windows-msvc
         - TARGET: i686-pc-windows-msvc
 
-artifacts:
-  - path: zemeroth-%TARGET%.zip
-    name: zemeroth
-    type: zip
-
 install:
     - set PATH=C:\msys64\usr\bin;%PATH%
     - set PATH=C:\msys64\mingw32\bin;%PATH%
@@ -29,6 +24,11 @@ after_test:
     - copy target\release\zemeroth.exe zemeroth.exe
     - dir
     - 7z a zemeroth-%TARGET%.zip zemeroth.exe README.md assets
+
+artifacts:
+    - path: zemeroth-%TARGET%.zip
+      name: zemeroth
+      type: zip
 
 cache:
     - target -> Cargo.lock
