@@ -29,6 +29,7 @@ pub enum Error {
     NotEnoughMovePoints,
     BadActorId,
     BadTargetId,
+    BadTargeType,
     TileIsBlocked,
     DistanceIsTooBig,
     DistanceIsTooSmall,
@@ -274,6 +275,14 @@ fn check_ability_heal(
     check_max_distance(agent_pos, pos, Distance(1))?;
     if state::agent_id_at_opt(state, pos).is_none() {
         return Err(Error::NoTarget);
+    }
+    match state.parts().strength.get_opt(id) {
+        Some(strength) => {
+            if strength.strength == strength.base_strength {
+                return Err(Error::BadTargeType);
+            }
+        }
+        None => return Err(Error::BadActorId),
     }
     Ok(())
 }
