@@ -132,7 +132,8 @@ impl AgentInfo {
                     line("abilities:")?;
                     for ability in &abilities.0 {
                         let s = ability.ability.to_string();
-                        line(&format!(" - {}", s))?;
+                        let cooldown = ability.base_cooldown;
+                        line(&format!(" - {} (cooldown: {})", s, cooldown))?;
                     }
                 }
             }
