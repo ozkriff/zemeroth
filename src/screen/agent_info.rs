@@ -114,7 +114,7 @@ impl AgentInfo {
                 line(&format!("attack strength: {}", agent.attack_strength.0))?;
                 line(&format!("attack accuracy: {}", agent.attack_accuracy.0))?;
                 if agent.attack_break.0 > 0 {
-                    line(&format!("attack break: {}", agent.attack_break.0))?;
+                    line(&format!("armor break: {}", agent.attack_break.0))?;
                 }
                 if agent.dodge.0 > 0 {
                     line(&format!("dodge: {}", agent.dodge.0))?;
