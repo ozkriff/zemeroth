@@ -105,6 +105,9 @@ impl AgentInfo {
                 if agent.base_jokers.0 != 0 {
                     line(&format!("jokers: {}", agent.base_jokers.0))?;
                 }
+                if agent.reactive_attacks.0 != 0 {
+                    line(&format!("reactive attacks: {}", agent.reactive_attacks.0))?;
+                }
                 if agent.attack_distance.0 != 1 {
                     line(&format!("attack distance: {}", agent.attack_distance.0))?;
                 }
