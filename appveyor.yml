@@ -1,11 +1,10 @@
 environment:
     matrix:
-        # TODO: i686-pc-windows-gnu
-        # TODO: x86_64-pc-windows-gnu
         - TARGET: x86_64-pc-windows-msvc
+        - TARGET: i686-pc-windows-msvc
 
 artifacts:
-  - path: zemeroth-x86_64-pc-windows-msvc.zip
+  - path: zemeroth-%TARGET%.zip
     name: zemeroth
     type: zip
 
@@ -29,7 +28,7 @@ after_test:
     - del /f /q assets\.git
     - copy target\release\zemeroth.exe zemeroth.exe
     - dir
-    - 7z a zemeroth-x86_64-pc-windows-msvc.zip zemeroth.exe README.md assets
+    - 7z a zemeroth-%TARGET%.zip zemeroth.exe README.md assets
 
 cache:
     - target -> Cargo.lock
