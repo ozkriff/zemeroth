@@ -105,13 +105,16 @@ impl AgentInfo {
                 if agent.base_jokers.0 != 0 {
                     line(&format!("jokers: {}", agent.base_jokers.0))?;
                 }
+                if agent.reactive_attacks.0 != 0 {
+                    line(&format!("reactive attacks: {}", agent.reactive_attacks.0))?;
+                }
                 if agent.attack_distance.0 != 1 {
                     line(&format!("attack distance: {}", agent.attack_distance.0))?;
                 }
                 line(&format!("attack strength: {}", agent.attack_strength.0))?;
                 line(&format!("attack accuracy: {}", agent.attack_accuracy.0))?;
                 if agent.attack_break.0 > 0 {
-                    line(&format!("attack break: {}", agent.attack_break.0))?;
+                    line(&format!("armor break: {}", agent.attack_break.0))?;
                 }
                 if agent.dodge.0 > 0 {
                     line(&format!("dodge: {}", agent.dodge.0))?;
@@ -129,7 +132,8 @@ impl AgentInfo {
                     line("abilities:")?;
                     for ability in &abilities.0 {
                         let s = ability.ability.to_string();
-                        line(&format!(" - {}", s))?;
+                        let cooldown = ability.base_cooldown;
+                        line(&format!(" - {} (cooldown: {})", s, cooldown))?;
                     }
                 }
             }

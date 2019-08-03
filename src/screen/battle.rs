@@ -85,6 +85,9 @@ fn build_panel_agent_info(
             line(&format!("jokers: {}/{}", a.jokers.0, a.base_jokers.0))?;
         }
         line(&format!("attacks: {}/{}", a.attacks.0, a.base_attacks.0))?;
+        if a.reactive_attacks.0 != 0 {
+            line(&format!("reactive attacks: {}", a.reactive_attacks.0))?;
+        }
         line(&format!("moves: {}/{}", a.moves.0, a.base_moves.0))?;
         if a.reactive_attacks.0 != 0 {
             line(&format!("reactive attacks: {}", a.reactive_attacks.0))?;
@@ -95,7 +98,7 @@ fn build_panel_agent_info(
         line(&format!("attack strength: {}", a.attack_strength.0))?;
         line(&format!("attack accuracy: {}", a.attack_accuracy.0))?;
         if a.attack_break.0 > 0 {
-            line(&format!("attack break: {}", a.attack_break.0))?;
+            line(&format!("armor break: {}", a.attack_break.0))?;
         }
         if a.dodge.0 > 0 {
             line(&format!("dodge: {}", a.dodge.0))?;
