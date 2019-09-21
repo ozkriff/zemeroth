@@ -44,7 +44,7 @@ Precompiled binaries for Linux, Windows and macOS:
 
 !["big" screenshot](https://i.imgur.com/iUkyqIq.png)
 
-!["campaign" screenshot](https://i.imgur.com/XXVOVMw.png)
+!["campaign" screenshot](https://i.imgur.com/rQkH5y2.png)
 
 ![web version of a phone](https://i.imgur.com/cviYFkY.jpg)
 
