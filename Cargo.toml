@@ -1,6 +1,6 @@
 [package]
 name = "zemeroth"
-version = "0.6.0-snapshot"
+version = "0.6.0"
 authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
 edition = "2018"
 license = "MIT/Apache-2.0"

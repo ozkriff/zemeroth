@@ -88,9 +88,10 @@ of the project is:
     - [x] Web version
     - [x] Tests
     - [x] Hit chances
-  - [x] Agent upgrades ([#399](https://github.com/ozkriff/zemeroth/issues/399))
-  - [x] Flip agent sprites horizontally when needed ([#115](https://github.com/ozkriff/zemeroth/issues/115))
-  - [x] Multiple sprites per agent type ([#114](https://github.com/ozkriff/zemeroth/issues/114))
+  - [x] [v0.6](https://github.com/ozkriff/zemeroth/projects/3)
+    - [x] Agent upgrades ([#399](https://github.com/ozkriff/zemeroth/issues/399))
+    - [x] Flip agent sprites horizontally when needed ([#115](https://github.com/ozkriff/zemeroth/issues/115))
+    - [x] Multiple sprites per agent type ([#114](https://github.com/ozkriff/zemeroth/issues/114))
   - [ ] GUI icons ([#276](https://github.com/ozkriff/zemeroth/issues/276))
   - [ ] Sound & Music ([#221](https://github.com/ozkriff/zemeroth/issues/221))
   - [ ] Reduce text overlapping ([#214](https://github.com/ozkriff/zemeroth/issues/214))

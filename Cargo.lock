@@ -2721,7 +2721,7 @@ version = "0.1.1"
 
 [[package]]
 name = "zemeroth"
-version = "0.6.0-snapshot"
+version = "0.6.0"
 dependencies = [
  "derive_more 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
