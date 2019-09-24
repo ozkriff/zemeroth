@@ -12,7 +12,7 @@ members = ["zcomponents", "ggwp-zgui", "ggwp-zscene"]
 [dependencies]
 ron = "0.5"
 log = "0.4"
-env_logger = "0.6"
+env_logger = "0.7"
 derive_more = "0.15"
 serde = { version = "1.0", features = ['derive'] }
 num = { version = "0.2", default-features = false }
