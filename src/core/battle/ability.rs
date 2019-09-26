@@ -1,3 +1,5 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
@@ -87,28 +89,28 @@ pub struct RechargeableAbility {
     pub base_cooldown: i32, // TODO: i32 -> Rounds
 }
 
-impl Ability {
-    pub fn to_string(&self) -> String {
+impl fmt::Display for Ability {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Ability::Knockback => "Knockback".into(),
-            Ability::Club => "Club".into(),
-            Ability::Jump(a) => format!("Jump-{}", (a.0).0),
-            Ability::Poison => "Poison".into(),
-            Ability::ExplodePush => "Explode Push".into(),
-            Ability::ExplodeDamage => "Explode Damage".into(),
-            Ability::ExplodeFire => "Explode Fire".into(),
-            Ability::ExplodePoison => "Explode Poison".into(),
-            Ability::Bomb(a) => format!("Bomb-{}", (a.0).0),
-            Ability::BombPush(a) => format!("Bomb Push-{}", (a.throw_distance).0),
-            Ability::BombFire(a) => format!("Fire bomb-{}", (a.0).0),
-            Ability::BombPoison(a) => format!("Poison bomb-{}", (a.0).0),
-            Ability::BombDemonic(a) => format!("Bomb Demonic-{}", (a.0).0),
-            Ability::Vanish => "Vanish".into(),
-            Ability::Summon => "Summon".into(),
-            Ability::Dash => "Dash".into(),
-            Ability::Rage(a) => format!("Rage-{}", (a.0).0),
-            Ability::Heal(a) => format!("Heal-{}", (a.0).0),
-            Ability::Possess => "Possess".into(),
+            Ability::Knockback => write!(f, "Knockback"),
+            Ability::Club => write!(f, "Club"),
+            Ability::Jump(a) => write!(f, "Jump-{}", (a.0).0),
+            Ability::Poison => write!(f, "Poison"),
+            Ability::ExplodePush => write!(f, "Explode Push"),
+            Ability::ExplodeDamage => write!(f, "Explode Damage"),
+            Ability::ExplodeFire => write!(f, "Explode Fire"),
+            Ability::ExplodePoison => write!(f, "Explode Poison"),
+            Ability::Bomb(a) => write!(f, "Bomb-{}", (a.0).0),
+            Ability::BombPush(a) => write!(f, "Bomb Push-{}", (a.throw_distance).0),
+            Ability::BombFire(a) => write!(f, "Fire bomb-{}", (a.0).0),
+            Ability::BombPoison(a) => write!(f, "Poison bomb-{}", (a.0).0),
+            Ability::BombDemonic(a) => write!(f, "Bomb Demonic-{}", (a.0).0),
+            Ability::Vanish => write!(f, "Vanish"),
+            Ability::Summon => write!(f, "Summon"),
+            Ability::Dash => write!(f, "Dash"),
+            Ability::Rage(a) => write!(f, "Rage-{}", (a.0).0),
+            Ability::Heal(a) => write!(f, "Heal-{}", (a.0).0),
+            Ability::Possess => write!(f, "Possess"),
         }
     }
 }
@@ -127,16 +129,16 @@ pub enum PassiveAbility {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Regenerate(pub Strength);
 
-impl PassiveAbility {
-    pub fn to_string(self) -> String {
+impl fmt::Display for PassiveAbility {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            PassiveAbility::HeavyImpact => "Heavy impact".into(),
-            PassiveAbility::SpawnPoisonCloudOnDeath => "Spawn a poison cloud on death".into(),
-            PassiveAbility::Burn => "Burn".into(),
-            PassiveAbility::Poison => "Poison".into(),
-            PassiveAbility::SpikeTrap => "SpikeTrap".into(),
-            PassiveAbility::PoisonAttack => "Poison attack".into(),
-            PassiveAbility::Regenerate(a) => format!("Regenerate-{}", (a.0).0),
+            PassiveAbility::HeavyImpact => write!(f, "Heavy impact"),
+            PassiveAbility::SpawnPoisonCloudOnDeath => write!(f, "Spawn a poison cloud on death"),
+            PassiveAbility::Burn => write!(f, "Burn"),
+            PassiveAbility::Poison => write!(f, "Poison"),
+            PassiveAbility::SpikeTrap => write!(f, "SpikeTrap"),
+            PassiveAbility::PoisonAttack => write!(f, "Poison attack"),
+            PassiveAbility::Regenerate(a) => write!(f, "Regenerate-{}", (a.0).0),
         }
     }
 }
