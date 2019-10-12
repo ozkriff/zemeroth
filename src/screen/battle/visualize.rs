@@ -450,7 +450,7 @@ fn generate_brief_obj_info(
                 let image = match effect {
                     effect::Lasting::Poison => view.images().effect_poison.clone(),
                     effect::Lasting::Stun => view.images().effect_stun.clone(),
-                    effect::Lasting::Possession => view.images().effect_possession.clone(),
+                    effect::Lasting::Bloodlust => view.images().effect_bloodlust.clone(),
                 };
                 let mut sprite = Sprite::from_image(context, image, icon_size)?;
                 sprite.set_pos(icon_point);
@@ -870,7 +870,7 @@ fn visualize_event_effect_tick(
     match event.effect {
         effect::Lasting::Poison => show_flare(view, context, pos, [0.0, 0.8, 0.0, 0.7].into()),
         effect::Lasting::Stun => show_flare(view, context, pos, [1.0, 1.0, 1.0, 0.7].into()),
-        effect::Lasting::Possession => show_flare(view, context, pos, [1.0, 0.0, 0.0, 0.5].into()),
+        effect::Lasting::Bloodlust => show_flare(view, context, pos, [1.0, 0.0, 0.0, 0.5].into()),
     }
 }
 
@@ -896,7 +896,7 @@ pub fn visualize_lasting_effect(
     let action_flare = match timed_effect.effect {
         effect::Lasting::Poison => show_flare(view, context, pos, [0.0, 0.8, 0.0, 0.7].into())?,
         effect::Lasting::Stun => show_flare(view, context, pos, [1.0, 1.0, 1.0, 0.7].into())?,
-        effect::Lasting::Possession => show_flare(view, context, pos, [1.0, 0.0, 0.0, 0.5].into())?,
+        effect::Lasting::Bloodlust => show_flare(view, context, pos, [1.0, 0.0, 0.0, 0.5].into())?,
     };
     let s = timed_effect.effect.to_str();
     Ok(seq(vec![
@@ -924,7 +924,7 @@ pub fn visualize_instant_effect(
         Effect::FlyOff(ref e) => visualize_effect_fly_off(state, view, context, target_id, e)?,
         Effect::Throw(ref e) => visualize_effect_throw(state, view, context, target_id, e)?,
         Effect::Dodge(ref e) => visualize_effect_dodge(state, view, context, target_id, e)?,
-        Effect::Possess => action::Empty.boxed(),
+        Effect::Bloodlust => action::Empty.boxed(),
     };
     Ok(action)
 }

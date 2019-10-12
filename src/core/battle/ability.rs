@@ -28,7 +28,7 @@ pub enum Ability {
     Dash,
     Rage(Rage),
     Heal(Heal),
-    Possess,
+    Bloodlust,
 }
 
 // TODO: use named fields?
@@ -110,7 +110,7 @@ impl fmt::Display for Ability {
             Ability::Dash => write!(f, "Dash"),
             Ability::Rage(a) => write!(f, "Rage-{}", (a.0).0),
             Ability::Heal(a) => write!(f, "Heal-{}", (a.0).0),
-            Ability::Possess => write!(f, "Possess"),
+            Ability::Bloodlust => write!(f, "Bloodlust"),
         }
     }
 }

@@ -269,7 +269,7 @@ fn apply_effect_instant(state: &mut State, id: ObjId, effect: &Effect) {
         Effect::FlyOff(ref effect) => apply_effect_fly_off(state, id, effect),
         Effect::Throw(ref effect) => apply_effect_throw(state, id, effect),
         Effect::Dodge(_) => {}
-        Effect::Possess => apply_effect_possess(state, id),
+        Effect::Bloodlust => apply_effect_bloodlust(state, id),
     }
 }
 
@@ -361,7 +361,7 @@ fn apply_effect_throw(state: &mut State, id: ObjId, effect: &effect::Throw) {
     parts.pos.get_mut(id).0 = effect.to;
 }
 
-fn apply_effect_possess(state: &mut State, id: ObjId) {
+fn apply_effect_bloodlust(state: &mut State, id: ObjId) {
     let parts = state.parts_mut();
     let agent = parts.agent.get_mut(id);
     agent.jokers.0 += 3;
