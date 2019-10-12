@@ -809,6 +809,20 @@ fn visualize_event_use_ability_summon(
     ]))
 }
 
+fn visualize_event_use_ability_bloodlust(
+    _: &State,
+    view: &mut BattleView,
+    _: &mut Context,
+    event: &event::UseAbility,
+) -> ZResult<Box<dyn Action>> {
+    let sprite = view.id_to_sprite(event.id).clone();
+    Ok(fork(seq(vec![
+        action::SetFrame::new(&sprite, "bloodlust").boxed(),
+        action::Sleep::new(time_s(0.5)).boxed(),
+        action::SetFrame::new(&sprite, "").boxed(),
+    ])))
+}
+
 fn visualize_event_use_ability_throw_bomb(
     _: &State,
     view: &mut BattleView,
@@ -833,6 +847,7 @@ fn visualize_event_use_ability(
         Ability::Jump(_) => visualize_event_use_ability_jump(state, view, context, event)?,
         Ability::Dash => visualize_event_use_ability_dash(state, view, context, event)?,
         Ability::Summon => visualize_event_use_ability_summon(state, view, context, event)?,
+        Ability::Bloodlust => visualize_event_use_ability_bloodlust(state, view, context, event)?,
         Ability::Heal(_) => visualize_event_use_ability_heal(state, view, context, event)?,
         Ability::Rage(_) => visualize_event_use_ability_rage(state, view, context, event)?,
         Ability::ExplodePush
