@@ -545,7 +545,7 @@ fn execute_effects(state: &mut State, cb: Cb) {
                     effect::Lasting::Stun => {
                         target_effects.push(Effect::Stun);
                     }
-                    effect::Lasting::Possession => target_effects.push(Effect::Possess),
+                    effect::Lasting::Bloodlust => target_effects.push(Effect::Bloodlust),
                 }
                 let instant_effects = vec![(id, target_effects)];
                 let event = Event {
@@ -1104,7 +1104,10 @@ fn execute_use_ability_summon(state: &mut State, command: &command::UseAbility) 
     context
 }
 
-fn execute_use_ability_possess(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
+fn execute_use_ability_bloodlust(
+    state: &mut State,
+    command: &command::UseAbility,
+) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let id = state::blocker_id_at(state, command.pos);
     if state.parts().belongs_to.get_opt(id).is_some() {
@@ -1113,7 +1116,7 @@ fn execute_use_ability_possess(state: &mut State, command: &command::UseAbility)
         let effect = effect::Timed {
             duration: effect::Duration::Rounds(3),
             phase,
-            effect: effect::Lasting::Possession,
+            effect: effect::Lasting::Bloodlust,
         };
         context.timed_effects.push((id, vec![effect]));
     }
@@ -1141,7 +1144,7 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
         Ability::BombPoison(_) => execute_use_ability_bomb_poison(state, command),
         Ability::BombDemonic(_) => execute_use_ability_bomb_demonic(state, command),
         Ability::Summon => execute_use_ability_summon(state, command),
-        Ability::Possess => execute_use_ability_possess(state, command),
+        Ability::Bloodlust => execute_use_ability_bloodlust(state, command),
     };
     context.actor_ids.push(command.id);
     let active_event = event::UseAbility {
