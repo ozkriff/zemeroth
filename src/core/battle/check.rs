@@ -5,7 +5,7 @@ use crate::core::{
         self,
         ability::{self, Ability},
         command::{self, Command},
-        state, Attacks, Jokers, Moves, ObjId, State,
+        state, Attacks, Jokers, Moves, Id, State,
     },
     map::{self, Distance, PosHex},
 };
@@ -123,7 +123,7 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
     }
 }
 
-fn check_ability_knockback(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error> {
+fn check_ability_knockback(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     let selected_pos = state.parts().pos.get(id).0;
     check_min_distance(selected_pos, pos, Distance(1))?;
     check_max_distance(selected_pos, pos, Distance(1))?;
@@ -135,7 +135,7 @@ fn check_ability_knockback(state: &State, id: ObjId, pos: PosHex) -> Result<(), 
 
 fn check_ability_jump(
     state: &State,
-    id: ObjId,
+    id: Id,
     pos: PosHex,
     ability: ability::Jump,
 ) -> Result<(), Error> {
@@ -147,7 +147,7 @@ fn check_ability_jump(
     Ok(())
 }
 
-fn check_ability_club(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error> {
+fn check_ability_club(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     let selected_pos = state.parts().pos.get(id).0;
     check_min_distance(selected_pos, pos, Distance(1))?;
     check_max_distance(selected_pos, pos, Distance(1))?;
@@ -157,7 +157,7 @@ fn check_ability_club(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error
     Ok(())
 }
 
-fn check_ability_poison(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error> {
+fn check_ability_poison(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     let selected_pos = state.parts().pos.get(id).0;
     check_min_distance(selected_pos, pos, Distance(1))?;
     check_max_distance(selected_pos, pos, Distance(3))?;
@@ -167,13 +167,13 @@ fn check_ability_poison(state: &State, id: ObjId, pos: PosHex) -> Result<(), Err
     Ok(())
 }
 
-fn check_ability_explode(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error> {
+fn check_ability_explode(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     check_object_pos(state, id, pos)
 }
 
 fn check_ability_bomb(
     state: &State,
-    id: ObjId,
+    id: Id,
     pos: PosHex,
     ability: ability::Bomb,
 ) -> Result<(), Error> {
@@ -185,7 +185,7 @@ fn check_ability_bomb(
 
 fn check_ability_bomb_push(
     state: &State,
-    id: ObjId,
+    id: Id,
     pos: PosHex,
     ability: ability::BombPush,
 ) -> Result<(), Error> {
@@ -197,7 +197,7 @@ fn check_ability_bomb_push(
 
 fn check_ability_bomb_fire(
     state: &State,
-    id: ObjId,
+    id: Id,
     pos: PosHex,
     ability: ability::BombFire,
 ) -> Result<(), Error> {
@@ -209,7 +209,7 @@ fn check_ability_bomb_fire(
 
 fn check_ability_bomb_poison(
     state: &State,
-    id: ObjId,
+    id: Id,
     pos: PosHex,
     ability: ability::BombPoison,
 ) -> Result<(), Error> {
@@ -221,7 +221,7 @@ fn check_ability_bomb_poison(
 
 fn check_ability_bomb_demonic(
     state: &State,
-    id: ObjId,
+    id: Id,
     pos: PosHex,
     ability: ability::BombDemonic,
 ) -> Result<(), Error> {
@@ -231,11 +231,11 @@ fn check_ability_bomb_demonic(
     Ok(())
 }
 
-fn check_ability_summon(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error> {
+fn check_ability_summon(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     check_object_pos(state, id, pos)
 }
 
-fn check_ability_vanish(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error> {
+fn check_ability_vanish(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     if state.parts().agent.get_opt(id).is_some() {
         return Err(Error::BadActorType);
     }
@@ -249,7 +249,7 @@ fn check_ability_vanish(state: &State, id: ObjId, pos: PosHex) -> Result<(), Err
     Ok(())
 }
 
-fn check_ability_dash(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error> {
+fn check_ability_dash(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, Distance(1))?;
     check_not_blocked(state, pos)?;
@@ -258,7 +258,7 @@ fn check_ability_dash(state: &State, id: ObjId, pos: PosHex) -> Result<(), Error
 
 fn check_ability_rage(
     state: &State,
-    id: ObjId,
+    id: Id,
     pos: PosHex,
     _: ability::Rage,
 ) -> Result<(), Error> {
@@ -267,7 +267,7 @@ fn check_ability_rage(
 
 fn check_ability_heal(
     state: &State,
-    id: ObjId,
+    id: Id,
     pos: PosHex,
     _: ability::Heal,
 ) -> Result<(), Error> {
@@ -288,7 +288,7 @@ fn check_ability_heal(
     Ok(())
 }
 
-fn check_ability_bloodlust(state: &State, _id: ObjId, pos: PosHex) -> Result<(), Error> {
+fn check_ability_bloodlust(state: &State, _id: Id, pos: PosHex) -> Result<(), Error> {
     // TODO: check that the target belongs to the same player
     if state::agent_id_at_opt(state, pos).is_none() {
         return Err(Error::NoTarget);
@@ -296,7 +296,7 @@ fn check_ability_bloodlust(state: &State, _id: ObjId, pos: PosHex) -> Result<(),
     Ok(())
 }
 
-fn try_get_actor(state: &State, id: ObjId) -> Result<&battle::component::Agent, Error> {
+fn try_get_actor(state: &State, id: Id) -> Result<&battle::component::Agent, Error> {
     match state.parts().agent.get_opt(id) {
         Some(agent) => Ok(agent),
         None => Err(Error::BadActorId),
@@ -305,7 +305,7 @@ fn try_get_actor(state: &State, id: ObjId) -> Result<&battle::component::Agent, 
 
 fn check_agent_ability_ready(
     state: &State,
-    id: ObjId,
+    id: Id,
     expected_ability: &Ability,
 ) -> Result<(), Error> {
     let mut found = false;
@@ -327,7 +327,7 @@ fn check_agent_ability_ready(
     Ok(())
 }
 
-fn check_agent_belongs_to_correct_player(state: &State, id: ObjId) -> Result<(), Error> {
+fn check_agent_belongs_to_correct_player(state: &State, id: Id) -> Result<(), Error> {
     let agent_player_id = state.parts().belongs_to.get(id).0;
     if agent_player_id != state.player_id() {
         return Err(Error::CanNotCommandEnemyAgents);
@@ -335,7 +335,7 @@ fn check_agent_belongs_to_correct_player(state: &State, id: ObjId) -> Result<(),
     Ok(())
 }
 
-fn check_agent_can_attack(state: &State, id: ObjId) -> Result<(), Error> {
+fn check_agent_can_attack(state: &State, id: Id) -> Result<(), Error> {
     let agent = try_get_actor(state, id)?;
     if agent.attacks == Attacks(0) && agent.jokers == Jokers(0) {
         return Err(Error::NotEnoughAttacks);
@@ -343,7 +343,7 @@ fn check_agent_can_attack(state: &State, id: ObjId) -> Result<(), Error> {
     Ok(())
 }
 
-fn check_agent_can_move(state: &State, id: ObjId) -> Result<(), Error> {
+fn check_agent_can_move(state: &State, id: Id) -> Result<(), Error> {
     let agent = try_get_actor(state, id)?;
     if agent.moves == Moves(0) && agent.jokers == Jokers(0) {
         return Err(Error::NotEnoughMoves);
@@ -381,7 +381,7 @@ fn check_is_inboard(state: &State, pos: PosHex) -> Result<(), Error> {
     Ok(())
 }
 
-fn check_object_pos(state: &State, id: ObjId, expected_pos: PosHex) -> Result<(), Error> {
+fn check_object_pos(state: &State, id: Id, expected_pos: PosHex) -> Result<(), Error> {
     let real_pos = state.parts().pos.get(id).0;
     if real_pos != expected_pos {
         return Err(Error::BadPos);

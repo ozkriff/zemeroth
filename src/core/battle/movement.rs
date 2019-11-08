@@ -3,7 +3,7 @@ use std::{collections::VecDeque, slice::Windows};
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
-    battle::{ability::PassiveAbility, state, ObjId, State, TileType},
+    battle::{ability::PassiveAbility, state, Id, State, TileType},
     map::{dirs, Dir, Distance, HexMap, PosHex},
 };
 
@@ -39,7 +39,7 @@ pub const fn max_cost() -> MovePoints {
     MovePoints(i32::max_value())
 }
 
-pub fn tile_cost(state: &State, _: ObjId, _: PosHex, pos: PosHex) -> MovePoints {
+pub fn tile_cost(state: &State, _: Id, _: PosHex, pos: PosHex) -> MovePoints {
     // taking other dangerous objects in the tile into account
     for id in state.parts().passive_abilities.ids() {
         if state.parts().pos.get(id).0 != pos {
@@ -83,7 +83,7 @@ impl Path {
         *self.tiles().last().unwrap()
     }
 
-    pub fn truncate(&self, state: &State, id: ObjId) -> Option<Self> {
+    pub fn truncate(&self, state: &State, id: Id) -> Option<Self> {
         let agent = state.parts().agent.get(id);
         let mut new_path = Vec::new();
         let mut cost = MovePoints(0);
@@ -103,7 +103,7 @@ impl Path {
         }
     }
 
-    pub fn cost_for(&self, state: &State, id: ObjId) -> MovePoints {
+    pub fn cost_for(&self, state: &State, id: Id) -> MovePoints {
         let mut cost = MovePoints(0);
         for step in self.steps() {
             cost.0 += tile_cost(state, id, step.from, step.to).0;
@@ -165,7 +165,7 @@ impl Pathfinder {
     fn process_neighbor_pos(
         &mut self,
         state: &State,
-        id: ObjId,
+        id: Id,
         original_pos: PosHex,
         neighbor_pos: PosHex,
     ) {
@@ -194,7 +194,7 @@ impl Pathfinder {
         }
     }
 
-    fn try_to_push_neighbors(&mut self, state: &State, id: ObjId, pos: PosHex) {
+    fn try_to_push_neighbors(&mut self, state: &State, id: Id, pos: PosHex) {
         assert!(self.map.is_inboard(pos));
         for dir in dirs() {
             let neighbor_pos = Dir::get_neighbor_pos(pos, dir);
@@ -210,7 +210,7 @@ impl Pathfinder {
         self.queue.push_back(start_pos);
     }
 
-    pub fn fill_map(&mut self, state: &State, id: ObjId) {
+    pub fn fill_map(&mut self, state: &State, id: Id) {
         let agent_pos = state.parts().pos.get(id).0;
         assert!(self.queue.is_empty());
         self.clean_map();

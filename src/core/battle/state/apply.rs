@@ -5,7 +5,7 @@ use crate::core::battle::{
     component::{self, Component, Parts, PlannedAbility},
     effect::{self, Duration, Effect},
     event::{self, ActiveEvent, Event},
-    state, Attacks, Jokers, Moves, ObjId, Phase, PlayerId, State,
+    state, Attacks, Jokers, Moves, Id, Phase, PlayerId, State,
 };
 
 pub fn apply(state: &mut State, event: &Event) {
@@ -43,7 +43,7 @@ fn apply_event(state: &mut State, event: &Event) {
     }
 }
 
-fn add_components(state: &mut State, id: ObjId, components: &[Component]) {
+fn add_components(state: &mut State, id: Id, components: &[Component]) {
     let parts = state.parts_mut();
     for component in components {
         add_component(parts, id, component.clone());
@@ -112,7 +112,7 @@ fn apply_event_end_turn(state: &mut State, event: &event::EndTurn) {
     }
 }
 
-fn apply_lasting_effect_stun(state: &mut State, id: ObjId) {
+fn apply_lasting_effect_stun(state: &mut State, id: Id) {
     let parts = state.parts_mut();
     let agent = parts.agent.get_mut(id);
     agent.moves.0 = 0;
@@ -120,7 +120,7 @@ fn apply_lasting_effect_stun(state: &mut State, id: ObjId) {
     agent.jokers.0 = 0;
 }
 
-fn apply_lasting_effect(state: &mut State, id: ObjId, effect: &effect::Lasting) {
+fn apply_lasting_effect(state: &mut State, id: Id, effect: &effect::Lasting) {
     if let effect::Lasting::Stun = *effect {
         apply_lasting_effect_stun(state, id);
     }
@@ -208,7 +208,7 @@ fn apply_event_effect_tick(_: &mut State, _: &event::EffectTick) {}
 
 fn apply_event_effect_end(_: &mut State, _: &event::EffectEnd) {}
 
-fn add_component(parts: &mut Parts, id: ObjId, component: Component) {
+fn add_component(parts: &mut Parts, id: Id, component: Component) {
     match component {
         Component::Pos(c) => parts.pos.insert(id, c),
         Component::Strength(c) => parts.strength.insert(id, c),
@@ -225,7 +225,7 @@ fn add_component(parts: &mut Parts, id: ObjId, component: Component) {
     }
 }
 
-fn apply_scheduled_ability(state: &mut State, id: ObjId, planned_ability: &PlannedAbility) {
+fn apply_scheduled_ability(state: &mut State, id: Id, planned_ability: &PlannedAbility) {
     debug!("effect::apply_scheduled_ability: {:?}", planned_ability);
     let schedule = &mut state.parts_mut().schedule;
     if schedule.get_opt(id).is_none() {
@@ -242,7 +242,7 @@ fn apply_scheduled_ability(state: &mut State, id: ObjId, planned_ability: &Plann
     }
 }
 
-fn apply_effect_timed(state: &mut State, id: ObjId, timed_effect: &effect::Timed) {
+fn apply_effect_timed(state: &mut State, id: Id, timed_effect: &effect::Timed) {
     debug!("effect::apply_timed: {:?}", timed_effect);
     let effects = &mut state.parts_mut().effects;
     if effects.get_opt(id).is_none() {
@@ -256,7 +256,7 @@ fn apply_effect_timed(state: &mut State, id: ObjId, timed_effect: &effect::Timed
     }
 }
 
-fn apply_effect_instant(state: &mut State, id: ObjId, effect: &Effect) {
+fn apply_effect_instant(state: &mut State, id: Id, effect: &Effect) {
     debug!("effect::apply_instant: {:?} ({})", effect, effect.to_str());
     match *effect {
         Effect::Create(ref effect) => apply_effect_create(state, id, effect),
@@ -273,21 +273,21 @@ fn apply_effect_instant(state: &mut State, id: ObjId, effect: &Effect) {
     }
 }
 
-fn apply_effect_create(state: &mut State, id: ObjId, effect: &effect::Create) {
+fn apply_effect_create(state: &mut State, id: Id, effect: &effect::Create) {
     add_components(state, id, &effect.components);
 }
 
-fn apply_effect_kill(state: &mut State, id: ObjId, _: &effect::Kill) {
+fn apply_effect_kill(state: &mut State, id: Id, _: &effect::Kill) {
     let parts = state.parts_mut();
     parts.remove(id);
 }
 
-fn apply_effect_vanish(state: &mut State, id: ObjId) {
+fn apply_effect_vanish(state: &mut State, id: Id) {
     let parts = state.parts_mut();
     parts.remove(id);
 }
 
-fn apply_effect_stun(state: &mut State, id: ObjId) {
+fn apply_effect_stun(state: &mut State, id: Id) {
     let parts = state.parts_mut();
     let agent = parts.agent.get_mut(id);
     agent.moves.0 = 0;
@@ -296,7 +296,7 @@ fn apply_effect_stun(state: &mut State, id: ObjId) {
 }
 
 // TODO: split `Heal` effect into two? `Heal` + `RemoveLastingEffects`?
-fn apply_effect_heal(state: &mut State, id: ObjId, effect: &effect::Heal) {
+fn apply_effect_heal(state: &mut State, id: Id, effect: &effect::Heal) {
     let parts = state.parts_mut();
     {
         let component = parts.strength.get_mut(id);
@@ -310,7 +310,7 @@ fn apply_effect_heal(state: &mut State, id: ObjId, effect: &effect::Heal) {
     }
 }
 
-fn apply_effect_wound(state: &mut State, id: ObjId, effect: &effect::Wound) {
+fn apply_effect_wound(state: &mut State, id: Id, effect: &effect::Wound) {
     let parts = state.parts_mut();
     let damage = effect.damage.0;
     assert!(damage >= 0);
@@ -336,7 +336,7 @@ fn apply_effect_wound(state: &mut State, id: ObjId, effect: &effect::Wound) {
     }
 }
 
-fn apply_effect_knockback(state: &mut State, id: ObjId, effect: &effect::Knockback) {
+fn apply_effect_knockback(state: &mut State, id: Id, effect: &effect::Knockback) {
     assert!(state.map().is_inboard(effect.from));
     assert!(state.map().is_inboard(effect.to));
     assert!(!state::is_tile_blocked(state, effect.to));
@@ -345,7 +345,7 @@ fn apply_effect_knockback(state: &mut State, id: ObjId, effect: &effect::Knockba
     // TODO: push anyone who's in the way aside
 }
 
-fn apply_effect_fly_off(state: &mut State, id: ObjId, effect: &effect::FlyOff) {
+fn apply_effect_fly_off(state: &mut State, id: Id, effect: &effect::FlyOff) {
     assert!(state.map().is_inboard(effect.from));
     assert!(state.map().is_inboard(effect.to));
     assert!(!state::is_tile_blocked(state, effect.to));
@@ -353,7 +353,7 @@ fn apply_effect_fly_off(state: &mut State, id: ObjId, effect: &effect::FlyOff) {
     parts.pos.get_mut(id).0 = effect.to;
 }
 
-fn apply_effect_throw(state: &mut State, id: ObjId, effect: &effect::Throw) {
+fn apply_effect_throw(state: &mut State, id: Id, effect: &effect::Throw) {
     assert!(state.map().is_inboard(effect.from));
     assert!(state.map().is_inboard(effect.to));
     assert!(!state::is_tile_blocked(state, effect.to));
@@ -361,13 +361,13 @@ fn apply_effect_throw(state: &mut State, id: ObjId, effect: &effect::Throw) {
     parts.pos.get_mut(id).0 = effect.to;
 }
 
-fn apply_effect_bloodlust(state: &mut State, id: ObjId) {
+fn apply_effect_bloodlust(state: &mut State, id: Id) {
     let parts = state.parts_mut();
     let agent = parts.agent.get_mut(id);
     agent.jokers.0 += 3;
 }
 
-fn update_cooldowns_for_object(state: &mut State, id: ObjId) {
+fn update_cooldowns_for_object(state: &mut State, id: Id) {
     let parts = state.parts_mut();
     if let Some(abilities) = parts.abilities.get_opt_mut(id) {
         for ability in &mut abilities.0 {

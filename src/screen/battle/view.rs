@@ -11,7 +11,7 @@ use crate::{
     core::{
         battle::{
             self, ability::Ability, command, component::ObjType, execute::hit_chance, movement,
-            Jokers, Moves, ObjId, State, TileType,
+            Jokers, Moves, Id, State, TileType,
         },
         map::{self, Distance, HexMap, PosHex},
     },
@@ -87,9 +87,9 @@ struct Sprites {
     current_tile_marker: Sprite,
     highlighted_tiles: Vec<Sprite>,
     labels: Vec<Sprite>,
-    id_to_sprite_map: HashMap<ObjId, Sprite>,
-    id_to_shadow_map: HashMap<ObjId, Sprite>,
-    agent_info: HashMap<ObjId, Vec<Sprite>>,
+    id_to_sprite_map: HashMap<Id, Sprite>,
+    id_to_shadow_map: HashMap<Id, Sprite>,
+    agent_info: HashMap<Id, Vec<Sprite>>,
     disappearing_sprites: Vec<DisappearingSprite>,
 }
 
@@ -222,14 +222,14 @@ impl BattleView {
         &self.layers
     }
 
-    pub fn add_object(&mut self, id: ObjId, sprite: &Sprite, sprite_shadow: &Sprite) {
+    pub fn add_object(&mut self, id: Id, sprite: &Sprite, sprite_shadow: &Sprite) {
         let sprite_shadow = sprite_shadow.clone();
         let sprite = sprite.clone();
         self.sprites.id_to_sprite_map.insert(id, sprite);
         self.sprites.id_to_shadow_map.insert(id, sprite_shadow);
     }
 
-    pub fn remove_object(&mut self, id: ObjId) {
+    pub fn remove_object(&mut self, id: Id) {
         self.sprites.id_to_sprite_map.remove(&id).unwrap();
         self.sprites.id_to_shadow_map.remove(&id).unwrap();
     }
@@ -269,23 +269,23 @@ impl BattleView {
         visualize::seq(actions)
     }
 
-    pub fn id_to_sprite(&mut self, id: ObjId) -> &Sprite {
+    pub fn id_to_sprite(&mut self, id: Id) -> &Sprite {
         &self.sprites.id_to_sprite_map[&id]
     }
 
-    pub fn id_to_shadow_sprite(&mut self, id: ObjId) -> &Sprite {
+    pub fn id_to_shadow_sprite(&mut self, id: Id) -> &Sprite {
         &self.sprites.id_to_shadow_map[&id]
     }
 
-    pub fn agent_info_check(&self, id: ObjId) -> bool {
+    pub fn agent_info_check(&self, id: Id) -> bool {
         self.sprites.agent_info.get(&id).is_some()
     }
 
-    pub fn agent_info_get(&mut self, id: ObjId) -> Vec<Sprite> {
+    pub fn agent_info_get(&mut self, id: Id) -> Vec<Sprite> {
         self.sprites.agent_info.remove(&id).unwrap()
     }
 
-    pub fn agent_info_set(&mut self, id: ObjId, sprites: Vec<Sprite>) {
+    pub fn agent_info_set(&mut self, id: Id, sprites: Vec<Sprite>) {
         self.sprites.agent_info.insert(id, sprites);
     }
 
@@ -298,7 +298,7 @@ impl BattleView {
         state: &State,
         context: &mut Context,
         map: &HexMap<movement::Tile>,
-        selected_id: ObjId,
+        selected_id: Id,
         mode: &SelectionMode,
     ) -> ZResult {
         match mode {
@@ -369,7 +369,7 @@ impl BattleView {
         state: &State,
         context: &mut Context,
         map: &HexMap<movement::Tile>,
-        id: ObjId,
+        id: Id,
     ) -> ZResult {
         self.show_selection_marker(state, id);
         self.show_walkable_tiles(state, context, map, id)?;
@@ -380,7 +380,7 @@ impl BattleView {
         &mut self,
         state: &State,
         context: &mut Context,
-        selected_id: ObjId,
+        selected_id: Id,
         ability: &Ability,
     ) -> ZResult {
         self.remove_highlights();
@@ -396,7 +396,7 @@ impl BattleView {
         Ok(())
     }
 
-    fn show_selection_marker(&mut self, state: &State, id: ObjId) {
+    fn show_selection_marker(&mut self, state: &State, id: Id) {
         let pos = state.parts().pos.get(id).0;
         let point = hex_to_point(self.tile_size(), pos);
         let layer = &self.layers.selection_marker;
@@ -419,7 +419,7 @@ impl BattleView {
         &mut self,
         state: &State,
         context: &mut Context,
-        id: ObjId,
+        id: Id,
     ) -> ZResult {
         let parts = state.parts();
         let selected_agent_player_id = parts.belongs_to.get(id).0;
@@ -448,7 +448,7 @@ impl BattleView {
         state: &State,
         context: &mut Context,
         map: &HexMap<movement::Tile>,
-        id: ObjId,
+        id: Id,
     ) -> ZResult {
         let agent = state.parts().agent.get(id);
         if agent.moves == Moves(0) && agent.jokers == Jokers(0) {
@@ -485,8 +485,8 @@ impl BattleView {
         &mut self,
         state: &State,
         context: &mut Context,
-        attacker_id: ObjId,
-        target_id: ObjId,
+        attacker_id: Id,
+        target_id: Id,
     ) -> ZResult {
         let target_pos = state.parts().pos.get(target_id).0;
         let chances = hit_chance(state, attacker_id, target_id);

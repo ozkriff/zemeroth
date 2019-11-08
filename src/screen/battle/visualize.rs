@@ -18,7 +18,7 @@ use crate::{
             effect::{self, Effect},
             event::{self, ActiveEvent, Event},
             execute::{hit_chance, ApplyPhase},
-            state, ObjId, PlayerId, State,
+            state, Id, PlayerId, State,
         },
         map::{Dir, PosHex},
     },
@@ -349,7 +349,7 @@ fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2<f32>) -> Box<d
     seq(vec![fork(main_move), up_and_down])
 }
 
-fn vanish(view: &mut BattleView, target_id: ObjId) -> Box<dyn Action> {
+fn vanish(view: &mut BattleView, target_id: Id) -> Box<dyn Action> {
     debug!("vanish target_id={:?}", target_id);
     let sprite = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
@@ -366,7 +366,7 @@ fn vanish(view: &mut BattleView, target_id: ObjId) -> Box<dyn Action> {
     ])
 }
 
-fn remove_brief_agent_info(view: &mut BattleView, id: ObjId) -> ZResult<Box<dyn Action>> {
+fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     let sprites = view.agent_info_get(id);
     for sprite in sprites {
@@ -386,7 +386,7 @@ fn generate_brief_obj_info(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
-    id: ObjId,
+    id: Id,
 ) -> ZResult<Box<dyn Action>> {
     let dot_image = view.images().dot.clone();
     let mut actions = Vec::new();
@@ -468,7 +468,7 @@ pub fn refresh_brief_agent_info(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
-    id: ObjId,
+    id: Id,
 ) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     if view.agent_info_check(id) {
@@ -904,7 +904,7 @@ pub fn visualize_lasting_effect(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
     timed_effect: &effect::Timed,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
@@ -924,7 +924,7 @@ pub fn visualize_instant_effect(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
     effect: &Effect,
 ) -> ZResult<Box<dyn Action>> {
     debug!("visualize_instant_effect: {:?}", effect);
@@ -948,7 +948,7 @@ fn visualize_effect_create(
     _: &State,
     view: &mut BattleView,
     context: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
     effect: &effect::Create,
 ) -> ZResult<Box<dyn Action>> {
     let SpriteInfo {
@@ -997,7 +997,7 @@ fn visualize_effect_kill(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
     effect: &effect::Kill,
 ) -> ZResult<Box<dyn Action>> {
     let particles_count = 6;
@@ -1014,7 +1014,7 @@ fn visualize_effect_vanish(
     _: &State,
     view: &mut BattleView,
     _: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
 ) -> Box<dyn Action> {
     debug!("visualize_effect_vanish!");
     fork(vanish(view, target_id))
@@ -1024,7 +1024,7 @@ fn visualize_effect_stun(
     _state: &State,
     _view: &mut BattleView,
     _context: &mut Context,
-    _target_id: ObjId,
+    _target_id: Id,
 ) -> ZResult<Box<dyn Action>> {
     Ok(fork(action::Sleep::new(time_s(1.0)).boxed()))
 }
@@ -1033,7 +1033,7 @@ fn visualize_effect_heal(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
     effect: &effect::Heal,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
@@ -1065,7 +1065,7 @@ fn visualize_effect_wound(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
     effect: &effect::Wound,
 ) -> ZResult<Box<dyn Action>> {
     let id = target_id;
@@ -1097,7 +1097,7 @@ fn visualize_effect_knockback(
     _: &State,
     view: &mut BattleView,
     context: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
     effect: &effect::Knockback,
 ) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
@@ -1119,7 +1119,7 @@ fn visualize_effect_fly_off(
     _: &State,
     view: &mut BattleView,
     context: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
     effect: &effect::FlyOff,
 ) -> ZResult<Box<dyn Action>> {
     let sprite_object = view.id_to_sprite(target_id).clone();
@@ -1143,7 +1143,7 @@ fn visualize_effect_throw(
     _: &State,
     view: &mut BattleView,
     context: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
     effect: &effect::Throw,
 ) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
@@ -1161,7 +1161,7 @@ fn visualize_effect_dodge(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
-    target_id: ObjId,
+    target_id: Id,
     effect: &effect::Dodge,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;

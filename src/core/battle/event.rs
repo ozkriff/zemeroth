@@ -4,7 +4,7 @@ use crate::core::battle::{
     effect::{self, Effect},
     movement::Path,
     state::BattleResult,
-    Moves, ObjId, PlayerId, PosHex,
+    Moves, Id, PlayerId, PosHex,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -13,18 +13,18 @@ pub struct Event {
     pub active_event: ActiveEvent,
 
     /// These agent's stats must be updated
-    pub actor_ids: Vec<ObjId>,
+    pub actor_ids: Vec<Id>,
 
-    pub instant_effects: Vec<(ObjId, Vec<Effect>)>,
+    pub instant_effects: Vec<(Id, Vec<Effect>)>,
 
     /// If a lasting effect is applied to the same object twice
     /// then the new effect replaces the old one.
-    pub timed_effects: Vec<(ObjId, Vec<effect::Timed>)>,
+    pub timed_effects: Vec<(Id, Vec<effect::Timed>)>,
 
     /// If a scheduled ability is applied to the same object twice
     /// then the new planned ability replaces the old one.
     /// This can be used to reset bomb timers or to make fire last longer.
-    pub scheduled_abilities: Vec<(ObjId, Vec<PlannedAbility>)>,
+    pub scheduled_abilities: Vec<(Id, Vec<PlannedAbility>)>,
 }
 
 #[derive(Debug, Clone, PartialEq, derive_more::From)]
@@ -45,7 +45,7 @@ pub enum ActiveEvent {
 pub struct MoveTo {
     pub path: Path,
     pub cost: Moves,
-    pub id: ObjId,
+    pub id: Id,
 }
 
 #[derive(PartialEq, Clone, Debug)]
@@ -56,8 +56,8 @@ pub enum AttackMode {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Attack {
-    pub attacker_id: ObjId,
-    pub target_id: ObjId,
+    pub attacker_id: Id,
+    pub target_id: Id,
     pub mode: AttackMode,
     pub weapon_type: WeaponType,
 }
@@ -79,26 +79,26 @@ pub struct BeginTurn {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UseAbility {
-    pub id: ObjId,
+    pub id: Id,
     pub pos: PosHex,
     pub ability: Ability,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UsePassiveAbility {
-    pub id: ObjId,
+    pub id: Id,
     pub pos: PosHex,
     pub ability: PassiveAbility,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EffectTick {
-    pub id: ObjId,
+    pub id: Id,
     pub effect: effect::Lasting,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EffectEnd {
-    pub id: ObjId,
+    pub id: Id,
     pub effect: effect::Lasting,
 }

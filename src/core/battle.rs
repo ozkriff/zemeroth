@@ -38,7 +38,7 @@ impl Phase {
 #[derive(
     Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd, Ord, Eq, Hash,
 )]
-pub struct ObjId(i32);
+pub struct Id(i32);
 
 #[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Strength(pub i32);

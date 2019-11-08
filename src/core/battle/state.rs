@@ -1,6 +1,6 @@
 use crate::core::{
     battle::{
-        ability::PassiveAbility, component::ObjType, effect, ObjId, PlayerId, Strength, TileType,
+        ability::PassiveAbility, component::ObjType, effect, Id, PlayerId, Strength, TileType,
     },
     map::{self, PosHex},
     utils,
@@ -14,7 +14,7 @@ pub use self::{
 mod apply;
 mod private;
 
-pub fn is_agent_belong_to(state: &State, player_id: PlayerId, id: ObjId) -> bool {
+pub fn is_agent_belong_to(state: &State, player_id: PlayerId, id: Id) -> bool {
     state.parts().belongs_to.get(id).0 == player_id
 }
 
@@ -52,7 +52,7 @@ pub fn is_tile_completely_free(state: &State, pos: PosHex) -> bool {
     true
 }
 
-pub fn is_lasting_effect_over(state: &State, id: ObjId, timed_effect: &effect::Timed) -> bool {
+pub fn is_lasting_effect_over(state: &State, id: Id, timed_effect: &effect::Timed) -> bool {
     if let effect::Lasting::Poison = timed_effect.effect {
         let strength = state.parts().strength.get(id).strength;
         if strength <= Strength(1) {
@@ -76,7 +76,7 @@ pub fn check_enemies_around(state: &State, pos: PosHex, player_id: PlayerId) -> 
     false
 }
 
-pub fn ids_at(state: &State, pos: PosHex) -> Vec<ObjId> {
+pub fn ids_at(state: &State, pos: PosHex) -> Vec<Id> {
     let i = state.parts().pos.ids();
     i.filter(|&id| state.parts().pos.get(id).0 == pos).collect()
 }
@@ -85,7 +85,7 @@ pub fn obj_with_passive_ability_at(
     state: &State,
     pos: PosHex,
     ability: PassiveAbility,
-) -> Option<ObjId> {
+) -> Option<Id> {
     for id in ids_at(state, pos) {
         if let Some(abilities) = state.parts().passive_abilities.get_opt(id) {
             for &current_ability in &abilities.0 {
@@ -98,11 +98,11 @@ pub fn obj_with_passive_ability_at(
     None
 }
 
-pub fn blocker_id_at(state: &State, pos: PosHex) -> ObjId {
+pub fn blocker_id_at(state: &State, pos: PosHex) -> Id {
     blocker_id_at_opt(state, pos).unwrap()
 }
 
-pub fn blocker_id_at_opt(state: &State, pos: PosHex) -> Option<ObjId> {
+pub fn blocker_id_at_opt(state: &State, pos: PosHex) -> Option<Id> {
     let ids = blocker_ids_at(state, pos);
     if ids.len() == 1 {
         Some(ids[0])
@@ -111,7 +111,7 @@ pub fn blocker_id_at_opt(state: &State, pos: PosHex) -> Option<ObjId> {
     }
 }
 
-pub fn agent_id_at_opt(state: &State, pos: PosHex) -> Option<ObjId> {
+pub fn agent_id_at_opt(state: &State, pos: PosHex) -> Option<Id> {
     let ids = agent_ids_at(state, pos);
     if ids.len() == 1 {
         Some(ids[0])
@@ -120,23 +120,23 @@ pub fn agent_id_at_opt(state: &State, pos: PosHex) -> Option<ObjId> {
     }
 }
 
-pub fn agent_ids_at(state: &State, pos: PosHex) -> Vec<ObjId> {
+pub fn agent_ids_at(state: &State, pos: PosHex) -> Vec<Id> {
     let i = state.parts().agent.ids();
     i.filter(|&id| state.parts().pos.get(id).0 == pos).collect()
 }
 
-pub fn blocker_ids_at(state: &State, pos: PosHex) -> Vec<ObjId> {
+pub fn blocker_ids_at(state: &State, pos: PosHex) -> Vec<Id> {
     let i = state.parts().blocker.ids();
     i.filter(|&id| state.parts().pos.get(id).0 == pos).collect()
 }
 
-pub fn players_agent_ids(state: &State, player_id: PlayerId) -> Vec<ObjId> {
+pub fn players_agent_ids(state: &State, player_id: PlayerId) -> Vec<Id> {
     let i = state.parts().agent.ids();
     i.filter(|&id| is_agent_belong_to(state, player_id, id))
         .collect()
 }
 
-pub fn enemy_agent_ids(state: &State, player_id: PlayerId) -> Vec<ObjId> {
+pub fn enemy_agent_ids(state: &State, player_id: PlayerId) -> Vec<Id> {
     let i = state.parts().agent.ids();
     i.filter(|&id| !is_agent_belong_to(state, player_id, id))
         .collect()
@@ -156,7 +156,7 @@ pub fn free_neighbor_positions(state: &State, origin: PosHex, count: i32) -> Vec
     positions
 }
 
-pub fn sort_agent_ids_by_distance_to_enemies(state: &State, ids: &mut [ObjId]) {
+pub fn sort_agent_ids_by_distance_to_enemies(state: &State, ids: &mut [Id]) {
     ids.sort_unstable_by_key(|&id| {
         let agent_player_id = state.parts().belongs_to.get(id).0;
         let agent_pos = state.parts().pos.get(id).0;
@@ -172,7 +172,7 @@ pub fn sort_agent_ids_by_distance_to_enemies(state: &State, ids: &mut [ObjId]) {
     });
 }
 
-pub fn get_armor(state: &State, id: ObjId) -> Strength {
+pub fn get_armor(state: &State, id: Id) -> Strength {
     let parts = state.parts();
     let default = Strength(0);
     parts.armor.get_opt(id).map(|v| v.armor).unwrap_or(default)

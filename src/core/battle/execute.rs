@@ -14,7 +14,7 @@ use crate::core::{
         event::{self, ActiveEvent, Event},
         movement::Path,
         state::{self, BattleResult, State},
-        Moves, ObjId, Phase, PlayerId, Strength,
+        Moves, Id, Phase, PlayerId, Strength,
     },
     map::{self, Dir, PosHex},
     utils,
@@ -84,7 +84,7 @@ fn execute_move_to(state: &mut State, cb: Cb, command: &command::MoveTo) {
     }
 }
 
-fn do_move(state: &mut State, cb: Cb, id: ObjId, cost: Option<Moves>, path: Path) {
+fn do_move(state: &mut State, cb: Cb, id: Id, cost: Option<Moves>, path: Path) {
     let cost = cost.unwrap_or(Moves(0));
     let active_event = event::MoveTo { id, path, cost }.into();
     let event = Event {
@@ -188,7 +188,7 @@ fn execute_attack_internal(
     status
 }
 
-fn try_execute_passive_ability_burn(state: &mut State, target_id: ObjId) -> ExecuteContext {
+fn try_execute_passive_ability_burn(state: &mut State, target_id: Id) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let damage = battle::Strength(1);
     let target_effects = vec![wound_or_kill(state, target_id, damage)];
@@ -196,7 +196,7 @@ fn try_execute_passive_ability_burn(state: &mut State, target_id: ObjId) -> Exec
     context
 }
 
-fn try_execute_passive_ability_spike_trap(state: &mut State, target_id: ObjId) -> ExecuteContext {
+fn try_execute_passive_ability_spike_trap(state: &mut State, target_id: Id) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let damage = battle::Strength(1);
     let target_effects = vec![wound_or_kill(state, target_id, damage)];
@@ -204,7 +204,7 @@ fn try_execute_passive_ability_spike_trap(state: &mut State, target_id: ObjId) -
     context
 }
 
-fn try_execute_passive_ability_poison(state: &State, target_id: ObjId) -> ExecuteContext {
+fn try_execute_passive_ability_poison(state: &State, target_id: Id) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     if state.parts().strength.get(target_id).strength <= Strength(1) {
         return context;
@@ -222,7 +222,7 @@ fn try_execute_passive_ability_poison(state: &State, target_id: ObjId) -> Execut
 fn do_passive_ability(
     state: &mut State,
     cb: Cb,
-    id: ObjId,
+    id: Id,
     target_pos: PosHex,
     ability: PassiveAbility,
     context: ExecuteContext,
@@ -248,11 +248,11 @@ fn do_passive_ability(
     do_event(state, cb, &event);
 }
 
-fn try_execute_passive_abilities_on_move(state: &mut State, cb: Cb, target_id: ObjId) {
+fn try_execute_passive_abilities_on_move(state: &mut State, cb: Cb, target_id: Id) {
     try_execute_passive_abilities_tick(state, cb, target_id)
 }
 
-fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: ObjId) {
+fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: Id) {
     debug!("try_execute_passive_abilities_tick");
     if !state.parts().is_exist(target_id) {
         return;
@@ -355,8 +355,8 @@ struct Effects {
 
 fn try_execute_passive_abilities_on_attack(
     state: &mut State,
-    attacker_id: ObjId,
-    target_id: ObjId,
+    attacker_id: Id,
+    target_id: Id,
 ) -> Effects {
     let mut effects = Effects::default();
     let target_pos = state.parts().pos.get(target_id).0;
@@ -395,7 +395,7 @@ fn try_execute_passive_abilities_on_attack(
     effects
 }
 
-fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: ObjId) -> AttackStatus {
+fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: Id) -> AttackStatus {
     let mut status = AttackStatus::Miss;
     let target_owner = match state.parts().belongs_to.get_opt(target_id) {
         Some(belongs_to) => belongs_to.0,
@@ -631,7 +631,7 @@ fn create_poison_cloud(state: &mut State, pos: PosHex) -> ExecuteContext {
     context
 }
 
-fn extend_or_crate_sub_vec<T>(vec: &mut Vec<(ObjId, Vec<T>)>, id: ObjId, values: Vec<T>) {
+fn extend_or_crate_sub_vec<T>(vec: &mut Vec<(Id, Vec<T>)>, id: Id, values: Vec<T>) {
     if let Some(i) = vec.iter().position(|(this_id, _)| this_id == &id) {
         vec[i].1.extend(values);
     } else {
@@ -642,17 +642,17 @@ fn extend_or_crate_sub_vec<T>(vec: &mut Vec<(ObjId, Vec<T>)>, id: ObjId, values:
 #[must_use]
 #[derive(Default, Debug, PartialEq, Clone)]
 struct ExecuteContext {
-    actor_ids: Vec<ObjId>,
-    moved_actor_ids: Vec<ObjId>,
-    reaction_attack_targets: Vec<ObjId>,
-    instant_effects: Vec<(ObjId, Vec<Effect>)>,
-    timed_effects: Vec<(ObjId, Vec<effect::Timed>)>,
-    scheduled_abilities: Vec<(ObjId, Vec<component::PlannedAbility>)>,
+    actor_ids: Vec<Id>,
+    moved_actor_ids: Vec<Id>,
+    reaction_attack_targets: Vec<Id>,
+    instant_effects: Vec<(Id, Vec<Effect>)>,
+    timed_effects: Vec<(Id, Vec<effect::Timed>)>,
+    scheduled_abilities: Vec<(Id, Vec<component::PlannedAbility>)>,
 }
 
 impl ExecuteContext {
     fn merge_with(&mut self, other: Self) {
-        type M<T> = Vec<(ObjId, Vec<T>)>;
+        type M<T> = Vec<(Id, Vec<T>)>;
 
         fn merge<T>(m: &mut M<T>, other: M<T>) {
             for (id, values) in other {
@@ -792,7 +792,7 @@ fn execute_use_ability_explode_poison(
 
 fn correct_damage_with_armor(
     state: &State,
-    target_id: ObjId,
+    target_id: Id,
     damage: battle::Strength,
 ) -> battle::Strength {
     let id = target_id;
@@ -800,14 +800,14 @@ fn correct_damage_with_armor(
     battle::Strength(utils::clamp_min(damage.0 - armor.0, 0))
 }
 
-fn wound_or_kill(state: &State, id: ObjId, damage: battle::Strength) -> Effect {
+fn wound_or_kill(state: &State, id: Id, damage: battle::Strength) -> Effect {
     let armor_break = battle::Strength(0);
     wound_break_kill(state, id, damage, armor_break)
 }
 
 fn wound_break_kill(
     state: &State,
-    id: ObjId,
+    id: Id,
     damage: battle::Strength,
     armor_break: battle::Strength,
 ) -> Effect {
@@ -829,7 +829,7 @@ fn wound_break_kill(
 // TODO: Return a `Result` or an `Option` (check that attack is possible at all?).
 // TODO: Return a struct with named fields.
 // TODO: Move to some other module.
-pub fn hit_chance(state: &State, attacker_id: ObjId, target_id: ObjId) -> (i32, i32) {
+pub fn hit_chance(state: &State, attacker_id: Id, target_id: Id) -> (i32, i32) {
     let parts = state.parts();
     let agent_target = parts.agent.get(target_id);
     let agent_attacker = parts.agent.get(attacker_id);
@@ -844,7 +844,7 @@ pub fn hit_chance(state: &State, attacker_id: ObjId, target_id: ObjId) -> (i32, 
     (k_min, k_max)
 }
 
-fn dir_between_objects(state: &State, id_a: ObjId, id_b: ObjId) -> Option<Dir> {
+fn dir_between_objects(state: &State, id_a: Id, id_b: Id) -> Option<Dir> {
     let pos_a = state.parts().pos.get(id_a).0;
     let pos_b = state.parts().pos.get(id_b).0;
     if map::distance_hex(pos_a, pos_b).0 > 1 {
@@ -855,7 +855,7 @@ fn dir_between_objects(state: &State, id_a: ObjId, id_b: ObjId) -> Option<Dir> {
     }
 }
 
-fn try_attack(state: &State, attacker_id: ObjId, target_id: ObjId) -> Option<Effect> {
+fn try_attack(state: &State, attacker_id: Id, target_id: Id) -> Option<Effect> {
     let parts = state.parts();
     let agent_attacker = state.parts().agent.get(attacker_id);
     let target_strength = parts.strength.get(target_id).strength;
@@ -1209,27 +1209,27 @@ mod tests {
     use crate::core::{
         battle::{
             effect::{self, Effect},
-            ObjId,
+            Id,
         },
         map::Dir,
     };
 
     use super::ExecuteContext;
 
-    // TODO: Don't create ObjId's manually? Use a mocked State instead.
+    // TODO: Don't create Id's manually? Use a mocked State instead.
 
     #[test]
     fn test_merge_with_vector() {
         let mut context1 = ExecuteContext {
-            actor_ids: vec![ObjId(0), ObjId(1)],
+            actor_ids: vec![Id(0), Id(1)],
             ..Default::default()
         };
         let context2 = ExecuteContext {
-            actor_ids: vec![ObjId(2), ObjId(3)],
+            actor_ids: vec![Id(2), Id(3)],
             ..Default::default()
         };
         let context_expected = ExecuteContext {
-            actor_ids: vec![ObjId(0), ObjId(1), ObjId(2), ObjId(3)],
+            actor_ids: vec![Id(0), Id(1), Id(2), Id(3)],
             ..Default::default()
         };
         context1.merge_with(context2);
@@ -1241,21 +1241,21 @@ mod tests {
         let mut instant_effects1 = Vec::new();
         let dir = Some(Dir::East);
         let effect_kill: Effect = effect::Kill { dir }.into();
-        instant_effects1.push((ObjId(0), vec![effect_kill.clone(), Effect::Stun]));
+        instant_effects1.push((Id(0), vec![effect_kill.clone(), Effect::Stun]));
         let mut context1 = ExecuteContext {
             instant_effects: instant_effects1,
             ..Default::default()
         };
         let effect_dodge = effect::Dodge { dir };
         let mut instant_effects2 = Vec::new();
-        instant_effects2.push((ObjId(0), vec![Effect::Vanish, effect_dodge.clone().into()]));
+        instant_effects2.push((Id(0), vec![Effect::Vanish, effect_dodge.clone().into()]));
         let context2 = ExecuteContext {
             instant_effects: instant_effects2,
             ..Default::default()
         };
         let mut instant_effects_expected = Vec::new();
         instant_effects_expected.push((
-            ObjId(0),
+            Id(0),
             vec![
                 effect_kill,
                 Effect::Stun,

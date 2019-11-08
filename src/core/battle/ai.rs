@@ -7,13 +7,13 @@ use crate::core::{
         command::{self, Command},
         effect,
         movement::{self, Path, Pathfinder},
-        state, ObjId, PlayerId, State,
+        state, Id, PlayerId, State,
     },
     map::{self, Distance, HexMap},
     utils::shuffle_vec,
 };
 
-fn does_agent_have_ability_summon(state: &State, id: ObjId) -> bool {
+fn does_agent_have_ability_summon(state: &State, id: Id) -> bool {
     if let Some(abilities) = state.parts().abilities.get_opt(id) {
         for ability in &abilities.0 {
             if let Ability::Summon = ability.ability {
@@ -24,7 +24,7 @@ fn does_agent_have_ability_summon(state: &State, id: ObjId) -> bool {
     false
 }
 
-fn does_agent_have_ability_bomb(state: &State, id: ObjId) -> bool {
+fn does_agent_have_ability_bomb(state: &State, id: Id) -> bool {
     if let Some(abilities) = state.parts().abilities.get_opt(id) {
         for ability in &abilities.0 {
             if let Ability::BombDemonic(_) = ability.ability {
@@ -35,7 +35,7 @@ fn does_agent_have_ability_bomb(state: &State, id: ObjId) -> bool {
     false
 }
 
-fn check_path_is_ok(state: &State, id: ObjId, path: &Path) -> bool {
+fn check_path_is_ok(state: &State, id: Id, path: &Path) -> bool {
     let path = path.clone();
     let command = command::MoveTo { id, path }.into();
     check(state, &command).is_ok()
@@ -74,7 +74,7 @@ impl Ai {
     }
 
     /// Finds shortest path to some enemy.
-    fn find_path_to_nearest_enemy(&mut self, state: &State, agent_id: ObjId) -> Option<Path> {
+    fn find_path_to_nearest_enemy(&mut self, state: &State, agent_id: Id) -> Option<Path> {
         self.pathfinder.fill_map(state, agent_id);
         let mut best_path = None;
         let mut best_cost = movement::max_cost();
@@ -102,7 +102,7 @@ impl Ai {
     fn find_path_to_preserve_distance(
         &mut self,
         state: &State,
-        agent_id: ObjId,
+        agent_id: Id,
         distance_range: DistanceRange,
     ) -> Option<Path> {
         // clean the map
@@ -146,7 +146,7 @@ impl Ai {
         best_path
     }
 
-    fn find_any_path(&mut self, state: &State, agent_id: ObjId) -> Option<Path> {
+    fn find_any_path(&mut self, state: &State, agent_id: Id) -> Option<Path> {
         self.pathfinder.fill_map(state, agent_id);
         let mut best_path = None;
         let mut best_distance = state.map().radius();
@@ -168,7 +168,7 @@ impl Ai {
         best_path
     }
 
-    fn try_throw_bomb(&self, state: &State, agent_id: ObjId) -> Option<Command> {
+    fn try_throw_bomb(&self, state: &State, agent_id: Id) -> Option<Command> {
         // TODO: find ability in the parts and use it here:
         let ability: Ability = ability::BombDemonic(Distance(3)).into();
         for &target_id in &shuffle_vec(state::enemy_agent_ids(state, self.id)) {
@@ -189,7 +189,7 @@ impl Ai {
         None
     }
 
-    fn try_summon_imp(&self, state: &State, agent_id: ObjId) -> Option<Command> {
+    fn try_summon_imp(&self, state: &State, agent_id: Id) -> Option<Command> {
         // TODO: find ability in the parts and use it here:
         let ability = Ability::Summon;
         let pos = state.parts().pos.get(agent_id).0;
@@ -201,7 +201,7 @@ impl Ai {
         None
     }
 
-    fn try_bloodlust_imp(&self, state: &State, agent_id: ObjId) -> Option<Command> {
+    fn try_bloodlust_imp(&self, state: &State, agent_id: Id) -> Option<Command> {
         let imps = ["imp", "imp_toxic"];
         for target_id in shuffle_vec(state::players_agent_ids(state, self.id)) {
             // AI can bloodlust only "imp"s for now.
@@ -232,7 +232,7 @@ impl Ai {
         None
     }
 
-    fn try_to_attack(&self, state: &State, agent_id: ObjId) -> Option<Command> {
+    fn try_to_attack(&self, state: &State, agent_id: Id) -> Option<Command> {
         for &target_id in &shuffle_vec(state::enemy_agent_ids(state, self.id)) {
             let attacker_id = agent_id;
             let command = command::Attack {
@@ -247,7 +247,7 @@ impl Ai {
         None
     }
 
-    fn try_to_move_closer(&mut self, state: &State, id: ObjId) -> PathfindingResult {
+    fn try_to_move_closer(&mut self, state: &State, id: Id) -> PathfindingResult {
         let path = match self.find_path_to_nearest_enemy(state, id) {
             Some(path) => path,
             None => return PathfindingResult::CantFindPath,
@@ -273,7 +273,7 @@ impl Ai {
     fn try_to_keep_distance(
         &mut self,
         state: &State,
-        agent_id: ObjId,
+        agent_id: Id,
         distance_range: DistanceRange,
     ) -> PathfindingResult {
         let path = match self.find_path_to_preserve_distance(state, agent_id, distance_range) {
@@ -298,7 +298,7 @@ impl Ai {
         PathfindingResult::CantFindPath
     }
 
-    fn try_to_find_bad_path(&mut self, state: &State, agent_id: ObjId) -> Option<Command> {
+    fn try_to_find_bad_path(&mut self, state: &State, agent_id: Id) -> Option<Command> {
         let path = match self.find_any_path(state, agent_id) {
             Some(path) => path,
             None => return None,
@@ -319,7 +319,7 @@ impl Ai {
         None
     }
 
-    fn try_to_move(&mut self, state: &State, agent_id: ObjId) -> Option<Command> {
+    fn try_to_move(&mut self, state: &State, agent_id: Id) -> Option<Command> {
         let path_result = if does_agent_have_ability_summon(state, agent_id) {
             let range = DistanceRange {
                 min: Distance(2),

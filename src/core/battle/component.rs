@@ -7,7 +7,7 @@ use crate::core::{
         self,
         ability::{Ability, PassiveAbility, RechargeableAbility},
         effect::Timed,
-        Attacks, Jokers, MovePoints, Moves, ObjId, Phase, PlayerId,
+        Attacks, Jokers, MovePoints, Moves, Id, Phase, PlayerId,
     },
     map,
 };
@@ -135,7 +135,7 @@ pub enum Component {
     Summoner(Summoner),
 }
 
-zcomponents_storage!(Parts<ObjId>: {
+zcomponents_storage!(Parts<Id>: {
     strength: Strength,
     armor: Armor,
     pos: Pos,

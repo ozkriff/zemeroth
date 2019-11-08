@@ -8,7 +8,7 @@ use crate::core::{
         execute,
         scenario::{self, Scenario},
         state::apply::apply,
-        ObjId, PlayerId, TileType,
+        Id, PlayerId, TileType,
     },
     map,
 };
@@ -159,7 +159,7 @@ impl State {
         self.deterministic_mode = value;
     }
 
-    pub(in crate::core) fn alloc_id(&mut self) -> ObjId {
+    pub(in crate::core) fn alloc_id(&mut self) -> Id {
         self.parts.alloc_id()
     }
 

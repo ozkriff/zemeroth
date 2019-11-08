@@ -1,5 +1,5 @@
 use crate::core::{
-    battle::{ability::Ability, component::ObjType, movement::Path, ObjId, PlayerId},
+    battle::{ability::Ability, component::ObjType, movement::Path, Id, PlayerId},
     map::PosHex,
 };
 
@@ -21,13 +21,13 @@ pub struct Create {
 
 #[derive(Debug, Clone)]
 pub struct Attack {
-    pub attacker_id: ObjId,
-    pub target_id: ObjId,
+    pub attacker_id: Id,
+    pub target_id: Id,
 }
 
 #[derive(Debug, Clone)]
 pub struct MoveTo {
-    pub id: ObjId,
+    pub id: Id,
     pub path: Path,
 }
 
@@ -36,7 +36,7 @@ pub struct EndTurn;
 
 #[derive(Debug, Clone)]
 pub struct UseAbility {
-    pub id: ObjId,
+    pub id: Id,
     pub pos: PosHex,
     pub ability: Ability,
 }

@@ -21,7 +21,7 @@ use crate::{
             movement::Pathfinder,
             scenario,
             state::{self, BattleResult},
-            ObjId, PlayerId, State,
+            Id, PlayerId, State,
         },
         map::PosHex,
     },
@@ -55,7 +55,7 @@ fn build_panel_agent_info(
     font: Font,
     gui: &mut Gui<Message>,
     state: &State,
-    id: ObjId,
+    id: Id,
 ) -> ZResult<ui::RcWidget> {
     let parts = state.parts();
     let st = parts.strength.get(id);
@@ -145,7 +145,7 @@ fn build_panel_agent_abilities(
     font: Font,
     gui: &mut Gui<Message>,
     state: &State,
-    id: ObjId,
+    id: Id,
 ) -> ZResult<Option<ui::RcWidget>> {
     let parts = state.parts();
     let abilities = match parts.abilities.get_opt(id) {
@@ -211,7 +211,7 @@ pub struct Battle {
     state: State,
     mode: SelectionMode,
     view: BattleView,
-    selected_agent_id: Option<ObjId>,
+    selected_agent_id: Option<Id>,
     pathfinder: Pathfinder,
     block_timer: Option<Duration>,
     ai: Ai,
@@ -347,7 +347,7 @@ impl Battle {
         Ok(())
     }
 
-    fn set_mode(&mut self, context: &mut Context, id: ObjId, mode: SelectionMode) -> ZResult {
+    fn set_mode(&mut self, context: &mut Context, id: Id, mode: SelectionMode) -> ZResult {
         self.deselect()?;
         if self.state.parts().agent.get_opt(id).is_none() {
             // This object is not an agent or dead.
@@ -374,7 +374,7 @@ impl Battle {
         Ok(())
     }
 
-    fn handle_agent_click(&mut self, context: &mut Context, id: ObjId) -> ZResult {
+    fn handle_agent_click(&mut self, context: &mut Context, id: Id) -> ZResult {
         if self.state.parts().agent.get_opt(id).is_none() {
             // only agents can be selected
             return Ok(());
