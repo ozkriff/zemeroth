@@ -4,7 +4,7 @@ use crate::core::battle::{
     effect::{self, Effect},
     movement::Path,
     state::BattleResult,
-    Moves, Id, PlayerId, PosHex,
+    Id, Moves, PlayerId, PosHex,
 };
 
 #[derive(Clone, Debug, PartialEq)]

@@ -14,7 +14,7 @@ use crate::core::{
         event::{self, ActiveEvent, Event},
         movement::Path,
         state::{self, BattleResult, State},
-        Moves, Id, Phase, PlayerId, Strength,
+        Id, Moves, Phase, PlayerId, Strength,
     },
     map::{self, Dir, PosHex},
     utils,

@@ -5,7 +5,7 @@ use crate::core::{
         self,
         ability::{self, Ability},
         command::{self, Command},
-        state, Attacks, Jokers, Moves, Id, State,
+        state, Attacks, Id, Jokers, Moves, State,
     },
     map::{self, Distance, PosHex},
 };
