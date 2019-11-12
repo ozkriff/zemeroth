@@ -16,8 +16,7 @@ use crate::core::{
         movement::Path,
         scenario::{self, ExactObject, Scenario},
         state::BattleResult,
-        Accuracy, Attacks, Id, Dodge, Jokers, MovePoints, Moves, Phase, PlayerId, State,
-        Strength,
+        Accuracy, Attacks, Dodge, Id, Jokers, MovePoints, Moves, Phase, PlayerId, State, Strength,
     },
     map::{Dir, Distance, PosHex},
 };
@@ -541,10 +540,7 @@ fn throw_bomb_no_harm() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[
-            event_end_turn(P0, &[Id(0)]),
-            event_begin_turn(P1, &[Id(1)]),
-        ],
+        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
     );
     exec_and_check(
         &mut state,
@@ -636,10 +632,7 @@ fn throw_bomb_damage() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[
-            event_end_turn(P0, &[Id(0)]),
-            event_begin_turn(P1, &[Id(1)]),
-        ],
+        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
     );
     exec_and_check(
         &mut state,
@@ -743,10 +736,7 @@ fn throw_bomb_poison() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[
-            event_end_turn(P0, &[Id(0)]),
-            event_begin_turn(P1, &[Id(1)]),
-        ],
+        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
     );
     let create_poison_cloud = |pos| -> Effect {
         effect::Create {
@@ -871,18 +861,12 @@ fn throw_bomb_poison() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[
-            event_end_turn(P1, &[Id(1)]),
-            event_begin_turn(P0, &[Id(0)]),
-        ],
+        &[event_end_turn(P1, &[Id(1)]), event_begin_turn(P0, &[Id(0)])],
     );
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[
-            event_end_turn(P0, &[Id(0)]),
-            event_begin_turn(P1, &[Id(1)]),
-        ],
+        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
     );
     let event_vanish = |id, pos| -> Event {
         Event {
@@ -984,10 +968,7 @@ fn throw_two_fire_bombs() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[
-            event_end_turn(P0, &[Id(0)]),
-            event_begin_turn(P1, &[Id(1)]),
-        ],
+        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
     );
     let create_fire = |pos| -> Effect {
         effect::Create {
@@ -1093,10 +1074,7 @@ fn throw_two_fire_bombs() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[
-            event_end_turn(P0, &[Id(0)]),
-            event_begin_turn(P1, &[Id(1)]),
-        ],
+        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
     );
     exec_and_check(
         &mut state,
@@ -1134,10 +1112,7 @@ fn throw_two_fire_bombs() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[
-            event_end_turn(P0, &[Id(0)]),
-            event_begin_turn(P1, &[Id(1)]),
-        ],
+        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
     );
     let event_vanish = |id, pos| -> Event {
         Event {
@@ -1167,10 +1142,7 @@ fn throw_two_fire_bombs() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[
-            event_end_turn(P0, &[Id(0)]),
-            event_begin_turn(P1, &[Id(1)]),
-        ],
+        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
     );
     exec_and_check(
         &mut state,

@@ -256,21 +256,11 @@ fn check_ability_dash(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     Ok(())
 }
 
-fn check_ability_rage(
-    state: &State,
-    id: Id,
-    pos: PosHex,
-    _: ability::Rage,
-) -> Result<(), Error> {
+fn check_ability_rage(state: &State, id: Id, pos: PosHex, _: ability::Rage) -> Result<(), Error> {
     check_object_pos(state, id, pos)
 }
 
-fn check_ability_heal(
-    state: &State,
-    id: Id,
-    pos: PosHex,
-    _: ability::Heal,
-) -> Result<(), Error> {
+fn check_ability_heal(state: &State, id: Id, pos: PosHex, _: ability::Heal) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, Distance(1))?;
     let target_id = match state::agent_id_at_opt(state, pos) {

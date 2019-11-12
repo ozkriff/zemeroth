@@ -415,12 +415,7 @@ impl BattleView {
         }
     }
 
-    fn show_attackable_tiles(
-        &mut self,
-        state: &State,
-        context: &mut Context,
-        id: Id,
-    ) -> ZResult {
+    fn show_attackable_tiles(&mut self, state: &State, context: &mut Context, id: Id) -> ZResult {
         let parts = state.parts();
         let selected_agent_player_id = parts.belongs_to.get(id).0;
         for target_id in parts.agent.ids() {
