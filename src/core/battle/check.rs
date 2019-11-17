@@ -123,7 +123,12 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
     }
 }
 
-fn check_ability_knockback(state: &State, id: Id, pos: PosHex, _: ability::Knockback) -> Result<(), Error> {
+fn check_ability_knockback(
+    state: &State,
+    id: Id,
+    pos: PosHex,
+    _: ability::Knockback,
+) -> Result<(), Error> {
     let selected_pos = state.parts().pos.get(id).0;
     check_min_distance(selected_pos, pos, Distance(1))?;
     check_max_distance(selected_pos, pos, Distance(1))?;
