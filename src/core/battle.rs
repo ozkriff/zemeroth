@@ -43,6 +43,13 @@ pub struct Id(i32);
 #[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Strength(pub i32);
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
+pub enum Weight {
+    Normal,
+    Heavy,
+    Immovable,
+}
+
 #[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Attacks(pub i32);
 

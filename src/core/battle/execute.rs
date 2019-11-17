@@ -673,6 +673,7 @@ impl ExecuteContext {
 fn execute_use_ability_knockback(
     state: &mut State,
     command: &command::UseAbility,
+    _: ability::Knockback,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let id = state::blocker_id_at(state, command.pos);
@@ -680,6 +681,7 @@ fn execute_use_ability_knockback(
     let actor_pos = state.parts().pos.get(command.id).0;
     let dir = Dir::get_dir_from_to(actor_pos, command.pos);
     let to = Dir::get_neighbor_pos(command.pos, dir);
+    // Knockback strength might be used to push farther than 1 tile ?
     if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
         let effect = effect::Knockback { from, to }.into();
         context.instant_effects.push((id, vec![effect]));
@@ -1126,7 +1128,7 @@ fn execute_use_ability_bloodlust(
 
 fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility) {
     let mut context = match command.ability {
-        Ability::Knockback => execute_use_ability_knockback(state, command),
+        Ability::Knockback(a) => execute_use_ability_knockback(state, command, a),
         Ability::Club => execute_use_ability_club(state, command),
         Ability::Jump(_) => execute_use_ability_jump(state, command),
         Ability::Dash => execute_use_ability_dash(state, command),

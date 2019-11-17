@@ -5,7 +5,7 @@ use crate::core::battle::{
     component::{self, Component, Parts, PlannedAbility},
     effect::{self, Duration, Effect},
     event::{self, ActiveEvent, Event},
-    state, Attacks, Id, Jokers, Moves, Phase, PlayerId, State,
+    state, Attacks, Id, Jokers, Moves, Phase, PlayerId, State, Weight, 
 };
 
 pub fn apply(state: &mut State, event: &Event) {
@@ -339,10 +339,13 @@ fn apply_effect_wound(state: &mut State, id: Id, effect: &effect::Wound) {
 fn apply_effect_knockback(state: &mut State, id: Id, effect: &effect::Knockback) {
     assert!(state.map().is_inboard(effect.from));
     assert!(state.map().is_inboard(effect.to));
+    
     assert!(!state::is_tile_blocked(state, effect.to));
     let parts = state.parts_mut();
-    parts.pos.get_mut(id).0 = effect.to;
-    // TODO: push anyone who's in the way aside
+    if parts.blocker.get(id).weight == Weight::Normal {
+        parts.pos.get_mut(id).0 = effect.to;
+        // TODO: push anyone who's in the way aside    
+    }
 }
 
 fn apply_effect_fly_off(state: &mut State, id: Id, effect: &effect::FlyOff) {

@@ -17,7 +17,9 @@ pub struct Pos(pub map::PosHex);
 
 /// Blocks the whole tile. Two blocker objects can't coexist in one tile.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct Blocker;
+pub struct Blocker {
+    pub weight: battle::Weight,
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Strength {

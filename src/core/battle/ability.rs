@@ -10,7 +10,7 @@ use crate::core::{
 /// Active ability.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::From)]
 pub enum Ability {
-    Knockback,
+    Knockback(Knockback),
     Club,
     Jump(Jump),
     Poison,
@@ -29,6 +29,11 @@ pub enum Ability {
     Rage(Rage),
     Heal(Heal),
     Bloodlust,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Knockback {
+    pub strength: Strength,
 }
 
 // TODO: use named fields?
@@ -92,7 +97,7 @@ pub struct RechargeableAbility {
 impl fmt::Display for Ability {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Ability::Knockback => write!(f, "Knockback"),
+            Ability::Knockback(a) => write!(f, "Knockback-{}", a.strength.0),
             Ability::Club => write!(f, "Club"),
             Ability::Jump(a) => write!(f, "Jump-{}", (a.0).0),
             Ability::Poison => write!(f, "Poison"),

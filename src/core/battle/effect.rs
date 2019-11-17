@@ -127,4 +127,5 @@ pub struct Dodge {
 pub struct Knockback {
     pub from: PosHex,
     pub to: PosHex,
+    // TODO: add strength there too ?
 }

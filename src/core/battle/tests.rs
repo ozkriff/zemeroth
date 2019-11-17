@@ -16,7 +16,8 @@ use crate::core::{
         movement::Path,
         scenario::{self, ExactObject, Scenario},
         state::BattleResult,
-        Accuracy, Attacks, Dodge, Id, Jokers, MovePoints, Moves, Phase, PlayerId, State, Strength,
+        Accuracy, Attacks, Dodge, Id, Jokers, MovePoints, Moves, Phase, PlayerId, State,
+        Strength, Weight
     },
     map::{Dir, Distance, PosHex},
 };
@@ -119,8 +120,10 @@ fn component_strength(n: i32) -> Component {
     .into()
 }
 
-fn component_blocker() -> Component {
-    component::Blocker.into()
+fn component_blocker(w: Weight) -> Component {
+    component::Blocker {
+        weight: w,
+    }.into()
 }
 
 fn component_abilities(abilities: &[Ability]) -> Component {
@@ -1175,7 +1178,7 @@ fn stun() {
             "target",
             vec![
                 component_agent_dull(),
-                component_blocker(),
+                component_blocker(Weight::Normal),
                 component_strength(1),
             ],
         ),
@@ -1256,7 +1259,7 @@ fn throw_bomb_push() {
         ),
         (
             "weak",
-            [component_agent_dull(), component_strength(1)].to_vec(),
+            [component_agent_dull(), component_strength(1), component_blocker(Weight::Normal)].to_vec(),
         ),
         ("bomb_push", Vec::new()),
     ]);
