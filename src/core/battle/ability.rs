@@ -3,7 +3,7 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
-    battle::{Attacks, Strength},
+    battle::{Attacks, Strength, PushStrength},
     map::Distance,
 };
 
@@ -33,7 +33,7 @@ pub enum Ability {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Knockback {
-    pub strength: Strength,
+    pub strength: PushStrength,
 }
 
 // TODO: use named fields?

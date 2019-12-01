@@ -14,7 +14,7 @@ use crate::core::{
         event::{self, ActiveEvent, Event},
         movement::Path,
         state::{self, BattleResult, State},
-        Id, Moves, Phase, PlayerId, Strength,
+        Id, Moves, Phase, PlayerId, Strength, PushStrength, Weight
     },
     map::{self, Dir, PosHex},
     utils,
@@ -673,17 +673,18 @@ impl ExecuteContext {
 fn execute_use_ability_knockback(
     state: &mut State,
     command: &command::UseAbility,
-    _: ability::Knockback,
+    ability: ability::Knockback,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let id = state::blocker_id_at(state, command.pos);
     let from = command.pos;
+    let strength = ability.strength;
     let actor_pos = state.parts().pos.get(command.id).0;
     let dir = Dir::get_dir_from_to(actor_pos, command.pos);
     let to = Dir::get_neighbor_pos(command.pos, dir);
     // Knockback strength might be used to push farther than 1 tile ?
     if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-        let effect = effect::Knockback { from, to }.into();
+        let effect = effect::Knockback { from, to, strength }.into();
         context.instant_effects.push((id, vec![effect]));
         context.moved_actor_ids.push(id);
     }
@@ -942,7 +943,7 @@ fn execute_use_ability_explode_push(
         let to = Dir::get_neighbor_pos(pos, dir);
         let mut effects = Vec::new();
         if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-            effects.push(effect::Knockback { from: pos, to }.into());
+            effects.push(effect::Knockback { from: pos, to, strength: PushStrength { 0: Weight::Normal } }.into());
             context.moved_actor_ids.push(id);
         }
         context.instant_effects.push((id, effects));
