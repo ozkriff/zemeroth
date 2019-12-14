@@ -16,7 +16,8 @@ use crate::core::{
         movement::Path,
         scenario::{self, ExactObject, Scenario},
         state::BattleResult,
-        Accuracy, Attacks, Dodge, Id, Jokers, MovePoints, Moves, Phase, PlayerId, State, Strength, PushStrength, Weight,
+        Accuracy, Attacks, Dodge, Id, Jokers, MovePoints, Moves, Phase, PlayerId, PushStrength,
+        State, Strength, Weight,
     },
     map::{Dir, Distance, PosHex},
 };

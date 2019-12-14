@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::{
     battle::{
         component::{Component, ObjType},
-        Phase, PosHex, Strength, PushStrength,
+        Phase, PosHex, PushStrength, Strength,
     },
     map::Dir,
 };

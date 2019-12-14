@@ -1,7 +1,4 @@
-use std::{
-    default::Default,
-    fmt,
-};
+use std::{default::Default, fmt};
 
 use serde::{Deserialize, Serialize};
 
@@ -59,11 +56,11 @@ impl Default for Weight {
 }
 impl fmt::Display for Weight {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-       match *self {
-        Weight::Normal => write!(f, "Normal"),
-        Weight::Heavy => write!(f, "Heavy"),
-        Weight::Immovable => write!(f, "Immovable"),
-       }
+        match *self {
+            Weight::Normal => write!(f, "Normal"),
+            Weight::Heavy => write!(f, "Heavy"),
+            Weight::Immovable => write!(f, "Immovable"),
+        }
     }
 }
 

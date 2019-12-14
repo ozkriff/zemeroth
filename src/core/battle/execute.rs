@@ -14,7 +14,7 @@ use crate::core::{
         event::{self, ActiveEvent, Event},
         movement::Path,
         state::{self, BattleResult, State},
-        Id, Moves, Phase, PlayerId, Strength, PushStrength, Weight
+        Id, Moves, Phase, PlayerId, PushStrength, Strength, Weight,
     },
     map::{self, Dir, PosHex},
     utils,
@@ -943,7 +943,14 @@ fn execute_use_ability_explode_push(
         let to = Dir::get_neighbor_pos(pos, dir);
         let mut effects = Vec::new();
         if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-            effects.push(effect::Knockback { from: pos, to, strength: PushStrength { 0: Weight::Normal } }.into());
+            effects.push(
+                effect::Knockback {
+                    from: pos,
+                    to,
+                    strength: PushStrength { 0: Weight::Normal },
+                }
+                .into(),
+            );
             context.moved_actor_ids.push(id);
         }
         context.instant_effects.push((id, effects));
