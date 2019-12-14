@@ -1246,7 +1246,7 @@ fn stun() {
 }
 
 #[test]
-fn throw_bomb_push() {
+fn throw_bomb_push_normal() {
     let prototypes = prototypes(&[
         (
             "thrower",
@@ -1264,6 +1264,96 @@ fn throw_bomb_push() {
             ]
             .to_vec(),
         ),
+        ("bomb_push", Vec::new()),
+    ]);
+    let scenario = scenario::default()
+        .object(P0, "thrower", PosHex { q: 0, r: 0 })
+        .object(P1, "weak", PosHex { q: 0, r: 3 });
+    let mut state = debug_state(prototypes, scenario);
+    exec_and_check(
+        &mut state,
+        command::UseAbility {
+            id: Id(0),
+            pos: PosHex { q: 0, r: 2 },
+            ability: ability_throw_bomb_push(),
+        },
+        &[
+            Event {
+                active_event: event::UseAbility {
+                    id: Id(0),
+                    pos: PosHex { q: 0, r: 2 },
+                    ability: ability::BombPush {
+                        throw_distance: Distance(2),
+                    }
+                    .into(),
+                }
+                .into(),
+                actor_ids: vec![Id(0)],
+                instant_effects: vec![(
+                    Id(2),
+                    vec![
+                        effect::Create {
+                            pos: PosHex { q: 0, r: 0 },
+                            prototype: "bomb_push".into(),
+                            components: vec![
+                                component::Pos(PosHex { q: 0, r: 0 }).into(),
+                                component_meta("bomb_push"),
+                            ],
+                        }
+                        .into(),
+                        effect::Throw {
+                            from: PosHex { q: 0, r: 0 },
+                            to: PosHex { q: 0, r: 2 },
+                        }
+                        .into(),
+                    ],
+                )],
+                timed_effects: Vec::new(),
+                scheduled_abilities: vec![(
+                    Id(2),
+                    vec![PlannedAbility {
+                        rounds: 0,
+                        phase: Phase(0),
+                        ability: Ability::ExplodePush,
+                    }],
+                )],
+            },
+            Event {
+                active_event: event::UseAbility {
+                    id: Id(2),
+                    pos: PosHex { q: 0, r: 2 },
+                    ability: Ability::ExplodePush,
+                }
+                .into(),
+                actor_ids: vec![Id(2)],
+                instant_effects: vec![
+                    (
+                        Id(1),
+                        vec![effect::Knockback {
+                            from: PosHex { q: 0, r: 3 },
+                            to: PosHex { q: 0, r: 4 },
+                            strength: PushStrength { 0: Weight::Normal },
+                        }
+                        .into()],
+                    ),
+                    (Id(2), vec![Effect::Vanish]),
+                ],
+                timed_effects: Vec::new(),
+                scheduled_abilities: Vec::new(),
+            },
+        ],
+    );
+}
+#[test]
+fn throw_bomb_push_heavy() {
+    let prototypes = prototypes(&[
+        (
+            "thrower",
+            vec![
+                component_agent_one_attack(),
+                component_abilities(&[ability_throw_bomb_push()]),
+            ],
+        ),
         (
             "heavy",
             [
@@ -1277,7 +1367,6 @@ fn throw_bomb_push() {
     ]);
     let scenario = scenario::default()
         .object(P0, "thrower", PosHex { q: 0, r: 0 })
-        .object(P1, "weak", PosHex { q: 0, r: 3 })
         .object(P1, "heavy", PosHex { q: 1, r: 2 });
     let mut state = debug_state(prototypes, scenario);
     exec_and_check(
@@ -1300,7 +1389,7 @@ fn throw_bomb_push() {
                 .into(),
                 actor_ids: vec![Id(0)],
                 instant_effects: vec![(
-                    Id(3),
+                    Id(2),
                     vec![
                         effect::Create {
                             pos: PosHex { q: 0, r: 0 },
@@ -1320,7 +1409,7 @@ fn throw_bomb_push() {
                 )],
                 timed_effects: Vec::new(),
                 scheduled_abilities: vec![(
-                    Id(3),
+                    Id(2),
                     vec![PlannedAbility {
                         rounds: 0,
                         phase: Phase(0),
@@ -1330,24 +1419,15 @@ fn throw_bomb_push() {
             },
             Event {
                 active_event: event::UseAbility {
-                    id: Id(3),
+                    id: Id(2),
                     pos: PosHex { q: 0, r: 2 },
                     ability: Ability::ExplodePush,
                 }
                 .into(),
-                actor_ids: vec![Id(3)],
+                actor_ids: vec![Id(2)],
                 instant_effects: vec![
                     (
                         Id(1),
-                        vec![effect::Knockback {
-                            from: PosHex { q: 0, r: 3 },
-                            to: PosHex { q: 0, r: 4 },
-                            strength: PushStrength { 0: Weight::Normal },
-                        }
-                        .into()],
-                    ),
-                    (
-                        Id(2),
                         vec![effect::Knockback {
                             from: PosHex { q: 1, r: 2 },
                             to: PosHex { q: 2, r: 2 },
@@ -1355,7 +1435,7 @@ fn throw_bomb_push() {
                         }
                         .into()],
                     ),
-                    (Id(3), vec![Effect::Vanish]),
+                    (Id(2), vec![Effect::Vanish]),
                 ],
                 timed_effects: Vec::new(),
                 scheduled_abilities: Vec::new(),
