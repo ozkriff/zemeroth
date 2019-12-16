@@ -3,8 +3,30 @@ name: CI
 on: [pull_request, push]
 
 jobs:
-  lints:
-    name: Rustfmt and clippy
+  format:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt
+          profile: minimal
+          override: true
+
+      - name: Run rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  clippy:
+    name: Clippy
     runs-on: ubuntu-latest
 
     steps:
@@ -20,15 +42,9 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          components: clippy, rustfmt
+          components: clippy
           profile: minimal
           override: true
-
-      - name: Run rustfmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
 
       - name: Run clippy
         uses: actions-rs/clippy-check@v1
@@ -63,7 +79,6 @@ jobs:
 
   build:
     name: ${{ matrix.build }}
-    needs: [lints]
     runs-on: ${{ matrix.os }}
 
     # The build matrix does not yet support 'allow failures' at job level.
@@ -117,7 +132,6 @@ jobs:
 
   wasm:
     name: WASM
-    needs: [lints]
     runs-on: ubuntu-latest
 
     steps:
@@ -152,7 +166,6 @@ jobs:
 
   nightly:
     name: Nightly
-    needs: [lints]
     runs-on: ${{ matrix.os }}
 
     strategy:
