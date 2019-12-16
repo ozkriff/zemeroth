@@ -50,30 +50,16 @@ jobs:
           repository: ozkriff/zemeroth_assets
           path: assets
 
-      - name: Install packages
-        run: |
-          sudo apt-get update
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install libasound2-dev libudev-dev
-
-      - name: Install rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-
       - name: Check
-        uses: actions-rs/cargo@v1
-        env:
-          RUST_LOG: zemeroth=info
-        with:
-          command: run
-          args: -- --check-assets
+        run: |
+          SRC=$(grep "const ASSETS_HASHSUM" src/main.rs | cut -d\" -f 2)
+          ASSETS=$(cat assets/.checksum.md5)
+
+          echo "Source: $SRC"
+          echo "Assets: $ASSETS"
+          if [ "$SRC" != "$ASSETS" ]; then
+            false
+          fi
 
   build:
     name: ${{ matrix.build }}

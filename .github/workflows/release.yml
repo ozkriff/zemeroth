@@ -5,7 +5,32 @@ on:
     types: [published]
 
 jobs:
+  assets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout assets
+        uses: actions/checkout@v2
+        with:
+          repository: ozkriff/zemeroth_assets
+          path: assets
+
+      - name: Check
+        run: |
+          SRC=$(grep "const ASSETS_HASHSUM" src/main.rs | cut -d\" -f 2)
+          ASSETS=$(cat assets/.checksum.md5)
+
+          echo "Source: $SRC"
+          echo "Assets: $ASSETS"
+          if [ "$SRC" != "$ASSETS" ]; then
+            false
+          fi
+
   build:
+    needs: [assets]
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -113,6 +138,7 @@ jobs:
 
   wasm:
     name: build (web)
+    needs: [assets]
     runs-on: ubuntu-latest
 
     steps:
