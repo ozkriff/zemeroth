@@ -21,12 +21,12 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 [![appveyor status][img_appveyor-ci]][appveyor-ci]
 [![dependency status][img_deps-rs]][deps-rs]
 
-[img_travis-ci]: https://img.shields.io/travis/ozkriff/zemeroth/master.svg?label=Linux|OSX
+[img_travis-ci]: https://img.shields.io/travis/com/ozkriff/zemeroth/master.svg?label=Linux|OSX
 [img_appveyor-ci]: https://img.shields.io/appveyor/ci/ozkriff/zemeroth/master.svg?label=Windows
 [img_deps-rs]: https://deps.rs/repo/github/ozkriff/zemeroth/status.svg
 
 [loc]: https://github.com/Aaronepower/tokei
-[travis-ci]: https://travis-ci.org/ozkriff/zemeroth
+[travis-ci]: https://travis-ci.com/ozkriff/zemeroth
 [appveyor-ci]: https://ci.appveyor.com/project/ozkriff/zemeroth
 [deps-rs]: https://deps.rs/repo/github/ozkriff/zemeroth
 
