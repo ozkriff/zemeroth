@@ -1,0 +1,209 @@
+name: Release
+
+on: 
+  release:
+    types: [published]
+
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout assets
+        uses: actions/checkout@v2
+        with:
+          repository: ozkriff/zemeroth_assets
+          path: assets
+
+      - name: Check
+        run: |
+          SRC=$(grep "const ASSETS_HASHSUM" src/main.rs | cut -d\" -f 2)
+          ASSETS=$(cat assets/.checksum.md5)
+
+          echo "Source: $SRC"
+          echo "Assets: $ASSETS"
+          if [ "$SRC" != "$ASSETS" ]; then
+            false
+          fi
+
+  build:
+    needs: [assets]
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        build: [linux, macos, win32, win64]
+
+        include:
+          - build: linux
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            bin: zemeroth
+            archive: .tar.gz
+            type: application/gzip
+          - build: macos
+            os: macOS-latest
+            target: x86_64-apple-darwin
+            bin: zemeroth
+            archive: .tar.gz
+            type: application/gzip
+          - build: win32
+            os: windows-latest
+            rust: stable-i686-pc-windows-msvc
+            target: i686-pc-windows-msvc
+            bin: zemeroth.exe
+            archive: .zip
+            type: application/zip
+          - build: win64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bin: zemeroth.exe
+            archive: .zip
+            type: application/zip
+
+    steps:
+      - name: Install packages (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install libasound2-dev libudev-dev
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust || 'stable' }}
+          target: ${{ matrix.target }}
+          profile: minimal
+          override: true
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout assets
+        uses: actions/checkout@v2
+        with:
+          repository: ozkriff/zemeroth_assets
+          path: assets
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target ${{ matrix.target }}
+
+      - name: Package
+        id: package
+        shell: bash
+        env:
+          BUILD_NAME: ${{ matrix.build }}
+          ARCHIVE_EXT: ${{ matrix.archive }}
+        run: |
+          name=zemeroth
+          tag=$(git describe --tags --abbrev=0)
+          release_name="$name-$tag-$BUILD_NAME"
+          release_file="${release_name}${ARCHIVE_EXT}"
+          mkdir "$release_name"
+
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            strip -s "target/${{ matrix.target }}/release/${{ matrix.bin }}"
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            strip "target/${{ matrix.target }}/release/${{ matrix.bin }}"
+          fi
+
+          cp target/${{ matrix.target }}/release/${{ matrix.bin }} "$release_name"
+          cp -r README.md assets "$release_name"
+          rm -rf "$release_name"/assets/.git
+
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a "$release_file" "$release_name"
+          else
+            tar czvf "$release_file" "$release_name"
+          fi
+
+          echo "::set-output name=asset_name::$release_file"
+          echo "::set-output name=asset_path::$release_file"
+
+      - name: Upload
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_name: ${{ steps.package.outputs.asset_name }}
+          asset_path: ${{ steps.package.outputs.asset_path }}
+          asset_content_type: ${{ matrix.type }}
+
+  wasm:
+    name: build (web)
+    needs: [assets]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          profile: minimal
+          override: true
+
+      - name: Install cargo-web
+        run: |
+          CARGO_WEB_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/koute/cargo-web/releases/latest)
+          CARGO_WEB_VERSION=$(echo $CARGO_WEB_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
+          CARGO_WEB_HOST_TRIPLE="x86_64-unknown-linux-gnu"
+          CARGO_WEB_URL="https://github.com/koute/cargo-web/releases/download/$CARGO_WEB_VERSION/cargo-web-$CARGO_WEB_HOST_TRIPLE.gz"
+
+          echo "Downloading cargo-web from: $CARGO_WEB_URL"
+          curl -L $CARGO_WEB_URL | gzip -d > cargo-web
+          chmod +x cargo-web
+
+          mkdir -p ~/.cargo/bin
+          mv cargo-web ~/.cargo/bin
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout assets
+        uses: actions/checkout@v2
+        with:
+          repository: ozkriff/zemeroth_assets
+          path: assets
+
+      - name: Build
+        run: |
+          cargo web build --release
+
+      - name: Package
+        id: package
+        run: |
+          name=zemeroth
+          tag=$(git describe --tags --abbrev=0)
+          release_name="$name-$tag-web"
+          release_file="${release_name}.zip"
+          mkdir "$release_name"
+
+          cp target/wasm32-unknown-unknown/release/zemeroth.js "$release_name"
+          cp target/wasm32-unknown-unknown/release/zemeroth.wasm "$release_name"
+          cp README.md utils/wasm/index.html "$release_name"
+
+          ls assets | sed 's:^:/:' > "$release_name"/index.txt
+          find assets -type f -not -path '*/.git/*' -exec cp '{}' $release_name \;
+
+          7z a "$release_file" "$release_name"
+
+          echo "::set-output name=asset_name::$release_file"
+          echo "::set-output name=asset_path::$release_file"
+
+      - name: Upload
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_name: ${{ steps.package.outputs.asset_name }}
+          asset_path: ${{ steps.package.outputs.asset_path }}
+          asset_content_type: application/zip

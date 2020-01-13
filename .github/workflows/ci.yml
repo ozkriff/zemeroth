@@ -1,0 +1,208 @@
+name: CI
+
+on: [pull_request, push]
+
+jobs:
+  format:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt
+          profile: minimal
+          override: true
+
+      - name: Run rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install libasound2-dev libudev-dev
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+          profile: minimal
+          override: true
+
+      - name: Run clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: -- -D warnings
+
+  assets:
+    name: Check assets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout assets
+        uses: actions/checkout@v2
+        with:
+          repository: ozkriff/zemeroth_assets
+          path: assets
+
+      - name: Check
+        run: |
+          SRC=$(grep "const ASSETS_HASHSUM" src/main.rs | cut -d\" -f 2)
+          ASSETS=$(cat assets/.checksum.md5)
+
+          echo "Source: $SRC"
+          echo "Assets: $ASSETS"
+          if [ "$SRC" != "$ASSETS" ]; then
+            false
+          fi
+
+  build:
+    name: ${{ matrix.build }}
+    runs-on: ${{ matrix.os }}
+
+    # The build matrix does not yet support 'allow failures' at job level.
+    # See `jobs.nightly` for the nightly job definition.
+    strategy:
+      matrix:
+        build: [Linux, macOS, Win32, Win64]
+
+        include:
+          - build: Linux
+            os: ubuntu-latest
+            packages: libasound2-dev libudev-dev
+          - build: macOS
+            os: macOS-latest
+          - build: Win32
+            os: windows-latest
+            rust: stable-i686-pc-windows-msvc
+            target: i686-pc-windows-msvc
+          - build: Win64
+            os: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install packages (Linux)
+        if: runner.os == 'Linux' && matrix.packages
+        run: |
+          sudo apt-get update
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install ${{ matrix.packages }}
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust || 'stable' }}
+          target: ${{ matrix.target }}
+          profile: minimal
+          override: true
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --examples --all
+
+      - name: Test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all
+
+  wasm:
+    name: WASM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          profile: minimal
+          override: true
+
+      - name: Install cargo-web
+        run: |
+          CARGO_WEB_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/koute/cargo-web/releases/latest)
+          CARGO_WEB_VERSION=$(echo $CARGO_WEB_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
+          CARGO_WEB_HOST_TRIPLE="x86_64-unknown-linux-gnu"
+          CARGO_WEB_URL="https://github.com/koute/cargo-web/releases/download/$CARGO_WEB_VERSION/cargo-web-$CARGO_WEB_HOST_TRIPLE.gz"
+
+          echo "Downloading cargo-web from: $CARGO_WEB_URL"
+          curl -L $CARGO_WEB_URL | gzip -d > cargo-web
+          chmod +x cargo-web
+
+          mkdir -p ~/.cargo/bin
+          mv cargo-web ~/.cargo/bin
+
+      - name: Build
+        run: |
+          cargo web build
+
+  nightly:
+    name: Nightly
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+        include:
+          - os: ubuntu-latest
+            packages: libasound2-dev libudev-dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install packages (Linux)
+        if: runner.os == 'Linux' && matrix.packages
+        run: |
+          sudo apt-get update
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install ${{ matrix.packages }}
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          override: true
+
+      - name: Build
+        continue-on-error: true
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --examples --all
+
+      - name: Test
+        continue-on-error: true
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all
