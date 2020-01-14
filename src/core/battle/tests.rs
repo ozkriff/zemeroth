@@ -1343,6 +1343,7 @@ fn throw_bomb_push_normal() {
             },
         ],
     );
+    assert_eq!(state.parts().pos.get(Id(1)).0, PosHex { q: 0, r: 4 });
 }
 #[test]
 fn throw_bomb_push_heavy() {
@@ -1359,15 +1360,16 @@ fn throw_bomb_push_heavy() {
             [
                 component_agent_dull(),
                 component_strength(1),
-                component_blocker(Weight::Normal),
+                component_blocker(Weight::Heavy),
             ]
             .to_vec(),
         ),
         ("bomb_push", Vec::new()),
     ]);
+    let initial_heavy_position = PosHex { q: 1, r: 2 };
     let scenario = scenario::default()
         .object(P0, "thrower", PosHex { q: 0, r: 0 })
-        .object(P1, "heavy", PosHex { q: 1, r: 2 });
+        .object(P1, "heavy", initial_heavy_position);
     let mut state = debug_state(prototypes, scenario);
     exec_and_check(
         &mut state,
@@ -1442,4 +1444,5 @@ fn throw_bomb_push_heavy() {
             },
         ],
     );
+    assert_eq!(state.parts().pos.get(Id(1)).0, initial_heavy_position);
 }

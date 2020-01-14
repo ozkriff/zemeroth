@@ -339,7 +339,6 @@ fn apply_effect_wound(state: &mut State, id: Id, effect: &effect::Wound) {
 fn apply_effect_knockback(state: &mut State, id: Id, effect: &effect::Knockback) {
     assert!(state.map().is_inboard(effect.from));
     assert!(state.map().is_inboard(effect.to));
-
     assert!(!state::is_tile_blocked(state, effect.to));
     let parts = state.parts_mut();
     if effect.strength.can_push(parts.blocker.get(id).weight) {

@@ -49,11 +49,13 @@ pub enum Weight {
     Heavy = 1,
     Immovable = 2,
 }
+
 impl Default for Weight {
     fn default() -> Self {
         Weight::Normal
     }
 }
+
 impl fmt::Display for Weight {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -69,7 +71,7 @@ pub struct PushStrength(pub Weight);
 
 impl PushStrength {
     pub fn can_push(self, weight: Weight) -> bool {
-        weight != Weight::Immovable && self.0 <= weight
+        weight != Weight::Immovable && self.0 >= weight
     }
 }
 
