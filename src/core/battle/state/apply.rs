@@ -338,18 +338,20 @@ fn apply_effect_wound(state: &mut State, id: Id, effect: &effect::Wound) {
 
 fn apply_effect_knockback(state: &mut State, id: Id, effect: &effect::Knockback) {
     assert!(state.map().is_inboard(effect.from));
+    if effect.to == effect.from {
+        return;
+    }
     assert!(state.map().is_inboard(effect.to));
     assert!(!state::is_tile_blocked(state, effect.to));
     let parts = state.parts_mut();
-    if effect.strength.can_push(parts.blocker.get(id).weight) {
-        parts.pos.get_mut(id).0 = effect.to;
-    }
-    // else show a resistance ?
-    // TODO: push anyone who's in the way aside
+    parts.pos.get_mut(id).0 = effect.to;
 }
 
 fn apply_effect_fly_off(state: &mut State, id: Id, effect: &effect::FlyOff) {
     assert!(state.map().is_inboard(effect.from));
+    if effect.to == effect.from {
+        return;
+    }
     assert!(state.map().is_inboard(effect.to));
     assert!(!state::is_tile_blocked(state, effect.to));
     let parts = state.parts_mut();

@@ -33,6 +33,7 @@ pub enum Ability {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Knockback {
+    #[serde(default)]
     pub strength: PushStrength,
 }
 

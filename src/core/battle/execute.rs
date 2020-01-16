@@ -369,9 +369,17 @@ fn try_execute_passive_abilities_on_attack(
                 PassiveAbility::HeavyImpact => {
                     let dir = Dir::get_dir_from_to(attacker_pos, target_pos);
                     let from = target_pos;
-                    let to = Dir::get_neighbor_pos(target_pos, dir);
-                    if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-                        let effect = effect::FlyOff { from, to }.into();
+                    let strength = PushStrength(Weight::Normal);
+                    let id = state::blocker_id_at(state, target_pos);
+                    let blocker_weight = state.parts().blocker.get(id).weight;
+                    let to = if strength.can_push(blocker_weight) {
+                        Dir::get_neighbor_pos(target_pos, dir)
+                    }
+                    else {
+                        from
+                    };
+                    if to == from || state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
+                        let effect = effect::FlyOff { from, to, strength }.into();
                         effects.instant.push(effect);
                     }
                 }
@@ -681,9 +689,14 @@ fn execute_use_ability_knockback(
     let strength = ability.strength;
     let actor_pos = state.parts().pos.get(command.id).0;
     let dir = Dir::get_dir_from_to(actor_pos, command.pos);
-    let to = Dir::get_neighbor_pos(command.pos, dir);
-    // Knockback strength might be used to push farther than 1 tile ?
-    if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
+    let blocker_weight = state.parts().blocker.get(id).weight;
+    let to = if strength.can_push(blocker_weight) {
+        Dir::get_neighbor_pos(command.pos, dir)
+    }
+    else {
+        from
+    };
+    if to == from || (state.map().is_inboard(to) && !state::is_tile_blocked(state, to)) {
         let effect = effect::Knockback { from, to, strength }.into();
         context.instant_effects.push((id, vec![effect]));
         context.moved_actor_ids.push(id);

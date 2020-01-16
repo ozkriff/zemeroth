@@ -110,6 +110,7 @@ pub struct Create {
 pub struct FlyOff {
     pub from: PosHex,
     pub to: PosHex,
+    pub strength: PushStrength,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
