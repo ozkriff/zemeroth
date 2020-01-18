@@ -1484,32 +1484,29 @@ fn knockback_normal_vs_normal() {
             pos: initial_weak_position,
             ability: ability_knockback_normal(),
         },
-        &[
-            Event {
-                active_event: event::UseAbility {
-                    id: Id(0),
-                    pos: initial_weak_position,
-                    ability: ability::Knockback {
-                        strength: PushStrength(Weight::Normal),
-                    }.into(),
+        &[Event {
+            active_event: event::UseAbility {
+                id: Id(0),
+                pos: initial_weak_position,
+                ability: ability::Knockback {
+                    strength: PushStrength(Weight::Normal),
                 }
                 .into(),
-                actor_ids: vec![Id(1), Id(0)],
-                instant_effects: vec![
-                    (
-                        Id(1),
-                        vec![effect::Knockback {
-                            from: initial_weak_position,
-                            to: PosHex { q: 0, r: 4 },
-                            strength: PushStrength { 0: Weight::Normal },
-                        }
-                        .into()],
-                    ),
-                ],
-                timed_effects: Vec::new(),
-                scheduled_abilities: Vec::new(),
-            },
-        ],
+            }
+            .into(),
+            actor_ids: vec![Id(1), Id(0)],
+            instant_effects: vec![(
+                Id(1),
+                vec![effect::Knockback {
+                    from: initial_weak_position,
+                    to: PosHex { q: 0, r: 4 },
+                    strength: PushStrength { 0: Weight::Normal },
+                }
+                .into()],
+            )],
+            timed_effects: Vec::new(),
+            scheduled_abilities: Vec::new(),
+        }],
     );
     assert_eq!(state.parts().pos.get(Id(1)).0, PosHex { q: 0, r: 4 });
 }
@@ -1545,32 +1542,29 @@ fn knockback_normal_vs_heavy() {
             pos: initial_heavy_position,
             ability: ability_knockback_normal(),
         },
-        &[
-            Event {
-                active_event: event::UseAbility {
-                    id: Id(0),
-                    pos: initial_heavy_position,
-                    ability: ability::Knockback {
-                        strength: PushStrength(Weight::Normal),
-                    }.into(),
+        &[Event {
+            active_event: event::UseAbility {
+                id: Id(0),
+                pos: initial_heavy_position,
+                ability: ability::Knockback {
+                    strength: PushStrength(Weight::Normal),
                 }
                 .into(),
-                actor_ids: vec![Id(1), Id(0)],
-                instant_effects: vec![
-                    (
-                        Id(1),
-                        vec![effect::Knockback {
-                            from: initial_heavy_position,
-                            to: initial_heavy_position,
-                            strength: PushStrength { 0: Weight::Normal },
-                        }
-                        .into()],
-                    ),
-                ],
-                timed_effects: Vec::new(),
-                scheduled_abilities: Vec::new(),
-            },
-        ],
+            }
+            .into(),
+            actor_ids: vec![Id(1), Id(0)],
+            instant_effects: vec![(
+                Id(1),
+                vec![effect::Knockback {
+                    from: initial_heavy_position,
+                    to: initial_heavy_position,
+                    strength: PushStrength { 0: Weight::Normal },
+                }
+                .into()],
+            )],
+            timed_effects: Vec::new(),
+            scheduled_abilities: Vec::new(),
+        }],
     );
     assert_eq!(state.parts().pos.get(Id(1)).0, initial_heavy_position);
 }
