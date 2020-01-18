@@ -952,10 +952,15 @@ fn execute_use_ability_explode_push(
         if distance.0 > 1 || command.id == id {
             continue;
         }
+        let blocker_weight = state.parts().blocker.get(id).weight;
         let dir = Dir::get_dir_from_to(from, pos);
-        let to = Dir::get_neighbor_pos(pos, dir);
+        let to = if PushStrength(Weight::Normal).can_push(blocker_weight) {
+            Dir::get_neighbor_pos(pos, dir)
+        } else {
+            pos
+        };
         let mut effects = Vec::new();
-        if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
+        if to == pos || (state.map().is_inboard(to) && !state::is_tile_blocked(state, to)) {
             let effect = effect::Knockback {
                 from: pos,
                 to,

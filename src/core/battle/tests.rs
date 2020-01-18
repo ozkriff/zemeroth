@@ -253,6 +253,12 @@ fn ability_throw_bomb_push() -> Ability {
     }
     .into()
 }
+fn ability_knockback_normal() -> Ability {
+    ability::Knockback {
+        strength: PushStrength(Weight::Normal),
+    }
+    .into()
+}
 
 fn ability_club() -> Ability {
     Ability::Club
@@ -1432,12 +1438,134 @@ fn throw_bomb_push_heavy() {
                         Id(1),
                         vec![effect::Knockback {
                             from: PosHex { q: 1, r: 2 },
-                            to: PosHex { q: 2, r: 2 },
+                            to: PosHex { q: 1, r: 2 },
                             strength: PushStrength { 0: Weight::Normal },
                         }
                         .into()],
                     ),
                     (Id(2), vec![Effect::Vanish]),
+                ],
+                timed_effects: Vec::new(),
+                scheduled_abilities: Vec::new(),
+            },
+        ],
+    );
+    assert_eq!(state.parts().pos.get(Id(1)).0, initial_heavy_position);
+}
+#[test]
+fn knockback_normal_vs_normal() {
+    let prototypes = prototypes(&[
+        (
+            "knockbacker",
+            vec![
+                component_agent_one_attack(),
+                component_abilities(&[ability_knockback_normal()]),
+            ],
+        ),
+        (
+            "weak",
+            [
+                component_agent_dull(),
+                component_strength(1),
+                component_blocker(Weight::Normal),
+            ]
+            .to_vec(),
+        ),
+    ]);
+    let initial_weak_position = PosHex { q: 0, r: 3 };
+    let scenario = scenario::default()
+        .object(P0, "knockbacker", PosHex { q: 0, r: 2 })
+        .object(P1, "weak", initial_weak_position);
+    let mut state = debug_state(prototypes, scenario);
+    exec_and_check(
+        &mut state,
+        command::UseAbility {
+            id: Id(0),
+            pos: initial_weak_position,
+            ability: ability_knockback_normal(),
+        },
+        &[
+            Event {
+                active_event: event::UseAbility {
+                    id: Id(0),
+                    pos: initial_weak_position,
+                    ability: ability::Knockback {
+                        strength: PushStrength(Weight::Normal),
+                    }.into(),
+                }
+                .into(),
+                actor_ids: vec![Id(1), Id(0)],
+                instant_effects: vec![
+                    (
+                        Id(1),
+                        vec![effect::Knockback {
+                            from: initial_weak_position,
+                            to: PosHex { q: 0, r: 4 },
+                            strength: PushStrength { 0: Weight::Normal },
+                        }
+                        .into()],
+                    ),
+                ],
+                timed_effects: Vec::new(),
+                scheduled_abilities: Vec::new(),
+            },
+        ],
+    );
+    assert_eq!(state.parts().pos.get(Id(1)).0, PosHex { q: 0, r: 4 });
+}
+#[test]
+fn knockback_normal_vs_heavy() {
+    let prototypes = prototypes(&[
+        (
+            "knockbacker",
+            vec![
+                component_agent_one_attack(),
+                component_abilities(&[ability_knockback_normal()]),
+            ],
+        ),
+        (
+            "heavy",
+            [
+                component_agent_dull(),
+                component_strength(1),
+                component_blocker(Weight::Heavy),
+            ]
+            .to_vec(),
+        ),
+    ]);
+    let initial_heavy_position = PosHex { q: 0, r: 3 };
+    let scenario = scenario::default()
+        .object(P0, "knockbacker", PosHex { q: 0, r: 2 })
+        .object(P1, "heavy", initial_heavy_position);
+    let mut state = debug_state(prototypes, scenario);
+    exec_and_check(
+        &mut state,
+        command::UseAbility {
+            id: Id(0),
+            pos: initial_heavy_position,
+            ability: ability_knockback_normal(),
+        },
+        &[
+            Event {
+                active_event: event::UseAbility {
+                    id: Id(0),
+                    pos: initial_heavy_position,
+                    ability: ability::Knockback {
+                        strength: PushStrength(Weight::Normal),
+                    }.into(),
+                }
+                .into(),
+                actor_ids: vec![Id(1), Id(0)],
+                instant_effects: vec![
+                    (
+                        Id(1),
+                        vec![effect::Knockback {
+                            from: initial_heavy_position,
+                            to: initial_heavy_position,
+                            strength: PushStrength { 0: Weight::Normal },
+                        }
+                        .into()],
+                    ),
                 ],
                 timed_effects: Vec::new(),
                 scheduled_abilities: Vec::new(),
