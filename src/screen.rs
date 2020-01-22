@@ -9,12 +9,8 @@ mod agent_info;
 mod battle;
 mod campaign;
 mod main_menu;
-mod strategy_map;
 
-pub use self::{
-    agent_info::AgentInfo, battle::Battle, campaign::Campaign, main_menu::MainMenu,
-    strategy_map::StrategyMap,
-};
+pub use self::{agent_info::AgentInfo, battle::Battle, campaign::Campaign, main_menu::MainMenu};
 
 #[derive(Debug)]
 pub enum Transition {

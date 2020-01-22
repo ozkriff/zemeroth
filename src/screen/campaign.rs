@@ -300,7 +300,7 @@ impl Screen for Campaign {
     fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<Transition> {
         let message = self.gui.click(pos);
         info!(
-            "StrategyScreen: click: pos={:?}, message={:?}",
+            "screen::Campaign: click: pos={:?}, message={:?}",
             pos, message
         );
         match message {
