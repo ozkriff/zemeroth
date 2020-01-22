@@ -1459,7 +1459,7 @@ fn knockback_normal_vs_normal() {
         (
             "knockbacker",
             vec![
-                component_agent_one_attack(),
+                component_agent_always_hit(),
                 component_abilities(&[ability_knockback_normal()]),
             ],
         ),
@@ -1518,7 +1518,7 @@ fn knockback_normal_vs_heavy() {
         (
             "knockbacker",
             vec![
-                component_agent_one_attack(),
+                component_agent_always_hit(),
                 component_abilities(&[ability_knockback_normal()]),
             ],
         ),
