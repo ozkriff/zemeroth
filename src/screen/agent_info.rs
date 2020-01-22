@@ -99,6 +99,9 @@ impl AgentInfo {
             if let Some(strength) = info.strength {
                 line(&format!("strength: {}", strength.base_strength.0))?;
             }
+            if let Some(blocker) = info.blocker {
+                line(&format!("weight: {}", blocker.weight))?;
+            }
             if let Some(agent) = info.agent {
                 line(&format!("attacks: {}", agent.base_attacks.0))?;
                 line(&format!("moves: {}", agent.base_moves.0))?;
