@@ -370,16 +370,14 @@ fn try_execute_passive_abilities_on_attack(
                     let dir = Dir::get_dir_from_to(attacker_pos, target_pos);
                     let from = target_pos;
                     let strength = PushStrength(Weight::Normal);
-                    let id = state::blocker_id_at(state, target_pos);
-                    let blocker_weight = state.parts().blocker.get(id).weight;
+                    let blocker_weight = state.parts().blocker.get(target_id).weight;
                     let to = if strength.can_push(blocker_weight) {
                         Dir::get_neighbor_pos(target_pos, dir)
                     } else {
                         from
                     };
-                    if to == from
-                        || state.map().is_inboard(to) && !state::is_tile_blocked(state, to)
-                    {
+                    let is_inboard = state.map().is_inboard(to);
+                    if to == from || is_inboard && !state::is_tile_blocked(state, to) {
                         let effect = effect::FlyOff { from, to, strength }.into();
                         effects.instant.push(effect);
                     }
@@ -696,7 +694,7 @@ fn execute_use_ability_knockback(
     } else {
         from
     };
-    if to == from || (state.map().is_inboard(to) && !state::is_tile_blocked(state, to)) {
+    if to == from || state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
         let effect = effect::Knockback { from, to, strength }.into();
         context.instant_effects.push((id, vec![effect]));
         context.moved_actor_ids.push(id);

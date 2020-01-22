@@ -425,11 +425,10 @@ fn kill_and_end_the_battle() {
     let prototypes = prototypes(&[
         (
             "swordsman",
-            [
+            vec![
                 component_agent_always_hit_strength_1(),
                 component_strength(1),
-            ]
-            .to_vec(),
+            ],
         ),
         (
             "imp",
@@ -1338,7 +1337,7 @@ fn throw_bomb_push_normal() {
                         vec![effect::Knockback {
                             from: PosHex { q: 0, r: 3 },
                             to: PosHex { q: 0, r: 4 },
-                            strength: PushStrength { 0: Weight::Normal },
+                            strength: PushStrength(Weight::Normal),
                         }
                         .into()],
                     ),
@@ -1351,6 +1350,7 @@ fn throw_bomb_push_normal() {
     );
     assert_eq!(state.parts().pos.get(Id(1)).0, PosHex { q: 0, r: 4 });
 }
+
 #[test]
 fn throw_bomb_push_heavy() {
     let prototypes = prototypes(&[
@@ -1439,7 +1439,7 @@ fn throw_bomb_push_heavy() {
                         vec![effect::Knockback {
                             from: PosHex { q: 1, r: 2 },
                             to: PosHex { q: 1, r: 2 },
-                            strength: PushStrength { 0: Weight::Normal },
+                            strength: PushStrength(Weight::Normal),
                         }
                         .into()],
                     ),
@@ -1452,6 +1452,7 @@ fn throw_bomb_push_heavy() {
     );
     assert_eq!(state.parts().pos.get(Id(1)).0, initial_heavy_position);
 }
+
 #[test]
 fn knockback_normal_vs_normal() {
     let prototypes = prototypes(&[
@@ -1510,6 +1511,7 @@ fn knockback_normal_vs_normal() {
     );
     assert_eq!(state.parts().pos.get(Id(1)).0, PosHex { q: 0, r: 4 });
 }
+
 #[test]
 fn knockback_normal_vs_heavy() {
     let prototypes = prototypes(&[
@@ -1558,7 +1560,7 @@ fn knockback_normal_vs_heavy() {
                 vec![effect::Knockback {
                     from: initial_heavy_position,
                     to: initial_heavy_position,
-                    strength: PushStrength { 0: Weight::Normal },
+                    strength: PushStrength(Weight::Normal),
                 }
                 .into()],
             )],
