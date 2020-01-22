@@ -23,7 +23,6 @@ enum Message {
     Exit,
     StartInstant,
     StartCampaign,
-    StartStrategyMap,
 }
 
 fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
@@ -38,10 +37,6 @@ fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
         let text = Box::new(Text::new(("[campaign]", font, font_size)));
         ui::Button::new(context, text, h, gui.sender(), Message::StartCampaign)?
     };
-    let button_strategy_map = {
-        let text = Box::new(Text::new(("[strategy mode]", font, font_size)));
-        ui::Button::new(context, text, h, gui.sender(), Message::StartStrategyMap)?
-    };
     let button_exit = {
         let text = Box::new(Text::new(("[exit]", font, font_size)));
         ui::Button::new(context, text, h, gui.sender(), Message::Exit)?
@@ -49,7 +44,6 @@ fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_battle));
     layout.add(Box::new(button_campaign));
-    layout.add(Box::new(button_strategy_map));
     layout.add(Box::new(button_exit));
     let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
     gui.add(&ui::pack(layout), anchor);
@@ -108,10 +102,6 @@ impl Screen for MainMenu {
             }
             Some(Message::StartCampaign) => {
                 let screen = screen::Campaign::new(context)?;
-                Ok(Transition::Push(Box::new(screen)))
-            }
-            Some(Message::StartStrategyMap) => {
-                let screen = screen::StrategyMap::new(context)?;
                 Ok(Transition::Push(Box::new(screen)))
             }
             Some(Message::Exit) => Ok(Transition::Pop),
