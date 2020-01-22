@@ -1464,7 +1464,7 @@ fn knockback_normal_vs_normal() {
             ],
         ),
         (
-            "weak",
+            "normal_target",
             [
                 component_agent_dull(),
                 component_strength(1),
@@ -1473,22 +1473,23 @@ fn knockback_normal_vs_normal() {
             .to_vec(),
         ),
     ]);
-    let initial_weak_position = PosHex { q: 0, r: 3 };
+    let target_position_initial = PosHex { q: 0, r: 1 };
+    let target_position_updated = PosHex { q: 0, r: 2 };
     let scenario = scenario::default()
-        .object(P0, "knockbacker", PosHex { q: 0, r: 2 })
-        .object(P1, "weak", initial_weak_position);
+        .object(P0, "knockbacker", PosHex { q: 0, r: 0 })
+        .object(P1, "normal_target", target_position_initial);
     let mut state = debug_state(prototypes, scenario);
     exec_and_check(
         &mut state,
         command::UseAbility {
             id: Id(0),
-            pos: initial_weak_position,
+            pos: target_position_initial,
             ability: ability_knockback_normal(),
         },
         &[Event {
             active_event: event::UseAbility {
                 id: Id(0),
-                pos: initial_weak_position,
+                pos: target_position_initial,
                 ability: ability::Knockback {
                     strength: PushStrength(Weight::Normal),
                 }
@@ -1499,9 +1500,9 @@ fn knockback_normal_vs_normal() {
             instant_effects: vec![(
                 Id(1),
                 vec![effect::Knockback {
-                    from: initial_weak_position,
-                    to: PosHex { q: 0, r: 4 },
-                    strength: PushStrength { 0: Weight::Normal },
+                    from: target_position_initial,
+                    to: target_position_updated,
+                    strength: PushStrength(Weight::Normal),
                 }
                 .into()],
             )],
@@ -1509,7 +1510,7 @@ fn knockback_normal_vs_normal() {
             scheduled_abilities: Vec::new(),
         }],
     );
-    assert_eq!(state.parts().pos.get(Id(1)).0, PosHex { q: 0, r: 4 });
+    assert_eq!(state.parts().pos.get(Id(1)).0, target_position_updated);
 }
 
 #[test]
@@ -1523,7 +1524,7 @@ fn knockback_normal_vs_heavy() {
             ],
         ),
         (
-            "heavy",
+            "heavy_target",
             [
                 component_agent_dull(),
                 component_strength(1),
@@ -1532,10 +1533,10 @@ fn knockback_normal_vs_heavy() {
             .to_vec(),
         ),
     ]);
-    let initial_heavy_position = PosHex { q: 0, r: 3 };
+    let initial_heavy_position = PosHex { q: 0, r: 1 };
     let scenario = scenario::default()
-        .object(P0, "knockbacker", PosHex { q: 0, r: 2 })
-        .object(P1, "heavy", initial_heavy_position);
+        .object(P0, "knockbacker", PosHex { q: 0, r: 0 })
+        .object(P1, "heavy_target", initial_heavy_position);
     let mut state = debug_state(prototypes, scenario);
     exec_and_check(
         &mut state,
