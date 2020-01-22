@@ -81,6 +81,9 @@ fn build_panel_agent_info(
                 line(&format!("armor: {}", armor))?;
             }
         }
+        if let Some(blocker) = parts.blocker.get_opt(id) {
+            line(&format!("weight: {}", blocker.weight))?;
+        }
         if a.jokers.0 != 0 || a.base_jokers.0 != 0 {
             line(&format!("jokers: {}/{}", a.jokers.0, a.base_jokers.0))?;
         }

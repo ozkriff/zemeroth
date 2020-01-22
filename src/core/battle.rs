@@ -1,4 +1,4 @@
-use std::default::Default;
+use std::{default::Default, fmt};
 
 use serde::{Deserialize, Serialize};
 
@@ -42,6 +42,38 @@ pub struct Id(i32);
 
 #[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Strength(pub i32);
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
+pub enum Weight {
+    Normal = 0,
+    Heavy = 1,
+    Immovable = 2,
+}
+
+impl Default for Weight {
+    fn default() -> Self {
+        Weight::Normal
+    }
+}
+
+impl fmt::Display for Weight {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Weight::Normal => write!(f, "Normal"),
+            Weight::Heavy => write!(f, "Heavy"),
+            Weight::Immovable => write!(f, "Immovable"),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
+pub struct PushStrength(pub Weight);
+
+impl PushStrength {
+    pub fn can_push(self, weight: Weight) -> bool {
+        weight != Weight::Immovable && self.0 >= weight
+    }
+}
 
 #[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Attacks(pub i32);

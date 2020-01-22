@@ -14,7 +14,7 @@ use crate::core::{
         event::{self, ActiveEvent, Event},
         movement::Path,
         state::{self, BattleResult, State},
-        Id, Moves, Phase, PlayerId, Strength,
+        Id, Moves, Phase, PlayerId, PushStrength, Strength, Weight,
     },
     map::{self, Dir, PosHex},
     utils,
@@ -369,9 +369,16 @@ fn try_execute_passive_abilities_on_attack(
                 PassiveAbility::HeavyImpact => {
                     let dir = Dir::get_dir_from_to(attacker_pos, target_pos);
                     let from = target_pos;
-                    let to = Dir::get_neighbor_pos(target_pos, dir);
-                    if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-                        let effect = effect::FlyOff { from, to }.into();
+                    let strength = PushStrength(Weight::Normal);
+                    let blocker_weight = state.parts().blocker.get(target_id).weight;
+                    let to = if strength.can_push(blocker_weight) {
+                        Dir::get_neighbor_pos(target_pos, dir)
+                    } else {
+                        from
+                    };
+                    let is_inboard = state.map().is_inboard(to);
+                    if to == from || is_inboard && !state::is_tile_blocked(state, to) {
+                        let effect = effect::FlyOff { from, to, strength }.into();
                         effects.instant.push(effect);
                     }
                 }
@@ -673,15 +680,22 @@ impl ExecuteContext {
 fn execute_use_ability_knockback(
     state: &mut State,
     command: &command::UseAbility,
+    ability: ability::Knockback,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let id = state::blocker_id_at(state, command.pos);
     let from = command.pos;
+    let strength = ability.strength;
     let actor_pos = state.parts().pos.get(command.id).0;
     let dir = Dir::get_dir_from_to(actor_pos, command.pos);
-    let to = Dir::get_neighbor_pos(command.pos, dir);
-    if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-        let effect = effect::Knockback { from, to }.into();
+    let blocker_weight = state.parts().blocker.get(id).weight;
+    let to = if strength.can_push(blocker_weight) {
+        Dir::get_neighbor_pos(command.pos, dir)
+    } else {
+        from
+    };
+    if to == from || state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
+        let effect = effect::Knockback { from, to, strength }.into();
         context.instant_effects.push((id, vec![effect]));
         context.moved_actor_ids.push(id);
     }
@@ -936,11 +950,21 @@ fn execute_use_ability_explode_push(
         if distance.0 > 1 || command.id == id {
             continue;
         }
+        let blocker_weight = state.parts().blocker.get(id).weight;
         let dir = Dir::get_dir_from_to(from, pos);
-        let to = Dir::get_neighbor_pos(pos, dir);
+        let to = if PushStrength(Weight::Normal).can_push(blocker_weight) {
+            Dir::get_neighbor_pos(pos, dir)
+        } else {
+            pos
+        };
         let mut effects = Vec::new();
-        if state.map().is_inboard(to) && !state::is_tile_blocked(state, to) {
-            effects.push(effect::Knockback { from: pos, to }.into());
+        if to == pos || (state.map().is_inboard(to) && !state::is_tile_blocked(state, to)) {
+            let effect = effect::Knockback {
+                from: pos,
+                to,
+                strength: PushStrength(Weight::Normal),
+            };
+            effects.push(effect.into());
             context.moved_actor_ids.push(id);
         }
         context.instant_effects.push((id, effects));
@@ -1126,7 +1150,7 @@ fn execute_use_ability_bloodlust(
 
 fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility) {
     let mut context = match command.ability {
-        Ability::Knockback => execute_use_ability_knockback(state, command),
+        Ability::Knockback(a) => execute_use_ability_knockback(state, command, a),
         Ability::Club => execute_use_ability_club(state, command),
         Ability::Jump(_) => execute_use_ability_jump(state, command),
         Ability::Dash => execute_use_ability_dash(state, command),

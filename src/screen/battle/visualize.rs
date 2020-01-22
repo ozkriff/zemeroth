@@ -1100,6 +1100,9 @@ fn visualize_effect_knockback(
     target_id: Id,
     effect: &effect::Knockback,
 ) -> ZResult<Box<dyn Action>> {
+    if effect.from == effect.to {
+        return message(view, context, effect.from, "Resisted knockback");
+    }
     let sprite = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
@@ -1122,6 +1125,9 @@ fn visualize_effect_fly_off(
     target_id: Id,
     effect: &effect::FlyOff,
 ) -> ZResult<Box<dyn Action>> {
+    if effect.from == effect.to {
+        return message(view, context, effect.from, "Resisted fly off");
+    }
     let sprite_object = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::{
     battle::{
         component::{Component, ObjType},
-        Phase, PosHex, Strength,
+        Phase, PosHex, PushStrength, Strength,
     },
     map::Dir,
 };
@@ -110,6 +110,7 @@ pub struct Create {
 pub struct FlyOff {
     pub from: PosHex,
     pub to: PosHex,
+    pub strength: PushStrength,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -127,4 +128,5 @@ pub struct Dodge {
 pub struct Knockback {
     pub from: PosHex,
     pub to: PosHex,
+    pub strength: PushStrength,
 }
