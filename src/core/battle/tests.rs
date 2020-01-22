@@ -1571,3 +1571,134 @@ fn knockback_normal_vs_heavy() {
     );
     assert_eq!(state.parts().pos.get(Id(1)).0, initial_heavy_position);
 }
+
+#[test]
+fn heavy_strike_flyoff_normal_vs_normal() {
+    let prototypes = prototypes(&[
+        (
+            "heavy_impacter",
+            vec![
+                component_agent_always_hit(),
+                component_strength(1),
+                component_passive_abilities(&[PassiveAbility::HeavyImpact]),
+            ],
+        ),
+        (
+            "normal_target",
+            vec![
+                component_agent_dull(),
+                component_strength(1),
+                component_blocker(Weight::Normal),
+            ],
+        ),
+    ]);
+    let position_attacker = PosHex { q: 0, r: 0 };
+    let position_target_initial = PosHex { q: 0, r: 1 };
+    let position_target_updated = PosHex { q: 0, r: 2 };
+    let scenario = scenario::default()
+        .object(P0, "heavy_impacter", position_attacker)
+        .object(P1, "normal_target", position_target_initial);
+    let mut state = debug_state(prototypes, scenario);
+    exec_and_check(
+        &mut state,
+        command::Attack {
+            attacker_id: Id(0),
+            target_id: Id(1),
+        },
+        &[Event {
+            active_event: event::Attack {
+                attacker_id: Id(0),
+                target_id: Id(1),
+                mode: AttackMode::Active,
+                weapon_type: WeaponType::Slash,
+            }
+            .into(),
+            actor_ids: vec![Id(0)],
+            instant_effects: vec![(
+                Id(1),
+                vec![
+                    effect::Wound {
+                        damage: Strength(0),
+                        armor_break: Strength(0),
+                        dir: Some(Dir::SouthWest),
+                    }
+                    .into(),
+                    effect::FlyOff {
+                        from: position_target_initial,
+                        to: position_target_updated,
+                        strength: PushStrength(Weight::Normal),
+                    }
+                    .into(),
+                ],
+            )],
+            timed_effects: Vec::new(),
+            scheduled_abilities: Vec::new(),
+        }],
+    );
+    assert_eq!(state.parts().pos.get(Id(1)).0, position_target_updated);
+}
+
+#[test]
+fn heavy_strike_flyoff_normal_vs_heavy() {
+    let prototypes = prototypes(&[
+        (
+            "heavy_impacter",
+            vec![
+                component_agent_always_hit(),
+                component_strength(1),
+                component_passive_abilities(&[PassiveAbility::HeavyImpact]),
+            ],
+        ),
+        (
+            "heavy_target",
+            vec![
+                component_agent_dull(),
+                component_strength(1),
+                component_blocker(Weight::Heavy),
+            ],
+        ),
+    ]);
+    let position_attacker = PosHex { q: 0, r: 0 };
+    let position_target = PosHex { q: 0, r: 1 };
+    let scenario = scenario::default()
+        .object(P0, "heavy_impacter", position_attacker)
+        .object(P1, "heavy_target", position_target);
+    let mut state = debug_state(prototypes, scenario);
+    exec_and_check(
+        &mut state,
+        command::Attack {
+            attacker_id: Id(0),
+            target_id: Id(1),
+        },
+        &[Event {
+            active_event: event::Attack {
+                attacker_id: Id(0),
+                target_id: Id(1),
+                mode: AttackMode::Active,
+                weapon_type: WeaponType::Slash,
+            }
+            .into(),
+            actor_ids: vec![Id(0)],
+            instant_effects: vec![(
+                Id(1),
+                vec![
+                    effect::Wound {
+                        damage: Strength(0),
+                        armor_break: Strength(0),
+                        dir: Some(Dir::SouthWest),
+                    }
+                    .into(),
+                    effect::FlyOff {
+                        from: position_target,
+                        to: position_target,
+                        strength: PushStrength(Weight::Normal),
+                    }
+                    .into(),
+                ],
+            )],
+            timed_effects: Vec::new(),
+            scheduled_abilities: Vec::new(),
+        }],
+    );
+    assert_eq!(state.parts().pos.get(Id(1)).0, position_target);
+}
