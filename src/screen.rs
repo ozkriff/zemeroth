@@ -94,11 +94,11 @@ impl Screens {
 
     /// Returns a mutable reference to the top screen.
     fn screen_mut(&mut self) -> &mut dyn Screen {
-        &mut **self.screens.last_mut().expect(ERR_MSG)
+        self.screens.last_mut().expect(ERR_MSG).as_mut()
     }
 
     /// Returns a reference to the top screen.
     fn screen(&self) -> &dyn Screen {
-        &**self.screens.last().expect(ERR_MSG)
+        self.screens.last().expect(ERR_MSG).as_ref()
     }
 }

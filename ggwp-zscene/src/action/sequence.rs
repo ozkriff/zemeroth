@@ -22,7 +22,7 @@ impl Sequence {
 
     /// Current action
     fn action(&mut self) -> &mut dyn Action {
-        &mut **self.actions.front_mut().unwrap()
+        self.actions.front_mut().unwrap().as_mut()
     }
 
     fn end_current_action_and_start_next(&mut self) {
