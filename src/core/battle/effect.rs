@@ -1,11 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::core::{
-    battle::{
-        component::{Component, ObjType},
-        Phase, PosHex, PushStrength, Strength,
-    },
-    map::Dir,
+use crate::core::battle::{
+    component::{Component, ObjType},
+    Phase, PosHex, PushStrength, Strength,
 };
 
 #[derive(Clone, Debug, Copy, PartialEq, Serialize, Deserialize)]
@@ -86,12 +83,12 @@ impl Lasting {
 pub struct Wound {
     pub damage: Strength,
     pub armor_break: Strength,
-    pub dir: Option<Dir>,
+    pub attacker_pos: Option<PosHex>,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Kill {
-    pub dir: Option<Dir>,
+    pub attacker_pos: Option<PosHex>,
 }
 
 #[derive(Clone, PartialEq, Debug, Deserialize)]
@@ -121,7 +118,7 @@ pub struct Throw {
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Dodge {
-    pub dir: Option<Dir>,
+    pub attacker_pos: PosHex,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]

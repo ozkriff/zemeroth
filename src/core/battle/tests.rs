@@ -19,7 +19,7 @@ use crate::core::{
         Accuracy, Attacks, Dodge, Id, Jokers, MovePoints, Moves, Phase, PlayerId, PushStrength,
         State, Strength, Weight,
     },
-    map::{Dir, Distance, PosHex},
+    map::{Distance, PosHex},
 };
 
 const P0: PlayerId = PlayerId(0);
@@ -386,8 +386,9 @@ fn basic_attack() {
             [component_agent_dull(), component_strength(1)].to_vec(),
         ),
     ]);
+    let attacker_pos = PosHex { q: 0, r: 0 };
     let scenario = scenario::default()
-        .object(P0, "swordsman", PosHex { q: 0, r: 0 })
+        .object(P0, "swordsman", attacker_pos)
         .object(P1, "imp", PosHex { q: 0, r: 1 });
     let mut state = debug_state(prototypes, scenario);
     exec_and_check(
@@ -410,7 +411,7 @@ fn basic_attack() {
                 vec![effect::Wound {
                     damage: Strength(0),
                     armor_break: Strength(0),
-                    dir: Some(Dir::SouthWest),
+                    attacker_pos: Some(attacker_pos),
                 }
                 .into()],
             )],
@@ -435,8 +436,9 @@ fn kill_and_end_the_battle() {
             [component_agent_dull(), component_strength(1)].to_vec(),
         ),
     ]);
+    let attacker_pos = PosHex { q: 0, r: 0 };
     let scenario = scenario::default()
-        .object(P0, "swordsman", PosHex { q: 0, r: 0 })
+        .object(P0, "swordsman", attacker_pos)
         .object(P1, "imp", PosHex { q: 0, r: 1 });
     let mut state = debug_state(prototypes, scenario);
     exec_and_check(
@@ -458,7 +460,7 @@ fn kill_and_end_the_battle() {
                 instant_effects: vec![(
                     Id(1),
                     vec![effect::Kill {
-                        dir: Some(Dir::SouthWest),
+                        attacker_pos: Some(attacker_pos),
                     }
                     .into()],
                 )],
@@ -660,7 +662,7 @@ fn throw_bomb_damage() {
                         vec![effect::Wound {
                             damage: Strength(1),
                             armor_break: Strength(1),
-                            dir: None,
+                            attacker_pos: None,
                         }
                         .into()],
                     ),
@@ -844,7 +846,7 @@ fn throw_bomb_poison() {
                     vec![effect::Wound {
                         damage: Strength(1),
                         armor_break: Strength(0),
-                        dir: None,
+                        attacker_pos: None,
                     }
                     .into()],
                 )],
@@ -1620,7 +1622,7 @@ fn heavy_strike_flyoff_normal_vs_normal() {
                     effect::Wound {
                         damage: Strength(0),
                         armor_break: Strength(0),
-                        dir: Some(Dir::SouthWest),
+                        attacker_pos: Some(position_attacker),
                     }
                     .into(),
                     effect::FlyOff {
@@ -1685,7 +1687,7 @@ fn heavy_strike_flyoff_normal_vs_heavy() {
                     effect::Wound {
                         damage: Strength(0),
                         armor_break: Strength(0),
-                        dir: Some(Dir::SouthWest),
+                        attacker_pos: Some(position_attacker),
                     }
                     .into(),
                     effect::FlyOff {
