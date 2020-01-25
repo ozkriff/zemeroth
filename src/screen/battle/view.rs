@@ -2,6 +2,7 @@ use std::{collections::HashMap, default::Default, time::Duration};
 
 use ggez::{
     graphics::{Color, Font, Image, Text},
+    nalgebra::Point2,
     Context,
 };
 use rand::{thread_rng, Rng};
@@ -216,6 +217,10 @@ impl BattleView {
     // TODO: return `(f32, f32)`? width and height separately?
     pub fn tile_size(&self) -> f32 {
         self.tile_size
+    }
+
+    pub fn hex_to_point(&self, hex: PosHex) -> Point2<f32> {
+        geom::hex_to_point(self.tile_size, hex)
     }
 
     pub fn layers(&self) -> &Layers {

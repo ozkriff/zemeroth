@@ -51,7 +51,7 @@ pub fn message(
     let text = Box::new(Text::new((text, view.font(), font_size)));
     let mut sprite = Sprite::from_drawable(context, text, 0.1)?;
     sprite.set_centered(true);
-    let point = geom::hex_to_point(view.tile_size(), pos);
+    let point = view.hex_to_point(pos);
     let point = point - Vector2::new(0.0, view.tile_size() * 1.5);
     sprite.set_pos(point);
     sprite.set_color(invisible);
@@ -124,11 +124,11 @@ fn show_blood_particles(
     from: Option<PosHex>,
     particles_count: i32,
 ) -> ZResult<Box<dyn Action>> {
-    let point_origin = geom::hex_to_point(view.tile_size(), pos);
+    let point_origin = view.hex_to_point(pos);
     let mut actions = Vec::new();
     for _ in 0..particles_count {
         let offset = if let Some(from) = from {
-            let from = geom::hex_to_point(view.tile_size(), from);
+            let from = view.hex_to_point(from);
             let diff = (point_origin - from).normalize() * view.tile_size();
             diff + geom::rand_tile_offset(view.tile_size(), 0.8)
         } else {
@@ -167,7 +167,7 @@ fn show_blood_spot(
         Sprite::from_image(context, view.images().blood.clone(), view.tile_size() * 2.0)?;
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
-    let mut point = geom::hex_to_point(view.tile_size(), at);
+    let mut point = view.hex_to_point(at);
     point.y += view.tile_size() * 0.1;
     sprite.set_pos(point);
     let color_final: Color = [1.0, 1.0, 1.0, 1.0].into();
@@ -192,7 +192,7 @@ fn show_explosion_ground_mark(
     )?;
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 1.0].into());
-    sprite.set_pos(geom::hex_to_point(view.tile_size(), at));
+    sprite.set_pos(view.hex_to_point(at));
     let layer = view.layers().blood.clone();
     view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION, sprite.color().a);
     Ok(action::Show::new(&layer, &sprite).boxed())
@@ -203,7 +203,7 @@ fn show_dust_at_pos(
     context: &mut Context,
     at: PosHex,
 ) -> ZResult<Box<dyn Action>> {
-    let point = geom::hex_to_point(view.tile_size(), at);
+    let point = view.hex_to_point(at);
     let count = 9;
     show_dust(view, context, point, count)
 }
@@ -263,7 +263,7 @@ fn show_flare_scale(
     let invisible = Color { a: 0.0, ..visible };
     let size = view.tile_size() * 2.0 * scale;
     let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size)?;
-    let point = geom::hex_to_point(view.tile_size(), at);
+    let point = view.hex_to_point(at);
     sprite.set_centered(true);
     sprite.set_pos(point);
     sprite.set_color(invisible);
@@ -293,7 +293,7 @@ fn show_weapon_flash(
         WeaponType::Claw => view.images().attack_claws.clone(),
     };
     let mut sprite = Sprite::from_image(context, image, sprite_size)?;
-    let point = geom::hex_to_point(tile_size, at) - Vector2::new(0.0, tile_size * 0.3);
+    let point = view.hex_to_point(at) - Vector2::new(0.0, tile_size * 0.3);
     sprite.set_centered(true);
     sprite.set_pos(point);
     sprite.set_color(invisible);
@@ -411,7 +411,7 @@ fn generate_brief_obj_info(
     let damage = strength.base_strength.0 - strength.strength.0;
     let armor = state::get_armor(state, id);
     let size = 0.2 * view.tile_size();
-    let mut point = geom::hex_to_point(view.tile_size(), obj_pos);
+    let mut point = view.hex_to_point(obj_pos);
     point.x += view.tile_size() * 0.8;
     point.y -= view.tile_size() * 1.6;
     let mut dots = Vec::new();
@@ -585,8 +585,8 @@ fn visualize_event_move_to(
         actions.push(action);
     }
     for step in event.path.steps() {
-        let from = geom::hex_to_point(view.tile_size(), step.from);
-        let to = geom::hex_to_point(view.tile_size(), step.to);
+        let from = view.hex_to_point(step.from);
+        let to = view.hex_to_point(step.to);
         let facing = geom::Facing::from_positions(view.tile_size(), step.from, step.to)
             .expect("Bad path step");
         let diff = to - from;
@@ -613,9 +613,9 @@ fn visualize_event_attack(
     let id = event.attacker_id;
     let sprite = view.id_to_sprite(id).clone();
     let map_to = state.parts().pos.get(event.target_id).0;
-    let to = geom::hex_to_point(view.tile_size(), map_to);
+    let to = view.hex_to_point(map_to);
     let map_from = state.parts().pos.get(id).0;
-    let from = geom::hex_to_point(view.tile_size(), map_from);
+    let from = view.hex_to_point(map_from);
     let diff = (to - from) / 2.0;
     let mut actions = Vec::new();
     let chances = hit_chance(state, id, event.target_id);
@@ -703,8 +703,8 @@ fn visualize_event_use_ability_jump(
     let sprite_object = view.id_to_sprite(event.id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
     let from = state.parts().pos.get(event.id).0;
-    let from = geom::hex_to_point(view.tile_size(), from);
-    let to = geom::hex_to_point(view.tile_size(), event.pos);
+    let from = view.hex_to_point(from);
+    let to = view.hex_to_point(event.pos);
     let diff = to - from;
     let action_arc_move = arc_move(view, &sprite_object, diff);
     let time = action_arc_move.duration();
@@ -730,8 +730,8 @@ fn visualize_event_use_ability_dash(
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let from = state.parts().pos.get(event.id).0;
-    let point_from = geom::hex_to_point(view.tile_size(), from);
-    let point_to = geom::hex_to_point(view.tile_size(), event.pos);
+    let point_from = view.hex_to_point(from);
+    let point_to = view.hex_to_point(event.pos);
     let diff = point_to - point_from;
     let time = time_s(0.1);
     Ok(move_object_with_shadow(view, event.id, diff, time))
@@ -957,7 +957,7 @@ fn visualize_effect_create(
         offset_y,
         shadow_size_coefficient,
     } = view.sprite_info(&effect.prototype);
-    let point = geom::hex_to_point(view.tile_size(), effect.pos);
+    let point = view.hex_to_point(effect.pos);
     let color = [1.0, 1.0, 1.0, 1.0].into();
     let size = view.tile_size() * 2.0;
     let sprite_object = {
@@ -1103,8 +1103,8 @@ fn visualize_effect_knockback(
     if effect.from == effect.to {
         return message(view, context, effect.from, "Resisted knockback");
     }
-    let from = geom::hex_to_point(view.tile_size(), effect.from);
-    let to = geom::hex_to_point(view.tile_size(), effect.to);
+    let from = view.hex_to_point(effect.from);
+    let to = view.hex_to_point(effect.to);
     let diff = to - from;
     let time = time_s(0.15);
     Ok(fork(seq(vec![
@@ -1125,8 +1125,8 @@ fn visualize_effect_fly_off(
     }
     let sprite_object = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
-    let from = geom::hex_to_point(view.tile_size(), effect.from);
-    let to = geom::hex_to_point(view.tile_size(), effect.to);
+    let from = view.hex_to_point(effect.from);
+    let to = view.hex_to_point(effect.to);
     let diff = to - from;
     let action_main_move = arc_move(view, &sprite_object, diff);
     let time = action_main_move.duration();
@@ -1149,8 +1149,8 @@ fn visualize_effect_throw(
 ) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
-    let from = geom::hex_to_point(view.tile_size(), effect.from);
-    let to = geom::hex_to_point(view.tile_size(), effect.to);
+    let from = view.hex_to_point(effect.from);
+    let to = view.hex_to_point(effect.to);
     let diff = to - from;
     let arc_move = arc_move(view, &sprite, diff);
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, arc_move.duration()).boxed();
@@ -1170,8 +1170,8 @@ fn visualize_effect_dodge(
     let time_from = time_s(0.3);
     let mut actions = Vec::new();
     actions.push(message(view, context, pos, "dodged")?);
-    let point_a = geom::hex_to_point(view.tile_size(), pos);
-    let point_b = geom::hex_to_point(view.tile_size(), effect.attacker_pos);
+    let point_a = view.hex_to_point(pos);
+    let point_b = view.hex_to_point(effect.attacker_pos);
     let diff = (point_a - point_b).normalize() * view.tile_size() * 0.5;
     actions.push(move_object_with_shadow(view, target_id, diff, time_to));
     actions.push(move_object_with_shadow(view, target_id, -diff, time_from));
