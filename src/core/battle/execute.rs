@@ -148,7 +148,6 @@ fn execute_attack_internal(
         weapon_type,
     }
     .into();
-    let dir = dir_between_objects(state, command.attacker_id, command.target_id);
     let mut target_effects = Vec::new();
     let mut is_kill = false;
     if let Some(effect) = try_attack(state, command.attacker_id, command.target_id) {
@@ -159,7 +158,8 @@ fn execute_attack_internal(
     }
     let mut timed_effects = Vec::new();
     let status = if target_effects.is_empty() {
-        target_effects.push(effect::Dodge { dir }.into());
+        let attacker_pos = state.parts().pos.get(command.attacker_id).0;
+        target_effects.push(effect::Dodge { attacker_pos }.into());
         AttackStatus::Miss
     } else {
         if !is_kill {
@@ -827,16 +827,16 @@ fn wound_break_kill(
 ) -> Effect {
     let parts = state.parts();
     let strength = parts.strength.get(id).strength;
-    let dir = None; // Let's assume that this is not a directed attack.
+    let attacker_pos = None; // Let's assume that this is not a directed attack.
     if strength > damage {
         effect::Wound {
             damage,
             armor_break,
-            dir,
+            attacker_pos,
         }
         .into()
     } else {
-        effect::Kill { dir }.into()
+        effect::Kill { attacker_pos }.into()
     }
 }
 
@@ -858,23 +858,13 @@ pub fn hit_chance(state: &State, attacker_id: Id, target_id: Id) -> (i32, i32) {
     (k_min, k_max)
 }
 
-fn dir_between_objects(state: &State, id_a: Id, id_b: Id) -> Option<Dir> {
-    let pos_a = state.parts().pos.get(id_a).0;
-    let pos_b = state.parts().pos.get(id_b).0;
-    if map::distance_hex(pos_a, pos_b).0 > 1 {
-        // TODO: detect approximate direction even for greater distances
-        None
-    } else {
-        Some(Dir::get_dir_from_to(pos_a, pos_b))
-    }
-}
-
 fn try_attack(state: &State, attacker_id: Id, target_id: Id) -> Option<Effect> {
     let parts = state.parts();
     let agent_attacker = state.parts().agent.get(attacker_id);
     let target_strength = parts.strength.get(target_id).strength;
     let target_armor = state::get_armor(state, target_id);
     let attack_strength = agent_attacker.attack_strength;
+    let attacker_pos = Some(state.parts().pos.get(attacker_id).0);
     let (k_min, k_max) = hit_chance(state, attacker_id, target_id);
     if state.deterministic_mode() {
         // I want to be sure that I either will totally miss
@@ -896,16 +886,15 @@ fn try_attack(state: &State, attacker_id: Id, target_id: Id) -> Option<Effect> {
     }
     let damage = correct_damage_with_armor(state, target_id, damage);
     let attack_break = utils::clamp_max(agent_attacker.attack_break, target_armor);
-    let dir = dir_between_objects(state, attacker_id, target_id);
     let effect = if target_strength > damage {
         effect::Wound {
             damage,
             armor_break: attack_break,
-            dir,
+            attacker_pos,
         }
         .into()
     } else {
-        effect::Kill { dir }.into()
+        effect::Kill { attacker_pos }.into()
     };
     Some(effect)
 }
@@ -1235,7 +1224,7 @@ mod tests {
             effect::{self, Effect},
             Id,
         },
-        map::Dir,
+        map::PosHex,
     };
 
     use super::ExecuteContext;
@@ -1263,14 +1252,17 @@ mod tests {
     #[test]
     fn test_merge_with_hashmap() {
         let mut instant_effects1 = Vec::new();
-        let dir = Some(Dir::East);
-        let effect_kill: Effect = effect::Kill { dir }.into();
+        let attacker_pos = PosHex { q: 0, r: 0 };
+        let effect_kill: Effect = effect::Kill {
+            attacker_pos: Some(attacker_pos),
+        }
+        .into();
         instant_effects1.push((Id(0), vec![effect_kill.clone(), Effect::Stun]));
         let mut context1 = ExecuteContext {
             instant_effects: instant_effects1,
             ..Default::default()
         };
-        let effect_dodge = effect::Dodge { dir };
+        let effect_dodge = effect::Dodge { attacker_pos };
         let mut instant_effects2 = Vec::new();
         instant_effects2.push((Id(0), vec![Effect::Vanish, effect_dodge.clone().into()]));
         let context2 = ExecuteContext {

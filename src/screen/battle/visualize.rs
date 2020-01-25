@@ -20,7 +20,7 @@ use crate::{
             execute::{hit_chance, ApplyPhase},
             state, Id, PlayerId, State,
         },
-        map::{Dir, PosHex},
+        map::PosHex,
     },
     geom,
     screen::battle::view::BattleView,
@@ -121,19 +121,20 @@ fn show_blood_particles(
     view: &mut BattleView,
     context: &mut Context,
     pos: PosHex,
-    from: Option<Dir>,
+    from: Option<PosHex>,
     particles_count: i32,
 ) -> ZResult<Box<dyn Action>> {
     let point_origin = geom::hex_to_point(view.tile_size(), pos);
     let mut actions = Vec::new();
     for _ in 0..particles_count {
-        let point = if let Some(dir) = from {
-            let pos_neighbor = Dir::get_neighbor_pos(pos, dir);
-            geom::hex_to_point(view.tile_size(), pos_neighbor)
-                + geom::rand_tile_offset(view.tile_size(), 0.8)
+        let offset = if let Some(from) = from {
+            let from = geom::hex_to_point(view.tile_size(), from);
+            let diff = (point_origin - from).normalize() * view.tile_size();
+            diff + geom::rand_tile_offset(view.tile_size(), 0.8)
         } else {
-            point_origin + geom::rand_tile_offset(view.tile_size(), 1.7)
+            geom::rand_tile_offset(view.tile_size(), 1.7)
         };
+        let point = point_origin + offset;
         let color = [0.7, 0.0, 0.0, 0.6].into();
         let visible = color;
         let invisible = Color { a: 0.0, ..visible };
@@ -334,6 +335,19 @@ fn up_and_down_move(
         action::MoveBy::new(sprite, down_slow, duration_0_25).boxed(),
         action::MoveBy::new(sprite, down_fast, duration_0_25).boxed(),
     ])
+}
+
+fn move_object_with_shadow(
+    view: &mut BattleView,
+    id: Id,
+    diff: Vector2<f32>,
+    time_to: Duration,
+) -> Box<dyn Action> {
+    let sprite = view.id_to_sprite(id).clone();
+    let sprite_shadow = view.id_to_shadow_sprite(id).clone();
+    let action_sprite_move_to = action::MoveBy::new(&sprite, diff, time_to).boxed();
+    let action_shadow_move_to = action::MoveBy::new(&sprite_shadow, diff, time_to).boxed();
+    seq(vec![fork(action_shadow_move_to), action_sprite_move_to])
 }
 
 fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2<f32>) -> Box<dyn Action> {
@@ -562,7 +576,6 @@ fn visualize_event_move_to(
     event: &event::MoveTo,
 ) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(event.id).clone();
-    let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
     let mut actions = Vec::new();
     if let [pos] = event.path.tiles() {
         let action = fork(seq(vec![
@@ -580,12 +593,9 @@ fn visualize_event_move_to(
         let step_height = view.tile_size() * 0.25;
         let step_time = time_s(0.13);
         let move_time = time_s(0.3);
-        let main_move = action::MoveBy::new(&sprite, diff, move_time).boxed();
-        let shadow_move = action::MoveBy::new(&sprite_shadow, diff, move_time).boxed();
         let action = seq(vec![
             action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed(),
-            fork(main_move),
-            fork(shadow_move),
+            fork(move_object_with_shadow(view, event.id, diff, move_time)),
             up_and_down_move(view, &sprite, step_height, step_time),
             up_and_down_move(view, &sprite, step_height, step_time),
         ]);
@@ -600,15 +610,15 @@ fn visualize_event_attack(
     context: &mut Context,
     event: &event::Attack,
 ) -> ZResult<Box<dyn Action>> {
-    let sprite = view.id_to_sprite(event.attacker_id).clone();
-    let sprite_shadow = view.id_to_shadow_sprite(event.attacker_id).clone();
+    let id = event.attacker_id;
+    let sprite = view.id_to_sprite(id).clone();
     let map_to = state.parts().pos.get(event.target_id).0;
     let to = geom::hex_to_point(view.tile_size(), map_to);
-    let map_from = state.parts().pos.get(event.attacker_id).0;
+    let map_from = state.parts().pos.get(id).0;
     let from = geom::hex_to_point(view.tile_size(), map_from);
     let diff = (to - from) / 2.0;
     let mut actions = Vec::new();
-    let chances = hit_chance(state, event.attacker_id, event.target_id);
+    let chances = hit_chance(state, id, event.target_id);
     let attack_msg = format!("{}%", chances.1 * 10);
     actions.push(attack_message(view, context, from, &attack_msg)?);
     actions.push(action::Sleep::new(time_s(0.1)).boxed());
@@ -618,10 +628,6 @@ fn visualize_event_attack(
     }
     let time_to = time_s(0.1);
     let time_from = time_s(0.15);
-    let action_sprite_move_to = action::MoveBy::new(&sprite, diff, time_to).boxed();
-    let action_shadow_move_to = action::MoveBy::new(&sprite_shadow, diff, time_to).boxed();
-    let action_sprite_move_from = action::MoveBy::new(&sprite, -diff, time_from).boxed();
-    let action_shadow_move_from = action::MoveBy::new(&sprite_shadow, -diff, time_from).boxed();
     let facing_opt = geom::Facing::from_positions(view.tile_size(), map_from, map_to);
     if let Some(facing) = facing_opt {
         actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
@@ -629,8 +635,7 @@ fn visualize_event_attack(
     if sprite.has_frame("attack") {
         actions.push(action::SetFrame::new(&sprite, "attack").boxed());
     }
-    actions.push(fork(action_shadow_move_to));
-    actions.push(action_sprite_move_to);
+    actions.push(move_object_with_shadow(view, id, diff, time_to));
     actions.push(show_weapon_flash(
         view,
         context,
@@ -638,8 +643,7 @@ fn visualize_event_attack(
         event.weapon_type,
         facing_opt,
     )?);
-    actions.push(fork(action_shadow_move_from));
-    actions.push(action_sprite_move_from);
+    actions.push(move_object_with_shadow(view, id, -diff, time_from));
     if sprite.has_frame("attack") {
         actions.push(action::SetFrame::new(&sprite, "").boxed());
     }
@@ -725,16 +729,12 @@ fn visualize_event_use_ability_dash(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
-    let sprite_object = view.id_to_sprite(event.id).clone();
-    let sprite_shadow = view.id_to_shadow_sprite(event.id).clone();
     let from = state.parts().pos.get(event.id).0;
-    let from = geom::hex_to_point(view.tile_size(), from);
-    let to = geom::hex_to_point(view.tile_size(), event.pos);
-    let diff = to - from;
+    let point_from = geom::hex_to_point(view.tile_size(), from);
+    let point_to = geom::hex_to_point(view.tile_size(), event.pos);
+    let diff = point_to - point_from;
     let time = time_s(0.1);
-    let main_move = action::MoveBy::new(&sprite_object, diff, time).boxed();
-    let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
-    Ok(seq(vec![fork(action_move_shadow), main_move]))
+    Ok(move_object_with_shadow(view, event.id, diff, time))
 }
 
 fn visualize_event_use_ability_heal(
@@ -1003,7 +1003,7 @@ fn visualize_effect_kill(
     let particles_count = 6;
     let pos = state.parts().pos.get(target_id).0;
     Ok(fork(seq(vec![
-        show_blood_particles(view, context, pos, effect.dir, particles_count)?,
+        show_blood_particles(view, context, pos, effect.attacker_pos, particles_count)?,
         message(view, context, pos, "killed")?,
         vanish(view, target_id),
         show_blood_spot(view, context, pos)?,
@@ -1083,7 +1083,7 @@ fn visualize_effect_wound(
             view,
             context,
             pos,
-            effect.dir,
+            effect.attacker_pos,
             particles_count,
         )?);
     }
@@ -1103,18 +1103,13 @@ fn visualize_effect_knockback(
     if effect.from == effect.to {
         return message(view, context, effect.from, "Resisted knockback");
     }
-    let sprite = view.id_to_sprite(target_id).clone();
-    let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     let from = geom::hex_to_point(view.tile_size(), effect.from);
     let to = geom::hex_to_point(view.tile_size(), effect.to);
     let diff = to - from;
     let time = time_s(0.15);
-    let action_main_move = action::MoveBy::new(&sprite, diff, time).boxed();
-    let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
     Ok(fork(seq(vec![
         message(view, context, effect.to, "bump")?,
-        fork(action_move_shadow),
-        action_main_move,
+        move_object_with_shadow(view, target_id, diff, time),
     ])))
 }
 
@@ -1175,22 +1170,10 @@ fn visualize_effect_dodge(
     let time_from = time_s(0.3);
     let mut actions = Vec::new();
     actions.push(message(view, context, pos, "dodged")?);
-    if let Some(dir) = effect.dir {
-        // TODO: code duplication with visualize_event_attack?
-        let sprite = view.id_to_sprite(target_id).clone();
-        let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
-        let pos_b = Dir::get_neighbor_pos(pos, dir);
-        let point_a = geom::hex_to_point(view.tile_size(), pos);
-        let point_b = geom::hex_to_point(view.tile_size(), pos_b);
-        let diff = (point_b - point_a) * 0.3;
-        let action_sprite_move_to = action::MoveBy::new(&sprite, diff, time_to).boxed();
-        let action_shadow_move_to = action::MoveBy::new(&sprite_shadow, diff, time_to).boxed();
-        let action_sprite_move_from = action::MoveBy::new(&sprite, -diff, time_from).boxed();
-        let action_shadow_move_from = action::MoveBy::new(&sprite_shadow, -diff, time_from).boxed();
-        actions.push(fork(action_shadow_move_to));
-        actions.push(action_sprite_move_to);
-        actions.push(fork(action_shadow_move_from));
-        actions.push(action_sprite_move_from);
-    }
+    let point_a = geom::hex_to_point(view.tile_size(), pos);
+    let point_b = geom::hex_to_point(view.tile_size(), effect.attacker_pos);
+    let diff = (point_a - point_b).normalize() * view.tile_size() * 0.5;
+    actions.push(move_object_with_shadow(view, target_id, diff, time_to));
+    actions.push(move_object_with_shadow(view, target_id, -diff, time_from));
     Ok(seq(actions))
 }
