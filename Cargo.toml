@@ -6,6 +6,9 @@ edition = "2018"
 license = "MIT/Apache-2.0"
 description = "A 2D turn-based hexagonal tactical game."
 
+[profile.dev.package."*"]
+opt-level = 3
+
 [workspace]
 members = ["zcomponents", "ggwp-zgui", "ggwp-zscene"]
 
