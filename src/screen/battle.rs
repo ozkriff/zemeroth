@@ -2,10 +2,10 @@ use std::{sync::mpsc::Sender, time::Duration};
 
 use ggez::{
     graphics::{self, Font, Text},
-    nalgebra::Point2,
     Context,
 };
 use log::{debug, info};
+use nalgebra::Point2;
 use scene::{action, Action, Boxed};
 use ui::{self, Gui};
 

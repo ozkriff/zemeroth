@@ -165,12 +165,13 @@ cargo run --release
 ## WebAssembly
 
 ```bash
-cargo install cargo-web
+rustup target add wasm32-unknown-unknown
 ./utils/wasm/build.sh
-cargo web start
+cargo install basic-http-server
+basic-http-server static
 ```
 
-Then open `http://localhost:8000` in your browser.
+Then open `http://localhost:4000` in your browser.
 
 The WASM version of the game uses
 [not-fl3/good-web-game](https://github.com/not-fl3/good-web-game):

@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use rand::{seq::SliceRandom, thread_rng};
+use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
     battle::{component::ObjType, scenario::Scenario, state::BattleResult, PlayerId},
-    utils,
+    utils::{self, zrng},
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
@@ -204,7 +204,7 @@ impl State {
                 for agent in &self.agents {
                     for (agent_type, agent_info) in &self.agent_info {
                         if agent_type == agent {
-                            if let Some(upgrade) = agent_info.upgrades.choose(&mut thread_rng()) {
+                            if let Some(upgrade) = agent_info.upgrades.choose(&mut zrng()) {
                                 let from = agent.clone();
                                 let to = upgrade.clone();
                                 upgrade_candidates.push(Action::Upgrade { from, to });
@@ -213,7 +213,7 @@ impl State {
                     }
                 }
                 let amount = 2;
-                for action in upgrade_candidates.choose_multiple(&mut thread_rng(), amount) {
+                for action in upgrade_candidates.choose_multiple(&mut zrng(), amount) {
                     self.actions.push(action.clone());
                 }
             }

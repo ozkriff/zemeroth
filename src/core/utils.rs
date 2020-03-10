@@ -1,9 +1,14 @@
 use std::fmt::Debug;
 
-use rand::{seq::SliceRandom, thread_rng};
+use qrand::compat::QuadRand;
+use rand::seq::SliceRandom;
+
+pub fn zrng() -> impl rand::Rng {
+    QuadRand
+}
 
 pub fn shuffle_vec<T>(mut vec: Vec<T>) -> Vec<T> {
-    vec.shuffle(&mut thread_rng());
+    vec.shuffle(&mut zrng());
     vec
 }
 

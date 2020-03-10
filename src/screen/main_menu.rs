@@ -5,10 +5,10 @@ use std::{
 
 use ggez::{
     graphics::{Font, Text},
-    nalgebra::Point2,
     Context,
 };
 use log::debug;
+use nalgebra::Point2;
 use scene::Sprite;
 use ui::{self, Gui};
 

@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use ggez::{nalgebra::Vector2, timer};
+use ggez::timer;
+use nalgebra::Vector2;
 
 use crate::{Action, Sprite};
 
