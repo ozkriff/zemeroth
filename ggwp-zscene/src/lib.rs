@@ -1,5 +1,3 @@
-#![warn(bare_trait_objects)]
-
 #[cfg(not(target_arch = "wasm32"))]
 extern crate ggez;
 #[cfg(target_arch = "wasm32")]

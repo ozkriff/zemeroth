@@ -85,8 +85,6 @@
 //! assert!(!storage.is_exist(id0));
 //! ```
 
-#![warn(bare_trait_objects)]
-
 use std::{
     collections::{hash_map, HashMap},
     default::Default,
