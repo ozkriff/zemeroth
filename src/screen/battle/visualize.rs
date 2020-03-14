@@ -29,7 +29,9 @@ use crate::{
     ZResult,
 };
 
-const BLOOD_SPRITE_DURATION: i32 = 6;
+const BLOOD_SPRITE_DURATION_TURNS: i32 = 6; // TODO: i32 -> Turns, Rounds, etc
+const TIME_LUNGE_TO: f32 = 0.1;
+const TIME_LUNGE_FROM: f32 = 0.15;
 
 pub fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
     action::Sequence::new(actions).boxed()
@@ -153,7 +155,7 @@ fn show_blood_particles(
             action::Hide::new(&view.layers().flares, &sprite).boxed(),
             action::Show::new(&layer, &sprite).boxed(),
         ])));
-        view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION, visible.a);
+        view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION_TURNS, visible.a);
     }
     Ok(fork(seq(actions)))
 }
@@ -173,7 +175,7 @@ fn show_blood_spot(
     let color_final: Color = [1.0, 1.0, 1.0, 1.0].into();
     let time = time_s(0.3);
     let layer = view.layers().blood.clone();
-    view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION, color_final.a);
+    view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION_TURNS, color_final.a);
     Ok(seq(vec![
         action::Show::new(&layer, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite, color_final, time).boxed(),
@@ -194,7 +196,8 @@ fn show_explosion_ground_mark(
     sprite.set_color([1.0, 1.0, 1.0, 1.0].into());
     sprite.set_pos(view.hex_to_point(at));
     let layer = view.layers().blood.clone();
-    view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION, sprite.color().a);
+    let duration = BLOOD_SPRITE_DURATION_TURNS;
+    view.add_disappearing_sprite(&layer, &sprite, duration, sprite.color().a);
     Ok(action::Show::new(&layer, &sprite).boxed())
 }
 
@@ -604,6 +607,21 @@ fn visualize_event_move_to(
     Ok(seq(actions))
 }
 
+fn lunge(state: &State, view: &mut BattleView, id: Id, to: PosHex) -> ZResult<Box<dyn Action>> {
+    let from = state.parts().pos.get(id).0;
+    let diff = (view.hex_to_point(to) - view.hex_to_point(from)) / 2.0;
+    let mut actions = Vec::new();
+    if let Some(facing) = geom::Facing::from_positions(view.tile_size(), from, to) {
+        let sprite = view.id_to_sprite(id).clone();
+        actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
+    }
+    let time_to = time_s(TIME_LUNGE_TO);
+    let time_from = time_s(TIME_LUNGE_FROM);
+    actions.push(move_object_with_shadow(view, id, diff, time_to));
+    actions.push(move_object_with_shadow(view, id, -diff, time_from));
+    Ok(seq(actions))
+}
+
 fn visualize_event_attack(
     state: &State,
     view: &mut BattleView,
@@ -626,8 +644,8 @@ fn visualize_event_attack(
         actions.push(action::Sleep::new(time_s(0.3)).boxed());
         actions.push(message(view, context, map_from, "reaction")?);
     }
-    let time_to = time_s(0.1);
-    let time_from = time_s(0.15);
+    let time_to = time_s(TIME_LUNGE_TO);
+    let time_from = time_s(TIME_LUNGE_FROM);
     let facing_opt = geom::Facing::from_positions(view.tile_size(), map_from, map_to);
     if let Some(facing) = facing_opt {
         actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
@@ -769,6 +787,24 @@ fn visualize_event_use_ability_rage(
     ])))
 }
 
+fn visualize_event_use_ability_knockback(
+    state: &State,
+    view: &mut BattleView,
+    _: &mut Context,
+    event: &event::UseAbility,
+) -> ZResult<Box<dyn Action>> {
+    lunge(state, view, event.id, event.pos)
+}
+
+fn visualize_event_use_ability_club(
+    state: &State,
+    view: &mut BattleView,
+    _: &mut Context,
+    event: &event::UseAbility,
+) -> ZResult<Box<dyn Action>> {
+    lunge(state, view, event.id, event.pos)
+}
+
 fn visualize_event_use_ability_explode(
     state: &State,
     view: &mut BattleView,
@@ -850,6 +886,10 @@ fn visualize_event_use_ability(
         Ability::Bloodlust => visualize_event_use_ability_bloodlust(state, view, context, event)?,
         Ability::Heal(_) => visualize_event_use_ability_heal(state, view, context, event)?,
         Ability::Rage(_) => visualize_event_use_ability_rage(state, view, context, event)?,
+        Ability::Knockback(_) => {
+            visualize_event_use_ability_knockback(state, view, context, event)?
+        }
+        Ability::Club => visualize_event_use_ability_club(state, view, context, event)?,
         Ability::ExplodePush
         | Ability::ExplodeDamage
         | Ability::ExplodeFire
