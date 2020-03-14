@@ -29,7 +29,7 @@ use crate::{
     ZResult,
 };
 
-const BLOOD_SPRITE_DURATION: i32 = 6;
+const BLOOD_SPRITE_DURATION_TURNS: i32 = 6; // TODO: i32 -> Turns, Rounds, etc
 
 pub fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
     action::Sequence::new(actions).boxed()
@@ -153,7 +153,7 @@ fn show_blood_particles(
             action::Hide::new(&view.layers().flares, &sprite).boxed(),
             action::Show::new(&layer, &sprite).boxed(),
         ])));
-        view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION, visible.a);
+        view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION_TURNS, visible.a);
     }
     Ok(fork(seq(actions)))
 }
@@ -173,7 +173,7 @@ fn show_blood_spot(
     let color_final: Color = [1.0, 1.0, 1.0, 1.0].into();
     let time = time_s(0.3);
     let layer = view.layers().blood.clone();
-    view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION, color_final.a);
+    view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION_TURNS, color_final.a);
     Ok(seq(vec![
         action::Show::new(&layer, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite, color_final, time).boxed(),
@@ -194,7 +194,8 @@ fn show_explosion_ground_mark(
     sprite.set_color([1.0, 1.0, 1.0, 1.0].into());
     sprite.set_pos(view.hex_to_point(at));
     let layer = view.layers().blood.clone();
-    view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION, sprite.color().a);
+    let duration = BLOOD_SPRITE_DURATION_TURNS;
+    view.add_disappearing_sprite(&layer, &sprite, duration, sprite.color().a);
     Ok(action::Show::new(&layer, &sprite).boxed())
 }
 
