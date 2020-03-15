@@ -228,15 +228,9 @@ impl Campaign {
     }
 
     fn clean_ui(&mut self) -> ZResult {
-        if let Some(button) = self.button_start_battle.take() {
-            self.gui.remove(&button)?;
-        }
-        if let Some(panel) = self.layout.take() {
-            self.gui.remove(&panel)?;
-        }
-        if let Some(label) = self.label_central_message.take() {
-            self.gui.remove(&label)?;
-        }
+        utils::remove_widget(&mut self.gui, &mut self.layout)?;
+        utils::remove_widget(&mut self.gui, &mut self.button_start_battle)?;
+        utils::remove_widget(&mut self.gui, &mut self.label_central_message)?;
         Ok(())
     }
 

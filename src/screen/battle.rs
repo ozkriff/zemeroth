@@ -346,12 +346,8 @@ impl Battle {
     }
 
     fn remove_selected_highlighted_tiles_and_widgets(&mut self) -> ZResult {
-        if let Some(panel) = self.panel_info.take() {
-            self.gui.remove(&panel)?;
-        }
-        if let Some(panel) = self.panel_abilities.take() {
-            self.gui.remove(&panel)?;
-        }
+        utils::remove_widget(&mut self.gui, &mut self.panel_info)?;
+        utils::remove_widget(&mut self.gui, &mut self.panel_abilities)?;
         if self.selected_agent_id.is_some() {
             self.view.remove_highlights();
         }
