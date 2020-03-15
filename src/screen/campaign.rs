@@ -175,7 +175,7 @@ impl Campaign {
                         format!("- [Recruit {} for {}r]", agent_type.0, cost.0)
                     }
                     Action::Upgrade { from, to } => {
-                        format!("- [Upgrade {} to {} for {}r ]", from.0, to.0, cost.0)
+                        format!("- [Upgrade {} to {} for {}r]", from.0, to.0, cost.0)
                     }
                 };
                 if cost.0 <= self.state.renown().0 {
