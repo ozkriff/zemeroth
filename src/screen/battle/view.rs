@@ -314,7 +314,7 @@ impl BattleView {
         }
     }
 
-    fn remove_highlights(&mut self) {
+    pub fn remove_highlights(&mut self) {
         self.clean_highlighted_tiles();
         self.clean_labels();
     }
