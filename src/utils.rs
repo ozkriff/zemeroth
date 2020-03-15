@@ -72,3 +72,10 @@ pub fn line_heights() -> LineHeights {
         large: 1.0 / 6.0,
     }
 }
+
+pub fn remove_widget<M: Clone>(gui: &mut ui::Gui<M>, widget: &mut Option<ui::RcWidget>) -> ZResult {
+    if let Some(w) = widget.take() {
+        gui.remove(&w)?;
+    }
+    Ok(())
+}

@@ -336,12 +336,7 @@ impl Battle {
     }
 
     fn deselect(&mut self) -> ZResult {
-        if let Some(panel) = self.panel_info.take() {
-            self.gui.remove(&panel)?;
-        }
-        if let Some(panel) = self.panel_abilities.take() {
-            self.gui.remove(&panel)?;
-        }
+        self.remove_selected_highlighted_tiles_and_widgets()?;
         if self.selected_agent_id.is_some() {
             self.view.deselect();
         }
@@ -350,8 +345,20 @@ impl Battle {
         Ok(())
     }
 
+    fn remove_selected_highlighted_tiles_and_widgets(&mut self) -> ZResult {
+        utils::remove_widget(&mut self.gui, &mut self.panel_info)?;
+        utils::remove_widget(&mut self.gui, &mut self.panel_abilities)?;
+        if self.selected_agent_id.is_some() {
+            self.view.remove_highlights();
+        }
+        Ok(())
+    }
+
     fn set_mode(&mut self, context: &mut Context, id: Id, mode: SelectionMode) -> ZResult {
-        self.deselect()?;
+        match mode {
+            SelectionMode::Normal => self.deselect()?,
+            SelectionMode::Ability(_) => self.remove_selected_highlighted_tiles_and_widgets()?,
+        }
         if self.state.parts().agent.get_opt(id).is_none() {
             // This object is not an agent or dead.
             return Ok(());
