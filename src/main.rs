@@ -28,7 +28,7 @@ struct MainState {
 impl MainState {
     fn new(context: &mut Context) -> ZResult<Self> {
         let start_screen = Box::new(screen::MainMenu::new(context)?);
-        let screens = screen::Screens::new(start_screen);
+        let screens = screen::Screens::new(context, start_screen)?;
         let mut this = Self { screens };
         {
             let (w, h) = graphics::drawable_size(context);
@@ -41,7 +41,9 @@ impl MainState {
         let aspect_ratio = w / h;
         let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
         graphics::set_screen_coordinates(context, coordinates).expect("Can't resize the window");
-        self.screens.resize(aspect_ratio);
+        self.screens
+            .resize(context, aspect_ratio)
+            .expect("Can't resize screens");
     }
 }
 
@@ -102,7 +104,7 @@ fn main() -> ZResult {
     const APP_ID: &str = "zemeroth";
     const APP_AUTHOR: &str = "ozkriff";
     const ASSETS_DIR_NAME: &str = "assets";
-    const ASSETS_HASHSUM: &str = "e88f751df539821f0e7e72b918170bcd";
+    const ASSETS_HASHSUM: &str = "cf0e1e21e434c36e1d896d6c26b03204";
 
     fn enable_backtrace() {
         if std::env::var("RUST_BACKTRACE").is_err() {

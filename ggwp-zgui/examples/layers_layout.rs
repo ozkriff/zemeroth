@@ -1,6 +1,6 @@
 use ggez::{
     conf, event,
-    graphics::{self, Font, Text},
+    graphics::{self, Font, Image, Text},
     nalgebra::Point2,
     Context, ContextBuilder, GameResult,
 };
@@ -9,17 +9,16 @@ use ggwp_zgui as ui;
 #[derive(Clone, Copy, Debug)]
 enum Message {
     Command1,
-    Command2,
 }
 
 fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
     let font_size = 64.0;
     let mut gui = ui::Gui::new(context);
-    let text_1 = Box::new(Text::new(("[Button1]", font, font_size)));
-    let text_2 = Box::new(Text::new(("[Button2]", font, font_size)));
-    let button_1 = ui::Button::new(context, text_1, 0.2, gui.sender(), Message::Command1)?;
-    let button_2 = ui::Button::new(context, text_2, 0.2, gui.sender(), Message::Command2)?;
-    let mut layout = ui::VLayout::new();
+    let text = Box::new(Text::new(("text", font, font_size)));
+    let image = Box::new(Image::new(context, "/fire.png")?);
+    let button_1 = ui::Button::new(context, image, 0.2, gui.sender(), Message::Command1)?;
+    let button_2 = ui::Label::new(context, text, 0.1)?;
+    let mut layout = ui::LayersLayout::new();
     layout.add(Box::new(button_1));
     layout.add(Box::new(button_2));
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
@@ -56,10 +55,6 @@ impl event::EventHandler for State {
         graphics::present(context)
     }
 
-    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
-        self.resize(context, w, h);
-    }
-
     fn mouse_button_up_event(
         &mut self,
         context: &mut Context,
@@ -71,6 +66,10 @@ impl event::EventHandler for State {
         let pos = ui::window_to_screen(context, window_pos);
         let message = self.gui.click(pos);
         println!("[{},{}] -> {}: {:?}", x, y, pos, message);
+    }
+
+    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
+        self.resize(context, w, h);
     }
 }
 

@@ -71,6 +71,7 @@ pub fn message(
     Ok(fork(seq(vec![fork(action_move), action_show_hide])))
 }
 
+// TODO: Add some bg? Text is not that readable atm.
 fn announce(
     view: &mut BattleView,
     context: &mut Context,
@@ -904,7 +905,7 @@ fn visualize_event_use_ability(
         _ => action::Empty::new().boxed(),
     };
     let pos = state.parts().pos.get(event.id).0;
-    let text = event.ability.to_string();
+    let text = event.ability.title();
     let mut actions = Vec::new();
     if let Some(facing) = geom::Facing::from_positions(view.tile_size(), pos, event.pos) {
         let sprite = view.id_to_sprite(event.id).clone();

@@ -1,6 +1,10 @@
-use std::{io::Read, path::Path, process, time::Duration};
+use std::{io::Read, path::Path, process, sync::mpsc::Receiver, time::Duration};
 
-use ggez::{filesystem::Filesystem, graphics::Font, Context};
+use ggez::{
+    filesystem::Filesystem,
+    graphics::{Font, Rect},
+    Context,
+};
 use log::{error, info};
 use serde::de::DeserializeOwned;
 
@@ -73,9 +77,43 @@ pub fn line_heights() -> LineHeights {
     }
 }
 
+pub fn wrap_widget_and_add_bg(
+    context: &mut Context,
+    w: Box<dyn ui::Widget>,
+) -> ZResult<ui::LayersLayout> {
+    let bg = ui::ColoredRect::new(context, ui::SPRITE_COLOR_BG, w.rect())?;
+    let mut layers = ui::LayersLayout::new();
+    layers.add(Box::new(bg));
+    layers.add(w);
+    Ok(layers)
+}
+
+pub fn pack_widget_into_offset_table(w: Box<dyn ui::Widget>, offset: f32) -> Box<dyn ui::Widget> {
+    let spacer = || {
+        ui::Spacer::new(Rect {
+            w: offset,
+            h: offset,
+            ..Default::default()
+        })
+    };
+    let mut layout_h = ui::HLayout::new();
+    layout_h.add(Box::new(spacer()));
+    layout_h.add(w);
+    layout_h.add(Box::new(spacer()));
+    let mut layout_v = ui::VLayout::new();
+    layout_v.add(Box::new(spacer()));
+    layout_v.add(Box::new(layout_h));
+    layout_v.add(Box::new(spacer()));
+    Box::new(layout_v)
+}
+
 pub fn remove_widget<M: Clone>(gui: &mut ui::Gui<M>, widget: &mut Option<ui::RcWidget>) -> ZResult {
     if let Some(w) = widget.take() {
         gui.remove(&w)?;
     }
     Ok(())
+}
+
+pub fn try_receive<Message>(opt_rx: &Option<Receiver<Message>>) -> Option<Message> {
+    opt_rx.as_ref().and_then(|rx| rx.try_recv().ok())
 }

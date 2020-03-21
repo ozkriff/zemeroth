@@ -14,8 +14,8 @@ enum Message {
 
 fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
-    let text_1 = Box::new(Text::new(("[Button1]", font, 32.0)));
-    let text_2 = Box::new(Text::new(("[Button1]", font, 64.0)));
+    let text_1 = Box::new(Text::new(("Button1", font, 32.0)));
+    let text_2 = Box::new(Text::new(("Button1", font, 64.0)));
     let button_1 = ui::Button::new(context, text_1, 0.2, gui.sender(), Message::Command1)?;
     let button_2 = ui::Button::new(context, text_2, 0.2, gui.sender(), Message::Command2)?;
     let mut layout = ui::VLayout::new();

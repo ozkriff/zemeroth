@@ -15,13 +15,13 @@ use crate::{
     core::{
         battle::{
             component::{ObjType, Prototypes},
-            scenario,
+            scenario::{self, BattleType},
             state::BattleResult,
             PlayerId,
         },
         campaign::{Action, Mode, State},
     },
-    screen::{self, Screen, Transition},
+    screen::{self, Screen, StackCommand},
     utils, ZResult,
 };
 
@@ -35,12 +35,30 @@ enum Message {
 
 const FONT_SIZE: f32 = utils::font_size();
 
-fn basic_gui(context: &mut Context, font: Font) -> ZResult<Gui<Message>> {
-    let mut gui = Gui::new(context);
+/// Big vertical spacer.
+fn spacer_v() -> Box<dyn ui::Widget> {
     let h = utils::line_heights().big;
+    Box::new(ui::Spacer::new_vertical(h))
+}
+
+/// Small vertical spacer.
+fn spacer_v_small() -> Box<dyn ui::Widget> {
+    let h = utils::line_heights().big / 8.0;
+    Box::new(ui::Spacer::new_vertical(h))
+}
+
+/// Horizontal spacer.
+fn spacer_h() -> Box<dyn ui::Widget> {
+    let h = utils::line_heights().big;
+    Box::new(ui::Spacer::new_horizontal(h / 4.0))
+}
+
+fn basic_gui(context: &mut Context) -> ZResult<Gui<Message>> {
+    let mut gui = Gui::new(context);
+    let h = utils::line_heights().large;
     let button_menu = {
-        let text = Box::new(Text::new(("[exit]", font, FONT_SIZE)));
-        ui::Button::new(context, text, h, gui.sender(), Message::Menu)?
+        let icon = Box::new(graphics::Image::new(context, "/icon_menu.png")?);
+        ui::Button::new(context, icon, h, gui.sender(), Message::Menu)?
     };
     let mut layout = ui::VLayout::new();
     layout.add(Box::new(button_menu));
@@ -58,39 +76,22 @@ fn add_agents_panel(
     let mut layout = ui::VLayout::new();
     let h = utils::line_heights().big;
     layout.add(label(context, font, "Your group consists of:")?);
+    layout.add(spacer_v_small());
     for agent_type in agents {
         let mut line = ui::HLayout::new();
         line.add(label(context, font, &format!("- {}", agent_type.0))?);
         line.add(spacer_h());
         {
-            let text = Box::new(Text::new(("[i]", font, FONT_SIZE)));
+            let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
             let message = Message::AgentInfo(agent_type.clone());
-            let button = ui::Button::new(context, text, h, gui.sender(), message)?;
+            let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
             line.add(Box::new(button));
         }
         layout.add(Box::new(line));
+        layout.add(spacer_v_small());
     }
+    let layout = utils::wrap_widget_and_add_bg(context, Box::new(layout))?;
     Ok(Box::new(layout))
-}
-
-fn spacer() -> Box<dyn ui::Widget> {
-    let h = utils::line_heights().big;
-    let rect = graphics::Rect {
-        h,
-        ..Default::default()
-    };
-    Box::new(ui::Spacer::new(rect))
-}
-
-/// Horizontal spacer.
-fn spacer_h() -> Box<dyn ui::Widget> {
-    let h = utils::line_heights().big;
-    let rect = graphics::Rect {
-        w: h / 2.0,
-        h: 0.0,
-        ..Default::default()
-    };
-    Box::new(ui::Spacer::new(rect))
 }
 
 fn label(context: &mut Context, font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
@@ -99,14 +100,20 @@ fn label(context: &mut Context, font: Font, text: &str) -> ZResult<Box<dyn ui::W
     Ok(Box::new(ui::Label::new(context, text, h)?))
 }
 
+fn label_bg(context: &mut Context, font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
+    let h = utils::line_heights().big;
+    let text = Box::new(Text::new((text, font, FONT_SIZE)));
+    Ok(Box::new(ui::Label::new_with_bg(context, text, h)?))
+}
+
 #[derive(Debug)]
 pub struct Campaign {
     state: State,
     font: graphics::Font,
-    receiver: Option<Receiver<BattleResult>>,
+    receiver_battle_result: Option<Receiver<Option<BattleResult>>>,
+    receiver_exit_confirmation: Option<Receiver<screen::confirm::Message>>,
     gui: Gui<Message>,
     layout: Option<ui::RcWidget>,
-    button_start_battle: Option<ui::RcWidget>,
     label_central_message: Option<ui::RcWidget>,
 }
 
@@ -116,14 +123,14 @@ impl Campaign {
         let upgrades = utils::deserialize_from_file(context, "/agent_campaign_info.ron")?;
         let state = State::new(plan, upgrades);
         let font = utils::default_font(context);
-        let gui = basic_gui(context, font)?;
+        let gui = basic_gui(context)?;
         let mut this = Self {
             gui,
             font,
             state,
-            receiver: None,
+            receiver_battle_result: None,
+            receiver_exit_confirmation: None,
             layout: None,
-            button_start_battle: None,
             label_central_message: None,
         };
         this.set_mode(context, Mode::PreparingForBattle)?;
@@ -140,78 +147,88 @@ impl Campaign {
         Ok(())
     }
 
+    // TODO: Wrap the list into `ScrollArea`
     fn set_mode_preparing(&mut self, context: &mut Context) -> ZResult {
         let mut layout = ui::VLayout::new();
         let h = utils::line_heights().big;
         let casualties = self.state.last_battle_casualties();
         if !casualties.is_empty() {
-            layout.add(label(
-                context,
-                self.font,
-                "In the last battle you have lost:",
-            )?);
-            for agent_type in casualties {
-                let text = &format!("- {} (killed)", agent_type.0);
-                layout.add(label(context, self.font, text)?);
-            }
+            let layout_casualties = {
+                let mut layout = ui::VLayout::new();
+                let section_title = "In the last battle you have lost:";
+                layout.add(label(context, self.font, section_title)?);
+                for agent_type in casualties {
+                    let text = &format!("- {} (killed)", agent_type.0);
+                    layout.add(label(context, self.font, text)?);
+                    layout.add(spacer_v_small());
+                }
+                utils::wrap_widget_and_add_bg(context, Box::new(layout))?
+            };
+            layout.add(Box::new(layout_casualties));
+            layout.add(spacer_v());
         }
-        layout.add(spacer());
-        let panel = add_agents_panel(context, self.font, &mut self.gui, self.state.agents())?;
-        layout.add(panel);
-        layout.add(spacer());
-        layout.add(label(
-            context,
-            self.font,
-            &format!("Your renown is: {}", self.state.renown().0),
-        )?);
-        layout.add(spacer());
-        layout.add(label(context, self.font, &"Actions:")?);
-        for action in self.state.available_actions() {
-            let mut line = ui::HLayout::new();
-            {
-                let cost = self.state.action_cost(action);
+        let agents_panel =
+            add_agents_panel(context, self.font, &mut self.gui, self.state.agents())?;
+        layout.add(agents_panel);
+        layout.add(spacer_v());
+        let renown_text = &format!("Your renown is: {}", self.state.renown().0);
+        layout.add(label_bg(context, self.font, renown_text)?);
+        layout.add(spacer_v());
+        let layout_actions = {
+            let mut layout = ui::VLayout::new();
+            layout.add(label(context, self.font, "Actions:")?);
+            layout.add(spacer_v_small());
+            for action in self.state.available_actions() {
+                let mut line = ui::HLayout::new();
+                let action_cost = self.state.action_cost(action);
                 let text = match action {
                     Action::Recruit { agent_type } => {
-                        format!("- [Recruit {} for {}r]", agent_type.0, cost.0)
+                        format!("Recruit {} for {}r", agent_type.0, action_cost.0)
                     }
                     Action::Upgrade { from, to } => {
-                        format!("- [Upgrade {} to {} for {}r]", from.0, to.0, cost.0)
+                        format!("Upgrade {} to {} for {}r", from.0, to.0, action_cost.0)
                     }
                 };
-                if cost.0 <= self.state.renown().0 {
+                {
                     let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
                     let sender = self.gui.sender();
                     let message = Message::Action(action.clone());
-                    let button = ui::Button::new(context, text, h, sender, message)?;
+                    let mut button = ui::Button::new(context, text, h, sender, message)?;
+                    if action_cost.0 > self.state.renown().0 {
+                        button.set_active(false);
+                    }
                     line.add(Box::new(button));
-                } else {
-                    line.add(label(context, self.font, &text)?);
                 }
+                line.add(spacer_h());
+                {
+                    let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+                    let message = match action {
+                        Action::Recruit { agent_type, .. } => {
+                            Message::AgentInfo(agent_type.clone())
+                        }
+                        Action::Upgrade { to, .. } => Message::AgentInfo(to.clone()),
+                    };
+                    let sender = self.gui.sender();
+                    let button = ui::Button::new(context, icon, h, sender, message)?;
+                    line.add(Box::new(button));
+                }
+                layout.add(Box::new(line));
+                layout.add(spacer_v_small());
             }
-            line.add(spacer_h());
             {
-                let text = Box::new(Text::new(("[i]", self.font, FONT_SIZE)));
-                let message = match action {
-                    Action::Recruit { agent_type, .. } => Message::AgentInfo(agent_type.clone()),
-                    Action::Upgrade { to, .. } => Message::AgentInfo(to.clone()),
-                };
-                let sender = self.gui.sender();
-                let button = ui::Button::new(context, text, h, sender, message)?;
-                line.add(Box::new(button));
+                let text = &format!(
+                    "Start battle - {}/{}",
+                    self.state.current_scenario_index() + 1,
+                    self.state.scenarios_count()
+                );
+                let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
+                let command = Message::StartBattle;
+                let button = ui::Button::new(context, text, h, self.gui.sender(), command)?;
+                layout.add(Box::new(button));
             }
-            layout.add(Box::new(line));
-        }
-        {
-            let text = &format!(
-                "- [Start battle - {}/{}]",
-                self.state.current_scenario_index() + 1,
-                self.state.scenarios_count()
-            );
-            let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
-            let button =
-                ui::Button::new(context, text, h, self.gui.sender(), Message::StartBattle)?;
-            layout.add(Box::new(button));
-        }
+            utils::wrap_widget_and_add_bg(context, Box::new(layout))?
+        };
+        layout.add(Box::new(layout_actions));
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         let layout = ui::pack(layout);
         self.gui.add(&layout, anchor);
@@ -229,7 +246,6 @@ impl Campaign {
 
     fn clean_ui(&mut self) -> ZResult {
         utils::remove_widget(&mut self.gui, &mut self.layout)?;
-        utils::remove_widget(&mut self.gui, &mut self.button_start_battle)?;
         utils::remove_widget(&mut self.gui, &mut self.label_central_message)?;
         Ok(())
     }
@@ -237,23 +253,16 @@ impl Campaign {
     fn add_label_central_message(&mut self, context: &mut Context, text: &str) -> ZResult {
         let h = utils::line_heights().large;
         let text = Box::new(Text::new((text, self.font, FONT_SIZE)));
-        let label = ui::pack(ui::Label::new(context, text, h)?);
+        let label = ui::pack(ui::Label::new_with_bg(context, text, h)?);
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         self.gui.add(&label, anchor);
         self.label_central_message = Some(label);
         Ok(())
     }
 
-    fn try_get_battle_result(&self) -> Option<BattleResult> {
-        if let Some(ref receiver) = self.receiver {
-            receiver.try_recv().ok()
-        } else {
-            None
-        }
-    }
-
     fn start_battle(&mut self, context: &mut Context) -> ZResult<Box<dyn Screen>> {
         let mut scenario = self.state.scenario().clone();
+        // TODO: extract a function for this? add_player_agents_to_scenario?
         for typename in self.state.agents() {
             scenario.objects.push(scenario::ObjectsGroup {
                 owner: Some(PlayerId(0)),
@@ -263,23 +272,34 @@ impl Campaign {
             });
         }
         let (sender, receiver) = channel();
-        self.receiver = Some(receiver);
+        self.receiver_battle_result = Some(receiver);
         let prototypes = Prototypes::from_str(&utils::read_file(context, "/objects.ron")?);
-        let screen = screen::Battle::new(context, scenario, prototypes, sender)?;
+        let battle_type = BattleType::CampaignNode;
+        let screen = screen::Battle::new(context, scenario, battle_type, prototypes, sender)?;
         Ok(Box::new(screen))
     }
 }
 
 impl Screen for Campaign {
-    fn update(&mut self, context: &mut Context, _dtime: Duration) -> ZResult<Transition> {
-        if let Some(result) = self.try_get_battle_result() {
-            self.state
-                .report_battle_results(&result)
-                .expect("Campaign: Can't report battle results");
-            let new_mode = self.state.mode();
-            self.set_mode(context, new_mode)?;
+    fn update(&mut self, context: &mut Context, _dtime: Duration) -> ZResult<StackCommand> {
+        if let Some(result) = utils::try_receive(&self.receiver_battle_result) {
+            if let Some(result) = result {
+                self.state
+                    .report_battle_results(&result)
+                    .expect("Campaign: Can't report battle results");
+                let new_mode = self.state.mode();
+                self.set_mode(context, new_mode)?;
+            } else {
+                // None result means that the player has abandoned the campaign battle.
+                // This means abandoning the campaign too.
+                return Ok(StackCommand::Pop);
+            }
         };
-        Ok(Transition::None)
+        if screen::confirm::try_receive_yes(&self.receiver_exit_confirmation) {
+            Ok(StackCommand::Pop)
+        } else {
+            Ok(StackCommand::None)
+        }
     }
 
     fn draw(&self, context: &mut Context) -> ZResult {
@@ -291,7 +311,7 @@ impl Screen for Campaign {
         self.gui.resize(aspect_ratio);
     }
 
-    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<Transition> {
+    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
         info!(
             "screen::Campaign: click: pos={:?}, message={:?}",
@@ -300,21 +320,35 @@ impl Screen for Campaign {
         match message {
             Some(Message::StartBattle) => {
                 let screen = self.start_battle(context)?;
-                Ok(Transition::Push(screen))
+                Ok(StackCommand::PushScreen(screen))
             }
             Some(Message::Action(action)) => {
-                self.state.exectute_action(action);
-                let new_mode = self.state.mode();
-                self.set_mode(context, new_mode)?;
-                Ok(Transition::None)
+                let cost = self.state.action_cost(&action);
+                if cost.0 <= self.state.renown().0 {
+                    self.state.exectute_action(action);
+                    let new_mode = self.state.mode();
+                    self.set_mode(context, new_mode)?;
+                }
+                Ok(StackCommand::None)
             }
-            Some(Message::Menu) => Ok(Transition::Pop),
+            Some(Message::Menu) => {
+                // Ask only if the player hasn't won or failed, otherwise just pop the screen.
+                if self.state.mode() == Mode::PreparingForBattle {
+                    let (sender, receiver) = channel();
+                    self.receiver_exit_confirmation = Some(receiver);
+                    let screen =
+                        screen::Confirm::from_line(context, "Abandon the campaign?", sender)?;
+                    Ok(StackCommand::PushPopup(Box::new(screen)))
+                } else {
+                    Ok(StackCommand::Pop)
+                }
+            }
             Some(Message::AgentInfo(typename)) => {
                 let prototypes = Prototypes::from_str(&utils::read_file(context, "/objects.ron")?);
-                let screen = screen::AgentInfo::new(context, prototypes, &typename)?;
-                Ok(Transition::Push(Box::new(screen)))
+                let popup_screen = screen::AgentInfo::new(context, prototypes, &typename)?;
+                Ok(StackCommand::PushPopup(Box::new(popup_screen)))
             }
-            None => Ok(Transition::None),
+            None => Ok(StackCommand::None),
         }
     }
 
