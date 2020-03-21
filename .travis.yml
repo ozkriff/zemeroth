@@ -54,8 +54,7 @@ jobs:
   - name: wasm
     rust: stable
     install:
-      - cargo install cargo-web
-      - cargo web -V
+      - rustup target add wasm32-unknown-unknown
     script:
       - git clone --depth=1 https://github.com/ozkriff/zemeroth_assets assets
       - ./utils/wasm/build.sh

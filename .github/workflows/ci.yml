@@ -146,23 +146,15 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Install cargo-web
-        run: |
-          CARGO_WEB_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/koute/cargo-web/releases/latest)
-          CARGO_WEB_VERSION=$(echo $CARGO_WEB_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
-          CARGO_WEB_HOST_TRIPLE="x86_64-unknown-linux-gnu"
-          CARGO_WEB_URL="https://github.com/koute/cargo-web/releases/download/$CARGO_WEB_VERSION/cargo-web-$CARGO_WEB_HOST_TRIPLE.gz"
-
-          echo "Downloading cargo-web from: $CARGO_WEB_URL"
-          curl -L $CARGO_WEB_URL | gzip -d > cargo-web
-          chmod +x cargo-web
-
-          mkdir -p ~/.cargo/bin
-          mv cargo-web ~/.cargo/bin
+      - name: Checkout assets
+        uses: actions/checkout@v2
+        with:
+          repository: ozkriff/zemeroth_assets
+          path: assets
 
       - name: Build
         run: |
-          cargo web build
+          ./utils/wasm/build.sh
 
   nightly:
     name: Nightly

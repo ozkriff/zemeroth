@@ -2,12 +2,11 @@ use std::time::Duration;
 
 use ggez::{
     graphics::{Color, Text},
-    nalgebra,
-    nalgebra::{Point2, Vector2},
     Context,
 };
 use log::{debug, info};
-use rand::{thread_rng, Rng};
+use nalgebra::{self, Point2, Vector2};
+use rand::Rng;
 use scene::{action, Action, Boxed, Facing, Sprite};
 
 use crate::{
@@ -21,6 +20,7 @@ use crate::{
             state, Id, PlayerId, State,
         },
         map::PosHex,
+        utils::zrng,
     },
     geom,
     screen::battle::view::BattleView,
@@ -140,7 +140,7 @@ fn show_blood_particles(
         let color = [0.7, 0.0, 0.0, 0.6].into();
         let visible = color;
         let invisible = Color { a: 0.0, ..visible };
-        let scale = thread_rng().gen_range(0.05, 0.15);
+        let scale = zrng().gen_range(0.05, 0.15);
         let size = view.tile_size() * 2.0 * scale;
         let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size)?;
         sprite.set_centered(true);
@@ -219,15 +219,15 @@ fn show_dust(
 ) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for i in 0..count {
-        let k = thread_rng().gen_range(0.8, 1.2);
+        let k = zrng().gen_range(0.8, 1.2);
         let visible = [0.8 * k, 0.8 * k, 0.7 * k, 0.8 * k].into();
         let invisible = Color { a: 0.0, ..visible };
-        let scale = thread_rng().gen_range(0.2, 0.4);
+        let scale = zrng().gen_range(0.2, 0.4);
         let size = view.tile_size() * 2.0 * scale;
         let vector = {
             let max = std::f32::consts::PI * 2.0;
             let rot = nalgebra::Rotation2::new((max / count as f32) * i as f32);
-            let n = thread_rng().gen_range(0.4, 0.6);
+            let n = zrng().gen_range(0.4, 0.6);
             let mut vector = rot * Vector2::new(view.tile_size() * n, 0.0);
             vector.y *= geom::FLATNESS_COEFFICIENT;
             vector

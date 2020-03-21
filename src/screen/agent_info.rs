@@ -2,9 +2,9 @@ use std::{collections::HashMap, time::Duration};
 
 use ggez::{
     graphics::{self, Text},
-    nalgebra::Point2,
     Context,
 };
+use nalgebra::Point2;
 use scene::Sprite;
 use ui::{self, Gui};
 

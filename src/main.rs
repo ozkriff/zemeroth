@@ -8,9 +8,9 @@ extern crate good_web_game as ggez;
 use ggez::{
     conf, event,
     graphics::{self, Rect},
-    nalgebra::Point2,
     Context, GameResult,
 };
+use nalgebra::Point2;
 
 mod core;
 mod error;
@@ -92,6 +92,7 @@ impl event::EventHandler for MainState {
     fn key_down_event(&mut self, _: &mut Context, _: event::KeyCode, _: event::KeyMods, _: bool) {}
 }
 
+// TODO: merge with the wasm version once the migration to good-web-game is done.
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> ZResult {
     use ggez::filesystem::Filesystem;
@@ -159,13 +160,11 @@ fn main() -> ZResult {
 fn main() -> GameResult {
     ggez::start(
         conf::Conf {
-            cache: conf::Cache::Index,
+            // See utils/wasm/build.sh
+            cache: ggez::conf::Cache::Tar(include_bytes!("../assets.tar").to_vec()),
             loading: conf::Loading::Embedded,
             ..Default::default()
         },
-        |mut context| {
-            let state = MainState::new(&mut context).unwrap();
-            event::run(context, state)
-        },
+        |mut context| Box::new(MainState::new(&mut context).unwrap()),
     )
 }

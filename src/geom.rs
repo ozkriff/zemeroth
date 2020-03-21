@@ -1,7 +1,10 @@
-use ggez::nalgebra::{Point2, Vector2};
-use rand::{thread_rng, Rng};
+use nalgebra::{Point2, Vector2};
+use rand::Rng;
 
-use crate::core::map::{hex_round, PosHex};
+use crate::core::{
+    map::{hex_round, PosHex},
+    utils::zrng,
+};
 
 const SQRT_OF_3: f32 = 1.732_05;
 
@@ -26,8 +29,8 @@ pub fn rand_tile_offset(size: f32, radius: f32) -> Vector2<f32> {
     assert!(radius >= 0.0);
     let r = size * radius;
     Vector2::new(
-        thread_rng().gen_range(-r, r),
-        thread_rng().gen_range(-r, r) * FLATNESS_COEFFICIENT,
+        zrng().gen_range(-r, r),
+        zrng().gen_range(-r, r) * FLATNESS_COEFFICIENT,
     )
 }
 

@@ -2,10 +2,10 @@ use std::{collections::HashMap, default::Default, time::Duration};
 
 use ggez::{
     graphics::{Color, Font, Image, Text},
-    nalgebra::Point2,
     Context,
 };
-use rand::{thread_rng, Rng};
+use nalgebra::Point2;
+use rand::Rng;
 use scene::{action, Action, Boxed, Layer, Scene, Sprite};
 
 use crate::{
@@ -15,6 +15,7 @@ use crate::{
             Jokers, Moves, State, TileType,
         },
         map::{self, Distance, HexMap, PosHex},
+        utils::zrng,
     },
     geom::{self, hex_to_point},
     screen::battle::visualize,
@@ -546,7 +547,7 @@ pub fn make_action_create_map(
     let mut actions = Vec::new();
     for hex_pos in state.map().iter() {
         actions.push(make_action_show_tile(state, context, view, hex_pos)?);
-        if thread_rng().gen_range(0, 10) < 2 {
+        if zrng().gen_range(0, 10) < 2 {
             actions.push(make_action_grass(context, view, hex_pos)?);
         }
     }

@@ -2,9 +2,9 @@ use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::
 
 use ggez::{
     graphics::{self, Drawable, Rect},
-    nalgebra::{Point2, Vector2},
     Context, GameResult,
 };
+use nalgebra::{Point2, Vector2};
 
 use crate::{Error, Result};
 

@@ -5,10 +5,10 @@ use std::{
 
 use ggez::{
     graphics::{self, Font, Text},
-    nalgebra::Point2,
     Context,
 };
 use log::info;
+use nalgebra::Point2;
 use ui::{self, Gui};
 
 use crate::{

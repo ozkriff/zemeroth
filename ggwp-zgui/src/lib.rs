@@ -13,10 +13,10 @@ use std::{
 
 use ggez::{
     graphics::{self, Color, Drawable, Image, Rect},
-    nalgebra::Point2,
     Context, GameResult,
 };
 use log::{debug, info};
+use nalgebra::Point2;
 
 pub use error::Error;
 
