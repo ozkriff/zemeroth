@@ -14,6 +14,12 @@ use crate::core::{
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum BattleType {
+    Skirmish,
+    CampaignNode,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ObjectsGroup {
     pub owner: Option<PlayerId>,
     pub typename: ObjType,

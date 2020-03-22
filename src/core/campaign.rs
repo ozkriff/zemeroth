@@ -24,6 +24,8 @@ pub enum Mode {
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, derive_more::From)]
 pub struct Renown(pub i32);
 
+// TODO: impl `Add` and `Sub` traits for `Renown`.
+
 /// An award that is given to the player after the successful battle.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Award {

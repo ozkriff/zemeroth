@@ -29,14 +29,14 @@ fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
     }
     {
         let text = Box::new(Text::new(("label", font, font_size)));
-        let label = ui::Label::new(context, text, 0.1)?;
+        let label = ui::Label::new_with_bg(context, text, 0.1)?;
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Bottom);
         gui.add(&ui::pack(label), anchor);
     }
     let v_layout_1 = {
-        let text_a = Box::new(Text::new(("[A]", font, font_size)));
-        let text_b = Box::new(Text::new(("[A]", font, font_size)));
-        let text_c = Box::new(Text::new(("[A]", font, font_size)));
+        let text_a = Box::new(Text::new(("A", font, font_size)));
+        let text_b = Box::new(Text::new(("A", font, font_size)));
+        let text_c = Box::new(Text::new(("A", font, font_size)));
         let button_a = ui::Button::new(context, text_a, 0.1, gui.sender(), Message::A)?;
         let button_b = ui::Button::new(context, text_b, 0.1, gui.sender(), Message::B)?;
         let button_c = ui::Button::new(context, text_c, 0.1, gui.sender(), Message::C)?;
@@ -48,9 +48,9 @@ fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
     };
     let v_layout_2 = {
         let image_i = Box::new(Image::new(context, "/fire.png")?);
-        let text_x = Box::new(Text::new(("[X]", font, font_size)));
-        let text_y = Box::new(Text::new(("[Y]", font, font_size)));
-        let text_z = Box::new(Text::new(("[Z]", font, font_size)));
+        let text_x = Box::new(Text::new(("X", font, font_size)));
+        let text_y = Box::new(Text::new(("Y", font, font_size)));
+        let text_z = Box::new(Text::new(("Z", font, font_size)));
         let button_i = ui::Button::new(context, image_i, 0.1, gui.sender(), Message::Image)?;
         let button_x = ui::Button::new(context, text_x, 0.1, gui.sender(), Message::X)?;
         let button_y = ui::Button::new(context, text_y, 0.1, gui.sender(), Message::Y)?;
@@ -63,8 +63,8 @@ fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
         layout
     };
     {
-        let text_a = Box::new(Text::new(("[A]", font, font_size)));
-        let text_b = Box::new(Text::new(("[A]", font, font_size)));
+        let text_a = Box::new(Text::new(("A", font, font_size)));
+        let text_b = Box::new(Text::new(("A", font, font_size)));
         let image_i = Box::new(Image::new(context, "/fire.png")?);
         let button_a = ui::Button::new(context, text_a, 0.1, gui.sender(), Message::A)?;
         let button_b = ui::Button::new(context, text_b, 0.1, gui.sender(), Message::B)?;

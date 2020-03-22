@@ -9,8 +9,11 @@ use scene::Sprite;
 use ui::{self, Gui};
 
 use crate::{
-    core::battle::component::{self, Component, ObjType, Prototypes},
-    screen::{Screen, Transition},
+    core::battle::{
+        ability::{Ability, PassiveAbility},
+        component::{self, Component, ObjType, Prototypes},
+    },
+    screen::{self, ability_info::ActiveOrPassiveAbility, Screen, StackCommand},
     sprite_info::SpriteInfo,
     utils, ZResult,
 };
@@ -54,9 +57,11 @@ impl StaticObjectInfo {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 enum Message {
     Back,
+    AbilityInfo(Ability),
+    PassiveAbilityInfo(PassiveAbility),
 }
 
 #[derive(Debug)]
@@ -79,76 +84,121 @@ impl AgentInfo {
         let font_size = utils::font_size();
         let proto = &prototypes.0[&typename];
         let info = StaticObjectInfo::new(&typename, proto);
-        {
-            let text = Box::new(Text::new(("[back]", font, font_size)));
-            let button = ui::Button::new(context, text, h, gui.sender(), Message::Back)?;
-            let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
-            gui.add(&ui::pack(button), anchor);
-        }
+
         let mut layout = ui::VLayout::new();
         {
-            let mut line = |text: &str| -> ZResult {
+            let label = |context: &mut Context, text: &str| -> ZResult<Box<dyn ui::Widget>> {
                 let text = Box::new(Text::new((text, font, font_size)));
-                let label = ui::Label::new(context, text, h)?;
-                layout.add(Box::new(label));
-                Ok(())
+                Ok(Box::new(ui::Label::new(context, text, h)?))
             };
+            let mut add = |w| layout.add(w);
+            let spacer = || Box::new(ui::Spacer::new_vertical(h * 0.5));
+
             if let Some(meta) = info.meta {
-                line(&format!("name: '{}'", meta.name.0))?;
+                add(label(context, &format!("name: '{}'", meta.name.0))?);
+                add(spacer());
             }
             if let Some(strength) = info.strength {
-                line(&format!("strength: {}", strength.base_strength.0))?;
+                add(label(
+                    context,
+                    &format!("strength: {}", strength.base_strength.0),
+                )?);
             }
             if let Some(blocker) = info.blocker {
-                line(&format!("weight: {}", blocker.weight))?;
+                add(label(context, &format!("weight: {}", blocker.weight))?);
             }
             if let Some(agent) = info.agent {
-                line(&format!("attacks: {}", agent.base_attacks.0))?;
-                line(&format!("moves: {}", agent.base_moves.0))?;
+                add(label(
+                    context,
+                    &format!("attacks: {}", agent.base_attacks.0),
+                )?);
+                add(label(context, &format!("moves: {}", agent.base_moves.0))?);
                 if agent.base_jokers.0 != 0 {
-                    line(&format!("jokers: {}", agent.base_jokers.0))?;
+                    add(label(context, &format!("jokers: {}", agent.base_jokers.0))?);
                 }
                 if agent.reactive_attacks.0 != 0 {
-                    line(&format!("reactive attacks: {}", agent.reactive_attacks.0))?;
+                    add(label(
+                        context,
+                        &format!("reactive attacks: {}", agent.reactive_attacks.0),
+                    )?);
                 }
                 if agent.attack_distance.0 != 1 {
-                    line(&format!("attack distance: {}", agent.attack_distance.0))?;
+                    add(label(
+                        context,
+                        &format!("attack distance: {}", agent.attack_distance.0),
+                    )?);
                 }
-                line(&format!("attack strength: {}", agent.attack_strength.0))?;
-                line(&format!("attack accuracy: {}", agent.attack_accuracy.0))?;
+                add(label(
+                    context,
+                    &format!("attack strength: {}", agent.attack_strength.0),
+                )?);
+                add(label(
+                    context,
+                    &format!("attack accuracy: {}", agent.attack_accuracy.0),
+                )?);
                 if agent.attack_break.0 > 0 {
-                    line(&format!("armor break: {}", agent.attack_break.0))?;
+                    add(label(
+                        context,
+                        &format!("armor break: {}", agent.attack_break.0),
+                    )?);
                 }
                 if agent.dodge.0 > 0 {
-                    line(&format!("dodge: {}", agent.dodge.0))?;
+                    add(label(context, &format!("dodge: {}", agent.dodge.0))?);
                 }
-                line(&format!("move points: {}", agent.move_points.0))?;
+                add(label(
+                    context,
+                    &format!("move points: {}", agent.move_points.0),
+                )?);
             }
             if let Some(armor) = info.armor {
                 let armor = armor.armor.0;
                 if armor != 0 {
-                    line(&format!("armor: {}", armor))?;
+                    add(label(context, &format!("armor: {}", armor))?);
                 }
             }
             if let Some(abilities) = info.abilities {
                 if !abilities.0.is_empty() {
-                    line("abilities:")?;
+                    add(label(context, "abilities:")?);
                     for ability in &abilities.0 {
-                        let s = ability.ability.to_string();
+                        let s = ability.ability.title();
                         let cooldown = ability.base_cooldown;
-                        line(&format!(" - {} (cooldown: {})", s, cooldown))?;
+                        let text = format!(" - {} (cooldown: {})", s, cooldown);
+                        let mut line_layout = ui::HLayout::new();
+                        line_layout.add(label(context, &text)?);
+                        // TODO: Don't reload images every time, preload them (like object frames)
+                        let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+                        let message = Message::AbilityInfo(ability.ability.clone());
+                        let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
+                        line_layout.add(Box::new(button));
+                        add(Box::new(line_layout));
                     }
                 }
             }
             if let Some(abilities) = info.passive_abilities {
                 if !abilities.0.is_empty() {
-                    line("passive abilities:")?;
-                    for ability in &abilities.0 {
-                        line(&format!(" - {}", ability.to_string()))?;
+                    add(label(context, "passive abilities:")?);
+                    for &ability in &abilities.0 {
+                        let text = format!(" - {}", ability.title());
+                        let mut line_layout = ui::HLayout::new();
+                        line_layout.add(label(context, &text)?);
+                        let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+                        let message = Message::PassiveAbilityInfo(ability);
+                        let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
+                        line_layout.add(Box::new(button));
+                        add(Box::new(line_layout));
                     }
                 }
             }
+            add(spacer());
+            {
+                let text = Box::new(Text::new(("back", font, font_size)));
+                let button = ui::Button::new(context, text, h, gui.sender(), Message::Back)?;
+                add(Box::new(button));
+            }
         }
+
+        let layout = utils::wrap_widget_and_add_bg(context, Box::new(layout))?;
+
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         gui.add(&ui::pack(layout), anchor);
         let agent_sprite = {
@@ -166,8 +216,8 @@ impl AgentInfo {
 }
 
 impl Screen for AgentInfo {
-    fn update(&mut self, _context: &mut Context, _dtime: Duration) -> ZResult<Transition> {
-        Ok(Transition::None)
+    fn update(&mut self, _context: &mut Context, _dtime: Duration) -> ZResult<StackCommand> {
+        Ok(StackCommand::None)
     }
 
     fn draw(&self, context: &mut Context) -> ZResult {
@@ -176,11 +226,21 @@ impl Screen for AgentInfo {
         Ok(())
     }
 
-    fn click(&mut self, _: &mut Context, pos: Point2<f32>) -> ZResult<Transition> {
+    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
         match message {
-            Some(Message::Back) => Ok(Transition::Pop),
-            None => Ok(Transition::None),
+            Some(Message::Back) => Ok(StackCommand::Pop),
+            Some(Message::AbilityInfo(info)) => {
+                let ability = ActiveOrPassiveAbility::Active(info);
+                let screen = screen::AbilityInfo::new(context, ability)?;
+                Ok(StackCommand::PushPopup(Box::new(screen)))
+            }
+            Some(Message::PassiveAbilityInfo(info)) => {
+                let ability = ActiveOrPassiveAbility::Passive(info);
+                let screen = screen::AbilityInfo::new(context, ability)?;
+                Ok(StackCommand::PushPopup(Box::new(screen)))
+            }
+            None => Ok(StackCommand::None),
         }
     }
 

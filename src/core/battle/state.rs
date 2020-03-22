@@ -1,6 +1,9 @@
 use crate::core::{
     battle::{
-        ability::PassiveAbility, component::ObjType, effect, Id, PlayerId, Strength, TileType,
+        self,
+        ability::{self, Ability, PassiveAbility},
+        component::ObjType,
+        effect, Id, PlayerId, Strength, TileType,
     },
     map::{self, PosHex},
     utils,
@@ -183,4 +186,16 @@ pub fn players_agent_types(state: &State, player_id: PlayerId) -> Vec<ObjType> {
         .into_iter()
         .map(|id| state.parts().meta.get(id).name.clone())
         .collect()
+}
+
+pub fn can_agent_use_ability(state: &State, id: Id, ability: &Ability) -> bool {
+    let parts = state.parts();
+    let agent_player_id = parts.belongs_to.get(id).0;
+    let agent = parts.agent.get(id);
+    let has_actions = agent.attacks > battle::Attacks(0) || agent.jokers > battle::Jokers(0);
+    let is_player_agent = agent_player_id == state.player_id();
+    let abilities = &parts.abilities.get(id).0;
+    let r_ability = abilities.iter().find(|r| &r.ability == ability).unwrap();
+    let is_ready = r_ability.status == ability::Status::Ready;
+    is_player_agent && is_ready && has_actions
 }
