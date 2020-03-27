@@ -1,12 +1,8 @@
 #![windows_subsystem = "windows"]
 
-#[cfg(not(target_arch = "wasm32"))]
-extern crate ggez;
-#[cfg(target_arch = "wasm32")]
-extern crate good_web_game as ggez;
-
 use ggez::{
-    conf, event,
+    conf::Conf,
+    event,
     graphics::{self, Rect},
     Context, GameResult,
 };
@@ -18,6 +14,8 @@ mod geom;
 mod screen;
 mod sprite_info;
 mod utils;
+
+const ASSETS_HASHSUM: &str = "cf0e1e21e434c36e1d896d6c26b03204";
 
 type ZResult<T = ()> = Result<T, error::ZError>;
 
@@ -76,11 +74,7 @@ impl event::EventHandler for MainState {
             .expect("Can't handle click event");
     }
 
-    fn mouse_motion_event(&mut self, context: &mut Context, x: f32, y: f32, dx: f32, dy: f32) {
-        if dx.abs() < 1.0 && dy.abs() < 1.0 {
-            // Don't do anything on touch devices
-            return;
-        }
+    fn mouse_motion_event(&mut self, context: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
         let window_pos = Point2::new(x, y);
         let pos = ui::window_to_screen(context, window_pos);
         self.screens
@@ -90,83 +84,41 @@ impl event::EventHandler for MainState {
 
     // This functions just overrides the default implementation,
     // because we don't want to quit from the game on `Esc`.
-    #[cfg(not(target_arch = "wasm32"))] // <- we cant quit in wasm anyway
     fn key_down_event(&mut self, _: &mut Context, _: event::KeyCode, _: event::KeyMods, _: bool) {}
 }
 
-// TODO: merge with the wasm version once the migration to good-web-game is done.
 #[cfg(not(target_arch = "wasm32"))]
-fn main() -> ZResult {
-    use ggez::filesystem::Filesystem;
-    use log::info;
-    use structopt::StructOpt;
+fn conf() -> Conf {
+    Conf {
+        physical_root_dir: Some("assets".into()),
+        ..Default::default()
+    }
+}
 
-    const APP_ID: &str = "zemeroth";
-    const APP_AUTHOR: &str = "ozkriff";
-    const ASSETS_DIR_NAME: &str = "assets";
-    const ASSETS_HASHSUM: &str = "cf0e1e21e434c36e1d896d6c26b03204";
+#[cfg(target_arch = "wasm32")]
+fn conf() -> Conf {
+    Conf {
+        cache: ggez::conf::Cache::Tar(include_bytes!("../assets.tar").to_vec()),
+        loading: ggez::conf::Loading::Embedded,
+        ..Default::default()
+    }
+}
 
-    fn enable_backtrace() {
+fn main() -> ggez::GameResult {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        // std::env isn't supported on WASM.
         if std::env::var("RUST_BACKTRACE").is_err() {
             std::env::set_var("RUST_BACKTRACE", "1");
         }
     }
-
-    fn context() -> GameResult<(Context, event::EventsLoop)> {
-        let window_conf = conf::WindowSetup::default()
-            .title("Zemeroth")
-            .icon("/fire.png");
-        let window_mode = conf::WindowMode::default().resizable(true);
-        ggez::ContextBuilder::new(APP_ID, APP_AUTHOR)
-            .window_setup(window_conf)
-            .window_mode(window_mode)
-            .add_resource_path(ASSETS_DIR_NAME)
-            .build()
-    }
-
-    // TODO: un-comment when GGEZ's issue is fixed (what issue?)
-    fn fs() -> Filesystem {
-        Filesystem::new(APP_ID, APP_AUTHOR).expect("Can't create a filesystem")
-        // let mut fs = Filesystem::new(APP_ID, APP_AUTHOR).expect("Can't create a filesystem");
-        // fs.mount(std::path::Path::new(ASSETS_DIR_NAME), true);
-        // fs
-    }
-
-    #[derive(StructOpt, Debug)]
-    #[structopt(name = "Zemeroth")]
-    struct Options {
-        /// Only check assets' hash
-        #[structopt(long = "check-assets")]
-        check_assets: bool,
-    }
-
-    let opt = Options::from_args();
     env_logger::init();
-    enable_backtrace();
-    info!("Checking assets hash file...");
-    utils::check_assets_hash(&mut fs(), ASSETS_HASHSUM)?;
-    if opt.check_assets {
-        // That's it. We don't need to run the game itself
-        return Ok(());
-    }
-    info!("Creating context...");
-    let (mut context, mut events_loop) = context()?;
-    info!("Creating MainState...");
-    let mut state = MainState::new(&mut context)?;
-    info!("Starting the main loop...");
-    event::run(&mut context, &mut events_loop, &mut state)?;
-    Ok(())
-}
-
-#[cfg(target_arch = "wasm32")]
-fn main() -> GameResult {
-    ggez::start(
-        conf::Conf {
-            // See utils/wasm/build.sh
-            cache: ggez::conf::Cache::Tar(include_bytes!("../assets.tar").to_vec()),
-            loading: conf::Loading::Embedded,
-            ..Default::default()
-        },
-        |mut context| Box::new(MainState::new(&mut context).unwrap()),
-    )
+    ggez::start(conf(), |mut context| {
+        log::info!("Checking assets hash file...");
+        utils::check_assets_hash(context, ASSETS_HASHSUM).expect("Wrong assets check sum");
+        log::info!("Creating MainState...");
+        let state = MainState::new(&mut context).expect("Can't create the main state");
+        log::info!("Starting the main loop...");
+        Box::new(state)
+    })
 }

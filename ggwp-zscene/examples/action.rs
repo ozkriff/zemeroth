@@ -3,10 +3,10 @@ use std::time::Duration;
 use ggez::{
     conf, event,
     graphics::{self, Font, Rect, Text},
-    nalgebra::{Point2, Vector2},
-    {Context, ContextBuilder, GameResult},
+    Context, GameResult,
 };
 use ggwp_zscene::{self as zscene, action, Boxed, Layer, Scene, Sprite};
+use nalgebra::{Point2, Vector2};
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
@@ -110,20 +110,12 @@ impl event::EventHandler for State {
     }
 }
 
-fn context() -> GameResult<(Context, event::EventsLoop)> {
-    let name = file!();
-    let window_conf = conf::WindowSetup::default().title(name);
-    let window_mode = conf::WindowMode::default().resizable(true);
-    ContextBuilder::new(name, "ozkriff")
-        .window_setup(window_conf)
-        .window_mode(window_mode)
-        .add_resource_path("resources")
-        .build()
-}
-
-fn main() -> zscene::Result {
-    let (mut context, mut events_loop) = context()?;
-    let mut state = State::new(&mut context)?;
-    event::run(&mut context, &mut events_loop, &mut state)?;
-    Ok(())
+fn main() -> ggez::GameResult {
+    ggez::start(
+        conf::Conf {
+            physical_root_dir: Some("resources".into()),
+            ..Default::default()
+        },
+        |mut context| Box::new(State::new(&mut context).expect("Can't create the state")),
+    )
 }

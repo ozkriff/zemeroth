@@ -1,10 +1,10 @@
 use ggez::{
     conf, event,
     graphics::{self, Font, Image, Rect, Text},
-    nalgebra::Point2,
-    Context, ContextBuilder, GameResult,
+    Context, GameResult,
 };
 use ggwp_zgui as ui;
+use nalgebra::Point2;
 
 #[derive(Clone, Copy, Debug)]
 enum Message {
@@ -131,20 +131,12 @@ impl event::EventHandler for State {
     }
 }
 
-fn context() -> GameResult<(Context, event::EventsLoop)> {
-    let name = file!();
-    let window_conf = conf::WindowSetup::default().title(name);
-    let window_mode = conf::WindowMode::default().resizable(true);
-    ContextBuilder::new(name, "ozkriff")
-        .window_setup(window_conf)
-        .window_mode(window_mode)
-        .add_resource_path("resources")
-        .build()
-}
-
-fn main() -> ui::Result {
-    let (mut context, mut events_loop) = context()?;
-    let mut state = State::new(&mut context)?;
-    event::run(&mut context, &mut events_loop, &mut state)?;
-    Ok(())
+fn main() -> ggez::GameResult {
+    ggez::start(
+        conf::Conf {
+            physical_root_dir: Some("resources".into()),
+            ..Default::default()
+        },
+        |mut context| Box::new(State::new(&mut context).expect("Can't create the state")),
+    )
 }

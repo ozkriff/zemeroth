@@ -129,7 +129,7 @@ impl Screens {
         Ok(())
     }
 
-    pub fn handle_command(&mut self, context: &mut Context, command: StackCommand) -> ZResult {
+    pub fn handle_command(&mut self, _context: &mut Context, command: StackCommand) -> ZResult {
         match command {
             StackCommand::None => {}
             StackCommand::PushScreen(screen) => {
@@ -144,8 +144,7 @@ impl Screens {
                 } else if self.screens.len() > 1 {
                     self.screens.pop().expect(ERR_MSG_STACK_EMPTY);
                 } else {
-                    #[cfg(not(target_arch = "wasm32"))] // we can't quit wasm anyway
-                    ggez::event::quit(context);
+                    std::process::exit(0);
                 }
             }
             StackCommand::PushPopup(screen) => {

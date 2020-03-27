@@ -36,7 +36,7 @@ jobs:
       - name: Install packages
         run: |
           sudo apt-get update
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install libasound2-dev libudev-dev
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install libx11-dev libxi-dev libgl1-mesa-dev
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
@@ -90,7 +90,7 @@ jobs:
         include:
           - build: Linux
             os: ubuntu-latest
-            packages: libasound2-dev libudev-dev
+            packages: libx11-dev libxi-dev libgl1-mesa-dev
           - build: macOS
             os: macOS-latest
           - build: Win32
@@ -166,7 +166,7 @@ jobs:
 
         include:
           - os: ubuntu-latest
-            packages: libasound2-dev libudev-dev
+            packages: libx11-dev libxi-dev libgl1-mesa-dev
 
     steps:
       - name: Checkout
