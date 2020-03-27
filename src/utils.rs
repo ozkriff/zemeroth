@@ -1,11 +1,10 @@
 use std::{io::Read, path::Path, process, sync::mpsc::Receiver, time::Duration};
 
-use ggez::{
-    filesystem::Filesystem,
+use gwg::{
     graphics::{Font, Rect},
     Context,
 };
-use log::{error, info};
+use log;
 use serde::de::DeserializeOwned;
 
 use crate::{error::ZError, ZResult};
@@ -15,29 +14,22 @@ pub fn time_s(s: f32) -> Duration {
     Duration::from_millis(ms as u64)
 }
 
-pub fn check_assets_hash(_fs: &mut Filesystem, expected: &str) -> ZResult {
-    use std::fs::File;
-    let mut file = File::open("assets/.checksum.md5")?;
-
-    // TODO: un-comment this when https://github.com/ggez/ggez/issues/570 is fixed
-    // let mut file = fs.open("/.checksum.md5")?;
-
-    let mut data = String::new();
-    file.read_to_string(&mut data)?;
+pub fn check_assets_hash(context: &mut Context, expected: &str) -> ZResult {
+    let data = read_file(context, "/.checksum.md5")?;
     let real = data.trim();
     if real != expected {
         let error_code = 1;
-        error!("Bad assets checksum {} (expected {})", real, expected);
+        log::error!("Bad assets checksum {} (expected {})", real, expected);
         process::exit(error_code);
     }
-    info!("Assets checksum is Ok");
+    log::info!("Assets checksum is Ok");
     Ok(())
 }
 
 /// Read a file to a string.
 pub fn read_file<P: AsRef<Path>>(context: &mut Context, path: P) -> ZResult<String> {
     let mut buf = String::new();
-    let mut file = ggez::filesystem::open(context, path)?;
+    let mut file = gwg::filesystem::open(context, path)?;
     file.read_to_string(&mut buf)?;
     Ok(buf)
 }

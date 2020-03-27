@@ -23,15 +23,9 @@ ui = { path = "ggwp-zgui", package = "ggwp-zgui" }
 scene = { path = "ggwp-zscene", package = "ggwp-zscene" }
 zcomponents = { path = "zcomponents" }
 rand = { version = "0.7", features = [] }
-nalgebra = "0.18"
+nalgebra = { version = "0.18", features = ["mint"] }  # TODO: update (or replace with cgmath)
 qrand = { git = "https://github.com/not-fl3/quad-rand", package = "quad-rand", features = ['rand'] }
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-ggez = "0.5.0"
-structopt = "0.3"
-
-[target.wasm32-unknown-unknown.dependencies]
-good-web-game = { git = "https://github.com/not-fl3/good-web-game" }
+gwg = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }
 
 [dev-dependencies]
 pretty_assertions = "0.6"

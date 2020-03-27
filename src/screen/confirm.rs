@@ -3,7 +3,7 @@ use std::{
     time::Duration,
 };
 
-use ggez::{
+use gwg::{
     graphics::{self, Text},
     Context,
 };

@@ -3,7 +3,7 @@
 set -ex
 
 if [ ! -e assets.tar ]; then
-  cd assets && tar cf assets.tar * && cd .. && mv assets/assets.tar .
+  cd assets && tar cf assets.tar * .checksum.md5 && cd .. && mv assets/assets.tar .
 fi
 
 cargo build --target wasm32-unknown-unknown --release

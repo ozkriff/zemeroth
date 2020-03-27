@@ -1,11 +1,6 @@
-#[cfg(not(target_arch = "wasm32"))]
-extern crate ggez;
-#[cfg(target_arch = "wasm32")]
-extern crate good_web_game as ggez;
-
 use std::{cell::RefCell, rc::Rc, time::Duration};
 
-use ggez::{Context, GameResult};
+use gwg::{Context, GameResult};
 
 // TODO: z-order? (https://github.com/ozkriff/zemeroth/issues/319)
 

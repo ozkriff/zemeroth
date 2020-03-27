@@ -1,7 +1,7 @@
 use log::info;
 use std::{fmt::Debug, time::Duration};
 
-use ggez::{
+use gwg::{
     self,
     graphics::{self, Color},
     Context,
@@ -92,7 +92,7 @@ impl Screens {
     }
 
     pub fn update(&mut self, context: &mut Context) -> ZResult {
-        let dtime = ggez::timer::delta(context);
+        let dtime = gwg::timer::delta(context);
         let command = self.screen_mut().top_mut().update(context, dtime)?;
         self.handle_command(context, command)
     }
@@ -129,7 +129,7 @@ impl Screens {
         Ok(())
     }
 
-    pub fn handle_command(&mut self, context: &mut Context, command: StackCommand) -> ZResult {
+    pub fn handle_command(&mut self, _context: &mut Context, command: StackCommand) -> ZResult {
         match command {
             StackCommand::None => {}
             StackCommand::PushScreen(screen) => {
@@ -144,8 +144,7 @@ impl Screens {
                 } else if self.screens.len() > 1 {
                     self.screens.pop().expect(ERR_MSG_STACK_EMPTY);
                 } else {
-                    #[cfg(not(target_arch = "wasm32"))] // we can't quit wasm anyway
-                    ggez::event::quit(context);
+                    std::process::exit(0);
                 }
             }
             StackCommand::PushPopup(screen) => {

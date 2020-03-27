@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::Rc};
 
-use ggez::{
+use gwg::{
     graphics::{self, Drawable, Rect},
     Context, GameResult,
 };

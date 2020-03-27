@@ -136,7 +136,7 @@ Tactical battle mechanics are mostly inspired by these games:
 
 ## Building from Source
 
-Install all [ggez's system dependencies][ggez_sys_deps].
+Install all [miniquad's system dependencies][mq_sys_deps].
 
 ```bash
 # Clone this repo
@@ -154,7 +154,7 @@ cargo build --release
 cargo run --release
 ```
 
-[ggez_sys_deps]: https://github.com/ggez/ggez/blob/a62acaa24/docs/BuildingForEveryPlatform.md
+[mq_sys_deps]: https://github.com/not-fl3/miniquad/tree/faabb54d3#building-examples
 
 ## WebAssembly
 
@@ -167,33 +167,20 @@ basic-http-server static
 
 Then open `http://localhost:4000` in your browser.
 
-The WASM version of the game uses
-[not-fl3/good-web-game](https://github.com/not-fl3/good-web-game):
-
-> [Note](https://github.com/ggez/ggez/issues/71#issuecomment-459875258)
-> that good-web-game is not really GGEZ's backend,
-> but a separate web-targeted engine with a similar API
-> that @not-fl3 uses for his prototypes.
->
-> Zemeroth uses good-web-game for its web version as a quick-n-dirty
-> immediate solution until a proper WASM support arrives to GGEZ
-> (there're no plans of making good-web-game some kind of official GGEZ backend).
->
-> The currently implemented subset of GGEZ API is quite limited
-> and while it may be used for something else that Zemeroth,
-> it will probably require a lot of work to do (contributions are welcome ;) ).
-
 ## Dependencies
 
-The key external dependency of Zemeroth is [ggez] game engine.
+The key external dependency of Zemeroth is [good-web-game]/[miniquad]
+(see [#564 "Migrate to miniquad"]).
 
 This repo contains a bunch of helper crates:
 
 - [zcomponents] is a simple component storage
-- [ggwp-zgui] is a simple and opinionated ggez-based GUI library
+- [ggwp-zgui] is a simple and opinionated GUI library
 - [ggwp-zscene] is a simple scene and declarative animation manager
 
-[ggez]: https://github.com/ggez/ggez
+[good-web-game]: https://github.com/not-fl3/good-web-game
+[miniquad]: https://github.com/not-fl3/miniquad
+[#564 "Migrate to miniquad"]: https://github.com/ozkriff/zemeroth/issues/564
 [zcomponents]: ./zcomponents
 [ggwp-zscene]: ./ggwp-zscene
 [ggwp-zgui]: ./ggwp-zgui

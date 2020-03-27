@@ -1,4 +1,4 @@
-use ggez::graphics::Color;
+use gwg::graphics::Color;
 
 use crate::{Action, Sprite};
 

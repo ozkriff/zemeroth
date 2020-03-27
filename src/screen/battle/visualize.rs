@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ggez::{
+use gwg::{
     graphics::{Color, Text},
     Context,
 };
