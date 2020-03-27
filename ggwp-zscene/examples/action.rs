@@ -1,11 +1,11 @@
 use std::time::Duration;
 
-use ggez::{
+use ggwp_zscene::{self as zscene, action, Boxed, Layer, Scene, Sprite};
+use gwg::{
     conf, event,
     graphics::{self, Font, Rect, Text},
     Context, GameResult,
 };
-use ggwp_zscene::{self as zscene, action, Boxed, Layer, Scene, Sprite};
 use nalgebra::{Point2, Vector2};
 
 #[derive(Debug, Clone, Default)]
@@ -94,7 +94,7 @@ impl State {
 
 impl event::EventHandler for State {
     fn update(&mut self, context: &mut Context) -> GameResult {
-        let dtime = ggez::timer::delta(context);
+        let dtime = gwg::timer::delta(context);
         self.scene.tick(dtime);
         Ok(())
     }
@@ -110,8 +110,8 @@ impl event::EventHandler for State {
     }
 }
 
-fn main() -> ggez::GameResult {
-    ggez::start(
+fn main() -> gwg::GameResult {
+    gwg::start(
         conf::Conf {
             physical_root_dir: Some("resources".into()),
             ..Default::default()

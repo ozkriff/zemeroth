@@ -1,6 +1,6 @@
 use std::{io::Read, path::Path, process, sync::mpsc::Receiver, time::Duration};
 
-use ggez::{
+use gwg::{
     graphics::{Font, Rect},
     Context,
 };
@@ -29,7 +29,7 @@ pub fn check_assets_hash(context: &mut Context, expected: &str) -> ZResult {
 /// Read a file to a string.
 pub fn read_file<P: AsRef<Path>>(context: &mut Context, path: P) -> ZResult<String> {
     let mut buf = String::new();
-    let mut file = ggez::filesystem::open(context, path)?;
+    let mut file = gwg::filesystem::open(context, path)?;
     file.read_to_string(&mut buf)?;
     Ok(buf)
 }

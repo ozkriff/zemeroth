@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ggez::{graphics::Color, timer};
+use gwg::{graphics::Color, timer};
 
 use crate::{Action, Sprite};
 

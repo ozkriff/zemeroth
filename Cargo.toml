@@ -25,7 +25,7 @@ zcomponents = { path = "zcomponents" }
 rand = { version = "0.7", features = [] }
 nalgebra = { version = "0.18", features = ["mint"] }  # TODO: update (or replace with cgmath)
 qrand = { git = "https://github.com/not-fl3/quad-rand", package = "quad-rand", features = ['rand'] }
-ggez = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }
+gwg = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }
 
 [dev-dependencies]
 pretty_assertions = "0.6"

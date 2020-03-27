@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc, time::Duration};
 
-use ggez::{Context, GameResult};
+use gwg::{Context, GameResult};
 
 // TODO: z-order? (https://github.com/ozkriff/zemeroth/issues/319)
 

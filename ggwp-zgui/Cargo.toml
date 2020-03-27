@@ -5,9 +5,9 @@ authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
 description = "Tiny and opionated GUI library"
-keywords = ["ggez", "gamedev", "gui"]
+keywords = ["gamedev", "gui"]
 
 [dependencies]
 log = "0.4"
 nalgebra = { version = "0.18", features = ["mint"] }
-ggez = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }
+gwg = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }

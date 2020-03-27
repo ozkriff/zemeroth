@@ -1,9 +1,9 @@
-use ggez::{
+use ggwp_zgui as ui;
+use gwg::{
     conf, event,
     graphics::{self, Font, Image, Text},
     Context, GameResult,
 };
-use ggwp_zgui as ui;
 use nalgebra::Point2;
 
 #[derive(Clone, Copy, Debug)]
@@ -58,7 +58,7 @@ impl event::EventHandler for State {
     fn mouse_button_up_event(
         &mut self,
         context: &mut Context,
-        _: ggez::event::MouseButton,
+        _: gwg::event::MouseButton,
         x: f32,
         y: f32,
     ) {
@@ -73,8 +73,8 @@ impl event::EventHandler for State {
     }
 }
 
-fn main() -> ggez::GameResult {
-    ggez::start(
+fn main() -> gwg::GameResult {
+    gwg::start(
         conf::Conf {
             physical_root_dir: Some("resources".into()),
             ..Default::default()

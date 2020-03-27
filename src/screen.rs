@@ -1,7 +1,7 @@
 use log::info;
 use std::{fmt::Debug, time::Duration};
 
-use ggez::{
+use gwg::{
     self,
     graphics::{self, Color},
     Context,
@@ -92,7 +92,7 @@ impl Screens {
     }
 
     pub fn update(&mut self, context: &mut Context) -> ZResult {
-        let dtime = ggez::timer::delta(context);
+        let dtime = gwg::timer::delta(context);
         let command = self.screen_mut().top_mut().update(context, dtime)?;
         self.handle_command(context, command)
     }

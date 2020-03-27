@@ -1,6 +1,6 @@
 #![windows_subsystem = "windows"]
 
-use ggez::{
+use gwg::{
     conf::Conf,
     event,
     graphics::{self, Rect},
@@ -63,7 +63,7 @@ impl event::EventHandler for MainState {
     fn mouse_button_up_event(
         &mut self,
         context: &mut Context,
-        _: ggez::event::MouseButton,
+        _: gwg::event::MouseButton,
         x: f32,
         y: f32,
     ) {
@@ -98,13 +98,13 @@ fn conf() -> Conf {
 #[cfg(target_arch = "wasm32")]
 fn conf() -> Conf {
     Conf {
-        cache: ggez::conf::Cache::Tar(include_bytes!("../assets.tar").to_vec()),
-        loading: ggez::conf::Loading::Embedded,
+        cache: gwg::conf::Cache::Tar(include_bytes!("../assets.tar").to_vec()),
+        loading: gwg::conf::Loading::Embedded,
         ..Default::default()
     }
 }
 
-fn main() -> ggez::GameResult {
+fn main() -> gwg::GameResult {
     #[cfg(not(target_arch = "wasm32"))]
     {
         // std::env isn't supported on WASM.
@@ -113,7 +113,7 @@ fn main() -> ggez::GameResult {
         }
     }
     env_logger::init();
-    ggez::start(conf(), |mut context| {
+    gwg::start(conf(), |mut context| {
         log::info!("Checking assets hash file...");
         utils::check_assets_hash(context, ASSETS_HASHSUM).expect("Wrong assets check sum");
         log::info!("Creating MainState...");

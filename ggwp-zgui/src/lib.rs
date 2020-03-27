@@ -7,7 +7,7 @@ use std::{
     sync::mpsc::{channel, Receiver, Sender},
 };
 
-use ggez::{
+use gwg::{
     graphics::{self, Color, Drawable, Rect},
     Context, GameResult,
 };
@@ -39,11 +39,11 @@ pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
 mod error {
     use std::{error::Error as StdError, fmt};
 
-    use ggez::GameError;
+    use gwg::GameError;
 
     #[derive(Debug)]
     pub enum Error {
-        GgezError(GameError),
+        GwgError(GameError),
         BadBorderCoefficient,
         BadContentCoefficient,
         NoDimensions,
@@ -52,7 +52,7 @@ mod error {
     impl fmt::Display for Error {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             match *self {
-                Error::GgezError(ref e) => write!(f, "GGEZ Error: {}", e),
+                Error::GwgError(ref e) => write!(f, "gwg Error: {}", e),
                 Error::BadBorderCoefficient => write!(f, "Border size is too large"),
                 Error::BadContentCoefficient => write!(f, "Content size is too large"),
                 Error::NoDimensions => write!(f, "The drawable has no dimensions"),
@@ -63,7 +63,7 @@ mod error {
     impl StdError for Error {
         fn source(&self) -> Option<&(dyn StdError + 'static)> {
             match *self {
-                Error::GgezError(ref e) => Some(e),
+                Error::GwgError(ref e) => Some(e),
                 Error::BadBorderCoefficient
                 | Error::BadContentCoefficient
                 | Error::NoDimensions => None,
@@ -73,7 +73,7 @@ mod error {
 
     impl From<GameError> for Error {
         fn from(e: GameError) -> Self {
-            Error::GgezError(e)
+            Error::GwgError(e)
         }
     }
 }

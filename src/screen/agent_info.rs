@@ -1,6 +1,6 @@
 use std::{collections::HashMap, time::Duration};
 
-use ggez::{
+use gwg::{
     graphics::{self, Text},
     Context,
 };
