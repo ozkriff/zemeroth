@@ -54,10 +54,10 @@ impl Facing {
         })
     }
 
-    pub fn to_scene_facing(self) -> scene::Facing {
+    pub fn to_scene_facing(self) -> zscene::Facing {
         match self {
-            Facing::Left => scene::Facing::Left,
-            Facing::Right => scene::Facing::Right,
+            Facing::Left => zscene::Facing::Left,
+            Facing::Right => zscene::Facing::Right,
         }
     }
 }

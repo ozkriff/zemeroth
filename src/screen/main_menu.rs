@@ -9,8 +9,8 @@ use gwg::{
     Context,
 };
 use log::debug;
-use scene::Sprite;
 use ui::{self, Gui};
+use zscene::Sprite;
 
 use crate::{
     core::battle::{component::Prototypes, scenario, state},

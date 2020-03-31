@@ -1,6 +1,6 @@
-# `ggwp-zgui`
+# `zgui`
 
-Tiny and opinionated UI library for ggez game engine.
+Tiny and opinionated UI library.
 
 Made for Zemeroth game.
 Historically was part of [Häte](https://docs.rs/hate) crate.
@@ -22,11 +22,3 @@ From simple to complicated:
 - [remove.rs](./examples/remove.rs)
 - [pixel_coordinates.rs](./examples/pixel_coordinates.rs)
 - [absolute_coordinates.rs](./examples/absolute_coordinates.rs)
-
-## What does a `ggwp-` prefix mean?
-
-As Icefoxen asked to [not use `ggez-` prefix][ggwp]
-I use `ggwp-` ("good game, well played!") to denote that the crate
-belongs to ggez ecosystem, but is not official.
-
-[ggwp]: https://github.com/ggez/ggez/issues/373#issuecomment-390461696

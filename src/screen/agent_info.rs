@@ -5,8 +5,8 @@ use gwg::{
     graphics::{self, Text},
     Context,
 };
-use scene::Sprite;
 use ui::{self, Gui};
+use zscene::Sprite;
 
 use crate::{
     core::battle::{

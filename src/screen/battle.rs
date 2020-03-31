@@ -9,8 +9,8 @@ use gwg::{
     Context,
 };
 use log::{debug, info};
-use scene::{action, Action, Boxed};
 use ui::{self, Gui};
+use zscene::{action, Action, Boxed};
 
 use crate::{
     core::{

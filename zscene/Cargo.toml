@@ -1,5 +1,5 @@
 [package]
-name = "ggwp-zscene"
+name = "zscene"
 version = "0.1.0"
 authors = ["Andrey Lesnikov <ozkriff@gmail.com>"]
 edition = "2018"

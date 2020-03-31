@@ -1,10 +1,10 @@
 use cgmath::Point2;
-use ggwp_zgui as ui;
 use gwg::{
     conf, event,
-    graphics::{self, Font, Text},
+    graphics::{self, Font, Rect, Text},
     Context, GameResult,
 };
+use zgui as ui;
 
 #[derive(Clone, Copy, Debug)]
 enum Message {
@@ -15,7 +15,7 @@ enum Message {
 fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     let text_1 = Box::new(Text::new(("Button1", font, 32.0)));
-    let text_2 = Box::new(Text::new(("Button1", font, 64.0)));
+    let text_2 = Box::new(Text::new(("Button2", font, 64.0)));
     let button_1 = ui::Button::new(context, text_1, 0.2, gui.sender(), Message::Command1)?;
     let button_2 = ui::Button::new(context, text_2, 0.2, gui.sender(), Message::Command2)?;
     let mut layout = ui::VLayout::new();
@@ -42,18 +42,18 @@ impl State {
 
     fn resize(&mut self, context: &mut Context, w: f32, h: f32) -> GameResult {
         let aspect_ratio = w / h;
+        let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
+        graphics::set_screen_coordinates(context, coordinates)?;
         self.gui.resize(aspect_ratio);
-        let rect = graphics::Rect::new(0.0, 0.0, w, h);
-        graphics::set_screen_coordinates(context, rect)?;
         Ok(())
     }
 
     fn draw_scene(&self, context: &mut Context) -> GameResult {
         let circle = {
             let mode = graphics::DrawMode::fill();
-            let pos = Point2::new(150.0, 150.0);
-            let radius = 100.0;
-            let tolerance = 2.0;
+            let pos = [0.0, 0.0];
+            let radius = 0.4;
+            let tolerance = 0.001;
             let color = [0.5, 0.5, 0.5, 1.0].into();
             graphics::Mesh::new_circle(context, mode, pos, radius, tolerance, color)?
         };

@@ -1,10 +1,10 @@
 use cgmath::Point2;
-use ggwp_zgui as ui;
 use gwg::{
     conf, event,
     graphics::{self, Font, Image, Text},
     Context, GameResult,
 };
+use zgui as ui;
 
 #[derive(Clone, Copy, Debug)]
 enum Message {

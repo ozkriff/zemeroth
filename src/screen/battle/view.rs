@@ -6,7 +6,7 @@ use gwg::{
     Context,
 };
 use rand::Rng;
-use scene::{action, Action, Boxed, Layer, Scene, Sprite};
+use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
 
 use crate::{
     core::{

@@ -175,15 +175,15 @@ The key external dependency of Zemeroth is [good-web-game]/[miniquad]
 This repo contains a bunch of helper crates:
 
 - [zcomponents] is a simple component storage
-- [ggwp-zgui] is a simple and opinionated GUI library
-- [ggwp-zscene] is a simple scene and declarative animation manager
+- [zgui] is a simple and opinionated GUI library
+- [zscene] is a simple scene and declarative animation manager
 
 [good-web-game]: https://github.com/not-fl3/good-web-game
 [miniquad]: https://github.com/not-fl3/miniquad
 [#564 "Migrate to miniquad"]: https://github.com/ozkriff/zemeroth/issues/564
 [zcomponents]: ./zcomponents
-[ggwp-zscene]: ./ggwp-zscene
-[ggwp-zgui]: ./ggwp-zgui
+[zscene]: zscene
+[zgui]: zgui
 
 ## Contribute
 

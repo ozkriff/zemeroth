@@ -1,10 +1,10 @@
 use cgmath::Point2;
-use ggwp_zgui as ui;
 use gwg::{
     conf, event,
-    graphics::{self, Font, Rect, Text},
+    graphics::{self, Font, Text},
     Context, GameResult,
 };
+use zgui as ui;
 
 #[derive(Clone, Copy, Debug)]
 enum Message {
@@ -13,9 +13,10 @@ enum Message {
 }
 
 fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
+    let font_size = 64.0;
     let mut gui = ui::Gui::new(context);
-    let text_1 = Box::new(Text::new(("Button1", font, 32.0)));
-    let text_2 = Box::new(Text::new(("Button2", font, 64.0)));
+    let text_1 = Box::new(Text::new(("Button1", font, font_size)));
+    let text_2 = Box::new(Text::new(("Button2", font, font_size)));
     let button_1 = ui::Button::new(context, text_1, 0.2, gui.sender(), Message::Command1)?;
     let button_2 = ui::Button::new(context, text_2, 0.2, gui.sender(), Message::Command2)?;
     let mut layout = ui::VLayout::new();
@@ -32,34 +33,14 @@ struct State {
 
 impl State {
     fn new(context: &mut Context) -> ui::Result<State> {
-        let (w, h) = graphics::drawable_size(context);
         let font = Font::new(context, "/Karla-Regular.ttf")?;
         let gui = make_gui(context, font)?;
-        let mut this = State { gui };
-        this.resize(context, w as _, h as _)?;
-        Ok(this)
+        Ok(Self { gui })
     }
 
-    fn resize(&mut self, context: &mut Context, w: f32, h: f32) -> GameResult {
+    fn resize(&mut self, _: &mut Context, w: f32, h: f32) {
         let aspect_ratio = w / h;
-        let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-        graphics::set_screen_coordinates(context, coordinates)?;
         self.gui.resize(aspect_ratio);
-        Ok(())
-    }
-
-    fn draw_scene(&self, context: &mut Context) -> GameResult {
-        let circle = {
-            let mode = graphics::DrawMode::fill();
-            let pos = [0.0, 0.0];
-            let radius = 0.4;
-            let tolerance = 0.001;
-            let color = [0.5, 0.5, 0.5, 1.0].into();
-            graphics::Mesh::new_circle(context, mode, pos, radius, tolerance, color)?
-        };
-        let param = graphics::DrawParam::new();
-        graphics::draw(context, &circle, param)?;
-        Ok(())
     }
 }
 
@@ -71,19 +52,18 @@ impl event::EventHandler for State {
     fn draw(&mut self, context: &mut Context) -> GameResult {
         let bg_color = [1.0, 1.0, 1.0, 1.0].into();
         graphics::clear(context, bg_color);
-        self.draw_scene(context)?;
         self.gui.draw(context)?;
         graphics::present(context)
     }
 
     fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
-        self.resize(context, w, h).expect("Can't resize the window");
+        self.resize(context, w, h);
     }
 
     fn mouse_button_up_event(
         &mut self,
         context: &mut Context,
-        _: event::MouseButton,
+        _: gwg::event::MouseButton,
         x: f32,
         y: f32,
     ) {

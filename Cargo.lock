@@ -223,23 +223,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ggwp-zgui"
-version = "0.1.0"
-dependencies = [
- "cgmath",
- "good-web-game",
- "log",
-]
-
-[[package]]
-name = "ggwp-zscene"
-version = "0.1.0"
-dependencies = [
- "cgmath",
- "good-web-game",
-]
-
-[[package]]
 name = "good-web-game"
 version = "0.2.5"
 source = "git+https://github.com/not-fl3/good-web-game#a277eb0ea7d4c88e340e2df6be0eb0dd0f549d6a"
@@ -964,8 +947,6 @@ dependencies = [
  "cgmath",
  "derive_more",
  "env_logger",
- "ggwp-zgui",
- "ggwp-zscene",
  "good-web-game",
  "log",
  "num",
@@ -975,4 +956,23 @@ dependencies = [
  "ron",
  "serde",
  "zcomponents",
+ "zgui",
+ "zscene",
+]
+
+[[package]]
+name = "zgui"
+version = "0.1.0"
+dependencies = [
+ "cgmath",
+ "good-web-game",
+ "log",
+]
+
+[[package]]
+name = "zscene"
+version = "0.1.0"
+dependencies = [
+ "cgmath",
+ "good-web-game",
 ]
