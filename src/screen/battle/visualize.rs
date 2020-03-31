@@ -7,7 +7,7 @@ use gwg::{
 };
 use log::{debug, info};
 use rand::Rng;
-use scene::{action, Action, Boxed, Facing, Sprite};
+use zscene::{action, Action, Boxed, Facing, Sprite};
 
 use crate::{
     core::{

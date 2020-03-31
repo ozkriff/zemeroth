@@ -10,7 +10,7 @@ description = "A 2D turn-based hexagonal tactical game."
 opt-level = 3
 
 [workspace]
-members = ["zcomponents", "ggwp-zgui", "ggwp-zscene"]
+members = ["zcomponents", "zgui", "zscene"]
 
 [dependencies]
 ron = "0.5"
@@ -19,8 +19,8 @@ env_logger = "0.7"
 derive_more = "0.99"
 serde = { version = "1.0", features = ['derive'] }
 num = { version = "0.2", default-features = false }
-ui = { path = "ggwp-zgui", package = "ggwp-zgui" }
-scene = { path = "ggwp-zscene", package = "ggwp-zscene" }
+ui = { path = "zgui", package = "zgui" }
+zscene = { path = "zscene" }
 zcomponents = { path = "zcomponents" }
 rand = { version = "0.7", features = [] }
 cgmath = { version = "0.17", features = ["mint"] }

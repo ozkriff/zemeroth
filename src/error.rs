@@ -4,7 +4,7 @@ use std::{error, fmt, io, path::PathBuf};
 pub enum ZError {
     GwgError(gwg::GameError),
     UiError(ui::Error),
-    SceneError(scene::Error),
+    SceneError(zscene::Error),
     RonDeserializeError {
         error: ron::de::Error,
         path: PathBuf,

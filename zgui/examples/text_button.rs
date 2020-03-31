@@ -1,74 +1,49 @@
 use cgmath::Point2;
-use ggwp_zgui as ui;
 use gwg::{
     conf, event,
-    graphics::{self, Font, Image, Text},
+    graphics::{self, Font, Text},
     Context, GameResult,
 };
+use zgui as ui;
 
 #[derive(Clone, Copy, Debug)]
 enum Message {
-    AddOrRemove,
-}
-
-fn make_label(context: &mut Context) -> ui::Result<ui::RcWidget> {
-    let image = Image::new(context, "/fire.png").expect("Can't load test image");
-    let label = ui::Label::new_with_bg(context, Box::new(image), 0.5)?;
-    Ok(ui::pack(label))
+    Command,
 }
 
 fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
     let font_size = 32.0;
     let mut gui = ui::Gui::new(context);
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
-    let text = Box::new(Text::new(("Add/Remove", font, font_size)));
-    let button = ui::Button::new(context, text, 0.2, gui.sender(), Message::AddOrRemove)?;
+    let text = Box::new(Text::new(("Button", font, font_size)));
+    let button = ui::Button::new(context, text, 0.2, gui.sender(), Message::Command)?;
     gui.add(&ui::pack(button), anchor);
     Ok(gui)
 }
 
 struct State {
     gui: ui::Gui<Message>,
-    label: Option<ui::RcWidget>,
 }
 
 impl State {
     fn new(context: &mut Context) -> ui::Result<State> {
         let font = Font::new(context, "/Karla-Regular.ttf")?;
         let gui = make_gui(context, font)?;
-        Ok(Self { gui, label: None })
+        Ok(Self { gui })
     }
 
     fn resize(&mut self, _: &mut Context, w: f32, h: f32) {
         let aspect_ratio = w / h;
         self.gui.resize(aspect_ratio);
     }
-
-    fn remove_label(&mut self) {
-        println!("Removing...");
-        if let Some(ref label) = self.label {
-            self.gui.remove(label).expect("Can't remove the label");
-        }
-        self.label = None;
-        println!("Removed.");
-    }
-
-    fn add_label(&mut self, context: &mut Context) {
-        println!("Adding...");
-        let label = make_label(context).expect("Can't make a label");
-        let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
-        self.gui.add(&label, anchor);
-        self.label = Some(label);
-        println!("Added.");
-    }
 }
 
 impl event::EventHandler for State {
-    fn update(&mut self, _: &mut Context) -> GameResult<()> {
+    fn update(&mut self, _: &mut Context) -> GameResult {
         Ok(())
     }
 
-    fn draw(&mut self, context: &mut Context) -> GameResult<()> {
+    fn draw(&mut self, context: &mut Context) -> GameResult {
         let bg_color = [1.0, 1.0, 1.0, 1.0].into();
         graphics::clear(context, bg_color);
         self.gui.draw(context)?;
@@ -82,7 +57,7 @@ impl event::EventHandler for State {
     fn mouse_button_up_event(
         &mut self,
         context: &mut Context,
-        _: gwg::event::MouseButton,
+        _: event::MouseButton,
         x: f32,
         y: f32,
     ) {
@@ -90,13 +65,6 @@ impl event::EventHandler for State {
         let pos = ui::window_to_screen(context, window_pos);
         let message = self.gui.click(pos);
         println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);
-        if let Some(Message::AddOrRemove) = message {
-            if self.label.is_some() {
-                self.remove_label();
-            } else {
-                self.add_label(context);
-            }
-        }
     }
 }
 
