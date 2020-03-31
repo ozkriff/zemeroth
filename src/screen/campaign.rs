@@ -3,12 +3,12 @@ use std::{
     time::Duration,
 };
 
+use cgmath::Point2;
 use gwg::{
     graphics::{self, Font, Text},
     Context,
 };
 use log::info;
-use nalgebra::Point2;
 use ui::{self, Gui};
 
 use crate::{

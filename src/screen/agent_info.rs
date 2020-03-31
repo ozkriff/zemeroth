@@ -1,10 +1,10 @@
 use std::{collections::HashMap, time::Duration};
 
+use cgmath::Point2;
 use gwg::{
     graphics::{self, Text},
     Context,
 };
-use nalgebra::Point2;
 use scene::Sprite;
 use ui::{self, Gui};
 

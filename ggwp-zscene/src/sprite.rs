@@ -1,10 +1,10 @@
 use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::Rc};
 
+use cgmath::{Point2, Vector2};
 use gwg::{
     graphics::{self, Drawable, Rect},
     Context, GameResult,
 };
-use nalgebra::{Point2, Vector2};
 
 use crate::{Error, Result};
 

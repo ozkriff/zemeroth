@@ -1,12 +1,12 @@
 use std::time::Duration;
 
+use cgmath::{Point2, Vector2};
 use ggwp_zscene::{self as zscene, action, Boxed, Layer, Scene, Sprite};
 use gwg::{
     conf, event,
     graphics::{self, Font, Rect, Text},
     Context, GameResult,
 };
-use nalgebra::{Point2, Vector2};
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {

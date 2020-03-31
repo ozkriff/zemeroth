@@ -23,7 +23,7 @@ ui = { path = "ggwp-zgui", package = "ggwp-zgui" }
 scene = { path = "ggwp-zscene", package = "ggwp-zscene" }
 zcomponents = { path = "zcomponents" }
 rand = { version = "0.7", features = [] }
-nalgebra = { version = "0.18", features = ["mint"] }  # TODO: update (or replace with cgmath)
+cgmath = { version = "0.17", features = ["mint"] }
 qrand = { git = "https://github.com/not-fl3/quad-rand", package = "quad-rand", features = ['rand'] }
 gwg = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }
 

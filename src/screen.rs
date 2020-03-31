@@ -1,12 +1,12 @@
 use log::info;
 use std::{fmt::Debug, time::Duration};
 
+use cgmath::Point2;
 use gwg::{
     self,
     graphics::{self, Color},
     Context,
 };
-use nalgebra::Point2;
 
 use crate::ZResult;
 

@@ -1,4 +1,4 @@
-use nalgebra::{Point2, Vector2};
+use cgmath::{Point2, Vector2};
 use rand::Rng;
 
 use crate::core::{
