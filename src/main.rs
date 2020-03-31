@@ -1,12 +1,12 @@
 #![windows_subsystem = "windows"]
 
+use cgmath::Point2;
 use gwg::{
     conf::Conf,
     event,
     graphics::{self, Rect},
     Context, GameResult,
 };
-use nalgebra::Point2;
 
 mod core;
 mod error;

@@ -1,11 +1,11 @@
 use std::time::Duration;
 
+use cgmath::{self, InnerSpace, Point2, Rad, Rotation, Rotation2, Vector2};
 use gwg::{
     graphics::{Color, Text},
     Context,
 };
 use log::{debug, info};
-use nalgebra::{self, Point2, Vector2};
 use rand::Rng;
 use scene::{action, Action, Boxed, Facing, Sprite};
 
@@ -227,9 +227,9 @@ fn show_dust(
         let size = view.tile_size() * 2.0 * scale;
         let vector = {
             let max = std::f32::consts::PI * 2.0;
-            let rot = nalgebra::Rotation2::new((max / count as f32) * i as f32);
+            let rot = cgmath::Basis2::from_angle(Rad((max / count as f32) * i as f32));
             let n = zrng().gen_range(0.4, 0.6);
-            let mut vector = rot * Vector2::new(view.tile_size() * n, 0.0);
+            let mut vector = rot.rotate_vector(Vector2::new(view.tile_size() * n, 0.0));
             vector.y *= geom::FLATNESS_COEFFICIENT;
             vector
         };
@@ -355,7 +355,7 @@ fn move_object_with_shadow(
 }
 
 fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2<f32>) -> Box<dyn Action> {
-    let len = nalgebra::Matrix::norm(&diff);
+    let len = diff.magnitude();
     let min_height = view.tile_size() * 0.5;
     let base_height = view.tile_size() * 2.0;
     let min_time = 0.25;

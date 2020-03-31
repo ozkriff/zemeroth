@@ -8,5 +8,5 @@ description = "Scene and Actions for gwg"
 keywords = ["gamedev", "2D"]
 
 [dependencies]
-nalgebra = { version = "0.18", features = ["mint"] }
+cgmath = { version = "0.17", features = ["mint"] }
 gwg = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }

@@ -9,5 +9,5 @@ keywords = ["gamedev", "gui"]
 
 [dependencies]
 log = "0.4"
-nalgebra = { version = "0.18", features = ["mint"] }
+cgmath = { version = "0.17", features = ["mint"] }
 gwg = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }

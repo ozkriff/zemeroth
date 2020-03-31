@@ -1,10 +1,10 @@
 use std::{collections::HashMap, default::Default, time::Duration};
 
+use cgmath::Point2;
 use gwg::{
     graphics::{Color, Font, Image, Text},
     Context,
 };
-use nalgebra::Point2;
 use rand::Rng;
 use scene::{action, Action, Boxed, Layer, Scene, Sprite};
 

@@ -7,12 +7,12 @@ use std::{
     sync::mpsc::{channel, Receiver, Sender},
 };
 
+use cgmath::{Point2, Vector2};
 use gwg::{
     graphics::{self, Color, Drawable, Rect},
     Context, GameResult,
 };
 use log::{debug, info};
-use nalgebra::{Point2, Vector2};
 
 pub use error::Error;
 

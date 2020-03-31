@@ -1,7 +1,7 @@
 use std::time::Duration;
 
+use cgmath::Vector2;
 use gwg::timer;
-use nalgebra::Vector2;
 
 use crate::{Action, Sprite};
 

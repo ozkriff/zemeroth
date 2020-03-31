@@ -1,10 +1,10 @@
 use std::time::Duration;
 
+use cgmath::Point2;
 use gwg::{
     graphics::{self, Text},
     Context,
 };
-use nalgebra::Point2;
 use ui::{self, Gui};
 
 use crate::{

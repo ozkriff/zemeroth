@@ -3,12 +3,12 @@ use std::{
     time::Duration,
 };
 
+use cgmath::Point2;
 use gwg::{
     graphics::{Font, Text},
     Context,
 };
 use log::debug;
-use nalgebra::Point2;
 use scene::Sprite;
 use ui::{self, Gui};
 

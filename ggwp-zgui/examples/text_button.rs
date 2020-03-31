@@ -1,10 +1,10 @@
+use cgmath::Point2;
 use ggwp_zgui as ui;
 use gwg::{
     conf, event,
     graphics::{self, Font, Text},
     Context, GameResult,
 };
-use nalgebra::Point2;
 
 #[derive(Clone, Copy, Debug)]
 enum Message {
@@ -64,7 +64,7 @@ impl event::EventHandler for State {
         let window_pos = Point2::new(x, y);
         let pos = ui::window_to_screen(context, window_pos);
         let message = self.gui.click(pos);
-        println!("[{},{}] -> {}: {:?}", x, y, pos, message);
+        println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);
     }
 }
 
