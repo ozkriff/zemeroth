@@ -18,14 +18,11 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 
 **Status**:
 [![Github Actions][img_gh-actions]][gh-actions]
-[![dependency status][img_deps-rs]][deps-rs]
 
 [img_gh-actions]: https://github.com/ozkriff/zemeroth/workflows/CI/badge.svg
-[img_deps-rs]: https://deps.rs/repo/github/ozkriff/zemeroth/status.svg
 
 [loc]: https://github.com/Aaronepower/tokei
 [gh-actions]: https://github.com/ozkriff/zemeroth/actions?query=workflow%3ACI
-[deps-rs]: https://deps.rs/repo/github/ozkriff/zemeroth
 
 ## Online Version
 
