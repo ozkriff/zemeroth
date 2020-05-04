@@ -24,7 +24,7 @@ zscene = { path = "zscene" }
 zcomponents = { path = "zcomponents" }
 rand = { version = "0.7", features = [] }
 cgmath = { version = "0.17", features = ["mint"] }
-qrand = { git = "https://github.com/not-fl3/quad-rand", package = "quad-rand", features = ['rand'] }
+quad-rand = { version = "0.1.1", features = ["rand"] }
 gwg = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }
 
 [dev-dependencies]
