@@ -522,8 +522,9 @@ dependencies = [
 
 [[package]]
 name = "quad-rand"
-version = "0.1.0"
-source = "git+https://github.com/not-fl3/quad-rand#b1aabd4c5033a19bba79583ada17418c2cf45674"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec3e8eb9b1d9b58a43bac8f20985768ddcc03b928a909d4d39ced327b971fec5"
 dependencies = [
  "rand 0.7.3",
 ]
