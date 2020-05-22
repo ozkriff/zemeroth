@@ -4,7 +4,6 @@ use gwg::{
     graphics::{Font, Rect},
     Context,
 };
-use log;
 use serde::de::DeserializeOwned;
 
 use crate::{error::ZError, ZResult};
