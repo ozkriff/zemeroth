@@ -13,7 +13,7 @@ opt-level = 3
 members = ["zcomponents", "zgui", "zscene"]
 
 [dependencies]
-ron = "0.5"
+ron = "0.6"
 log = "0.4"
 env_logger = "0.7"
 derive_more = "0.99"
