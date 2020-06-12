@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use qrand::compat::QuadRand;
+use quad_rand::compat::QuadRand;
 use rand::seq::SliceRandom;
 
 pub fn zrng() -> impl rand::Rng {
