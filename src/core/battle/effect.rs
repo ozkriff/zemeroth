@@ -101,6 +101,7 @@ pub struct Create {
     pub pos: PosHex,
     pub prototype: ObjType,
     pub components: Vec<Component>,
+    pub is_teleported: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq)]

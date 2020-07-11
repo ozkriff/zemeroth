@@ -32,6 +32,7 @@ use crate::{
 const BLOOD_SPRITE_DURATION_TURNS: i32 = 6; // TODO: i32 -> Turns, Rounds, etc
 const TIME_LUNGE_TO: f32 = 0.1;
 const TIME_LUNGE_FROM: f32 = 0.15;
+const TIME_DEFAULT_FLARE: f32 = 0.4;
 
 pub fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
     action::Sequence::new(actions).boxed()
@@ -85,6 +86,7 @@ fn announce(
     let mut sprite = Sprite::from_drawable(context, text, text_height)?;
     sprite.set_centered(true);
     sprite.set_color(invisible);
+    // TODO: Employ mul_f32!
     let time_8 = time / 8;
     Ok(seq(vec![
         action::Show::new(&view.layers().text, &sprite).boxed(),
@@ -256,12 +258,13 @@ fn show_dust(
     Ok(seq(actions))
 }
 
-fn show_flare_scale(
+fn show_flare_scale_time(
     view: &mut BattleView,
     context: &mut Context,
     at: PosHex,
     color: Color,
     scale: f32,
+    time: Duration,
 ) -> ZResult<Box<dyn Action>> {
     let visible = color;
     let invisible = Color { a: 0.0, ..visible };
@@ -273,8 +276,8 @@ fn show_flare_scale(
     sprite.set_color(invisible);
     Ok(seq(vec![
         action::Show::new(&view.layers().flares, &sprite).boxed(),
-        action::ChangeColorTo::new(&sprite, visible, time_s(0.1)).boxed(),
-        action::ChangeColorTo::new(&sprite, invisible, time_s(0.3)).boxed(),
+        action::ChangeColorTo::new(&sprite, visible, time.mul_f32(0.25)).boxed(),
+        action::ChangeColorTo::new(&sprite, invisible, time.mul_f32(0.75)).boxed(),
         action::Hide::new(&view.layers().flares, &sprite).boxed(),
     ]))
 }
@@ -319,7 +322,7 @@ fn show_flare(
     color: Color,
 ) -> ZResult<Box<dyn Action>> {
     let scale = 1.0;
-    show_flare_scale(view, context, at, color, scale)
+    show_flare_scale_time(view, context, at, color, scale, time_s(TIME_DEFAULT_FLARE))
 }
 
 fn up_and_down_move(
@@ -813,9 +816,11 @@ fn visualize_event_use_ability_explode(
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
-    let scale = 2.5;
     let action_dust = show_dust_at_pos(view, context, pos)?;
-    let action_flare = show_flare_scale(view, context, pos, [1.0, 0.0, 0.0, 0.7].into(), scale)?;
+    let color = [1.0, 0.0, 0.0, 0.7].into();
+    let scale = 2.5;
+    let time = time_s(TIME_DEFAULT_FLARE);
+    let action_flare = show_flare_scale_time(view, context, pos, color, scale, time)?;
     let action_ground_mark = show_explosion_ground_mark(view, context, pos)?;
     Ok(seq(vec![
         fork(action_flare),
@@ -834,8 +839,11 @@ fn visualize_event_use_ability_summon(
     let frame_name = "summon";
     assert!(sprite.has_frame(frame_name));
     let pos = state.parts().pos.get(event.id).0;
+    let color = [1.0, 1.0, 1.0, 0.7].into();
     let scale = 2.0;
-    let action_flare = show_flare_scale(view, context, pos, [1.0, 1.0, 1.0, 0.7].into(), scale)?;
+    let time = time_s(TIME_DEFAULT_FLARE);
+    let action_flare =
+        show_flare_scale_time(view, context, pos, color, scale, time)?;
     Ok(seq(vec![
         action::SetFrame::new(&sprite, frame_name).boxed(),
         action::Sleep::new(time_s(0.3)).boxed(),
@@ -1026,12 +1034,20 @@ fn visualize_effect_create(
     view.add_object(target_id, &sprite_object, &sprite_shadow);
     let action_change_shadow_color =
         action::ChangeColorTo::new(&sprite_shadow, color, time_s(0.2)).boxed();
-    Ok(fork(seq(vec![
-        action::Show::new(&view.layers().shadows, &sprite_shadow).boxed(),
-        action::Show::new(&view.layers().objects, &sprite_object).boxed(),
-        fork(action_change_shadow_color),
-        action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed(),
-    ])))
+    let mut actions = Vec::new();
+    if effect.is_teleported {
+        let white = [1.0, 1.0, 1.0, 0.9].into();
+        let scale = 0.9;
+        let mut teleportation_flare =
+            |time| show_flare_scale_time(view, context, effect.pos, white, scale, time);
+        actions.push(fork(teleportation_flare(time_s(0.2))?));
+        actions.push(fork(teleportation_flare(time_s(1.0))?));
+    }
+    actions.push(action::Show::new(&view.layers().shadows, &sprite_shadow).boxed());
+    actions.push(action::Show::new(&view.layers().objects, &sprite_object).boxed());
+    actions.push(fork(action_change_shadow_color));
+    actions.push(action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed());
+    Ok(fork(seq(actions)))
 }
 
 fn visualize_effect_kill(
