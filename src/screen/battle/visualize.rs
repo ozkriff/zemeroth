@@ -86,13 +86,11 @@ fn announce(
     let mut sprite = Sprite::from_drawable(context, text, text_height)?;
     sprite.set_centered(true);
     sprite.set_color(invisible);
-    // TODO: Employ mul_f32!
-    let time_8 = time / 8;
     Ok(seq(vec![
         action::Show::new(&view.layers().text, &sprite).boxed(),
-        action::ChangeColorTo::new(&sprite, visible, time_8).boxed(),
-        action::Sleep::new(time_8 * 5).boxed(),
-        action::ChangeColorTo::new(&sprite, invisible, time_8 * 2).boxed(),
+        action::ChangeColorTo::new(&sprite, visible, time.mul_f32(0.15)).boxed(),
+        action::Sleep::new(time.mul_f32(0.7)).boxed(),
+        action::ChangeColorTo::new(&sprite, invisible, time.mul_f32(0.25)).boxed(),
         action::Hide::new(&view.layers().text, &sprite).boxed(),
     ]))
 }
@@ -331,7 +329,7 @@ fn up_and_down_move(
     height: f32,
     time: Duration,
 ) -> Box<dyn Action> {
-    let duration_0_25 = time / 4;
+    let duration_0_25 = time.mul_f32(0.25);
     let up_fast = Vector2::new(0.0, -height * 0.75);
     let up_slow = Vector2::new(0.0, -height * 0.25);
     let down_slow = -up_slow;
@@ -842,8 +840,7 @@ fn visualize_event_use_ability_summon(
     let color = [1.0, 1.0, 1.0, 0.7].into();
     let scale = 2.0;
     let time = time_s(TIME_DEFAULT_FLARE);
-    let action_flare =
-        show_flare_scale_time(view, context, pos, color, scale, time)?;
+    let action_flare = show_flare_scale_time(view, context, pos, color, scale, time)?;
     Ok(seq(vec![
         action::SetFrame::new(&sprite, frame_name).boxed(),
         action::Sleep::new(time_s(0.3)).boxed(),
