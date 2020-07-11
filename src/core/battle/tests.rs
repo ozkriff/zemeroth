@@ -311,6 +311,7 @@ fn create() {
                     component::Pos(PosHex { q: 0, r: 0 }).into(),
                     component_meta("agent"),
                 ],
+                is_teleported: false,
             }
             .into()],
         )],
@@ -331,6 +332,7 @@ fn create() {
                     component::Pos(PosHex { q: 0, r: 2 }).into(),
                     component_meta("agent"),
                 ],
+                is_teleported: false,
             }
             .into()],
         )],
@@ -525,6 +527,7 @@ fn throw_bomb_no_harm() {
                             component::Pos(PosHex { q: 0, r: 0 }).into(),
                             component_meta("bomb_damage"),
                         ],
+                        is_teleported: false,
                     }
                     .into(),
                     effect::Throw {
@@ -617,6 +620,7 @@ fn throw_bomb_damage() {
                             component::Pos(PosHex { q: 0, r: 0 }).into(),
                             component_meta("bomb_damage"),
                         ],
+                        is_teleported: false,
                     }
                     .into(),
                     effect::Throw {
@@ -721,6 +725,7 @@ fn throw_bomb_poison() {
                             component::Pos(PosHex { q: 0, r: 0 }).into(),
                             component_meta("bomb_poison"),
                         ],
+                        is_teleported: false,
                     }
                     .into(),
                     effect::Throw {
@@ -755,6 +760,7 @@ fn throw_bomb_poison() {
                 component::Pos(pos).into(),
                 component_meta("poison_cloud"),
             ],
+            is_teleported: false,
         }
         .into()
     };
@@ -953,6 +959,7 @@ fn throw_two_fire_bombs() {
                             component::Pos(PosHex { q: 0, r: 0 }).into(),
                             component_meta("bomb_fire"),
                         ],
+                        is_teleported: false,
                     }
                     .into(),
                     effect::Throw {
@@ -987,6 +994,7 @@ fn throw_two_fire_bombs() {
                 component::Pos(pos).into(),
                 component_meta("fire"),
             ],
+            is_teleported: false,
         }
         .into()
     };
@@ -1059,6 +1067,7 @@ fn throw_two_fire_bombs() {
                             component::Pos(PosHex { q: 0, r: 0 }).into(),
                             component_meta("bomb_fire"),
                         ],
+                        is_teleported: false,
                     }
                     .into(),
                     effect::Throw {
@@ -1306,6 +1315,7 @@ fn throw_bomb_push_normal() {
                                 component::Pos(PosHex { q: 0, r: 0 }).into(),
                                 component_meta("bomb_push"),
                             ],
+                            is_teleported: false,
                         }
                         .into(),
                         effect::Throw {
@@ -1408,6 +1418,7 @@ fn throw_bomb_push_heavy() {
                                 component::Pos(PosHex { q: 0, r: 0 }).into(),
                                 component_meta("bomb_push"),
                             ],
+                            is_teleported: false,
                         }
                         .into(),
                         effect::Throw {

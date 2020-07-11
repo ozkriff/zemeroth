@@ -114,6 +114,7 @@ fn execute_create(state: &mut State, cb: Cb, command: &command::Create) {
         pos: command.pos,
         prototype: command.prototype.clone(),
         components,
+        is_teleported: false,
     }
     .into();
     instant_effects.push((id, vec![effect_create]));
@@ -991,6 +992,7 @@ fn effect_create_object(state: &State, prototype: &ObjType, pos: PosHex) -> Effe
         pos,
         prototype: prototype.clone(),
         components,
+        is_teleported: false,
     }
     .into()
 }
@@ -1012,6 +1014,7 @@ fn effect_create_agent(
         pos,
         prototype: prototype.clone(),
         components,
+        is_teleported: true,
     }
     .into()
 }
