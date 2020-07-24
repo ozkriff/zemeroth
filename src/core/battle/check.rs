@@ -52,8 +52,7 @@ fn check_command_move_to(state: &State, command: &command::MoveTo) -> Result<(),
     }
     check_agent_can_move(state, command.id)?;
     for step in command.path.steps() {
-        check_is_inboard(state, step.to)?;
-        check_not_blocked(state, step.to)?;
+        check_not_blocked_and_is_inboard(state, step.to)?;
     }
     let cost = command.path.cost_for(state, command.id);
     if cost > agent.move_points {
@@ -63,8 +62,7 @@ fn check_command_move_to(state: &State, command: &command::MoveTo) -> Result<(),
 }
 
 fn check_command_create(state: &State, command: &command::Create) -> Result<(), Error> {
-    check_is_inboard(state, command.pos)?;
-    check_not_blocked(state, command.pos)?;
+    check_not_blocked_and_is_inboard(state, command.pos)?;
     Ok(())
 }
 
@@ -148,7 +146,7 @@ fn check_ability_jump(
     let agent_pos = parts.pos.get(id).0;
     check_min_distance(agent_pos, pos, Distance(2))?;
     check_max_distance(agent_pos, pos, ability.0)?;
-    check_not_blocked(state, pos)?;
+    check_not_blocked_and_is_inboard(state, pos)?;
     Ok(())
 }
 
@@ -184,7 +182,7 @@ fn check_ability_bomb(
 ) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, ability.0)?;
-    check_not_blocked(state, pos)?;
+    check_not_blocked_and_is_inboard(state, pos)?;
     Ok(())
 }
 
@@ -196,7 +194,7 @@ fn check_ability_bomb_push(
 ) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, ability.throw_distance)?;
-    check_not_blocked(state, pos)?;
+    check_not_blocked_and_is_inboard(state, pos)?;
     Ok(())
 }
 
@@ -208,7 +206,7 @@ fn check_ability_bomb_fire(
 ) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, ability.0)?;
-    check_not_blocked(state, pos)?;
+    check_not_blocked_and_is_inboard(state, pos)?;
     Ok(())
 }
 
@@ -220,7 +218,7 @@ fn check_ability_bomb_poison(
 ) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, ability.0)?;
-    check_not_blocked(state, pos)?;
+    check_not_blocked_and_is_inboard(state, pos)?;
     Ok(())
 }
 
@@ -232,7 +230,7 @@ fn check_ability_bomb_demonic(
 ) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, ability.0)?;
-    check_not_blocked(state, pos)?;
+    check_not_blocked_and_is_inboard(state, pos)?;
     Ok(())
 }
 
@@ -257,7 +255,7 @@ fn check_ability_vanish(state: &State, id: Id, pos: PosHex) -> Result<(), Error>
 fn check_ability_dash(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, Distance(1))?;
-    check_not_blocked(state, pos)?;
+    check_not_blocked_and_is_inboard(state, pos)?;
     Ok(())
 }
 
@@ -362,7 +360,8 @@ fn check_max_distance(from: PosHex, to: PosHex, max: Distance) -> Result<(), Err
     Ok(())
 }
 
-fn check_not_blocked(state: &State, pos: PosHex) -> Result<(), Error> {
+fn check_not_blocked_and_is_inboard(state: &State, pos: PosHex) -> Result<(), Error> {
+    check_is_inboard(state, pos)?;
     if state::is_tile_blocked(state, pos) {
         return Err(Error::TileIsBlocked);
     }
