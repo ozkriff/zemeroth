@@ -568,17 +568,17 @@ impl Battle {
         if self.block_timer.is_some() {
             return Ok(());
         }
-        if self.state.map().is_inboard(pos) {
-            if let SelectionMode::Ability(ability) = self.mode.clone() {
-                let id = self.selected_agent_id.unwrap();
-                let command = command::UseAbility { id, pos, ability }.into();
-                if check(&self.state, &command).is_ok() {
-                    self.do_command(context, &command);
-                } else {
-                    self.view.message(context, pos, "cancelled")?;
-                }
-                self.set_mode(context, id, SelectionMode::Normal)?;
-            } else if let Some(id) = state::agent_id_at_opt(&self.state, pos) {
+        if let SelectionMode::Ability(ability) = self.mode.clone() {
+            let id = self.selected_agent_id.unwrap();
+            let command = command::UseAbility { id, pos, ability }.into();
+            if check(&self.state, &command).is_ok() {
+                self.do_command(context, &command);
+            } else {
+                self.view.message(context, pos, "cancelled")?;
+            }
+            self.set_mode(context, id, SelectionMode::Normal)?;
+        } else if self.state.map().is_inboard(pos) {
+            if let Some(id) = state::agent_id_at_opt(&self.state, pos) {
                 self.handle_agent_click(context, id)?;
             } else {
                 self.try_move_selected_agent(context, pos);
