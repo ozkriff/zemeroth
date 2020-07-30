@@ -5,7 +5,6 @@ use gwg::{
     graphics::{Color, Font, Image, Text},
     Context,
 };
-use rand::Rng;
 use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
 
 use crate::{
@@ -15,7 +14,7 @@ use crate::{
             Jokers, Moves, State, TileType,
         },
         map::{self, Distance, HexMap, PosHex},
-        utils::zrng,
+        utils::roll_dice,
     },
     geom::{self, hex_to_point},
     screen::battle::visualize,
@@ -547,7 +546,7 @@ pub fn make_action_create_map(
     let mut actions = Vec::new();
     for hex_pos in state.map().iter() {
         actions.push(make_action_show_tile(state, context, view, hex_pos)?);
-        if zrng().gen_range(0, 10) < 2 {
+        if roll_dice(0, 10) < 2 {
             actions.push(make_action_grass(context, view, hex_pos)?);
         }
     }

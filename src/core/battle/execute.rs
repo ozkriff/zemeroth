@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use log::{debug, error, trace};
-use rand::Rng;
 
 use crate::core::{
     battle::{
@@ -17,7 +16,7 @@ use crate::core::{
         Id, Moves, Phase, PlayerId, PushStrength, Strength, Weight,
     },
     map::{self, Dir, PosHex},
-    utils::{self, zrng},
+    utils::{self, roll_dice},
 };
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -878,7 +877,7 @@ fn try_attack(state: &State, attacker_id: Id, target_id: Id) -> Option<Effect> {
             (k_min, k_max)
         );
     }
-    let r = zrng().gen_range(0, 11);
+    let r = roll_dice(0, 11);
     let damage_raw = Strength(k_max - r);
     let damage = Strength(utils::clamp(damage_raw.0, 0, attack_strength.0));
     if damage_raw < Strength(0) {
