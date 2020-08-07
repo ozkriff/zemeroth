@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
@@ -10,7 +9,7 @@ use crate::core::{
         PlayerId, TileType,
     },
     map::{self, PosHex},
-    utils::zrng,
+    utils::roll_dice,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -110,8 +109,8 @@ pub fn random_free_pos(state: &State) -> Option<PosHex> {
     let radius = state.map().radius();
     for _ in 0..attempts {
         let pos = PosHex {
-            q: zrng().gen_range(-radius.0, radius.0),
-            r: zrng().gen_range(-radius.0, radius.0),
+            q: roll_dice(-radius.0, radius.0),
+            r: roll_dice(-radius.0, radius.0),
         };
         if state::is_tile_plain_and_completely_free(state, pos) {
             return Some(pos);
@@ -159,14 +158,14 @@ fn random_free_sector_pos(state: &State, player_id: PlayerId, line: Line) -> Opt
     let radius = state.map().radius();
     let (min, max) = line.to_range(radius);
     for _ in 0..attempts {
-        let q = radius.0 - zrng().gen_range(min, max);
+        let q = radius.0 - roll_dice(min, max);
         let pos = PosHex {
             q: match player_id.0 {
                 0 => -q,
                 1 => q,
                 _ => unimplemented!(),
             },
-            r: zrng().gen_range(-radius.0, radius.0 + 1),
+            r: roll_dice(-radius.0, radius.0 + 1),
         };
         let no_enemies_around = !state::check_enemies_around(state, pos, player_id);
         if state::is_tile_completely_free(state, pos) && no_enemies_around {
