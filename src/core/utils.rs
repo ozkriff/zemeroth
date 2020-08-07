@@ -11,11 +11,7 @@ pub fn zrng() -> impl rand::Rng {
     QuadRand
 }
 
-pub fn roll_dice<T: SampleUniform, B1, B2>(low: B1, high: B2) -> T
-where
-    B1: SampleBorrow<T> + Sized,
-    B2: SampleBorrow<T> + Sized,
-{
+pub fn roll_dice<T: SampleUniform, B: SampleBorrow<T>>(low: B, high: B) -> T {
     zrng().gen_range(low, high)
 }
 
