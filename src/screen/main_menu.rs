@@ -3,9 +3,8 @@ use std::{
     time::Duration,
 };
 
-use cgmath::Point2;
 use gwg::{
-    graphics::{Font, Text},
+    graphics::{Font, Point2, Text},
     Context,
 };
 use log::trace;
@@ -83,7 +82,7 @@ impl Screen for MainMenu {
         self.gui.resize(aspect_ratio);
     }
 
-    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<StackCommand> {
+    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
         trace!("MainMenu: click: pos={:?}, message={:?}", pos, message);
         match message {
@@ -105,7 +104,7 @@ impl Screen for MainMenu {
         }
     }
 
-    fn move_mouse(&mut self, _context: &mut Context, pos: Point2<f32>) -> ZResult {
+    fn move_mouse(&mut self, _context: &mut Context, pos: Point2) -> ZResult {
         self.gui.move_mouse(pos);
         Ok(())
     }

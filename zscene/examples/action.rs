@@ -1,9 +1,8 @@
 use std::time::Duration;
 
-use cgmath::{Point2, Vector2};
 use gwg::{
     conf, event,
-    graphics::{self, Font, Rect, Text},
+    graphics::{self, Font, Point2, Rect, Text, Vector2},
     Context, GameResult,
 };
 use zscene::{self as zscene, action, Boxed, Layer, Scene, Sprite};

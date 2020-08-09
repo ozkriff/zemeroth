@@ -3,9 +3,8 @@ use std::{
     time::Duration,
 };
 
-use cgmath::Point2;
 use gwg::{
-    graphics::{self, Font, Text},
+    graphics::{self, Font, Point2, Text},
     Context,
 };
 use log::info;
@@ -311,7 +310,7 @@ impl Screen for Campaign {
         self.gui.resize(aspect_ratio);
     }
 
-    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<StackCommand> {
+    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
         info!(
             "screen::Campaign: click: pos={:?}, message={:?}",
@@ -352,7 +351,7 @@ impl Screen for Campaign {
         }
     }
 
-    fn move_mouse(&mut self, _context: &mut Context, pos: Point2<f32>) -> ZResult {
+    fn move_mouse(&mut self, _context: &mut Context, pos: Point2) -> ZResult {
         self.gui.move_mouse(pos);
         Ok(())
     }

@@ -1,10 +1,9 @@
 use log::info;
 use std::{fmt::Debug, time::Duration};
 
-use cgmath::Point2;
 use gwg::{
     self,
-    graphics::{self, Color},
+    graphics::{self, Color, Point2},
     Context,
 };
 
@@ -36,10 +35,10 @@ pub enum StackCommand {
 pub trait Screen: Debug {
     fn update(&mut self, context: &mut Context, dtime: Duration) -> ZResult<StackCommand>;
     fn draw(&self, context: &mut Context) -> ZResult;
-    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<StackCommand>;
+    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<StackCommand>;
     fn resize(&mut self, aspect_ratio: f32);
 
-    fn move_mouse(&mut self, _context: &mut Context, _pos: Point2<f32>) -> ZResult {
+    fn move_mouse(&mut self, _context: &mut Context, _pos: Point2) -> ZResult {
         Ok(())
     }
 }
@@ -109,12 +108,12 @@ impl Screens {
         Ok(())
     }
 
-    pub fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult {
+    pub fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult {
         let command = self.screen_mut().top_mut().click(context, pos)?;
         self.handle_command(context, command)
     }
 
-    pub fn move_mouse(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult {
+    pub fn move_mouse(&mut self, context: &mut Context, pos: Point2) -> ZResult {
         self.screen_mut().top_mut().move_mouse(context, pos)
     }
 

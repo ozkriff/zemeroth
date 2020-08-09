@@ -1,7 +1,6 @@
-use cgmath::Point2;
 use gwg::{
     conf, event,
-    graphics::{self, Font, Rect, Text},
+    graphics::{self, Font, Point2, Rect, Text},
     Context, GameResult,
 };
 use zgui as ui;

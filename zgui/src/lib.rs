@@ -7,9 +7,8 @@ use std::{
     sync::mpsc::{channel, Receiver, Sender},
 };
 
-use cgmath::{Point2, Vector2};
 use gwg::{
-    graphics::{self, Color, Drawable, Rect},
+    graphics::{self, Color, Drawable, Point2, Rect, Vector2},
     Context, GameResult,
 };
 use log::{info, trace};
@@ -138,7 +137,7 @@ impl Sprite {
         self.param.color = color;
     }
 
-    fn set_pos(&mut self, pos: Point2<f32>) {
+    fn set_pos(&mut self, pos: Point2) {
         self.param.dest = pos.into();
     }
 }
@@ -152,7 +151,7 @@ fn make_bg(context: &mut Context, rect: Rect) -> Result<Sprite> {
     Ok(sprite)
 }
 
-pub fn window_to_screen(context: &Context, pos: Point2<f32>) -> Point2<f32> {
+pub fn window_to_screen(context: &Context, pos: Point2) -> Point2 {
     let (w, h) = graphics::drawable_size(context);
     let w = w as f32;
     let h = h as f32;
@@ -183,10 +182,10 @@ pub struct Anchor(pub HAnchor, pub VAnchor);
 
 pub trait Widget: Debug {
     fn draw(&self, _: &mut Context) -> GameResult<()>;
-    fn click(&self, _: Point2<f32>) {}
-    fn move_mouse(&mut self, _: Point2<f32>) {}
+    fn click(&self, _: Point2) {}
+    fn move_mouse(&mut self, _: Point2) {}
     fn rect(&self) -> Rect;
-    fn set_pos(&mut self, pos: Point2<f32>);
+    fn set_pos(&mut self, pos: Point2);
 }
 
 pub type RcWidget = Rc<RefCell<dyn Widget>>;
@@ -255,14 +254,14 @@ impl<Message: Clone> Gui<Message> {
         Ok(())
     }
 
-    pub fn click(&mut self, pos: Point2<f32>) -> Option<Message> {
+    pub fn click(&mut self, pos: Point2) -> Option<Message> {
         for AnchoredWidget { widget, .. } in &self.anchored_widgets {
             widget.borrow_mut().click(pos);
         }
         self.receiver.try_recv().ok()
     }
 
-    pub fn move_mouse(&mut self, pos: Point2<f32>) {
+    pub fn move_mouse(&mut self, pos: Point2) {
         for AnchoredWidget { widget, .. } in &self.anchored_widgets {
             widget.borrow_mut().move_mouse(pos);
         }
@@ -384,7 +383,7 @@ impl Widget for Label {
         self.rect
     }
 
-    fn set_pos(&mut self, pos: Point2<f32>) {
+    fn set_pos(&mut self, pos: Point2) {
         let h = (1.0 - self.param.drawable_k) * 0.5 * self.height;
         self.sprite.set_pos(pos + Vector2::new(h, h));
         if let Some(ref mut bg) = &mut self.bg {
@@ -419,7 +418,7 @@ impl Widget for ColoredRect {
         self.sprite.rect()
     }
 
-    fn set_pos(&mut self, pos: Point2<f32>) {
+    fn set_pos(&mut self, pos: Point2) {
         self.sprite.set_pos(pos);
     }
 }
@@ -460,7 +459,7 @@ impl Widget for Spacer {
         self.rect
     }
 
-    fn set_pos(&mut self, pos: Point2<f32>) {
+    fn set_pos(&mut self, pos: Point2) {
         self.rect.move_to(pos)
     }
 }
@@ -602,7 +601,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
         Ok(())
     }
 
-    fn click(&self, pos: Point2<f32>) {
+    fn click(&self, pos: Point2) {
         trace!("Label: rect={:?}, pos={:?}", self.sprite.rect(), pos);
         if self.border.rect().contains(pos) {
             let message = self.message.clone();
@@ -611,7 +610,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
         }
     }
 
-    fn move_mouse(&mut self, pos: Point2<f32>) {
+    fn move_mouse(&mut self, pos: Point2) {
         let highlighted = self.border.rect().contains(pos);
         if highlighted {
             self.bg.param.color = SPRITE_COLOR_BG_HIGHLIGHTED;
@@ -625,7 +624,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
         self.border.rect()
     }
 
-    fn set_pos(&mut self, pos: Point2<f32>) {
+    fn set_pos(&mut self, pos: Point2) {
         let h = (self.border.rect().h - self.sprite.rect().h) / 2.0;
         self.sprite.set_pos(pos + Vector2::new(h, h));
         self.border.set_pos(pos);
@@ -658,13 +657,13 @@ impl Layout {
         Ok(())
     }
 
-    fn click(&self, pos: Point2<f32>) {
+    fn click(&self, pos: Point2) {
         for widget in &self.widgets {
             widget.click(pos);
         }
     }
 
-    fn move_mouse(&mut self, pos: Point2<f32>) {
+    fn move_mouse(&mut self, pos: Point2) {
         for widget in &mut self.widgets {
             widget.move_mouse(pos);
         }
@@ -712,11 +711,11 @@ impl Widget for VLayout {
         self.internal.draw(context)
     }
 
-    fn click(&self, pos: Point2<f32>) {
+    fn click(&self, pos: Point2) {
         self.internal.click(pos);
     }
 
-    fn move_mouse(&mut self, pos: Point2<f32>) {
+    fn move_mouse(&mut self, pos: Point2) {
         self.internal.move_mouse(pos);
     }
 
@@ -724,11 +723,11 @@ impl Widget for VLayout {
         self.internal.rect()
     }
 
-    fn set_pos(&mut self, pos: Point2<f32>) {
-        let point: Point2<f32> = self.internal.rect.point().into();
+    fn set_pos(&mut self, pos: Point2) {
+        let point: Point2 = self.internal.rect.point().into();
         let diff = pos - point;
         for widget in &mut self.internal.widgets {
-            let pos: Point2<f32> = widget.rect().point().into();
+            let pos: Point2 = widget.rect().point().into();
             widget.set_pos(pos + diff);
         }
         self.internal.rect.move_to(pos);
@@ -751,7 +750,7 @@ impl HLayout {
         let rect = widget.rect();
         if let Some(last) = self.internal.widgets.last() {
             let rect = last.rect();
-            let mut pos: Point2<f32> = rect.point().into();
+            let mut pos: Point2 = rect.point().into();
             pos.x += rect.w;
             widget.set_pos(pos);
         } else {
@@ -770,11 +769,11 @@ impl Widget for HLayout {
         self.internal.draw(context)
     }
 
-    fn click(&self, pos: Point2<f32>) {
+    fn click(&self, pos: Point2) {
         self.internal.click(pos);
     }
 
-    fn move_mouse(&mut self, pos: Point2<f32>) {
+    fn move_mouse(&mut self, pos: Point2) {
         self.internal.move_mouse(pos);
     }
 
@@ -782,11 +781,11 @@ impl Widget for HLayout {
         self.internal.rect()
     }
 
-    fn set_pos(&mut self, pos: Point2<f32>) {
-        let point: Point2<f32> = self.internal.rect.point().into();
+    fn set_pos(&mut self, pos: Point2) {
+        let point: Point2 = self.internal.rect.point().into();
         let diff = pos - point;
         for widget in &mut self.internal.widgets {
-            let pos: Point2<f32> = widget.rect().point().into();
+            let pos: Point2 = widget.rect().point().into();
             widget.set_pos(pos + diff);
         }
         self.internal.rect.move_to(pos);
@@ -823,11 +822,11 @@ impl Widget for LayersLayout {
         self.internal.draw(context)
     }
 
-    fn click(&self, pos: Point2<f32>) {
+    fn click(&self, pos: Point2) {
         self.internal.click(pos);
     }
 
-    fn move_mouse(&mut self, pos: Point2<f32>) {
+    fn move_mouse(&mut self, pos: Point2) {
         self.internal.move_mouse(pos);
     }
 
@@ -835,11 +834,11 @@ impl Widget for LayersLayout {
         self.internal.rect()
     }
 
-    fn set_pos(&mut self, pos: Point2<f32>) {
-        let point: Point2<f32> = self.internal.rect.point().into();
+    fn set_pos(&mut self, pos: Point2) {
+        let point: Point2 = self.internal.rect.point().into();
         let diff = pos - point;
         for widget in &mut self.internal.widgets {
-            let pos: Point2<f32> = widget.rect().point().into();
+            let pos: Point2 = widget.rect().point().into();
             widget.set_pos(pos + diff);
         }
         self.internal.rect.move_to(pos);
