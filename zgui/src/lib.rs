@@ -12,7 +12,7 @@ use gwg::{
     graphics::{self, Color, Drawable, Rect},
     Context, GameResult,
 };
-use log::{debug, info};
+use log::{info, trace};
 
 pub use error::Error;
 
@@ -209,7 +209,7 @@ impl<Message: Clone> Gui<Message> {
     pub fn new(context: &Context) -> Self {
         let (w, h) = graphics::drawable_size(context);
         let aspect_ratio = w as f32 / h as f32;
-        debug!("Gui: aspect_ratio: {}", aspect_ratio);
+        trace!("Gui: aspect_ratio: {}", aspect_ratio);
         let (sender, receiver) = channel();
         Self {
             anchored_widgets: Vec::new(),
@@ -270,7 +270,7 @@ impl<Message: Clone> Gui<Message> {
 
     pub fn resize(&mut self, ratio: f32) {
         self.aspect_ratio = ratio;
-        debug!("Gui::resize: {}", ratio);
+        trace!("Gui::resize: {}", ratio);
         let offset = 0.02; // TODO: make configurable
         for AnchoredWidget { widget, anchor } in &mut self.anchored_widgets {
             let mut widget = widget.borrow_mut();
@@ -603,7 +603,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
     }
 
     fn click(&self, pos: Point2<f32>) {
-        debug!("Label: rect={:?}, pos={:?}", self.sprite.rect(), pos);
+        trace!("Label: rect={:?}, pos={:?}", self.sprite.rect(), pos);
         if self.border.rect().contains(pos) {
             let message = self.message.clone();
             self.sender.send(message).unwrap();

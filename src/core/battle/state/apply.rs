@@ -1,4 +1,4 @@
-use log::debug;
+use log::trace;
 
 use crate::core::battle::{
     ability::{self, Ability},
@@ -9,7 +9,7 @@ use crate::core::battle::{
 };
 
 pub fn apply(state: &mut State, event: &Event) {
-    debug!("event::apply: {:?}", event);
+    trace!("event::apply: {:?}", event);
     apply_event(state, event);
     for &(obj_id, ref effects) in &event.instant_effects {
         for effect in effects {
@@ -226,7 +226,7 @@ fn add_component(parts: &mut Parts, id: Id, component: Component) {
 }
 
 fn apply_scheduled_ability(state: &mut State, id: Id, planned_ability: &PlannedAbility) {
-    debug!("effect::apply_scheduled_ability: {:?}", planned_ability);
+    trace!("effect::apply_scheduled_ability: {:?}", planned_ability);
     let schedule = &mut state.parts_mut().schedule;
     if schedule.get_opt(id).is_none() {
         schedule.insert(id, component::Schedule::default());
@@ -243,7 +243,7 @@ fn apply_scheduled_ability(state: &mut State, id: Id, planned_ability: &PlannedA
 }
 
 fn apply_effect_timed(state: &mut State, id: Id, timed_effect: &effect::Timed) {
-    debug!("effect::apply_timed: {:?}", timed_effect);
+    trace!("effect::apply_timed: {:?}", timed_effect);
     let effects = &mut state.parts_mut().effects;
     if effects.get_opt(id).is_none() {
         effects.insert(id, component::Effects(Vec::new()));
@@ -257,7 +257,7 @@ fn apply_effect_timed(state: &mut State, id: Id, timed_effect: &effect::Timed) {
 }
 
 fn apply_effect_instant(state: &mut State, id: Id, effect: &Effect) {
-    debug!("effect::apply_instant: {:?} ({})", effect, effect.to_str());
+    trace!("effect::apply_instant: {:?} ({})", effect, effect.to_str());
     match *effect {
         Effect::Create(ref effect) => apply_effect_create(state, id, effect),
         Effect::Kill(ref effect) => apply_effect_kill(state, id, effect),

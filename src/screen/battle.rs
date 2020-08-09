@@ -8,7 +8,7 @@ use gwg::{
     graphics::{self, Font, Text},
     Context,
 };
-use log::{debug, info};
+use log::{info, trace};
 use ui::{self, Gui};
 use zscene::{action, Action, Boxed};
 
@@ -371,17 +371,17 @@ impl Battle {
     }
 
     fn do_ai(&mut self, context: &mut Context) -> Box<dyn Action> {
-        debug!("AI: <");
+        trace!("AI: <");
         let mut actions = Vec::new();
         while let Some(command) = self.ai.command(&self.state) {
-            debug!("AI: command = {:?}", command);
+            trace!("AI: command = {:?}", command);
             actions.push(self.do_command_inner(context, &command));
             actions.push(action::Sleep::new(time_s(0.3)).boxed());
             if let command::Command::EndTurn(_) = command {
                 break;
             }
         }
-        debug!("AI: >");
+        trace!("AI: >");
         action::Sequence::new(actions).boxed()
     }
 
@@ -422,7 +422,7 @@ impl Battle {
         context: &mut Context,
         command: &command::Command,
     ) -> Box<dyn Action> {
-        debug!("do_command_inner: {:?}", command);
+        trace!("do_command_inner: {:?}", command);
         let mut actions = Vec::new();
         let state = &mut self.state;
         let view = &mut self.view;
