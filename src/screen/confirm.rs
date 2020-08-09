@@ -3,9 +3,8 @@ use std::{
     time::Duration,
 };
 
-use cgmath::Point2;
 use gwg::{
-    graphics::{self, Text},
+    graphics::{self, Point2, Text},
     Context,
 };
 use ui::{self, Gui, Widget};
@@ -101,7 +100,7 @@ impl Screen for Confirm {
         Ok(())
     }
 
-    fn click(&mut self, _: &mut Context, pos: Point2<f32>) -> ZResult<StackCommand> {
+    fn click(&mut self, _: &mut Context, pos: Point2) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
         match message {
             Some(message) => {
@@ -118,7 +117,7 @@ impl Screen for Confirm {
         self.gui.resize(aspect_ratio);
     }
 
-    fn move_mouse(&mut self, _context: &mut Context, pos: Point2<f32>) -> ZResult {
+    fn move_mouse(&mut self, _context: &mut Context, pos: Point2) -> ZResult {
         self.gui.move_mouse(pos);
         Ok(())
     }

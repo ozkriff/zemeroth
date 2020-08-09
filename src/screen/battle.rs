@@ -3,9 +3,8 @@ use std::{
     time::Duration,
 };
 
-use cgmath::Point2;
 use gwg::{
-    graphics::{self, Font, Text},
+    graphics::{self, Font, Point2, Text},
     Context,
 };
 use log::{info, trace};
@@ -562,7 +561,7 @@ impl Battle {
         }
     }
 
-    fn handle_click(&mut self, context: &mut Context, point: Point2<f32>) -> ZResult {
+    fn handle_click(&mut self, context: &mut Context, point: Point2) -> ZResult {
         let pos = geom::point_to_hex(self.view.tile_size(), point);
         self.gui.click(point);
         if self.block_timer.is_some() {
@@ -639,7 +638,7 @@ impl Screen for Battle {
         self.gui.resize(aspect_ratio);
     }
 
-    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<StackCommand> {
+    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
         info!("Battle: click: pos={:?}, message={:?}", pos, message);
         match message {
@@ -660,7 +659,7 @@ impl Screen for Battle {
         Ok(StackCommand::None)
     }
 
-    fn move_mouse(&mut self, _context: &mut Context, point: Point2<f32>) -> ZResult {
+    fn move_mouse(&mut self, _context: &mut Context, point: Point2) -> ZResult {
         let pos = geom::point_to_hex(self.view.tile_size(), point);
         if self.state.map().is_inboard(pos) {
             self.view.show_current_tile_marker(pos);

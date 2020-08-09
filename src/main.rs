@@ -1,10 +1,9 @@
 #![windows_subsystem = "windows"]
 
-use cgmath::Point2;
 use gwg::{
     conf::Conf,
     event,
-    graphics::{self, Rect},
+    graphics::{self, Point2, Rect},
     Context, GameResult,
 };
 

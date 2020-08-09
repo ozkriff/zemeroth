@@ -1,8 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
-use cgmath::Point2;
 use gwg::{
-    graphics::{self, Text},
+    graphics::{self, Point2, Text},
     Context,
 };
 use ui::{self, Gui};
@@ -226,7 +225,7 @@ impl Screen for AgentInfo {
         Ok(())
     }
 
-    fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<StackCommand> {
+    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
         match message {
             Some(Message::Back) => Ok(StackCommand::Pop),
@@ -248,7 +247,7 @@ impl Screen for AgentInfo {
         self.gui.resize(aspect_ratio);
     }
 
-    fn move_mouse(&mut self, _context: &mut Context, pos: Point2<f32>) -> ZResult {
+    fn move_mouse(&mut self, _context: &mut Context, pos: Point2) -> ZResult {
         self.gui.move_mouse(pos);
         Ok(())
     }

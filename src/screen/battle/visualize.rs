@@ -1,8 +1,8 @@
 use std::time::Duration;
 
-use cgmath::{self, InnerSpace, Point2, Rad, Rotation, Rotation2, Vector2};
+use cgmath::{self, InnerSpace, Rad, Rotation, Rotation2};
 use gwg::{
-    graphics::{Color, Text},
+    graphics::{Color, Point2, Text, Vector2},
     Context,
 };
 use log::{info, trace};
@@ -97,7 +97,7 @@ fn announce(
 pub fn attack_message(
     view: &mut BattleView,
     context: &mut Context,
-    pos: Point2<f32>,
+    pos: Point2,
     text: &str,
 ) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
@@ -214,7 +214,7 @@ fn show_dust_at_pos(
 fn show_dust(
     view: &mut BattleView,
     context: &mut Context,
-    at: Point2<f32>,
+    at: Point2,
     count: i32,
 ) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
@@ -344,7 +344,7 @@ fn up_and_down_move(
 fn move_object_with_shadow(
     view: &mut BattleView,
     id: Id,
-    diff: Vector2<f32>,
+    diff: Vector2,
     time_to: Duration,
 ) -> Box<dyn Action> {
     let sprite = view.id_to_sprite(id).clone();
@@ -354,7 +354,7 @@ fn move_object_with_shadow(
     seq(vec![fork(action_shadow_move_to), action_sprite_move_to])
 }
 
-fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2<f32>) -> Box<dyn Action> {
+fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<dyn Action> {
     let len = diff.magnitude();
     let min_height = view.tile_size() * 0.5;
     let base_height = view.tile_size() * 2.0;

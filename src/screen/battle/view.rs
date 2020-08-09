@@ -1,8 +1,7 @@
 use std::{collections::HashMap, default::Default, time::Duration};
 
-use cgmath::Point2;
 use gwg::{
-    graphics::{Color, Font, Image, Text},
+    graphics::{Color, Font, Image, Point2, Text},
     Context,
 };
 use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
@@ -219,7 +218,7 @@ impl BattleView {
         self.tile_size
     }
 
-    pub fn hex_to_point(&self, hex: PosHex) -> Point2<f32> {
+    pub fn hex_to_point(&self, hex: PosHex) -> Point2 {
         geom::hex_to_point(self.tile_size, hex)
     }
 

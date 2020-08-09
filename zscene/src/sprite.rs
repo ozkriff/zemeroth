@@ -1,8 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::Rc};
 
-use cgmath::{Point2, Vector2};
 use gwg::{
-    graphics::{self, Drawable, Rect},
+    graphics::{self, Drawable, Point2, Rect, Vector2},
     Context, GameResult,
 };
 
@@ -21,7 +20,7 @@ struct SpriteData {
     dimensions: Rect,
     basic_scale: f32,
     param: graphics::DrawParam,
-    offset: Vector2<f32>,
+    offset: Vector2,
     facing: Facing,
 }
 
@@ -157,14 +156,14 @@ impl Sprite {
     }
 
     /// [0.0 .. 1.0]
-    pub fn set_offset(&mut self, offset: Vector2<f32>) {
+    pub fn set_offset(&mut self, offset: Vector2) {
         let mut data = self.data.borrow_mut();
         let old_offset = data.offset;
         let mut dimensions = data.dimensions;
         dimensions.scale(data.param.scale.x, data.param.scale.y);
         data.offset.x = -dimensions.w * offset.x;
         data.offset.y = -dimensions.h * offset.y;
-        let mut new_dest: Point2<f32> = data.param.dest.into();
+        let mut new_dest: Point2 = data.param.dest.into();
         new_dest += data.offset - old_offset;
         data.param.dest = new_dest.into();
     }
@@ -175,9 +174,9 @@ impl Sprite {
         drawable.draw(context, data.param)
     }
 
-    pub fn pos(&self) -> Point2<f32> {
+    pub fn pos(&self) -> Point2 {
         let data = self.data.borrow();
-        let dest: Point2<f32> = data.param.dest.into();
+        let dest: Point2 = data.param.dest.into();
         dest - data.offset
     }
 
@@ -204,7 +203,7 @@ impl Sprite {
         data.param.scale.y / data.basic_scale
     }
 
-    pub fn set_pos(&mut self, pos: Point2<f32>) {
+    pub fn set_pos(&mut self, pos: Point2) {
         let mut data = self.data.borrow_mut();
         data.param.dest = (pos + data.offset).into();
     }
