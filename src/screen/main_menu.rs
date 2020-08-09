@@ -8,7 +8,7 @@ use gwg::{
     graphics::{Font, Text},
     Context,
 };
-use log::debug;
+use log::trace;
 use ui::{self, Gui};
 use zscene::Sprite;
 
@@ -85,7 +85,7 @@ impl Screen for MainMenu {
 
     fn click(&mut self, context: &mut Context, pos: Point2<f32>) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
-        debug!("MainMenu: click: pos={:?}, message={:?}", pos, message);
+        trace!("MainMenu: click: pos={:?}, message={:?}", pos, message);
         match message {
             Some(Message::StartInstant) => {
                 let scenario = utils::deserialize_from_file(context, "/scenario_01.ron")?;

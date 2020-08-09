@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use log::{debug, error, trace};
+use log::{error, trace};
 
 use crate::core::{
     battle::{
@@ -29,7 +29,7 @@ pub enum ApplyPhase {
 pub type Cb<'c> = &'c mut dyn FnMut(&State, &Event, ApplyPhase);
 
 pub fn execute(state: &mut State, command: &Command, cb: Cb) -> Result<(), Error> {
-    debug!("Simulator: do_command: {:?}", command);
+    trace!("Simulator: do_command: {:?}", command);
     if let Err(err) = check(state, command) {
         error!("Check failed: {:?}", err);
         return Err(err);
@@ -253,7 +253,7 @@ fn try_execute_passive_abilities_on_move(state: &mut State, cb: Cb, target_id: I
 }
 
 fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: Id) {
-    debug!("try_execute_passive_abilities_tick");
+    trace!("try_execute_passive_abilities_tick");
     if !state.parts().is_exist(target_id) {
         return;
     }

@@ -5,7 +5,7 @@ use gwg::{
     graphics::{Color, Text},
     Context,
 };
-use log::{debug, info};
+use log::{info, trace};
 use zscene::{action, Action, Boxed, Facing, Sprite};
 
 use crate::{
@@ -368,7 +368,7 @@ fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2<f32>) -> Box<d
 }
 
 fn vanish(view: &mut BattleView, target_id: Id) -> Box<dyn Action> {
-    debug!("vanish target_id={:?}", target_id);
+    trace!("vanish target_id={:?}", target_id);
     let sprite = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     view.remove_object(target_id);
@@ -505,7 +505,7 @@ pub fn visualize(
     event: &Event,
     phase: ApplyPhase,
 ) -> ZResult<Box<dyn Action>> {
-    debug!("visualize: phase={:?} event={:?}", phase, event);
+    trace!("visualize: phase={:?} event={:?}", phase, event);
     match phase {
         ApplyPhase::Pre => visualize_pre(state, view, context, event),
         ApplyPhase::Post => visualize_post(state, view, context, event),
@@ -972,7 +972,7 @@ pub fn visualize_instant_effect(
     target_id: Id,
     effect: &Effect,
 ) -> ZResult<Box<dyn Action>> {
-    debug!("visualize_instant_effect: {:?}", effect);
+    trace!("visualize_instant_effect: {:?}", effect);
     let action = match *effect {
         Effect::Create(ref e) => visualize_effect_create(state, view, context, target_id, e)?,
         Effect::Kill(ref e) => visualize_effect_kill(state, view, context, target_id, e)?,
@@ -1069,7 +1069,7 @@ fn visualize_effect_vanish(
     _: &mut Context,
     target_id: Id,
 ) -> Box<dyn Action> {
-    debug!("visualize_effect_vanish!");
+    trace!("visualize_effect_vanish!");
     fork(vanish(view, target_id))
 }
 
