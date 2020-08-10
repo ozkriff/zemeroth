@@ -2,6 +2,7 @@
 
 use std::{
     cell::RefCell,
+    error::Error as StdError,
     fmt::{self, Debug},
     rc::Rc,
     sync::mpsc::{channel, Receiver, Sender},
@@ -9,13 +10,9 @@ use std::{
 
 use gwg::{
     graphics::{self, Color, Drawable, Point2, Rect, Vector2},
-    Context, GameResult,
+    Context, GameError, GameResult,
 };
 use log::{info, trace};
-
-pub use error::Error;
-
-pub type Result<T = ()> = std::result::Result<T, Error>;
 
 pub const SPRITE_COLOR: Color = graphics::BLACK;
 pub const SPRITE_COLOR_INACTIVE: Color = Color::new(0.4, 0.4, 0.4, 0.5);
@@ -27,54 +24,50 @@ pub const SPRITE_COLOR_BUTTON_BORDER: Color = Color::new(1.0, 0.0, 0.0, 0.9);
 
 // TODO: Add ScrollArea widget
 
+pub type Result<T = ()> = std::result::Result<T, Error>;
+
+#[derive(Debug)]
+pub enum Error {
+    GwgError(GameError),
+    BadBorderCoefficient,
+    BadContentCoefficient,
+    NoDimensions,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Error::GwgError(ref e) => write!(f, "gwg Error: {}", e),
+            Error::BadBorderCoefficient => write!(f, "Border size is too large"),
+            Error::BadContentCoefficient => write!(f, "Content size is too large"),
+            Error::NoDimensions => write!(f, "The drawable has no dimensions"),
+        }
+    }
+}
+
+impl StdError for Error {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        match *self {
+            Error::GwgError(ref e) => Some(e),
+            Error::BadBorderCoefficient | Error::BadContentCoefficient | Error::NoDimensions => {
+                None
+            }
+        }
+    }
+}
+
+impl From<GameError> for Error {
+    fn from(e: GameError) -> Self {
+        Error::GwgError(e)
+    }
+}
+
 fn quad_to_tris<T: Copy>(v: [T; 4]) -> [T; 6] {
     [v[0], v[1], v[2], v[0], v[2], v[3]]
 }
 
 pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
     Rc::new(RefCell::new(widget))
-}
-
-mod error {
-    use std::{error::Error as StdError, fmt};
-
-    use gwg::GameError;
-
-    #[derive(Debug)]
-    pub enum Error {
-        GwgError(GameError),
-        BadBorderCoefficient,
-        BadContentCoefficient,
-        NoDimensions,
-    }
-
-    impl fmt::Display for Error {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            match *self {
-                Error::GwgError(ref e) => write!(f, "gwg Error: {}", e),
-                Error::BadBorderCoefficient => write!(f, "Border size is too large"),
-                Error::BadContentCoefficient => write!(f, "Content size is too large"),
-                Error::NoDimensions => write!(f, "The drawable has no dimensions"),
-            }
-        }
-    }
-
-    impl StdError for Error {
-        fn source(&self) -> Option<&(dyn StdError + 'static)> {
-            match *self {
-                Error::GwgError(ref e) => Some(e),
-                Error::BadBorderCoefficient
-                | Error::BadContentCoefficient
-                | Error::NoDimensions => None,
-            }
-        }
-    }
-
-    impl From<GameError> for Error {
-        fn from(e: GameError) -> Self {
-            Error::GwgError(e)
-        }
-    }
 }
 
 struct Sprite {
