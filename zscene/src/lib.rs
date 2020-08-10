@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{cell::RefCell, fmt, rc::Rc, time::Duration};
 
 use gwg::{Context, GameResult};
 
@@ -6,16 +6,44 @@ use gwg::{Context, GameResult};
 
 pub use crate::{
     action::{Action, Boxed},
-    error::Error,
     sprite::{Facing, Sprite},
 };
 
 pub mod action;
 
-mod error;
 mod sprite;
 
 pub type Result<T = ()> = std::result::Result<T, Error>;
+
+#[derive(Debug)]
+pub enum Error {
+    GwgError(gwg::GameError),
+    NoDimensions,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Error::GwgError(ref e) => write!(f, "gwg Error: {}", e),
+            Error::NoDimensions => write!(f, "The drawable has no dimensions"),
+        }
+    }
+}
+
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Error::GwgError(ref e) => Some(e),
+            Error::NoDimensions => None,
+        }
+    }
+}
+
+impl From<gwg::GameError> for Error {
+    fn from(e: gwg::GameError) -> Self {
+        Error::GwgError(e)
+    }
+}
 
 #[derive(Debug)]
 struct LayerData {
