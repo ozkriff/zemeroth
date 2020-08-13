@@ -384,6 +384,21 @@ fn vanish(view: &mut BattleView, target_id: Id) -> Box<dyn Action> {
     ])
 }
 
+fn show_frame_for_time(
+    view: &mut BattleView,
+    id: Id,
+    frame_name: &str,
+    time: Duration,
+) -> ZResult<Box<dyn Action>> {
+    let sprite = view.id_to_sprite(id).clone();
+    assert!(sprite.has_frame(frame_name));
+    Ok(fork(seq(vec![
+        action::SetFrame::new(&sprite, frame_name).boxed(),
+        action::Sleep::new(time).boxed(),
+        action::SetFrame::new(&sprite, "").boxed(),
+    ])))
+}
+
 fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     let sprites = view.agent_info_get(id);
@@ -762,14 +777,7 @@ fn visualize_event_use_ability_heal(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
-    let sprite = view.id_to_sprite(event.id).clone();
-    let frame_name = "heal";
-    assert!(sprite.has_frame(frame_name));
-    Ok(fork(seq(vec![
-        action::SetFrame::new(&sprite, frame_name).boxed(),
-        action::Sleep::new(time_s(1.0)).boxed(),
-        action::SetFrame::new(&sprite, "").boxed(),
-    ])))
+    show_frame_for_time(view, event.id, "heal", time_s(1.0))
 }
 
 fn visualize_event_use_ability_rage(
@@ -778,14 +786,7 @@ fn visualize_event_use_ability_rage(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
-    let sprite = view.id_to_sprite(event.id).clone();
-    let frame_name = "rage";
-    assert!(sprite.has_frame(frame_name));
-    Ok(fork(seq(vec![
-        action::SetFrame::new(&sprite, frame_name).boxed(),
-        action::Sleep::new(time_s(1.0)).boxed(),
-        action::SetFrame::new(&sprite, "").boxed(),
-    ])))
+    show_frame_for_time(view, event.id, "rage", time_s(1.0))
 }
 
 fn visualize_event_use_ability_knockback(
@@ -856,12 +857,7 @@ fn visualize_event_use_ability_bloodlust(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
-    let sprite = view.id_to_sprite(event.id).clone();
-    Ok(fork(seq(vec![
-        action::SetFrame::new(&sprite, "bloodlust").boxed(),
-        action::Sleep::new(time_s(0.5)).boxed(),
-        action::SetFrame::new(&sprite, "").boxed(),
-    ])))
+    show_frame_for_time(view, event.id, "bloodlust", time_s(0.5))
 }
 
 fn visualize_event_use_ability_throw_bomb(
@@ -870,12 +866,7 @@ fn visualize_event_use_ability_throw_bomb(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
-    let sprite = view.id_to_sprite(event.id).clone();
-    Ok(fork(seq(vec![
-        action::SetFrame::new(&sprite, "throw").boxed(),
-        action::Sleep::new(time_s(0.5)).boxed(),
-        action::SetFrame::new(&sprite, "").boxed(),
-    ])))
+    show_frame_for_time(view, event.id, "throw", time_s(0.5))
 }
 
 fn visualize_event_use_ability(
