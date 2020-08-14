@@ -22,7 +22,7 @@ pub use self::{
 };
 
 const COLOR_SCREEN_BG: Color = Color::new(0.9, 0.9, 0.8, 1.0);
-const COLOR_POPUP_BG: Color = Color::new(0.9, 0.9, 0.8, 0.8);
+const COLOR_POPUP_BG: Color = Color::new(0.9, 0.9, 0.8, 0.9);
 
 #[derive(Debug)]
 pub enum StackCommand {
