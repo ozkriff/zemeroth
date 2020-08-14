@@ -457,7 +457,6 @@ fn generate_brief_obj_info(
     }
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
-        let color = color.into();
         let mut sprite = Sprite::from_image(context, dot_image.clone(), size)?;
         sprite.set_centered(true);
         sprite.set_pos(point);
