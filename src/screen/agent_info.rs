@@ -82,6 +82,138 @@ enum Message {
     PassiveAbilityInfo(PassiveAbility),
 }
 
+fn info_panel(
+    context: &mut Context,
+    font: graphics::Font,
+    gui: &mut ui::Gui<Message>,
+    prototypes: &Prototypes,
+    typename: &ObjType,
+) -> ZResult<Box<dyn ui::Widget>> {
+    let proto = &prototypes.0[&typename];
+    let info = StaticObjectInfo::new(&typename, proto);
+    let h = utils::line_heights().normal;
+    let space_between_buttons = h / 8.0;
+    let mut layout = Box::new(ui::VLayout::new().stretchable(true));
+    layout.add(agent_image(context, typename)?);
+    let mut add = |w| layout.add(w);
+    let text_ = |s: &str| Box::new(Text::new((s, font, utils::font_size())));
+    let label_ = |context: &mut Context, text: &str| -> ZResult<_> {
+        Ok(ui::Label::new(context, text_(text), h)?)
+    };
+    let label = |context: &mut Context, text: &str| -> ZResult<Box<_>> {
+        Ok(Box::new(label_(context, text)?))
+    };
+    let label_s = |context: &mut Context, text: &str| -> ZResult<_> {
+        Ok(Box::new(label_(context, text)?.stretchable(true)))
+    };
+    let spacer_v = || Box::new(ui::Spacer::new_vertical(h * 0.5));
+    let spacer_s = || Box::new(ui::Spacer::new_horizontal(h * 0.5).stretchable(true));
+    let line = |context: &mut Context, arg: &str, val: &str| -> ZResult<_> {
+        let mut line = ui::HLayout::new().stretchable(true);
+        line.add(label(context, arg)?);
+        line.add(spacer_s());
+        line.add(label(context, val)?);
+        Ok(Box::new(line))
+    };
+    let line_i = |context: &mut Context, arg: &str, val: i32| -> ZResult<_> {
+        line(context, arg, &val.to_string())
+    };
+    {
+        if let Some(meta) = info.meta {
+            add(label_s(context, &format!("~~~ {} ~~~", meta.name.0))?);
+            add(spacer_v());
+        }
+        if let Some(strength) = info.strength {
+            add(line_i(context, "strength:", strength.base_strength.0)?);
+        }
+        if let Some(a) = info.agent {
+            add(line_i(context, "attacks:", a.base_attacks.0)?);
+            add(line_i(context, "moves:", a.base_moves.0)?);
+            if a.base_jokers.0 != 0 {
+                add(line_i(context, "jokers:", a.base_jokers.0)?);
+            }
+            if a.reactive_attacks.0 != 0 {
+                add(line_i(context, "reactive attacks:", a.reactive_attacks.0)?);
+            }
+            if a.attack_distance.0 != 1 {
+                add(line_i(context, "attack distance:", a.attack_distance.0)?);
+            }
+            add(line_i(context, "attack strength:", a.attack_strength.0)?);
+            add(line_i(context, "attack accuracy:", a.attack_accuracy.0)?);
+            if a.attack_break.0 > 0 {
+                add(line_i(context, "armor break:", a.attack_break.0)?);
+            }
+            if a.dodge.0 > 0 {
+                add(line_i(context, "dodge:", a.dodge.0)?);
+            }
+            add(line_i(context, "move points:", a.move_points.0)?);
+        }
+        if let Some(armor) = info.armor {
+            let armor = armor.armor.0;
+            if armor != 0 {
+                add(line_i(context, "armor:", armor)?);
+            }
+        }
+        if let Some(blocker) = info.blocker {
+            add(line(context, "weight:", &format!("{}", blocker.weight))?);
+        }
+        if let Some(abilities) = info.abilities {
+            if !abilities.0.is_empty() {
+                add(label_s(context, "~ abilities ~")?);
+                for ability in &abilities.0 {
+                    let s = ability.ability.title();
+                    let cooldown = ability.base_cooldown;
+                    let text = format!("'{}' (cooldown: {})", s, cooldown);
+                    let mut line_layout = ui::HLayout::new().stretchable(true);
+                    line_layout.add(label(context, &text)?);
+                    line_layout.add(spacer_s());
+                    // TODO: Don't reload images every time, preload them (like object frames)
+                    let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+                    let message = Message::AbilityInfo(ability.ability.clone());
+                    let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
+                    line_layout.add(Box::new(button));
+                    add(Box::new(line_layout));
+                    add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
+                }
+            }
+        }
+        if let Some(abilities) = info.passive_abilities {
+            if !abilities.0.is_empty() {
+                add(label_s(context, "~ passive abilities ~")?);
+                for &ability in &abilities.0 {
+                    let text = format!("'{}'", ability.title());
+                    let mut line_layout = ui::HLayout::new().stretchable(true);
+                    line_layout.add(label(context, &text)?);
+                    line_layout.add(spacer_s());
+                    let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+                    let message = Message::PassiveAbilityInfo(ability);
+                    let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
+                    line_layout.add(Box::new(button));
+                    add(Box::new(line_layout));
+                    add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
+                }
+            }
+        }
+    }
+    layout.stretch_to_self(context)?;
+    Ok(layout)
+}
+
+fn button_back(
+    context: &mut Context,
+    font: graphics::Font,
+    gui: &mut ui::Gui<Message>,
+    layout_width: f32,
+) -> ZResult<Box<dyn ui::Widget>> {
+    let h = utils::line_heights().normal;
+    let text = Box::new(Text::new(("back", font, utils::font_size())));
+    let msg = Message::Back;
+    let mut button = ui::Button::new(context, text, h, gui.sender(), msg)?.stretchable(true);
+    button.stretch(context, layout_width / 3.0)?;
+    button.set_stretchable(false);
+    Ok(Box::new(button))
+}
+
 #[derive(Debug)]
 pub struct AgentInfo {
     font: graphics::Font,
@@ -89,127 +221,56 @@ pub struct AgentInfo {
 }
 
 impl AgentInfo {
-    pub fn new(context: &mut Context, prototypes: Prototypes, typename: &ObjType) -> ZResult<Self> {
+    pub fn new_agent_info(
+        context: &mut Context,
+        prototypes: &Prototypes,
+        typename: &ObjType,
+    ) -> ZResult<Self> {
         let font = utils::default_font(context);
         let mut gui = ui::Gui::new(context);
-        let font_size = utils::font_size();
-        let proto = &prototypes.0[&typename];
-        let info = StaticObjectInfo::new(&typename, proto);
-        let h = utils::line_heights().normal;
-        let space_between_buttons = h / 8.0;
-        let mut layout = Box::new(ui::VLayout::new().stretchable(true));
-        layout.add(agent_image(context, typename)?);
-        let mut add = |w| layout.add(w);
-        let text_ = |s: &str| Box::new(Text::new((s, font, font_size)));
-        let label_ = |context: &mut Context, text: &str| -> ZResult<_> {
-            Ok(ui::Label::new(context, text_(text), h)?)
+        let mut layout = ui::VLayout::new();
+        let h = utils::line_heights().big;
+        layout.add(info_panel(context, font, &mut gui, prototypes, typename)?);
+        layout.add(Box::new(ui::Spacer::new_vertical(h)));
+        layout.add(button_back(context, font, &mut gui, layout.rect().w)?);
+        let layout = utils::add_offsets_and_bg_big(context, Box::new(layout))?;
+        let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
+        gui.add(&ui::pack(layout), anchor);
+        Ok(Self { font, gui })
+    }
+
+    pub fn new_upgrade_info(
+        context: &mut Context,
+        prototypes: &Prototypes,
+        from: &ObjType,
+        to: &ObjType,
+    ) -> ZResult<Self> {
+        let font = utils::default_font(context);
+        let mut gui = ui::Gui::new(context);
+        let mut layout = ui::VLayout::new();
+        let h = utils::line_heights().big;
+        let line = {
+            let mut line = Box::new(ui::HLayout::new());
+            let panel_from = info_panel(context, font, &mut gui, prototypes, from)?;
+            let panel_from_height = panel_from.rect().h;
+            line.add(panel_from);
+            line.add(Box::new(ui::Spacer::new_horizontal(h)));
+            let col = {
+                let mut col = Box::new(ui::VLayout::new());
+                col.add(Box::new(ui::Spacer::new_vertical(panel_from_height * 0.5)));
+                let text = Box::new(Text::new(("=>", font, utils::font_size())));
+                col.add(Box::new(ui::Label::new(context, text, h)?));
+                col
+            };
+            line.add(col);
+            line.add(Box::new(ui::Spacer::new_horizontal(h)));
+            line.add(info_panel(context, font, &mut gui, prototypes, to)?);
+            line
         };
-        let label = |context: &mut Context, text: &str| -> ZResult<_> {
-            Ok(Box::new(label_(context, text)?))
-        };
-        let label_s = |context: &mut Context, text: &str| -> ZResult<_> {
-            Ok(Box::new(label_(context, text)?.stretchable(true)))
-        };
-        let spacer_v = || Box::new(ui::Spacer::new_vertical(h * 0.5));
-        let spacer_s = || Box::new(ui::Spacer::new_horizontal(h * 0.5).stretchable(true));
-        let line = |context: &mut Context, arg: &str, val: &str| -> ZResult<_> {
-            let mut line = ui::HLayout::new().stretchable(true);
-            line.add(label(context, arg)?);
-            line.add(spacer_s());
-            line.add(label(context, val)?);
-            Ok(Box::new(line))
-        };
-        let line_i = |context: &mut Context, arg: &str, val: i32| -> ZResult<_> {
-            line(context, arg, &val.to_string())
-        };
-        {
-            if let Some(meta) = info.meta {
-                add(label_s(context, &format!("~~~ {} ~~~", meta.name.0))?);
-                add(spacer_v());
-            }
-            if let Some(strength) = info.strength {
-                add(line_i(context, "strength:", strength.base_strength.0)?);
-            }
-            if let Some(a) = info.agent {
-                add(line_i(context, "attacks:", a.base_attacks.0)?);
-                add(line_i(context, "moves:", a.base_moves.0)?);
-                if a.base_jokers.0 != 0 {
-                    add(line_i(context, "jokers:", a.base_jokers.0)?);
-                }
-                if a.reactive_attacks.0 != 0 {
-                    add(line_i(context, "reactive attacks:", a.reactive_attacks.0)?);
-                }
-                if a.attack_distance.0 != 1 {
-                    add(line_i(context, "attack distance:", a.attack_distance.0)?);
-                }
-                add(line_i(context, "attack strength:", a.attack_strength.0)?);
-                add(line_i(context, "attack accuracy:", a.attack_accuracy.0)?);
-                if a.attack_break.0 > 0 {
-                    add(line_i(context, "armor break:", a.attack_break.0)?);
-                }
-                if a.dodge.0 > 0 {
-                    add(line_i(context, "dodge:", a.dodge.0)?);
-                }
-                add(line_i(context, "move points:", a.move_points.0)?);
-            }
-            if let Some(armor) = info.armor {
-                let armor = armor.armor.0;
-                if armor != 0 {
-                    add(line_i(context, "armor:", armor)?);
-                }
-            }
-            if let Some(blocker) = info.blocker {
-                add(line(context, "weight:", &format!("{}", blocker.weight))?);
-            }
-            if let Some(abilities) = info.abilities {
-                if !abilities.0.is_empty() {
-                    add(label_s(context, "~ abilities ~")?);
-                    for ability in &abilities.0 {
-                        let s = ability.ability.title();
-                        let cooldown = ability.base_cooldown;
-                        let text = format!("'{}' (cooldown: {})", s, cooldown);
-                        let mut line_layout = ui::HLayout::new().stretchable(true);
-                        line_layout.add(label(context, &text)?);
-                        line_layout.add(spacer_s());
-                        // TODO: Don't reload images every time, preload them (like object frames)
-                        let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
-                        let message = Message::AbilityInfo(ability.ability.clone());
-                        let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
-                        line_layout.add(Box::new(button));
-                        add(Box::new(line_layout));
-                        add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
-                    }
-                }
-            }
-            if let Some(abilities) = info.passive_abilities {
-                if !abilities.0.is_empty() {
-                    add(label_s(context, "~ passive abilities ~")?);
-                    for &ability in &abilities.0 {
-                        let text = format!("'{}'", ability.title());
-                        let mut line_layout = ui::HLayout::new().stretchable(true);
-                        line_layout.add(label(context, &text)?);
-                        line_layout.add(spacer_s());
-                        let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
-                        let message = Message::PassiveAbilityInfo(ability);
-                        let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
-                        line_layout.add(Box::new(button));
-                        add(Box::new(line_layout));
-                        add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
-                    }
-                }
-            }
-            add(spacer_v());
-            {
-                let text = text_("back");
-                let mut button = ui::Button::new(context, text, h, gui.sender(), Message::Back)?
-                    .stretchable(true);
-                button.stretch(context, layout.rect().w / 3.0)?;
-                button.set_stretchable(false);
-                layout.add(Box::new(button));
-            }
-        }
-        layout.stretch_to_self(context)?;
-        let layout = utils::add_offsets_and_bg_big(context, layout)?;
+        layout.add(line);
+        layout.add(Box::new(ui::Spacer::new_vertical(h)));
+        layout.add(button_back(context, font, &mut gui, layout.rect().w)?);
+        let layout = utils::add_offsets_and_bg_big(context, Box::new(layout))?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         gui.add(&ui::pack(layout), anchor);
         Ok(Self { font, gui })
