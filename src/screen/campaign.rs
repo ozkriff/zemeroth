@@ -8,7 +8,7 @@ use gwg::{
     Context,
 };
 use log::info;
-use ui::{self, Gui};
+use ui::{self, Gui, Widget};
 
 use crate::{
     core::{
@@ -34,22 +34,13 @@ enum Message {
 
 const FONT_SIZE: f32 = utils::font_size();
 
-/// Big vertical spacer.
-fn spacer_v() -> Box<dyn ui::Widget> {
-    let h = utils::line_heights().big;
-    Box::new(ui::Spacer::new_vertical(h))
+// The main line height of this screen.
+fn line_height() -> f32 {
+    utils::line_heights().normal
 }
 
-/// Small vertical spacer.
-fn spacer_v_small() -> Box<dyn ui::Widget> {
-    let h = utils::line_heights().big / 8.0;
-    Box::new(ui::Spacer::new_vertical(h))
-}
-
-/// Horizontal spacer.
-fn spacer_h() -> Box<dyn ui::Widget> {
-    let h = utils::line_heights().big;
-    Box::new(ui::Spacer::new_horizontal(h / 4.0))
+fn line_height_small() -> f32 {
+    line_height() / 8.0
 }
 
 fn basic_gui(context: &mut Context) -> ZResult<Gui<Message>> {
@@ -66,43 +57,131 @@ fn basic_gui(context: &mut Context) -> ZResult<Gui<Message>> {
     Ok(gui)
 }
 
-fn add_agents_panel(
+fn build_panel_agents(
     context: &mut Context,
     font: Font,
     gui: &mut ui::Gui<Message>,
     agents: &[ObjType],
 ) -> ZResult<Box<dyn ui::Widget>> {
-    let mut layout = ui::VLayout::new();
-    let h = utils::line_heights().big;
+    let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     layout.add(label(context, font, "Your group consists of:")?);
-    layout.add(spacer_v_small());
+    layout.add(Box::new(ui::Spacer::new_vertical(line_height_small())));
     for agent_type in agents {
-        let mut line = ui::HLayout::new();
+        let mut line = ui::HLayout::new().stretchable(true);
         line.add(label(context, font, &format!("- {}", agent_type.0))?);
-        line.add(spacer_h());
+        let spacer = ui::Spacer::new_horizontal(line_height_small()).stretchable(true);
+        line.add(Box::new(spacer));
         {
             let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
             let message = Message::AgentInfo(agent_type.clone());
-            let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
+            let button = ui::Button::new(context, icon, line_height(), gui.sender(), message)?;
             line.add(Box::new(button));
         }
         layout.add(Box::new(line));
-        layout.add(spacer_v_small());
+        layout.add(Box::new(ui::Spacer::new_vertical(line_height_small())));
     }
-    let layout = utils::wrap_widget_and_add_bg(context, Box::new(layout))?;
+    layout.stretch_to_self(context)?;
+    let layout = utils::add_offsets_and_bg_big(context, layout)?.stretchable(true);
+    Ok(Box::new(layout))
+}
+
+fn build_panel_casualties(
+    context: &mut Context,
+    font: Font,
+    state: &State,
+) -> ZResult<Option<Box<dyn ui::Widget>>> {
+    let casualties = state.last_battle_casualties();
+    if casualties.is_empty() {
+        return Ok(None);
+    }
+    let mut layout = Box::new(ui::VLayout::new());
+    let section_title = "In the last battle you have lost:";
+    layout.add(label(context, font, section_title)?);
+    for agent_type in casualties {
+        let text = &format!("- {}", agent_type.0);
+        layout.add(label(context, font, text)?);
+        layout.add(Box::new(ui::Spacer::new_vertical(line_height_small())));
+    }
+    let layout = utils::add_offsets_and_bg_big(context, layout)?.stretchable(true);
+    Ok(Some(Box::new(layout)))
+}
+
+fn build_panel_renown(
+    context: &mut Context,
+    font: Font,
+    state: &State,
+) -> ZResult<Box<dyn ui::Widget>> {
+    let mut layout = Box::new(ui::VLayout::new().stretchable(true));
+    let renown_text = &format!("Your renown is: {}r", state.renown().0);
+    layout.add(label(context, font, renown_text)?);
+    let layout = utils::add_offsets_and_bg_big(context, layout)?.stretchable(true);
+    Ok(Box::new(layout))
+}
+
+fn build_panel_actions(
+    context: &mut Context,
+    font: Font,
+    gui: &mut ui::Gui<Message>,
+    state: &State,
+) -> ZResult<Box<dyn ui::Widget>> {
+    let h = line_height();
+    let mut layout = Box::new(ui::VLayout::new().stretchable(true));
+    layout.add(label(context, font, "Actions:")?);
+    layout.add(Box::new(ui::Spacer::new_vertical(line_height_small())));
+    for action in state.available_actions() {
+        let mut line = ui::HLayout::new().stretchable(true);
+        let action_cost = state.action_cost(action);
+        let text = match action {
+            Action::Recruit { agent_type } => {
+                format!("Recruit {} for {}r", agent_type.0, action_cost.0)
+            }
+            Action::Upgrade { from, to } => {
+                format!("Upgrade {} to {} for {}r", from.0, to.0, action_cost.0)
+            }
+        };
+        {
+            let text = Box::new(Text::new((text.as_str(), font, FONT_SIZE)));
+            let sender = gui.sender();
+            let message = Message::Action(action.clone());
+            let mut button = ui::Button::new(context, text, h, sender, message)?.stretchable(true);
+            if action_cost.0 > state.renown().0 {
+                button.set_active(false);
+            }
+            line.add(Box::new(button));
+        }
+        line.add(Box::new(ui::Spacer::new_horizontal(line_height_small())));
+        {
+            let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+            let message = match action {
+                Action::Recruit { agent_type, .. } => Message::AgentInfo(agent_type.clone()),
+                Action::Upgrade { to, .. } => Message::AgentInfo(to.clone()),
+            };
+            let sender = gui.sender();
+            let button = ui::Button::new(context, icon, h, sender, message)?;
+            line.add(Box::new(button));
+        }
+        layout.add(Box::new(line));
+        layout.add(Box::new(ui::Spacer::new_vertical(line_height_small())));
+    }
+    {
+        let text = &format!(
+            "Start battle - {}/{}",
+            state.current_scenario_index() + 1,
+            state.scenarios_count()
+        );
+        let text = Box::new(Text::new((text.as_str(), font, FONT_SIZE)));
+        let command = Message::StartBattle;
+        let button = ui::Button::new(context, text, h, gui.sender(), command)?.stretchable(true);
+        layout.add(Box::new(button));
+    }
+    layout.stretch_to_self(context)?;
+    let layout = utils::add_offsets_and_bg_big(context, layout)?.stretchable(true);
     Ok(Box::new(layout))
 }
 
 fn label(context: &mut Context, font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
-    let h = utils::line_heights().big;
     let text = Box::new(Text::new((text, font, FONT_SIZE)));
-    Ok(Box::new(ui::Label::new(context, text, h)?))
-}
-
-fn label_bg(context: &mut Context, font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
-    let h = utils::line_heights().big;
-    let text = Box::new(Text::new((text, font, FONT_SIZE)));
-    Ok(Box::new(ui::Label::new_with_bg(context, text, h)?))
+    Ok(Box::new(ui::Label::new(context, text, line_height())?))
 }
 
 #[derive(Debug)]
@@ -148,86 +227,21 @@ impl Campaign {
 
     // TODO: Wrap the list into `ScrollArea`
     fn set_mode_preparing(&mut self, context: &mut Context) -> ZResult {
-        let mut layout = ui::VLayout::new();
-        let h = utils::line_heights().big;
-        let casualties = self.state.last_battle_casualties();
-        if !casualties.is_empty() {
-            let layout_casualties = {
-                let mut layout = ui::VLayout::new();
-                let section_title = "In the last battle you have lost:";
-                layout.add(label(context, self.font, section_title)?);
-                for agent_type in casualties {
-                    let text = &format!("- {} (killed)", agent_type.0);
-                    layout.add(label(context, self.font, text)?);
-                    layout.add(spacer_v_small());
-                }
-                utils::wrap_widget_and_add_bg(context, Box::new(layout))?
-            };
-            layout.add(Box::new(layout_casualties));
-            layout.add(spacer_v());
+        let state = &self.state;
+        let gui = &mut self.gui;
+        let mut layout = ui::VLayout::new().stretchable(true);
+        if let Some(panel) = build_panel_casualties(context, self.font, state)? {
+            layout.add(panel);
+            layout.add(Box::new(ui::Spacer::new_vertical(line_height())));
         }
-        let agents_panel =
-            add_agents_panel(context, self.font, &mut self.gui, self.state.agents())?;
-        layout.add(agents_panel);
-        layout.add(spacer_v());
-        let renown_text = &format!("Your renown is: {}", self.state.renown().0);
-        layout.add(label_bg(context, self.font, renown_text)?);
-        layout.add(spacer_v());
-        let layout_actions = {
-            let mut layout = ui::VLayout::new();
-            layout.add(label(context, self.font, "Actions:")?);
-            layout.add(spacer_v_small());
-            for action in self.state.available_actions() {
-                let mut line = ui::HLayout::new();
-                let action_cost = self.state.action_cost(action);
-                let text = match action {
-                    Action::Recruit { agent_type } => {
-                        format!("Recruit {} for {}r", agent_type.0, action_cost.0)
-                    }
-                    Action::Upgrade { from, to } => {
-                        format!("Upgrade {} to {} for {}r", from.0, to.0, action_cost.0)
-                    }
-                };
-                {
-                    let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
-                    let sender = self.gui.sender();
-                    let message = Message::Action(action.clone());
-                    let mut button = ui::Button::new(context, text, h, sender, message)?;
-                    if action_cost.0 > self.state.renown().0 {
-                        button.set_active(false);
-                    }
-                    line.add(Box::new(button));
-                }
-                line.add(spacer_h());
-                {
-                    let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
-                    let message = match action {
-                        Action::Recruit { agent_type, .. } => {
-                            Message::AgentInfo(agent_type.clone())
-                        }
-                        Action::Upgrade { to, .. } => Message::AgentInfo(to.clone()),
-                    };
-                    let sender = self.gui.sender();
-                    let button = ui::Button::new(context, icon, h, sender, message)?;
-                    line.add(Box::new(button));
-                }
-                layout.add(Box::new(line));
-                layout.add(spacer_v_small());
-            }
-            {
-                let text = &format!(
-                    "Start battle - {}/{}",
-                    self.state.current_scenario_index() + 1,
-                    self.state.scenarios_count()
-                );
-                let text = Box::new(Text::new((text.as_str(), self.font, FONT_SIZE)));
-                let command = Message::StartBattle;
-                let button = ui::Button::new(context, text, h, self.gui.sender(), command)?;
-                layout.add(Box::new(button));
-            }
-            utils::wrap_widget_and_add_bg(context, Box::new(layout))?
-        };
-        layout.add(Box::new(layout_actions));
+        let mut line = ui::HLayout::new().stretchable(true);
+        line.add(build_panel_agents(context, self.font, gui, state.agents())?);
+        line.add(Box::new(ui::Spacer::new_horizontal(line_height())));
+        line.add(build_panel_renown(context, self.font, state)?);
+        layout.add(Box::new(line));
+        layout.add(Box::new(ui::Spacer::new_vertical(line_height())));
+        layout.add(build_panel_actions(context, self.font, gui, state)?);
+        layout.stretch_to_self(context)?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         let layout = ui::pack(layout);
         self.gui.add(&layout, anchor);

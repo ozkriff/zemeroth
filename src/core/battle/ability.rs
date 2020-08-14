@@ -215,7 +215,7 @@ impl PassiveAbility {
     pub fn extended_description(self) -> Vec<String> {
         match self {
             PassiveAbility::HeavyImpact => vec![
-                "Regular attack throws target one tile away.".into(),
+                "Regular attack throws the target one tile away.".into(),
                 format!(
                     "Works on targets with a weight for up to {}.",
                     Weight::Normal
@@ -231,7 +231,7 @@ impl PassiveAbility {
             PassiveAbility::SpikeTrap => {
                 vec!["Damages agents that enter into or begin their turn in the same tile.".into()]
             }
-            PassiveAbility::PoisonAttack => vec!["Regular attack poisons target.".into()],
+            PassiveAbility::PoisonAttack => vec!["Regular attack poisons the target.".into()],
             PassiveAbility::Regenerate(a) => vec![format!(
                 "Regenerates {} strength points every turn.",
                 (a.0).0

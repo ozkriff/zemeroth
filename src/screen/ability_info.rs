@@ -4,7 +4,7 @@ use gwg::{
     graphics::{self, Point2, Text},
     Context,
 };
-use ui::{self, Gui};
+use ui::{self, Gui, Widget};
 
 use crate::{
     core::battle::ability::{Ability, PassiveAbility},
@@ -32,38 +32,48 @@ impl AbilityInfo {
     pub fn new(context: &mut Context, ability: ActiveOrPassiveAbility) -> ZResult<Self> {
         let font = utils::default_font(context);
         let mut gui = ui::Gui::new(context);
-        let h = utils::line_heights().big;
+        let h = utils::line_heights().normal;
         let font_size = utils::font_size();
-        let mut layout = ui::VLayout::new();
-        let mut label = |text: &str| -> ZResult<Box<dyn ui::Widget>> {
-            let text = Box::new(Text::new((text, font, font_size)));
-            Ok(Box::new(ui::Label::new(context, text, h)?))
+        let mut layout = Box::new(ui::VLayout::new().stretchable(true));
+        let text_ = |s: &str| Box::new(Text::new((s, font, font_size)));
+        let label_ = |context: &mut Context, text: &str| -> ZResult<_> {
+            Ok(ui::Label::new(context, text_(text), h)?)
+        };
+        let label = |context: &mut Context, text: &str| -> ZResult<_> {
+            Ok(Box::new(label_(context, text)?))
+        };
+        let label_s = |context: &mut Context, text: &str| -> ZResult<_> {
+            Ok(Box::new(label_(context, text)?.stretchable(true)))
         };
         let spacer = || Box::new(ui::Spacer::new_vertical(h * 0.5));
-        let mut add = |w| layout.add(w);
+        let title = |text| format!("~~~ {} ~~~", text);
         match ability {
             ActiveOrPassiveAbility::Active(ability) => {
-                add(label(&ability.title())?);
-                add(spacer());
+                layout.add(label_s(context, &title(ability.title()))?);
+                layout.add(spacer());
                 for line in ability.extended_description() {
-                    add(label(&line)?);
+                    layout.add(label(context, &line)?);
                 }
             }
             ActiveOrPassiveAbility::Passive(ability) => {
-                add(label(&ability.title())?);
-                add(spacer());
+                layout.add(label_s(context, &title(ability.title()))?);
+                layout.add(spacer());
                 for line in ability.extended_description() {
-                    add(label(&line)?);
+                    layout.add(label(context, &line)?);
                 }
             }
         }
-        add(spacer());
+        layout.add(spacer());
         {
-            let text = Box::new(Text::new(("back", font, font_size)));
-            let button = ui::Button::new(context, text, h, gui.sender(), Message::Back)?;
-            add(Box::new(button));
+            let mut button =
+                ui::Button::new(context, text_("back"), h, gui.sender(), Message::Back)?
+                    .stretchable(true);
+            button.stretch(context, layout.rect().w / 3.0)?;
+            button.set_stretchable(false);
+            layout.add(Box::new(button));
         }
-        let layout = utils::wrap_widget_and_add_bg(context, Box::new(layout))?;
+        layout.stretch_to_self(context)?;
+        let layout = utils::add_offsets_and_bg_big(context, layout)?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         gui.add(&ui::pack(layout), anchor);
         Ok(Self { font, gui })

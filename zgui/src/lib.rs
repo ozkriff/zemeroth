@@ -108,8 +108,6 @@ impl Sprite {
         })
     }
 
-    // TODO: Add some method to change or switch the drawable. Write a demo for it.
-
     fn draw(&self, context: &mut Context) -> GameResult<()> {
         self.drawable.draw(context, self.param)
     }
@@ -136,11 +134,15 @@ impl Sprite {
 }
 
 fn make_bg(context: &mut Context, rect: Rect) -> Result<Sprite> {
+    make_rect(context, rect, SPRITE_COLOR_BG)
+}
+
+fn make_rect(context: &mut Context, rect: Rect, color: Color) -> Result<Sprite> {
     let mode = graphics::DrawMode::fill();
     let white = [1.0, 1.0, 1.0, 1.0].into();
     let mesh = graphics::Mesh::new_rectangle(context, mode, rect, white)?;
     let mut sprite = Sprite::new(context, Box::new(mesh), rect.h)?;
-    sprite.set_color(SPRITE_COLOR_BG);
+    sprite.set_color(color);
     Ok(sprite)
 }
 
@@ -173,12 +175,44 @@ pub enum HAnchor {
 #[derive(Clone, Copy, Debug)]
 pub struct Anchor(pub HAnchor, pub VAnchor);
 
+#[derive(Clone, Copy, Debug)]
+pub enum StretchStatus {
+    Stretched,
+    AlreadyWider,
+    Unstretchable,
+}
+
 pub trait Widget: Debug {
     fn draw(&self, _: &mut Context) -> GameResult<()>;
     fn click(&self, _: Point2) {}
     fn move_mouse(&mut self, _: Point2) {}
     fn rect(&self) -> Rect;
     fn set_pos(&mut self, pos: Point2);
+
+    fn can_stretch(&self) -> bool {
+        false
+    }
+
+    fn stretch(&mut self, _: &mut Context, _width: f32) -> Result<StretchStatus> {
+        // The default impl assumes the widget can't stretch.
+        assert!(!self.can_stretch());
+        Ok(StretchStatus::Unstretchable)
+    }
+
+    fn stretch_to_self(&mut self, context: &mut Context) -> Result<StretchStatus> {
+        let w = self.rect().w;
+        self.stretch(context, w)
+    }
+}
+
+fn stretch_checks(widget: &impl Widget, width: f32) -> Option<StretchStatus> {
+    if !widget.can_stretch() {
+        return Some(StretchStatus::Unstretchable);
+    }
+    if widget.rect().w > width {
+        return Some(StretchStatus::AlreadyWider);
+    }
+    None
 }
 
 pub type RcWidget = Rc<RefCell<dyn Widget>>;
@@ -289,6 +323,8 @@ pub struct LabelParam {
     pub drawable_k: f32,
 
     pub bg: bool,
+
+    pub is_stretchable: bool,
 }
 
 impl Default for LabelParam {
@@ -296,6 +332,7 @@ impl Default for LabelParam {
         LabelParam {
             drawable_k: 0.8,
             bg: false,
+            is_stretchable: false,
         }
     }
 }
@@ -345,7 +382,7 @@ impl Label {
         param.check()?;
         let sprite = Sprite::new(context, drawable, height * param.drawable_k)?;
         let rect = Rect {
-            w: sprite.rect().w + height * (1.0 - param.drawable_k),
+            w: sprite.rect().w,
             h: sprite.rect().h / param.drawable_k,
             ..Default::default()
         };
@@ -362,6 +399,24 @@ impl Label {
             rect,
         })
     }
+
+    pub fn stretchable(mut self, value: bool) -> Self {
+        self.set_stretchable(value);
+        self
+    }
+
+    pub fn set_stretchable(&mut self, value: bool) {
+        self.param.is_stretchable = value;
+    }
+
+    pub fn with_color(mut self, color: Color) -> Self {
+        self.set_color(color);
+        self
+    }
+
+    pub fn set_color(&mut self, color: Color) {
+        self.sprite.param.color = color;
+    }
 }
 
 impl Widget for Label {
@@ -377,28 +432,61 @@ impl Widget for Label {
     }
 
     fn set_pos(&mut self, pos: Point2) {
-        let h = (1.0 - self.param.drawable_k) * 0.5 * self.height;
-        self.sprite.set_pos(pos + Vector2::new(h, h));
+        let h = (1.0 - self.param.drawable_k) * self.height;
+        let w = self.rect.w - self.sprite.rect().w;
+        self.sprite.set_pos(pos + Vector2::new(w, h) * 0.5);
         if let Some(ref mut bg) = &mut self.bg {
             bg.set_pos(pos);
         }
         self.rect.move_to(pos);
+    }
+
+    fn can_stretch(&self) -> bool {
+        self.param.is_stretchable
+    }
+
+    fn stretch(&mut self, context: &mut Context, width: f32) -> Result<StretchStatus> {
+        if let Some(status) = stretch_checks(self, width) {
+            return Ok(status);
+        }
+        let pos: Point2 = self.rect().point().into();
+        let rect = Rect {
+            w: width,
+            h: self.rect.h,
+            ..Default::default()
+        };
+        self.rect = rect;
+        if self.param.bg {
+            self.bg = Some(make_bg(context, rect)?);
+        }
+        self.set_pos(pos);
+        Ok(StretchStatus::Stretched)
     }
 }
 
 #[derive(Debug)]
 pub struct ColoredRect {
     sprite: Sprite,
+    color: Color,
+    is_stretchable: bool,
 }
 
 impl ColoredRect {
     pub fn new(context: &mut Context, color: Color, rect: Rect) -> Result<Self> {
-        let mode = graphics::DrawMode::fill();
-        let white = [1.0, 1.0, 1.0, 1.0].into();
-        let drawable = graphics::Mesh::new_rectangle(context, mode, rect, white)?;
-        let mut sprite = Sprite::new(context, Box::new(drawable), rect.h)?;
-        sprite.set_color(color);
-        Ok(Self { sprite })
+        Ok(Self {
+            sprite: make_rect(context, rect, color)?,
+            color,
+            is_stretchable: false,
+        })
+    }
+
+    pub fn stretchable(mut self, value: bool) -> Self {
+        self.set_stretchable(value);
+        self
+    }
+
+    pub fn set_stretchable(&mut self, value: bool) {
+        self.is_stretchable = value;
     }
 }
 
@@ -414,16 +502,39 @@ impl Widget for ColoredRect {
     fn set_pos(&mut self, pos: Point2) {
         self.sprite.set_pos(pos);
     }
+
+    fn can_stretch(&self) -> bool {
+        self.is_stretchable
+    }
+
+    fn stretch(&mut self, context: &mut Context, width: f32) -> Result<StretchStatus> {
+        if let Some(status) = stretch_checks(self, width) {
+            return Ok(status);
+        }
+        let pos: Point2 = self.rect().point().into();
+        let rect = Rect {
+            w: width,
+            h: self.rect().h,
+            ..Default::default()
+        };
+        self.sprite = make_rect(context, rect, self.color)?;
+        self.set_pos(pos);
+        Ok(StretchStatus::Stretched)
+    }
 }
 
 #[derive(Debug)]
 pub struct Spacer {
     rect: Rect,
+    is_stretchable: bool,
 }
 
 impl Spacer {
     pub fn new(rect: Rect) -> Self {
-        Self { rect }
+        Self {
+            rect,
+            is_stretchable: false,
+        }
     }
 
     pub fn new_vertical(h: f32) -> Self {
@@ -431,7 +542,10 @@ impl Spacer {
             h,
             ..Default::default()
         };
-        Self { rect }
+        Self {
+            rect,
+            is_stretchable: false,
+        }
     }
 
     pub fn new_horizontal(w: f32) -> Self {
@@ -439,7 +553,19 @@ impl Spacer {
             w,
             ..Default::default()
         };
-        Self { rect }
+        Self {
+            rect,
+            is_stretchable: false,
+        }
+    }
+
+    pub fn stretchable(mut self, value: bool) -> Self {
+        self.set_stretchable(value);
+        self
+    }
+
+    pub fn set_stretchable(&mut self, value: bool) {
+        self.is_stretchable = value;
     }
 }
 
@@ -455,6 +581,18 @@ impl Widget for Spacer {
     fn set_pos(&mut self, pos: Point2) {
         self.rect.move_to(pos)
     }
+
+    fn can_stretch(&self) -> bool {
+        self.is_stretchable
+    }
+
+    fn stretch(&mut self, _: &mut Context, width: f32) -> Result<StretchStatus> {
+        if let Some(status) = stretch_checks(self, width) {
+            return Ok(status);
+        }
+        self.rect.w = width;
+        Ok(StretchStatus::Stretched)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -464,6 +602,8 @@ pub struct ButtonParam {
 
     /// Percentage of the drawable's size.
     pub drawable_k: f32,
+
+    pub is_stretchable: bool,
 }
 
 impl Default for ButtonParam {
@@ -472,6 +612,7 @@ impl Default for ButtonParam {
         Self {
             border_k: 0.06,
             drawable_k: label_param.drawable_k,
+            is_stretchable: false,
         }
     }
 }
@@ -500,7 +641,13 @@ pub struct Button<Message: Clone> {
     color: Color,
 }
 
-impl<Message: Clone> Button<Message> {
+fn rect_to_vertices(r: Rect) -> [[f32; 2]; 4] {
+    let x = r.x;
+    let y = r.y;
+    [[x, y], [x, y + r.h], [x + r.w, y + r.h], [x + r.w, y]]
+}
+
+impl<Message: Clone + Debug> Button<Message> {
     pub fn new(
         context: &mut Context,
         drawable: Box<dyn Drawable>,
@@ -522,38 +669,10 @@ impl<Message: Clone> Button<Message> {
     ) -> Result<Self> {
         param.check()?;
         let sprite = Sprite::new(context, drawable, height * param.drawable_k)?;
-        let rect = sprite.rect();
-        let free_area_k = 1.0 - param.drawable_k - param.border_k * 2.0;
-        let border = height * param.border_k;
-        let free_area = height * free_area_k;
-        let max_y = border * 2.0 + free_area + rect.h;
-        let max_x = border * 2.0 + free_area + rect.w;
-        // TODO: Extract a helper func that takes a Rect and border width
-        // TODO: Use `Rect`s instead of arrays.s
-        let a = [[0.0, 0.0], [0.0, max_y], [max_x, max_y], [max_x, 0.0]];
-        let border = {
-            let b = [
-                [border, border],
-                [border, border + free_area + rect.h],
-                [border + free_area + rect.w, border + free_area + rect.h],
-                [border + free_area + rect.w, border],
-            ];
-            let mut vs: Vec<[f32; 2]> = vec![];
-            vs.extend(quad_to_tris([a[0], a[1], b[1], b[0]]).iter());
-            vs.extend(quad_to_tris([a[1], a[2], b[2], b[1]]).iter());
-            vs.extend(quad_to_tris([a[2], a[3], b[3], b[2]]).iter());
-            vs.extend(quad_to_tris([a[3], a[0], b[0], b[3]]).iter());
-            let color = SPRITE_COLOR_BUTTON_BORDER;
-            let border_mesh = graphics::Mesh::from_triangles(context, &vs, color)?;
-            Sprite::new(context, Box::new(border_mesh), height)?
-        };
-        let bg = {
-            let bg_mesh =
-                graphics::Mesh::from_triangles(context, &quad_to_tris(a), graphics::WHITE)?;
-            let mut bg = Sprite::new(context, Box::new(bg_mesh), height)?;
-            bg.set_color(SPRITE_COLOR_BG);
-            bg
-        };
+        let outer = Self::outer_rect(&sprite, height, &param);
+        let inner = Self::inner_rect(&param, outer);
+        let border = Self::make_border(context, height, outer, inner)?;
+        let bg = Self::make_bg_mesh(context, height, outer)?;
         Ok(Self {
             is_active: true,
             sprite,
@@ -571,9 +690,9 @@ impl<Message: Clone> Button<Message> {
         self.sprite.param.color = self.color;
     }
 
-    pub fn set_active(&mut self, is_active: bool) {
-        self.is_active = is_active;
-        let color = if is_active {
+    pub fn set_active(&mut self, value: bool) {
+        self.is_active = value;
+        let color = if value {
             SPRITE_COLOR
         } else {
             SPRITE_COLOR_INACTIVE
@@ -583,6 +702,53 @@ impl<Message: Clone> Button<Message> {
 
     pub fn is_active(&self) -> bool {
         self.is_active
+    }
+
+    pub fn stretchable(mut self, value: bool) -> Self {
+        self.set_stretchable(value);
+        self
+    }
+
+    pub fn set_stretchable(&mut self, value: bool) {
+        self.param.is_stretchable = value;
+    }
+
+    fn outer_rect(sprite: &Sprite, height: f32, param: &ButtonParam) -> Rect {
+        let free_area_k = 1.0 - param.drawable_k - param.border_k * 2.0;
+        let free_area = height * free_area_k;
+        let border = height * param.border_k;
+        Rect {
+            w: border * 2.0 + free_area + sprite.rect().w,
+            h: height,
+            ..Default::default()
+        }
+    }
+
+    fn inner_rect(param: &ButtonParam, rect: Rect) -> Rect {
+        let border = rect.h * param.border_k;
+        Rect::new(border, border, rect.w - border * 2.0, rect.h - border * 2.0)
+    }
+
+    fn make_border(context: &mut Context, height: f32, outer: Rect, inner: Rect) -> Result<Sprite> {
+        let mut vertices: Vec<[f32; 2]> = Vec::new();
+        let outer = rect_to_vertices(outer);
+        let inner = rect_to_vertices(inner);
+        vertices.extend(quad_to_tris([outer[0], outer[1], inner[1], inner[0]]).iter());
+        vertices.extend(quad_to_tris([outer[1], outer[2], inner[2], inner[1]]).iter());
+        vertices.extend(quad_to_tris([outer[2], outer[3], inner[3], inner[2]]).iter());
+        vertices.extend(quad_to_tris([outer[3], outer[0], inner[0], inner[3]]).iter());
+        let color = SPRITE_COLOR_BUTTON_BORDER;
+        let border_mesh = graphics::Mesh::from_triangles(context, &vertices, color)?;
+        Sprite::new(context, Box::new(border_mesh), height)
+    }
+
+    fn make_bg_mesh(context: &mut Context, height: f32, outer: Rect) -> Result<Sprite> {
+        let outer = rect_to_vertices(outer);
+        let triangles = quad_to_tris(outer);
+        let bg_mesh = graphics::Mesh::from_triangles(context, &triangles, graphics::WHITE)?;
+        let mut bg = Sprite::new(context, Box::new(bg_mesh), height)?;
+        bg.set_color(SPRITE_COLOR_BG);
+        Ok(bg)
     }
 }
 
@@ -618,10 +784,33 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
     }
 
     fn set_pos(&mut self, pos: Point2) {
-        let h = (self.border.rect().h - self.sprite.rect().h) / 2.0;
-        self.sprite.set_pos(pos + Vector2::new(h, h));
+        let h = self.border.rect().h - self.sprite.rect().h;
+        let w = self.border.rect().w - self.sprite.rect().w;
+        self.sprite.set_pos(pos + Vector2::new(w, h) * 0.5);
         self.border.set_pos(pos);
         self.bg.set_pos(pos);
+    }
+
+    fn can_stretch(&self) -> bool {
+        self.param.is_stretchable
+    }
+
+    fn stretch(&mut self, context: &mut Context, width: f32) -> Result<StretchStatus> {
+        if let Some(status) = stretch_checks(self, width) {
+            return Ok(status);
+        }
+        let pos: Point2 = self.rect().point().into();
+        let height = self.bg.dimensions.h;
+        let outer = Rect {
+            w: width,
+            h: self.rect().h,
+            ..Default::default()
+        };
+        let inner = Self::inner_rect(&self.param, outer);
+        self.border = Self::make_border(context, height, outer, inner)?;
+        self.bg = Self::make_bg_mesh(context, height, outer)?;
+        self.set_pos(pos);
+        Ok(StretchStatus::Stretched)
     }
 }
 
@@ -629,6 +818,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
 struct Layout {
     widgets: Vec<Box<dyn Widget>>,
     rect: Rect,
+    is_stretchable: bool,
 }
 
 impl Layout {
@@ -636,13 +826,16 @@ impl Layout {
         Self {
             widgets: Vec::new(),
             rect: Rect::default(),
+            is_stretchable: false,
         }
     }
 
-    fn rect(&self) -> Rect {
-        self.rect
+    pub fn set_stretchable(&mut self, value: bool) {
+        self.is_stretchable = value;
     }
+}
 
+impl Widget for Layout {
     fn draw(&self, context: &mut Context) -> GameResult {
         for widget in &self.widgets {
             widget.draw(context)?;
@@ -661,6 +854,35 @@ impl Layout {
             widget.move_mouse(pos);
         }
     }
+
+    fn rect(&self) -> Rect {
+        self.rect
+    }
+
+    fn set_pos(&mut self, pos: Point2) {
+        let point: Point2 = self.rect.point().into();
+        let diff = pos - point;
+        for widget in &mut self.widgets {
+            let pos: Point2 = widget.rect().point().into();
+            widget.set_pos(pos + diff);
+        }
+        self.rect.move_to(pos);
+    }
+
+    fn can_stretch(&self) -> bool {
+        self.is_stretchable
+    }
+
+    fn stretch(&mut self, context: &mut Context, width: f32) -> Result<StretchStatus> {
+        if let Some(status) = stretch_checks(self, width) {
+            return Ok(status);
+        }
+        for widget in &mut self.widgets {
+            widget.stretch(context, width)?;
+            self.rect.w = self.rect.w.max(widget.rect().w);
+        }
+        Ok(StretchStatus::Stretched)
+    }
 }
 
 #[derive(Debug, Default)]
@@ -673,6 +895,11 @@ impl VLayout {
         Self {
             internal: Layout::new(),
         }
+    }
+
+    pub fn stretchable(mut self, value: bool) -> Self {
+        self.internal.set_stretchable(value);
+        self
     }
 
     pub fn from_widget(widget: Box<dyn Widget>) -> Self {
@@ -717,13 +944,15 @@ impl Widget for VLayout {
     }
 
     fn set_pos(&mut self, pos: Point2) {
-        let point: Point2 = self.internal.rect.point().into();
-        let diff = pos - point;
-        for widget in &mut self.internal.widgets {
-            let pos: Point2 = widget.rect().point().into();
-            widget.set_pos(pos + diff);
-        }
-        self.internal.rect.move_to(pos);
+        self.internal.set_pos(pos);
+    }
+
+    fn can_stretch(&self) -> bool {
+        self.internal.can_stretch()
+    }
+
+    fn stretch(&mut self, context: &mut Context, width: f32) -> Result<StretchStatus> {
+        self.internal.stretch(context, width)
     }
 }
 
@@ -739,6 +968,11 @@ impl HLayout {
         }
     }
 
+    pub fn stretchable(mut self, value: bool) -> Self {
+        self.internal.set_stretchable(value);
+        self
+    }
+
     pub fn add(&mut self, mut widget: Box<dyn Widget>) {
         let rect = widget.rect();
         if let Some(last) = self.internal.widgets.last() {
@@ -749,11 +983,11 @@ impl HLayout {
         } else {
             widget.set_pos(self.internal.rect.point().into());
         }
-        self.internal.widgets.push(widget);
         self.internal.rect.w += rect.w;
         if self.internal.rect.h < rect.h {
             self.internal.rect.h = rect.h;
         }
+        self.internal.widgets.push(widget);
     }
 }
 
@@ -775,13 +1009,35 @@ impl Widget for HLayout {
     }
 
     fn set_pos(&mut self, pos: Point2) {
-        let point: Point2 = self.internal.rect.point().into();
-        let diff = pos - point;
-        for widget in &mut self.internal.widgets {
-            let pos: Point2 = widget.rect().point().into();
-            widget.set_pos(pos + diff);
+        self.internal.set_pos(pos);
+    }
+
+    fn can_stretch(&self) -> bool {
+        self.internal.can_stretch()
+    }
+
+    fn stretch(&mut self, context: &mut Context, width: f32) -> Result<StretchStatus> {
+        if let Some(status) = stretch_checks(self, width) {
+            return Ok(status);
         }
-        self.internal.rect.move_to(pos);
+        let widgets = &mut self.internal.widgets;
+        let stretchable_count = widgets.iter().filter(|w| w.can_stretch()).count();
+        let taken_w: f32 = widgets.iter().fold(0.0, |acc, w| acc + w.rect().w);
+        let additional_w_per_stretchable = (width - taken_w) / stretchable_count as f32;
+        let mut diff_w = 0.0;
+        for widget in widgets {
+            let r = widget.rect();
+            let mut pos: Point2 = r.point().into();
+            pos.x += diff_w;
+            widget.set_pos(pos);
+            if widget.can_stretch() {
+                let new_w = r.w + additional_w_per_stretchable;
+                widget.stretch(context, new_w)?;
+                diff_w += additional_w_per_stretchable;
+            }
+        }
+        self.internal.rect.w = width;
+        Ok(StretchStatus::Stretched)
     }
 }
 
@@ -795,6 +1051,11 @@ impl LayersLayout {
         Self {
             internal: Layout::new(),
         }
+    }
+
+    pub fn stretchable(mut self, value: bool) -> Self {
+        self.internal.set_stretchable(value);
+        self
     }
 
     pub fn add(&mut self, mut widget: Box<dyn Widget>) {
@@ -828,12 +1089,14 @@ impl Widget for LayersLayout {
     }
 
     fn set_pos(&mut self, pos: Point2) {
-        let point: Point2 = self.internal.rect.point().into();
-        let diff = pos - point;
-        for widget in &mut self.internal.widgets {
-            let pos: Point2 = widget.rect().point().into();
-            widget.set_pos(pos + diff);
-        }
-        self.internal.rect.move_to(pos);
+        self.internal.set_pos(pos);
+    }
+
+    fn can_stretch(&self) -> bool {
+        self.internal.can_stretch()
+    }
+
+    fn stretch(&mut self, context: &mut Context, width: f32) -> Result<StretchStatus> {
+        self.internal.stretch(context, width)
     }
 }

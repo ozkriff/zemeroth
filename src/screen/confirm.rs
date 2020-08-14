@@ -20,7 +20,7 @@ pub enum Message {
     No,
 }
 
-//// A helper function for a receiving side.
+/// A helper function for a receiving side.
 pub fn try_receive_yes(opt_rx: &Option<Receiver<Message>>) -> bool {
     utils::try_receive(opt_rx) == Some(Message::Yes)
 }
@@ -63,26 +63,27 @@ impl Confirm {
         let mut gui = ui::Gui::new(context);
         let h = utils::line_heights().big;
         let font_size = utils::font_size();
-        let mut layout = ui::VLayout::new();
+        let mut layout = Box::new(ui::VLayout::new());
         let spacer = || Box::new(ui::Spacer::new_vertical(h * 0.5));
-        let mut add = |w| layout.add(w);
-        let button = |context: &mut Context, line, message| {
+        let button = |context: &mut Context, line, message| -> ZResult<_> {
             let text = Box::new(Text::new((line, font, font_size)));
-            ui::Button::new(context, text, h, gui.sender(), message)
+            let b = ui::Button::new(context, text, h, gui.sender(), message)?.stretchable(true);
+            Ok(b)
         };
-        let yes = button(context, "yes", Message::Yes)?;
-        let no = button(context, "no", Message::No)?;
+        let button_width = widget.rect().w / 3.0;
+        let mut yes = button(context, "yes", Message::Yes)?;
+        yes.stretch(context, button_width)?;
+        let mut no = button(context, "no", Message::No)?;
+        no.stretch(context, button_width)?;
         let spacer_width = widget.rect().w - yes.rect().w - no.rect().w;
         let mut line_layout = ui::HLayout::new();
         line_layout.add(Box::new(yes));
         line_layout.add(Box::new(ui::Spacer::new_horizontal(spacer_width)));
         line_layout.add(Box::new(no));
-        add(widget);
-        add(spacer());
-        add(Box::new(line_layout));
-        let pack_offset = 0.04;
-        let layout = utils::pack_widget_into_offset_table(Box::new(layout), pack_offset);
-        let layout = utils::wrap_widget_and_add_bg(context, layout)?;
+        layout.add(widget);
+        layout.add(spacer());
+        layout.add(Box::new(line_layout));
+        let layout = utils::add_offsets_and_bg_big(context, layout)?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         gui.add(&ui::pack(layout), anchor);
         Ok(Self { font, gui, sender })

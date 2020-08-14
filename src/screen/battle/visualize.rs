@@ -28,6 +28,17 @@ use crate::{
     ZResult,
 };
 
+pub mod color {
+    use gwg::graphics::Color;
+
+    pub const STRENGTH: Color = Color::new(0.0, 0.7, 0.0, 1.0);
+    pub const DAMAGE: Color = Color::new(0.3, 0.5, 0.3, 0.5);
+    pub const ARMOR: Color = Color::new(1.0, 1.0, 0.5, 1.0);
+    pub const JOKERS: Color = Color::new(1.0, 1.0, 1.0, 1.0);
+    pub const ATTACKS: Color = Color::new(1.0, 0.0, 0.0, 1.0);
+    pub const MOVES: Color = Color::new(0.2, 0.2, 1.0, 1.0);
+}
+
 const BLOOD_SPRITE_DURATION_TURNS: i32 = 6; // TODO: i32 -> Turns, Rounds, etc
 const TIME_LUNGE_TO: f32 = 0.1;
 const TIME_LUNGE_FROM: f32 = 0.15;
@@ -437,13 +448,13 @@ fn generate_brief_obj_info(
     let base = point;
     let rows: &[&[_]] = &[
         &[
-            ([0.0, 0.7, 0.0, 1.0], strength.strength.0),
-            ([0.3, 0.5, 0.3, 0.5], damage),
-            ([1.0, 1.0, 0.0, 1.0], armor.0),
+            (color::STRENGTH, strength.strength.0),
+            (color::DAMAGE, damage),
+            (color::ARMOR, armor.0),
         ],
-        &[([1.0, 1.0, 1.0, 1.0], agent.jokers.0)],
-        &[([1.0, 0.0, 0.0, 1.0], agent.attacks.0)],
-        &[([0.0, 0.0, 1.0, 1.0], agent.moves.0)],
+        &[(color::JOKERS, agent.jokers.0)],
+        &[(color::ATTACKS, agent.attacks.0)],
+        &[(color::MOVES, agent.moves.0)],
     ];
     for &row in rows {
         for &(color, n) in row {
@@ -457,7 +468,6 @@ fn generate_brief_obj_info(
     }
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
-        let color = color.into();
         let mut sprite = Sprite::from_image(context, dot_image.clone(), size)?;
         sprite.set_centered(true);
         sprite.set_pos(point);
