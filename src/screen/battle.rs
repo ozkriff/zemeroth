@@ -4,11 +4,11 @@ use std::{
 };
 
 use gwg::{
-    graphics::{self, Font, Point2, Text},
+    graphics::{self, Color, Font, Image, Point2, Text},
     Context,
 };
 use log::{info, trace};
-use ui::{self, Gui};
+use ui::{self, Gui, Widget};
 use zscene::{action, Action, Boxed};
 
 use crate::{
@@ -32,7 +32,7 @@ use crate::{
         self,
         battle::{
             view::{make_action_create_map, BattleView, SelectionMode},
-            visualize::{fork, visualize},
+            visualize::{color, fork, visualize},
         },
         Screen, StackCommand,
     },
@@ -55,6 +55,7 @@ enum Message {
     PassiveAbilityInfo(PassiveAbility),
 }
 
+// TODO: consider moving ui `build_*` functions to a sub-module
 fn build_panel_agent_info(
     context: &mut Context,
     font: Font,
@@ -66,89 +67,131 @@ fn build_panel_agent_info(
     let st = parts.strength.get(id);
     let meta = parts.meta.get(id);
     let a = parts.agent.get(id);
-    let mut layout = ui::VLayout::new();
+    let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     let h = line_heights().normal;
+    let space_between_buttons = h / 8.0;
+    let mut add = |w| layout.add(w);
+    let text_ = |s: &str| Box::new(Text::new((s, font, FONT_SIZE)));
+    let label_ = |context: &mut Context, text: &str| -> ZResult<_> {
+        Ok(ui::Label::new(context, text_(text), h)?)
+    };
+    let label = |context: &mut Context, text: &str| -> ZResult<Box<dyn Widget>> {
+        Ok(Box::new(label_(context, text)?))
+    };
+    let label_s = |context: &mut Context, text: &str| -> ZResult<_> {
+        Ok(Box::new(label_(context, text)?.stretchable(true)))
+    };
+    let line = |context: &mut Context, arg: &str, val: &str| -> ZResult<_> {
+        let mut line = ui::HLayout::new().stretchable(true);
+        line.add(label(context, arg)?);
+        line.add(Box::new(ui::Spacer::new_horizontal(h).stretchable(true)));
+        line.add(label(context, val)?);
+        Ok(Box::new(line))
+    };
+    let line_i = |context: &mut Context, arg: &str, val: i32| -> ZResult<_> {
+        line(context, arg, &val.to_string())
+    };
+    let image_dot = Image::new(context, "/dot.png")?;
+    let line_dot = |context: &mut Context, arg: &str, val: &str, color| -> ZResult<_> {
+        let mut line = ui::HLayout::new().stretchable(true);
+        let dot_img = Box::new(image_dot.clone());
+        let dot_color = Color { a: 1.0, ..color };
+        let param = ui::LabelParam {
+            drawable_k: 0.3,
+            ..Default::default()
+        };
+        let label_dot = ui::Label::from_params(context, dot_img, h, param)?.with_color(dot_color);
+        line.add(Box::new(label_dot));
+        line.add(Box::new(ui::Spacer::new_horizontal(h * 0.1)));
+        line.add(label(context, arg)?);
+        line.add(Box::new(ui::Spacer::new_horizontal(h).stretchable(true)));
+        line.add(label(context, val)?);
+        Ok(Box::new(line))
+    };
     {
-        let label = |context: &mut Context, text: &str| -> ZResult<Box<dyn ui::Widget>> {
-            let text = Box::new(Text::new((text, font, FONT_SIZE)));
-            Ok(Box::new(ui::Label::new(context, text, h)?))
-        };
-        let mut add = |w| layout.add(w);
-        let mut line = |context: &mut Context, text: &str| -> ZResult {
-            add(label(context, text)?);
-            Ok(())
-        };
-        line(context, &format!("<{}>", meta.name.0))?;
-        line(
+        // TODO: Show a name for the user, not an identifier (no dashes, etc)
+        add(label_s(context, &format!("~~~ {} ~~~", meta.name.0))?);
+        add(line_dot(
             context,
-            &format!("strength: {}/{}", st.strength.0, st.base_strength.0),
-        )?;
+            "strength:",
+            &format!("{}/{}", st.strength.0, st.base_strength.0),
+            color::STRENGTH,
+        )?);
         if let Some(armor) = parts.armor.get_opt(id) {
             let armor = armor.armor.0;
             if armor != 0 {
-                line(context, &format!("armor: {}", armor))?;
+                add(line_dot(
+                    context,
+                    "armor:",
+                    &armor.to_string(),
+                    color::ARMOR,
+                )?);
             }
         }
-        if let Some(blocker) = parts.blocker.get_opt(id) {
-            line(context, &format!("weight: {}", blocker.weight))?;
-        }
         if a.jokers.0 != 0 || a.base_jokers.0 != 0 {
-            line(
+            add(line_dot(
                 context,
-                &format!("jokers: {}/{}", a.jokers.0, a.base_jokers.0),
-            )?;
+                "jokers:",
+                &format!("{}/{}", a.jokers.0, a.base_jokers.0),
+                color::JOKERS,
+            )?);
         }
-        line(
+        add(line_dot(
             context,
-            &format!("attacks: {}/{}", a.attacks.0, a.base_attacks.0),
-        )?;
+            "attacks:",
+            &format!("{}/{}", a.attacks.0, a.base_attacks.0),
+            color::ATTACKS,
+        )?);
         if a.reactive_attacks.0 != 0 {
-            line(
+            add(line_dot(
                 context,
-                &format!("reactive attacks: {}", a.reactive_attacks.0),
-            )?;
+                "reactive attacks:",
+                &a.reactive_attacks.0.to_string(),
+                color::ATTACKS,
+            )?);
         }
-        line(context, &format!("moves: {}/{}", a.moves.0, a.base_moves.0))?;
+        add(line_dot(
+            context,
+            "moves:",
+            &format!("{}/{}", a.moves.0, a.base_moves.0),
+            color::MOVES,
+        )?);
         if a.attack_distance.0 != 1 {
-            line(
-                context,
-                &format!("attack distance: {}", a.attack_distance.0),
-            )?;
+            add(line_i(context, "attack distance:", a.attack_distance.0)?);
         }
-        line(
-            context,
-            &format!("attack strength: {}", a.attack_strength.0),
-        )?;
-        line(
-            context,
-            &format!("attack accuracy: {}", a.attack_accuracy.0),
-        )?;
+        add(line_i(context, "attack strength:", a.attack_strength.0)?);
+        add(line_i(context, "attack accuracy:", a.attack_accuracy.0)?);
         if a.attack_break.0 > 0 {
-            line(context, &format!("armor break: {}", a.attack_break.0))?;
+            add(line_i(context, "armor break:", a.attack_break.0)?);
         }
         if a.dodge.0 > 0 {
-            line(context, &format!("dodge: {}", a.dodge.0))?;
+            add(line_i(context, "dodge:", a.dodge.0)?);
         }
-        line(context, &format!("move points: {}", a.move_points.0))?;
+        add(line_i(context, "move points:", a.move_points.0)?);
+        if let Some(blocker) = parts.blocker.get_opt(id) {
+            add(line(context, "weight:", &blocker.weight.to_string())?);
+        }
         if let Some(abilities) = parts.passive_abilities.get_opt(id) {
             if !abilities.0.is_empty() {
-                line(context, "<passive abilities>:")?;
+                add(label_s(context, "~ passive abilities ~")?);
                 for &ability in &abilities.0 {
                     let text = format!("'{}'", ability.title());
-                    let mut line_layout = ui::HLayout::new();
+                    let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(context, &text)?);
+                    line_layout.add(Box::new(ui::Spacer::new_horizontal(0.0).stretchable(true)));
                     let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
                     let message = Message::PassiveAbilityInfo(ability);
                     let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));
                     add(Box::new(line_layout));
+                    add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
                 }
             }
         }
         // TODO: add (i) buttons for effects
         if let Some(effects) = parts.effects.get_opt(id) {
             if !effects.0.is_empty() {
-                add(label(context, "<effects>:")?);
+                add(label_s(context, "~ effects ~")?);
                 for effect in &effects.0 {
                     let s = effect.effect.to_str();
                     let text = match effect.duration {
@@ -156,14 +199,17 @@ fn build_panel_agent_info(
                         effect::Duration::Rounds(n) => format!("'{}' ({})", s, n),
                     };
                     add(label(context, &text)?);
+                    add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
                 }
             }
         }
     }
-    let packed_layout = ui::pack(utils::wrap_widget_and_add_bg(context, Box::new(layout))?);
+    layout.stretch_to_self(context)?;
+    let layout = utils::add_offsets_and_bg(context, layout, utils::OFFSET_SMALL)?;
+    let layout = ui::pack(layout);
     let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Bottom);
-    gui.add(&packed_layout, anchor);
-    Ok(packed_layout)
+    gui.add(&layout, anchor);
+    Ok(layout)
 }
 
 fn build_panel_agent_abilities(
@@ -180,7 +226,7 @@ fn build_panel_agent_abilities(
         Some(abilities) => &abilities.0,
         None => return Ok(None),
     };
-    let mut layout = ui::VLayout::new();
+    let mut layout = ui::VLayout::new().stretchable(true);
     let h = line_heights().large;
     for ability in abilities {
         let image_path = match ability.ability {
@@ -215,8 +261,8 @@ fn build_panel_agent_abilities(
         if let ability::Status::Cooldown(n) = ability.status {
             let mut layers = ui::LayersLayout::new();
             layers.add(Box::new(button));
-            let text = Box::new(Text::new((format!(" ({})", n).as_str(), font, FONT_SIZE)));
-            let label = ui::Label::new(context, text, h / 2.0)?;
+            let text = Text::new((format!("({})", n).as_str(), font, FONT_SIZE));
+            let label = ui::Label::new(context, Box::new(text), h / 2.0)?;
             layers.add(Box::new(label));
             layout.add(Box::new(layers));
         } else {
@@ -251,9 +297,11 @@ fn build_panel_ability_description(
 ) -> ZResult<ui::RcWidget> {
     let text = |s: &str| Box::new(Text::new((s, font, FONT_SIZE)));
     let h = line_heights().normal;
-    let mut layout = ui::VLayout::new();
-    let text_title = text(&format!("<Ability '{}'>", ability.title()));
-    layout.add(Box::new(ui::Label::new(context, text_title, h)?));
+    let mut layout = Box::new(ui::VLayout::new().stretchable(true));
+    let text_title = text(&format!("~~~ {} ~~~", ability.title()));
+    let label_title = ui::Label::new(context, text_title, h)?.stretchable(true);
+    layout.add(Box::new(label_title));
+    layout.add(Box::new(ui::Spacer::new_vertical(h / 2.0)));
     for line in ability.extended_description() {
         layout.add(Box::new(ui::Label::new(context, text(&line), h)?));
     }
@@ -272,16 +320,21 @@ fn build_panel_ability_description(
         } else {
             "Can't be used: no attacks or jokers.".into()
         };
-        layout.add(Box::new(ui::Label::new(context, text(&s), h)?));
+        let color = [0.5, 0.0, 0.0, 1.0].into();
+        let label = ui::Label::new(context, text(&s), h)?.with_color(color);
+        layout.add(Box::new(label));
     }
     layout.add(Box::new(ui::Spacer::new_vertical(h / 2.0)));
-    let text_cancel = text("Click on an empty tile to cancel.");
-    layout.add(Box::new(ui::Label::new(context, text_cancel, h)?));
+    let text_cancel = text("Click on an empty tile or the ability icon to cancel.");
+    let color_cancel = [0.4, 0.4, 0.4, 1.0].into();
+    let label_cancel_text = ui::Label::new(context, text_cancel, h)?.with_color(color_cancel);
+    layout.add(Box::new(label_cancel_text));
+    layout.stretch_to_self(context)?;
+    let layout = utils::add_offsets_and_bg(context, layout, utils::OFFSET_SMALL)?;
+    let layout = ui::pack(layout);
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
-    let layout = utils::wrap_widget_and_add_bg(context, Box::new(layout))?;
-    let packed_layout = ui::pack(layout);
-    gui.add(&packed_layout, anchor);
-    Ok(packed_layout)
+    gui.add(&layout, anchor);
+    Ok(layout)
 }
 
 fn make_gui(context: &mut Context) -> ZResult<ui::Gui<Message>> {

@@ -68,18 +68,18 @@ pub fn line_heights() -> LineHeights {
     }
 }
 
-pub fn wrap_widget_and_add_bg(
-    context: &mut Context,
-    w: Box<dyn ui::Widget>,
-) -> ZResult<ui::LayersLayout> {
-    let bg = ui::ColoredRect::new(context, ui::SPRITE_COLOR_BG, w.rect())?;
+pub const OFFSET_SMALL: f32 = 0.02;
+pub const OFFSET_BIG: f32 = 0.04;
+
+pub fn add_bg(context: &mut Context, w: Box<dyn ui::Widget>) -> ZResult<ui::LayersLayout> {
+    let bg = ui::ColoredRect::new(context, ui::SPRITE_COLOR_BG, w.rect())?.stretchable(true);
     let mut layers = ui::LayersLayout::new();
     layers.add(Box::new(bg));
     layers.add(w);
     Ok(layers)
 }
 
-pub fn pack_widget_into_offset_table(w: Box<dyn ui::Widget>, offset: f32) -> Box<dyn ui::Widget> {
+pub fn add_offsets(w: Box<dyn ui::Widget>, offset: f32) -> Box<dyn ui::Widget> {
     let spacer = || {
         ui::Spacer::new(Rect {
             w: offset,
@@ -87,15 +87,30 @@ pub fn pack_widget_into_offset_table(w: Box<dyn ui::Widget>, offset: f32) -> Box
             ..Default::default()
         })
     };
-    let mut layout_h = ui::HLayout::new();
+    let mut layout_h = ui::HLayout::new().stretchable(true);
     layout_h.add(Box::new(spacer()));
     layout_h.add(w);
     layout_h.add(Box::new(spacer()));
-    let mut layout_v = ui::VLayout::new();
+    let mut layout_v = ui::VLayout::new().stretchable(true);
     layout_v.add(Box::new(spacer()));
     layout_v.add(Box::new(layout_h));
     layout_v.add(Box::new(spacer()));
     Box::new(layout_v)
+}
+
+pub fn add_offsets_and_bg(
+    context: &mut Context,
+    w: Box<dyn ui::Widget>,
+    offset: f32,
+) -> ZResult<ui::LayersLayout> {
+    add_bg(context, add_offsets(w, offset))
+}
+
+pub fn add_offsets_and_bg_big(
+    context: &mut Context,
+    w: Box<dyn ui::Widget>,
+) -> ZResult<ui::LayersLayout> {
+    add_offsets_and_bg(context, w, OFFSET_BIG)
 }
 
 pub fn remove_widget<M: Clone>(gui: &mut ui::Gui<M>, widget: &mut Option<ui::RcWidget>) -> ZResult {

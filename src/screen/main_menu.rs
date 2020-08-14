@@ -8,7 +8,7 @@ use gwg::{
     Context,
 };
 use log::trace;
-use ui::{self, Gui};
+use ui::{self, Gui, Widget};
 use zscene::Sprite;
 
 use crate::{
@@ -24,25 +24,27 @@ enum Message {
     StartCampaign,
 }
 
-// TODO: Is it possible to make buttons same width? See Qt's stretch factor.
 fn make_gui(context: &mut Context, font: Font) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     let h = utils::line_heights().large;
     let font_size = utils::font_size();
     let space = || Box::new(ui::Spacer::new_vertical(h / 8.0));
-    let button = &mut |text, message| {
+    let button = &mut |context: &mut Context, text, message| -> ZResult<_> {
         let text = Box::new(Text::new((text, font, font_size)));
-        ui::Button::new(context, text, h, gui.sender(), message).map(Box::new)
+        let b = ui::Button::new(context, text, h, gui.sender(), message)?.stretchable(true);
+        Ok(Box::new(b))
     };
-    let mut layout = ui::VLayout::new();
-    layout.add(button("demo battle", Message::StartInstant)?);
+    let mut layout = Box::new(ui::VLayout::new().stretchable(true));
+    layout.add(button(context, "demo battle", Message::StartInstant)?);
     layout.add(space());
-    layout.add(button("campaign", Message::StartCampaign)?);
+    layout.add(button(context, "campaign", Message::StartCampaign)?);
     #[cfg(not(target_arch = "wasm32"))] // can't quit WASM
     {
         layout.add(space());
-        layout.add(button("exit", Message::Exit)?);
+        layout.add(button(context, "exit", Message::Exit)?);
     }
+    layout.stretch_to_self(context)?;
+    let layout = utils::add_offsets_and_bg_big(context, layout)?;
     let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
     gui.add(&ui::pack(layout), anchor);
     Ok(gui)
@@ -54,6 +56,7 @@ pub struct MainMenu {
     receiver_battle_result: Option<Receiver<Option<state::BattleResult>>>,
 }
 
+// TODO: add the game's version to one of the corners
 impl MainMenu {
     pub fn new(context: &mut Context) -> ZResult<Self> {
         let font = utils::default_font(context);
