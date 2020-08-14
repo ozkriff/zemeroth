@@ -29,6 +29,7 @@ enum Message {
     Menu,
     StartBattle,
     AgentInfo(ObjType),
+    UpgradeInfo { from: ObjType, to: ObjType },
     Action(Action),
 }
 
@@ -152,9 +153,9 @@ fn build_panel_actions(
         line.add(Box::new(ui::Spacer::new_horizontal(line_height_small())));
         {
             let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
-            let message = match action {
-                Action::Recruit { agent_type, .. } => Message::AgentInfo(agent_type.clone()),
-                Action::Upgrade { to, .. } => Message::AgentInfo(to.clone()),
+            let message = match action.clone() {
+                Action::Recruit { agent_type, .. } => Message::AgentInfo(agent_type),
+                Action::Upgrade { from, to } => Message::UpgradeInfo { from, to },
             };
             let sender = gui.sender();
             let button = ui::Button::new(context, icon, h, sender, message)?;
@@ -358,8 +359,13 @@ impl Screen for Campaign {
             }
             Some(Message::AgentInfo(typename)) => {
                 let prototypes = Prototypes::from_str(&utils::read_file(context, "/objects.ron")?);
-                let popup_screen = screen::AgentInfo::new(context, prototypes, &typename)?;
-                Ok(StackCommand::PushPopup(Box::new(popup_screen)))
+                let popup = screen::AgentInfo::new_agent_info(context, &prototypes, &typename)?;
+                Ok(StackCommand::PushPopup(Box::new(popup)))
+            }
+            Some(Message::UpgradeInfo { from, to }) => {
+                let prototypes = Prototypes::from_str(&utils::read_file(context, "/objects.ron")?);
+                let popup = screen::AgentInfo::new_upgrade_info(context, &prototypes, &from, &to)?;
+                Ok(StackCommand::PushPopup(Box::new(popup)))
             }
             None => Ok(StackCommand::None),
         }
