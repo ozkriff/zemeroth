@@ -11,7 +11,7 @@ use crate::{
         ability::{Ability, PassiveAbility},
         component::{self, Component, ObjType, Prototypes},
     },
-    screen::{self, ability_info::ActiveOrPassiveAbility, Screen, StackCommand},
+    screen::{self, Screen, StackCommand},
     sprite_info::SpriteInfo,
     utils, ZResult,
 };
@@ -292,13 +292,11 @@ impl Screen for AgentInfo {
         match message {
             Some(Message::Back) => Ok(StackCommand::Pop),
             Some(Message::AbilityInfo(info)) => {
-                let ability = ActiveOrPassiveAbility::Active(info);
-                let screen = screen::AbilityInfo::new(context, ability)?;
+                let screen = screen::GeneralInfo::new(context, &info.title(), &info.description())?;
                 Ok(StackCommand::PushPopup(Box::new(screen)))
             }
             Some(Message::PassiveAbilityInfo(info)) => {
-                let ability = ActiveOrPassiveAbility::Passive(info);
-                let screen = screen::AbilityInfo::new(context, ability)?;
+                let screen = screen::GeneralInfo::new(context, &info.title(), &info.description())?;
                 Ok(StackCommand::PushPopup(Box::new(screen)))
             }
             None => Ok(StackCommand::None),

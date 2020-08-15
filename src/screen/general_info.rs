@@ -7,7 +7,6 @@ use gwg::{
 use ui::{self, Gui, Widget};
 
 use crate::{
-    core::battle::ability::{Ability, PassiveAbility},
     screen::{Screen, StackCommand},
     utils, ZResult,
 };
@@ -17,19 +16,14 @@ enum Message {
     Back,
 }
 
-pub enum ActiveOrPassiveAbility {
-    Active(Ability),
-    Passive(PassiveAbility),
-}
-
 #[derive(Debug)]
-pub struct AbilityInfo {
+pub struct GeneralInfo {
     font: graphics::Font,
     gui: Gui<Message>,
 }
 
-impl AbilityInfo {
-    pub fn new(context: &mut Context, ability: ActiveOrPassiveAbility) -> ZResult<Self> {
+impl GeneralInfo {
+    pub fn new(context: &mut Context, title: &str, lines: &[String]) -> ZResult<Self> {
         let font = utils::default_font(context);
         let mut gui = ui::Gui::new(context);
         let h = utils::line_heights().normal;
@@ -46,22 +40,10 @@ impl AbilityInfo {
             Ok(Box::new(label_(context, text)?.stretchable(true)))
         };
         let spacer = || Box::new(ui::Spacer::new_vertical(h * 0.5));
-        let title = |text| format!("~~~ {} ~~~", text);
-        match ability {
-            ActiveOrPassiveAbility::Active(ability) => {
-                layout.add(label_s(context, &title(ability.title()))?);
-                layout.add(spacer());
-                for line in ability.extended_description() {
-                    layout.add(label(context, &line)?);
-                }
-            }
-            ActiveOrPassiveAbility::Passive(ability) => {
-                layout.add(label_s(context, &title(ability.title()))?);
-                layout.add(spacer());
-                for line in ability.extended_description() {
-                    layout.add(label(context, &line)?);
-                }
-            }
+        layout.add(label_s(context, &format!("~~~ {} ~~~", title))?);
+        layout.add(spacer());
+        for line in lines {
+            layout.add(label(context, &line)?);
         }
         layout.add(spacer());
         {
@@ -80,7 +62,7 @@ impl AbilityInfo {
     }
 }
 
-impl Screen for AbilityInfo {
+impl Screen for GeneralInfo {
     fn update(&mut self, _context: &mut Context, _dtime: Duration) -> ZResult<StackCommand> {
         Ok(StackCommand::None)
     }

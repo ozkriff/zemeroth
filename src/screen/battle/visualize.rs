@@ -942,7 +942,7 @@ fn visualize_event_effect_end(
     event: &event::EffectEnd,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
-    let s = event.effect.to_str();
+    let s = event.effect.title();
     message(view, context, pos, &format!("[{}] ended", s))
 }
 
@@ -959,7 +959,7 @@ pub fn visualize_lasting_effect(
         effect::Lasting::Stun => show_flare(view, context, pos, [1.0, 1.0, 1.0, 0.7].into())?,
         effect::Lasting::Bloodlust => show_flare(view, context, pos, [1.0, 0.0, 0.0, 0.5].into())?,
     };
-    let s = timed_effect.effect.to_str();
+    let s = timed_effect.effect.title();
     Ok(seq(vec![
         action_flare,
         message(view, context, pos, &format!("[{}]", s))?,

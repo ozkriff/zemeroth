@@ -69,11 +69,22 @@ pub enum Lasting {
 }
 
 impl Lasting {
-    pub fn to_str(&self) -> &str {
+    pub fn title(&self) -> &str {
         match *self {
             Lasting::Poison => "Poison",
             Lasting::Stun => "Stun",
             Lasting::Bloodlust => "Bloodlust",
+        }
+    }
+
+    pub fn description(&self) -> Vec<String> {
+        match self {
+            Lasting::Poison => vec![
+                "Removes one strength every turn.".into(),
+                "Doesn't kill: ends if only one strength is left.".into(),
+            ],
+            Lasting::Stun => vec!["Removes all Actions/Moves/Jokers every turn.".into()],
+            Lasting::Bloodlust => vec!["Gives three additional Jokers every turn.".into()],
         }
     }
 }

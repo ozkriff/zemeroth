@@ -53,6 +53,25 @@ enum Message {
     EndTurn,
     Ability(Ability),
     PassiveAbilityInfo(PassiveAbility),
+    LastingEffectInfo(effect::Lasting),
+}
+
+fn line_with_info_button(
+    context: &mut Context,
+    font: Font,
+    gui: &mut Gui<Message>,
+    text: &str,
+    message: Message,
+) -> ZResult<Box<dyn ui::Widget>> {
+    let h = line_heights().normal;
+    let text = Box::new(Text::new((text, font, FONT_SIZE)));
+    let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+    let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
+    let mut line = Box::new(ui::HLayout::new().stretchable(true));
+    line.add(Box::new(ui::Label::new(context, text, h)?));
+    line.add(Box::new(ui::Spacer::new_horizontal(0.0).stretchable(true)));
+    line.add(Box::new(button));
+    Ok(line)
 }
 
 // TODO: consider moving ui `build_*` functions to a sub-module
@@ -176,29 +195,23 @@ fn build_panel_agent_info(
                 add(label_s(context, "~ passive abilities ~")?);
                 for &ability in &abilities.0 {
                     let text = format!("'{}'", ability.title());
-                    let mut line_layout = ui::HLayout::new().stretchable(true);
-                    line_layout.add(label(context, &text)?);
-                    line_layout.add(Box::new(ui::Spacer::new_horizontal(0.0).stretchable(true)));
-                    let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
                     let message = Message::PassiveAbilityInfo(ability);
-                    let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
-                    line_layout.add(Box::new(button));
-                    add(Box::new(line_layout));
+                    add(line_with_info_button(context, font, gui, &text, message)?);
                     add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
                 }
             }
         }
-        // TODO: add (i) buttons for effects
         if let Some(effects) = parts.effects.get_opt(id) {
             if !effects.0.is_empty() {
                 add(label_s(context, "~ effects ~")?);
                 for effect in &effects.0 {
-                    let s = effect.effect.to_str();
+                    let s = effect.effect.title();
                     let text = match effect.duration {
-                        effect::Duration::Forever => format!("'{}'", s),
-                        effect::Duration::Rounds(n) => format!("'{}' ({})", s, n),
+                        effect::Duration::Forever => s.into(),
+                        effect::Duration::Rounds(n) => format!("{} ({}t)", s, n),
                     };
-                    add(label(context, &text)?);
+                    let message = Message::LastingEffectInfo(effect.effect.clone());
+                    add(line_with_info_button(context, font, gui, &text, message)?);
                     add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
                 }
             }
@@ -302,7 +315,7 @@ fn build_panel_ability_description(
     let label_title = ui::Label::new(context, text_title, h)?.stretchable(true);
     layout.add(Box::new(label_title));
     layout.add(Box::new(ui::Spacer::new_vertical(h / 2.0)));
-    for line in ability.extended_description() {
+    for line in ability.description() {
         layout.add(Box::new(ui::Label::new(context, text(&line), h)?));
     }
     let agent_player_id = state.parts().belongs_to.get(id).0;
@@ -316,7 +329,7 @@ fn build_panel_ability_description(
         let s = if is_enemy_agent {
             "Can't be used: enemy agent.".into()
         } else if let ability::Status::Cooldown(n) = r_ability.status {
-            format!("Can't be used: cooldown ({} turns).", n)
+            format!("Can't be used: cooldown ({}t).", n)
         } else {
             "Can't be used: no attacks or jokers.".into()
         };
@@ -456,16 +469,6 @@ impl Battle {
             scenario::BattleType::CampaignNode => "Abandon the whole campaign?",
         };
         let popup = screen::Confirm::from_line(context, message, sender)?;
-        Ok(Box::new(popup))
-    }
-
-    fn popup_passive_ability_info(
-        &mut self,
-        context: &mut Context,
-        ability: PassiveAbility,
-    ) -> ZResult<Box<dyn Screen>> {
-        let ability = screen::ability_info::ActiveOrPassiveAbility::Passive(ability);
-        let popup = screen::AbilityInfo::new(context, ability)?;
         Ok(Box::new(popup))
     }
 
@@ -704,8 +707,16 @@ impl Screen for Battle {
             }
             Some(Message::Ability(ability)) => self.use_ability(context, ability)?,
             Some(Message::PassiveAbilityInfo(ability)) => {
-                let popup = self.popup_passive_ability_info(context, ability)?;
-                return Ok(StackCommand::PushPopup(popup));
+                let title = &ability.title();
+                let description = &ability.description();
+                let popup = screen::GeneralInfo::new(context, title, description)?;
+                return Ok(StackCommand::PushPopup(Box::new(popup)));
+            }
+            Some(Message::LastingEffectInfo(effect)) => {
+                let title = &effect.title();
+                let description = &effect.description();
+                let popup = screen::GeneralInfo::new(context, title, description)?;
+                return Ok(StackCommand::PushPopup(Box::new(popup)));
             }
             None => self.handle_click(context, pos)?,
         }

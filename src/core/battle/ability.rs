@@ -118,7 +118,7 @@ impl Ability {
         }
     }
 
-    pub fn extended_description(&self) -> Vec<String> {
+    pub fn description(&self) -> Vec<String> {
         match *self {
             Ability::Knockback(a) => vec![
                 "Push an adjusted object one tile away.".into(),
@@ -212,7 +212,7 @@ impl PassiveAbility {
         }
     }
 
-    pub fn extended_description(self) -> Vec<String> {
+    pub fn description(self) -> Vec<String> {
         match self {
             PassiveAbility::HeavyImpact => vec![
                 "Regular attack throws the target one tile away.".into(),
