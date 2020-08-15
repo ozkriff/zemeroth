@@ -339,7 +339,7 @@ impl Screen for Campaign {
             Some(Message::Action(action)) => {
                 let cost = self.state.action_cost(&action);
                 if cost.0 <= self.state.renown().0 {
-                    self.state.exectute_action(action);
+                    self.state.execute_action(action);
                     let new_mode = self.state.mode();
                     self.set_mode(context, new_mode)?;
                 }

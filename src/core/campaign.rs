@@ -130,7 +130,7 @@ impl State {
         &self.actions
     }
 
-    pub fn exectute_action(&mut self, action: Action) {
+    pub fn execute_action(&mut self, action: Action) {
         assert_eq!(self.mode(), Mode::PreparingForBattle);
         assert!(utils::try_remove_item(&mut self.actions, &action));
         let cost = self.action_cost(&action);
@@ -454,7 +454,7 @@ mod tests {
         );
         assert!(state.last_battle_casualties().is_empty());
         assert_eq!(state.mode(), Mode::PreparingForBattle);
-        state.exectute_action(Action::Recruit {
+        state.execute_action(Action::Recruit {
             agent_type: "spearman".into(),
         });
         assert!(state.available_actions().is_empty());
@@ -498,7 +498,7 @@ mod tests {
         );
         assert!(state.last_battle_casualties().is_empty());
         assert_eq!(state.mode(), Mode::PreparingForBattle);
-        state.exectute_action(action_upgrade);
+        state.execute_action(action_upgrade);
         assert_eq!(state.available_actions(), &[action_recruit]);
         assert_eq!(state.mode(), Mode::PreparingForBattle);
         {
