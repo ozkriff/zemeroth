@@ -9,16 +9,16 @@ use gwg::{
 
 use crate::ZResult;
 
-mod ability_info;
 mod agent_info;
 mod battle;
 mod campaign;
 mod confirm;
+mod general_info;
 mod main_menu;
 
 pub use self::{
-    ability_info::AbilityInfo, agent_info::AgentInfo, battle::Battle, campaign::Campaign,
-    confirm::Confirm, main_menu::MainMenu,
+    agent_info::AgentInfo, battle::Battle, campaign::Campaign, confirm::Confirm,
+    general_info::GeneralInfo, main_menu::MainMenu,
 };
 
 const COLOR_SCREEN_BG: Color = Color::new(0.9, 0.9, 0.8, 1.0);
