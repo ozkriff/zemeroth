@@ -54,6 +54,10 @@ impl event::EventHandler for State {
         graphics::present(context)
     }
 
+    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
+        self.resize(context, w, h);
+    }
+
     fn mouse_button_up_event(
         &mut self,
         context: &mut Context,
@@ -65,10 +69,6 @@ impl event::EventHandler for State {
         let pos = ui::window_to_screen(context, window_pos);
         let message = self.gui.click(pos);
         println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);
-    }
-
-    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
-        self.resize(context, w, h);
     }
 }
 

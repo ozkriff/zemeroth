@@ -59,6 +59,14 @@ impl event::EventHandler for MainState {
         self.resize(context, w, h);
     }
 
+    fn mouse_motion_event(&mut self, context: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
+        let window_pos = Point2::new(x, y);
+        let pos = ui::window_to_screen(context, window_pos);
+        self.screens
+            .move_mouse(context, pos)
+            .expect("Can't move the mouse");
+    }
+
     fn mouse_button_up_event(
         &mut self,
         context: &mut Context,
@@ -71,14 +79,6 @@ impl event::EventHandler for MainState {
         self.screens
             .click(context, pos)
             .expect("Can't handle click event");
-    }
-
-    fn mouse_motion_event(&mut self, context: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
-        let window_pos = Point2::new(x, y);
-        let pos = ui::window_to_screen(context, window_pos);
-        self.screens
-            .move_mouse(context, pos)
-            .expect("Can't move the mouse");
     }
 
     // This functions just overrides the default implementation,

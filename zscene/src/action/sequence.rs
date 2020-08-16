@@ -37,10 +37,6 @@ impl Sequence {
 }
 
 impl Action for Sequence {
-    fn duration(&self) -> Duration {
-        self.duration
-    }
-
     fn begin(&mut self) {
         if !self.actions.is_empty() {
             self.action().begin();
@@ -62,8 +58,8 @@ impl Action for Sequence {
         assert!(self.actions.is_empty());
     }
 
-    fn is_finished(&self) -> bool {
-        self.actions.is_empty()
+    fn duration(&self) -> Duration {
+        self.duration
     }
 
     fn try_fork(&mut self) -> Option<Box<dyn Action>> {
@@ -75,5 +71,9 @@ impl Action for Sequence {
             self.end_current_action_and_start_next();
         }
         forked_action
+    }
+
+    fn is_finished(&self) -> bool {
+        self.actions.is_empty()
     }
 }

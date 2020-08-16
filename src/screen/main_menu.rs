@@ -81,10 +81,6 @@ impl Screen for MainMenu {
         Ok(())
     }
 
-    fn resize(&mut self, aspect_ratio: f32) {
-        self.gui.resize(aspect_ratio);
-    }
-
     fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
         trace!("MainMenu: click: pos={:?}, message={:?}", pos, message);
@@ -105,6 +101,10 @@ impl Screen for MainMenu {
             Some(Message::Exit) => Ok(StackCommand::Pop),
             None => Ok(StackCommand::None),
         }
+    }
+
+    fn resize(&mut self, aspect_ratio: f32) {
+        self.gui.resize(aspect_ratio);
     }
 
     fn move_mouse(&mut self, _context: &mut Context, pos: Point2) -> ZResult {
