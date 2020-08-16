@@ -29,7 +29,7 @@ pub enum Error {
     NotEnoughMovePoints,
     BadActorId,
     BadTargetId,
-    BadTargeType,
+    BadTargetType,
     TileIsBlocked,
     DistanceIsTooBig,
     DistanceIsTooSmall,
@@ -273,7 +273,7 @@ fn check_ability_heal(state: &State, id: Id, pos: PosHex, _: ability::Heal) -> R
     match state.parts().strength.get_opt(target_id) {
         Some(strength) => {
             if strength.strength == strength.base_strength {
-                return Err(Error::BadTargeType);
+                return Err(Error::BadTargetType);
             }
         }
         None => return Err(Error::BadActorId),
