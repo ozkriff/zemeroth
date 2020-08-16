@@ -2,9 +2,10 @@ use std::{default::Default, fmt};
 
 use serde::{Deserialize, Serialize};
 
-use crate::core::{battle::movement::MovePoints, map::PosHex};
-
-pub use crate::core::battle::{check::check, execute::execute, state::State};
+pub use crate::core::{
+    battle::{check::check, execute::execute, movement::MovePoints, state::State},
+    map::PosHex,
+};
 
 pub mod ability;
 pub mod ai;
