@@ -18,15 +18,15 @@ impl Sleep {
 }
 
 impl Action for Sleep {
+    fn update(&mut self, dtime: Duration) {
+        self.time += dtime;
+    }
+
     fn duration(&self) -> Duration {
         self.duration
     }
 
     fn is_finished(&self) -> bool {
         self.duration < self.time
-    }
-
-    fn update(&mut self, dtime: Duration) {
-        self.time += dtime;
     }
 }

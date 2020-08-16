@@ -26,16 +26,8 @@ impl ChangeColorTo {
 }
 
 impl Action for ChangeColorTo {
-    fn duration(&self) -> Duration {
-        self.duration
-    }
-
     fn begin(&mut self) {
         self.from = self.sprite.color().into();
-    }
-
-    fn end(&mut self) {
-        self.sprite.set_color(self.to.into());
     }
 
     fn update(&mut self, mut dtime: Duration) {
@@ -52,6 +44,14 @@ impl Action for ChangeColorTo {
         }
         self.sprite.set_color(color.into());
         self.progress += dtime;
+    }
+
+    fn end(&mut self) {
+        self.sprite.set_color(self.to.into());
+    }
+
+    fn duration(&self) -> Duration {
+        self.duration
     }
 
     fn is_finished(&self) -> bool {
