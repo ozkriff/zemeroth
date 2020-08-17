@@ -52,6 +52,10 @@ impl event::EventHandler for MainState {
 
     fn draw(&mut self, context: &mut Context) -> GameResult {
         self.screens.draw(context).expect("Draw call failed");
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            std::thread::yield_now();
+        }
         Ok(())
     }
 
