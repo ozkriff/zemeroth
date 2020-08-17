@@ -112,11 +112,11 @@ fn main() -> gwg::GameResult {
         }
     }
     env_logger::init();
-    gwg::start(conf(), |mut context| {
+    gwg::start(conf(), |context| {
         log::info!("Checking assets hash file...");
         utils::check_assets_hash(context, ASSETS_HASHSUM).expect("Wrong assets check sum");
         log::info!("Creating MainState...");
-        let state = MainState::new(&mut context).expect("Can't create the main state");
+        let state = MainState::new(context).expect("Can't create the main state");
         log::info!("Starting the main loop...");
         Box::new(state)
     })
