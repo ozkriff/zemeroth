@@ -1,9 +1,15 @@
 # ![title image](zemeroth.svg)
 
-[![mit license][img_license]](#license) [![line count][img_loc]][loc]
+[![Github Actions][img_gh-actions]][gh-actions]
+[![mit license][img_license]](#license)
+[![line count][img_loc]][loc]
 
 [img_license]: https://img.shields.io/badge/License-MIT_or_Apache_2.0-blue.svg
 [img_loc]: https://tokei.rs/b1/github/ozkriff/zemeroth
+[img_gh-actions]: https://github.com/ozkriff/zemeroth/workflows/CI/badge.svg
+
+[loc]: https://github.com/Aaronepower/tokei
+[gh-actions]: https://github.com/ozkriff/zemeroth/actions?query=workflow%3ACI
 
 Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 
@@ -15,14 +21,6 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 [ozkriff.games](https://ozkriff.games) |
 [facebook](https://fb.com/ozkriff.games) |
 [devlog on imgur](https://imgur.com/a/SMVqO)
-
-**Status**:
-[![Github Actions][img_gh-actions]][gh-actions]
-
-[img_gh-actions]: https://github.com/ozkriff/zemeroth/workflows/CI/badge.svg
-
-[loc]: https://github.com/Aaronepower/tokei
-[gh-actions]: https://github.com/ozkriff/zemeroth/actions?query=workflow%3ACI
 
 ## Online Version
 
