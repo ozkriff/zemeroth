@@ -142,11 +142,8 @@ cd zemeroth
 # Zemeroth expects them to be in `assets` directory.
 git clone https://github.com/ozkriff/zemeroth_assets assets
 
-# Compile a release version (debug builds give low FPS at the moment)
-cargo build --release
-
-# Run it
-cargo run --release
+# Build and run it
+cargo run
 ```
 
 [mq_sys_deps]: https://github.com/not-fl3/miniquad/tree/faabb54d3#building-examples
