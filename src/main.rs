@@ -116,6 +116,7 @@ fn main() -> gwg::GameResult {
         }
     }
     env_logger::init();
+    quad_rand::srand(gwg::timer::time() as _);
     gwg::start(conf(), |context| {
         log::info!("Checking assets hash file...");
         utils::check_assets_hash(context, ASSETS_HASHSUM).expect("Wrong assets check sum");
