@@ -7,7 +7,7 @@ use crate::core::{
 
 const SQRT_OF_3: f32 = 1.732_05;
 
-pub const FLATNESS_COEFFICIENT: f32 = 0.8;
+pub const FLATNESS_COEFFICIENT: f32 = 0.8125; // should fit the tile sprite's geometry
 
 /// <http://www.redblobgames.com/grids/hexagons/#hex-to-pixel>
 pub fn hex_to_point(size: f32, hex: PosHex) -> Point2 {

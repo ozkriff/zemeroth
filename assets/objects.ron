@@ -1,0 +1,366 @@
+#![enable(unwrap_newtypes)]
+
+{
+    "swordsman": [
+        Blocker(()),
+        Strength((
+            strength: 3,
+        )),
+        Agent((
+            moves: 1,
+            attacks: 1,
+            jokers: 1,
+            reactive_attacks: 1,
+            attack_distance: 1,
+            attack_strength: 2,
+            attack_accuracy: 4,
+            attack_break: 1,
+            weapon_type: Slash,
+            move_points: 3,
+        )),
+        Abilities([
+            (ability: Jump(2), base_cooldown: 2),
+        ]),
+    ],
+    "elite_swordsman": [
+        Blocker(()),
+        Strength((
+            strength: 4,
+        )),
+        Agent((
+            moves: 1,
+            attacks: 1,
+            jokers: 1,
+            reactive_attacks: 1,
+            attack_distance: 1,
+            attack_strength: 2,
+            attack_accuracy: 5,
+            attack_break: 1,
+            weapon_type: Slash,
+            move_points: 3,
+        )),
+        Abilities([
+            (ability: Jump(2), base_cooldown: 2),
+            (ability: Rage(2), base_cooldown: 3),
+            (ability: Dash, base_cooldown: 1),
+        ]),
+    ],
+    "heavy_swordsman": [
+        Blocker((
+            weight: Heavy,
+        )),
+        Strength((
+            strength: 6,
+        )),
+        Agent((
+            moves: 0,
+            attacks: 1,
+            jokers: 1,
+            reactive_attacks: 1,
+            attack_distance: 1,
+            attack_strength: 3,
+            attack_accuracy: 6,
+            attack_break: 1,
+            weapon_type: Slash,
+            move_points: 2,
+        )),
+    ],
+    "alchemist": [
+        Blocker(()),
+        Strength((
+            strength: 3,
+        )),
+        Agent((
+            moves: 1,
+            attacks: 1,
+            jokers: 0,
+            reactive_attacks: 0,
+            attack_distance: 0,
+            attack_strength: 1,
+            attack_accuracy: 4,
+            weapon_type: Slash,
+            dodge: 1,
+            move_points: 3,
+        )),
+        Abilities([
+            (ability: BombPush((throw_distance: 3)), base_cooldown: 2),
+            (ability: Heal(2), base_cooldown: 3),
+        ]),
+    ],
+    "healer": [
+        Blocker(()),
+        Strength((
+            strength: 4,
+        )),
+        Agent((
+            moves: 1,
+            attacks: 0,
+            jokers: 1,
+            reactive_attacks: 0,
+            attack_distance: 0,
+            attack_strength: 1,
+            attack_accuracy: 4,
+            weapon_type: Slash,
+            dodge: 1,
+            move_points: 3,
+        )),
+        Abilities([
+            (ability: BombPoison(3), base_cooldown: 2),
+            (ability: Heal(3), base_cooldown: 2),
+        ]),
+    ],
+    "firer": [
+        Blocker(()),
+        Strength((
+            strength: 4,
+        )),
+        Agent((
+            moves: 0,
+            attacks: 1,
+            jokers: 1,
+            reactive_attacks: 0,
+            attack_distance: 0,
+            attack_strength: 1,
+            attack_accuracy: 4,
+            weapon_type: Slash,
+            dodge: 1,
+            move_points: 3,
+        )),
+        Abilities([
+            (ability: BombFire(3), base_cooldown: 2),
+            (ability: Bomb(3), base_cooldown: 1),
+        ]),
+    ],
+    "hammerman": [
+        Blocker(()),
+        Strength((
+            strength: 4,
+        )),
+        Agent((
+            moves: 1,
+            attacks: 2,
+            jokers: 0,
+            reactive_attacks: 1,
+            attack_strength: 3,
+            attack_accuracy: 3,
+            attack_distance: 1,
+            attack_break: 1,
+            weapon_type: Smash,
+            move_points: 3,
+        )),
+        Abilities([
+            (ability: Knockback((strength: Normal)), base_cooldown: 1),
+            (ability: Club, base_cooldown: 2),
+        ]),
+    ],
+    "heavy_hammerman": [
+        Blocker((
+            weight: Heavy,
+        )),
+        Strength((
+            strength: 6,
+        )),
+        Agent((
+            moves: 0,
+            attacks: 1,
+            jokers: 1,
+            reactive_attacks: 0,
+            attack_strength: 5,
+            attack_accuracy: 6,
+            attack_distance: 1,
+            attack_break: 3,
+            weapon_type: Smash,
+            move_points: 2,
+        )),
+        Abilities([
+            (ability: Knockback((strength: Normal)), base_cooldown: 1),
+            (ability: Club, base_cooldown: 2),
+        ]),
+        PassiveAbilities([
+            HeavyImpact,
+        ]),
+    ],
+    "spearman": [
+        Blocker(()),
+        Strength((
+            strength: 3,
+        )),
+        Agent((
+            moves: 0,
+            attacks: 0,
+            jokers: 1,
+            reactive_attacks: 2,
+            attack_distance: 2,
+            attack_strength: 1,
+            attack_accuracy: 4,
+            weapon_type: Pierce,
+            move_points: 3,
+        )),
+        Abilities([
+            (ability: Jump(3), base_cooldown: 3),
+        ]),
+    ],
+    "elite_spearman": [
+        Blocker(()),
+        Strength((
+            strength: 4,
+        )),
+        Agent((
+            moves: 0,
+            attacks: 1,
+            jokers: 1,
+            reactive_attacks: 2,
+            attack_distance: 2,
+            attack_strength: 1,
+            attack_accuracy: 6,
+            weapon_type: Pierce,
+            dodge: 1,
+            move_points: 3,
+        )),
+        Abilities([
+            (ability: Jump(3), base_cooldown: 3),
+        ]),
+    ],
+    "heavy_spearman": [
+        Blocker((
+            weight: Heavy,
+        )),
+        Strength((
+            strength: 5,
+        )),
+        Agent((
+            moves: 0,
+            attacks: 0,
+            jokers: 1,
+            reactive_attacks: 2,
+            attack_distance: 2,
+            attack_strength: 2,
+            attack_accuracy: 6,
+            weapon_type: Pierce,
+            move_points: 2,
+        )),
+    ],
+    "imp": [
+        Blocker(()),
+        Strength((
+            strength: 3,
+        )),
+        Agent((
+            moves: 1,
+            attacks: 1,
+            jokers: 0,
+            reactive_attacks: 1,
+            attack_strength: 1,
+            attack_accuracy: 3,
+            attack_distance: 1,
+            weapon_type: Claw,
+            move_points: 3,
+        )),
+    ],
+    "imp_toxic": [
+        Blocker(()),
+        Strength((
+            strength: 2,
+        )),
+        Agent((
+            moves: 1,
+            attacks: 1,
+            jokers: 0,
+            reactive_attacks: 0,
+            attack_strength: 0,
+            attack_accuracy: 3,
+            attack_distance: 1,
+            weapon_type: Claw,
+            move_points: 3,
+        )),
+        PassiveAbilities([
+            PoisonAttack,
+        ]),
+    ],
+    "imp_bomber": [
+        Blocker(()),
+        Strength((
+            strength: 2,
+        )),
+        Agent((
+            moves: 1,
+            attacks: 1,
+            jokers: 0,
+            reactive_attacks: 0,
+            attack_strength: 1,
+            attack_accuracy: 2,
+            attack_distance: 1,
+            weapon_type: Claw,
+            move_points: 3,
+        )),
+        Abilities([
+            (ability: BombDemonic(3), base_cooldown: 2),
+        ]),
+    ],
+    "imp_summoner": [
+        Blocker(()),
+        Strength((
+            strength: 7,
+        )),
+        Armor((
+            armor: 1,
+        )),
+        Agent((
+            moves: 0,
+            attacks: 0,
+            jokers: 1,
+            reactive_attacks: 1,
+            attack_distance: 1,
+            attack_strength: 2,
+            attack_accuracy: 4,
+            weapon_type: Smash,
+            move_points: 3,
+        )),
+        Summoner((
+            count: 2,
+        )),
+        Abilities([
+            (ability: Summon, base_cooldown: 3),
+            (ability: Bloodlust, base_cooldown: 3),
+        ]),
+        PassiveAbilities([
+            HeavyImpact,
+            Regenerate(1),
+        ]),
+    ],
+    "boulder": [
+        Blocker((
+            weight: Heavy,
+        )),
+    ],
+    "bomb_damage": [
+        Blocker(()),
+    ],
+    "bomb_push": [
+        Blocker(()),
+    ],
+    "bomb_poison": [
+        Blocker(()),
+    ],
+    "bomb_fire": [
+        Blocker(()),
+    ],
+    "bomb_demonic": [
+        Blocker(()),
+    ],
+    "fire": [
+        PassiveAbilities([
+            Burn,
+        ]),
+    ],
+    "poison_cloud": [
+        PassiveAbilities([
+            Poison,
+        ]),
+    ],
+    "spike_trap": [
+        PassiveAbilities([
+            SpikeTrap,
+        ]),
+    ],
+}

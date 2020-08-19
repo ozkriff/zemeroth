@@ -1,0 +1,203 @@
+{
+    "swordsman": (
+        paths: {
+            "": "/img/swordsman.png",
+        },
+        offset_x: 0.15,
+        offset_y: 0.1,
+        shadow_size_coefficient: 1.0,
+    ),
+    "elite_swordsman": (
+        paths: {
+            "": "/img/elite_swordsman.png",
+            "rage": "/img/elite_swordsman_rage.png",
+        },
+        offset_x: 0.15,
+        offset_y: 0.1,
+        shadow_size_coefficient: 1.0,
+    ),
+    "heavy_swordsman": (
+        paths: {
+            "": "/img/heavy_swordsman.png",
+        },
+        offset_x: 0.15,
+        offset_y: 0.1,
+        shadow_size_coefficient: 1.0,
+    ),
+    "spearman": (
+        paths: {
+            "": "/img/spearman.png",
+        },
+        offset_x: 0.2,
+        offset_y: 0.05,
+        shadow_size_coefficient: 1.0,
+    ),
+    "elite_spearman": (
+        paths: {
+            "": "/img/elite_spearman.png",
+        },
+        offset_x: 0.2,
+        offset_y: 0.05,
+        shadow_size_coefficient: 1.0,
+    ),
+    "heavy_spearman": (
+        paths: {
+            "": "/img/heavy_spearman.png",
+        },
+        offset_x: 0.2,
+        offset_y: 0.05,
+        shadow_size_coefficient: 1.0,
+    ),
+    "hammerman": (
+        paths: {
+            "": "/img/hammerman.png",
+        },
+        offset_x: 0.05,   
+        offset_y: 0.1,
+        shadow_size_coefficient: 1.0,
+    ),
+    "heavy_hammerman": (
+        paths: {
+            "": "/img/heavy_hammerman.png",
+        },
+        offset_x: 0.05,
+        offset_y: 0.1,
+        shadow_size_coefficient: 1.0,
+    ),
+    "alchemist": (
+        paths: {
+            "": "/img/alchemist.png",
+            "throw": "/img/alchemist_throw.png",
+            "heal": "/img/alchemist_heal.png",
+        },
+        offset_x: 0.05,
+        offset_y: 0.1,
+        shadow_size_coefficient: 1.0,
+    ),
+    "healer": (
+        paths: {
+            "": "/img/healer.png",
+            "throw": "/img/healer_throw.png",
+            "heal": "/img/healer_heal.png",
+        },
+        offset_x: 0.05,
+        offset_y: 0.1,
+        shadow_size_coefficient: 1.0,
+    ),
+    "firer": (
+        paths: {
+            "": "/img/firer.png",
+            "throw": "/img/firer_throw.png",
+        },
+        offset_x: 0.05,
+        offset_y: 0.1,
+        shadow_size_coefficient: 1.0,
+    ),
+    "imp": (
+        paths: {
+            "": "/img/imp.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.15,
+        shadow_size_coefficient: 1.3,
+    ),
+    "imp_toxic": (
+        paths: {
+            "": "/img/imp_toxic.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.15,
+        shadow_size_coefficient: 1.2,
+    ),
+    "imp_bomber": (
+        paths: {
+            "": "/img/imp_bomber.png",
+            "throw": "/img/imp_bomber_throw.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.15,
+        shadow_size_coefficient: 1.2,
+    ),
+    "imp_summoner": (
+        paths: {
+            "": "/img/imp_summoner.png",
+            "summon": "/img/imp_summoner_cast.png",
+            "bloodlust": "/img/imp_summoner_cast.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.15,
+        shadow_size_coefficient: 1.3,
+    ),
+    "boulder": (
+        paths: {
+            "": "/img/boulder.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.4,
+        shadow_size_coefficient: 2.5,
+    ),
+    "bomb_damage": (
+        paths: {
+            "": "/img/bomb.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.2,
+        shadow_size_coefficient: 0.7,
+    ),
+    "bomb_push": (
+        paths: {
+            "": "/img/bomb.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.2,
+        shadow_size_coefficient: 0.7,
+    ),
+    "bomb_fire": (
+        paths: {
+            "": "/img/bomb_fire.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.2,
+        shadow_size_coefficient: 0.7,
+    ),
+    "bomb_poison": (
+        paths: {
+            "": "/img/bomb_poison.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.2,
+        shadow_size_coefficient: 0.7,
+    ),
+    "bomb_demonic": (
+        paths: {
+            "": "/img/bomb_demonic.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.2,
+        shadow_size_coefficient: 0.7,
+    ),
+    "fire": (
+        paths: {
+            "": "/img/fire.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.2,
+        shadow_size_coefficient: 0.001,
+    ),
+    "poison_cloud": (
+        paths: {
+            "": "/img/poison_cloud.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.2,
+        shadow_size_coefficient: 2.0,
+    ),
+    "spike_trap": (
+        paths: {
+            "": "/img/spike_trap.png",
+        },
+        offset_x: 0.0,
+        offset_y: 0.5,
+        shadow_size_coefficient: 1.4,
+    ),
+}

@@ -61,7 +61,7 @@ impl MainMenu {
     pub fn new(context: &mut Context) -> ZResult<Self> {
         let font = utils::default_font(context);
         let gui = make_gui(context, font)?;
-        let mut sprite = Sprite::from_path(context, "/tile.png", 0.1)?;
+        let mut sprite = Sprite::from_path(context, "/img/tile.png", 0.1)?;
         sprite.set_centered(true);
         sprite.set_pos(Point2::new(0.5, 0.5));
         Ok(Self {

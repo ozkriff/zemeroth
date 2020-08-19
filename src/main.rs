@@ -14,8 +14,6 @@ mod screen;
 mod sprite_info;
 mod utils;
 
-const ASSETS_HASHSUM: &str = "cf0e1e21e434c36e1d896d6c26b03204";
-
 type ZResult<T = ()> = Result<T, error::ZError>;
 
 struct MainState {
@@ -118,8 +116,6 @@ fn main() -> gwg::GameResult {
     env_logger::init();
     quad_rand::srand(gwg::timer::time() as _);
     gwg::start(conf(), |context| {
-        log::info!("Checking assets hash file...");
-        utils::check_assets_hash(context, ASSETS_HASHSUM).expect("Wrong assets check sum");
         log::info!("Increasing the default font size...");
         gwg::graphics::set_font_size(context, 120);
         log::info!("Creating MainState...");

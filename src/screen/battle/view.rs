@@ -116,22 +116,22 @@ pub struct Images {
 impl Images {
     fn new(context: &mut Context) -> ZResult<Self> {
         Ok(Self {
-            selection: Image::new(context, "/selection.png")?,
-            white_hex: Image::new(context, "/white_hex.png")?,
-            tile: Image::new(context, "/tile.png")?,
-            tile_rocks: Image::new(context, "/tile_rocks.png")?,
-            grass: Image::new(context, "/grass.png")?,
-            dot: Image::new(context, "/dot.png")?,
-            blood: Image::new(context, "/blood.png")?,
-            explosion_ground_mark: Image::new(context, "/explosion_ground_mark.png")?,
-            shadow: Image::new(context, "/shadow.png")?,
-            attack_slash: Image::new(context, "/slash.png")?,
-            attack_smash: Image::new(context, "/smash.png")?,
-            attack_pierce: Image::new(context, "/pierce.png")?,
-            attack_claws: Image::new(context, "/claw.png")?,
-            effect_stun: Image::new(context, "/effect_stun.png")?,
-            effect_poison: Image::new(context, "/effect_poison.png")?,
-            effect_bloodlust: Image::new(context, "/effect_bloodlust.png")?,
+            selection: Image::new(context, "/img/selection.png")?,
+            white_hex: Image::new(context, "/img/white_hex.png")?,
+            tile: Image::new(context, "/img/tile.png")?,
+            tile_rocks: Image::new(context, "/img/tile_rocks.png")?,
+            grass: Image::new(context, "/img/grass.png")?,
+            dot: Image::new(context, "/img/dot.png")?,
+            blood: Image::new(context, "/img/blood.png")?,
+            explosion_ground_mark: Image::new(context, "/img/explosion_ground_mark.png")?,
+            shadow: Image::new(context, "/img/shadow.png")?,
+            attack_slash: Image::new(context, "/img/slash.png")?,
+            attack_smash: Image::new(context, "/img/smash.png")?,
+            attack_pierce: Image::new(context, "/img/pierce.png")?,
+            attack_claws: Image::new(context, "/img/claw.png")?,
+            effect_stun: Image::new(context, "/img/effect_stun.png")?,
+            effect_poison: Image::new(context, "/img/effect_poison.png")?,
+            effect_bloodlust: Image::new(context, "/img/effect_bloodlust.png")?,
         })
     }
 }

@@ -1,4 +1,4 @@
-use std::{io::Read, path::Path, process, sync::mpsc::Receiver, time::Duration};
+use std::{io::Read, path::Path, sync::mpsc::Receiver, time::Duration};
 
 use gwg::{
     graphics::{Font, Rect},
@@ -11,18 +11,6 @@ use crate::{error::ZError, ZResult};
 pub fn time_s(s: f32) -> Duration {
     let ms = s * 1000.0;
     Duration::from_millis(ms as u64)
-}
-
-pub fn check_assets_hash(context: &mut Context, expected: &str) -> ZResult {
-    let data = read_file(context, "/.checksum.md5")?;
-    let real = data.trim();
-    if real != expected {
-        let error_code = 1;
-        log::error!("Bad assets checksum {} (expected {})", real, expected);
-        process::exit(error_code);
-    }
-    log::info!("Assets checksum is Ok");
-    Ok(())
 }
 
 /// Read a file to a string.
