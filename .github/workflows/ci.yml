@@ -35,7 +35,6 @@ jobs:
 
       - name: Install packages
         run: |
-          sudo apt-get update
           sudo apt-get -yq --no-install-suggests --no-install-recommends install libx11-dev libxi-dev libgl1-mesa-dev
 
       - name: Install rust
@@ -51,31 +50,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: -- -D warnings
-
-  assets:
-    name: Check assets
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Checkout assets
-        uses: actions/checkout@v2
-        with:
-          repository: ozkriff/zemeroth_assets
-          path: assets
-
-      - name: Check
-        run: |
-          SRC=$(grep "const ASSETS_HASHSUM" src/main.rs | cut -d\" -f 2)
-          ASSETS=$(cat assets/.checksum.md5)
-
-          echo "Source: $SRC"
-          echo "Assets: $ASSETS"
-          if [ "$SRC" != "$ASSETS" ]; then
-            false
-          fi
 
   build:
     name: ${{ matrix.build }}
@@ -104,11 +78,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Install packages (Linux)
-        if: runner.os == 'Linux' && matrix.packages
-        run: |
-          sudo apt-get update
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install ${{ matrix.packages }}
+      - name: Install Python
+        uses: actions/setup-python@v2
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
@@ -117,6 +88,32 @@ jobs:
           target: ${{ matrix.target }}
           profile: minimal
           override: true
+
+      - name: Install packages (Linux)
+        if: runner.os == 'Linux' && matrix.packages
+        run: |
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install ${{ matrix.packages }}
+
+      - name: Install resvg
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            cargo install resvg
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            cargo install resvg
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            curl -sL https://github.com/RazrFalcon/resvg/releases/download/v0.11.0/viewsvg-win.zip -O
+            7z x viewsvg-win.zip
+          else
+            echo "$RUNNER_OS not supported"
+            exit 1
+          fi
+
+      - name: Export assets
+        shell: bash
+        run: |
+          python ./utils/assets_export.py
+          ls -lR assets
 
       - name: Build
         uses: actions-rs/cargo@v1
@@ -146,12 +143,6 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Checkout assets
-        uses: actions/checkout@v2
-        with:
-          repository: ozkriff/zemeroth_assets
-          path: assets
-
       - name: Build
         run: |
           ./utils/wasm/build.sh
@@ -175,7 +166,6 @@ jobs:
       - name: Install packages (Linux)
         if: runner.os == 'Linux' && matrix.packages
         run: |
-          sudo apt-get update
           sudo apt-get -yq --no-install-suggests --no-install-recommends install ${{ matrix.packages }}
 
       - name: Install rust

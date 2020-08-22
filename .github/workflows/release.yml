@@ -5,32 +5,7 @@ on:
     types: [published]
 
 jobs:
-  assets:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Checkout assets
-        uses: actions/checkout@v2
-        with:
-          repository: ozkriff/zemeroth_assets
-          path: assets
-
-      - name: Check
-        run: |
-          SRC=$(grep "const ASSETS_HASHSUM" src/main.rs | cut -d\" -f 2)
-          ASSETS=$(cat assets/.checksum.md5)
-
-          echo "Source: $SRC"
-          echo "Assets: $ASSETS"
-          if [ "$SRC" != "$ASSETS" ]; then
-            false
-          fi
-
   build:
-    needs: [assets]
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -65,11 +40,16 @@ jobs:
             type: application/zip
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install libasound2-dev libudev-dev
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install libx11-dev libxi-dev libgl1-mesa-dev
+
+      - name: Install Python
+        uses: actions/setup-python@v2
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
@@ -79,14 +59,26 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Install resvg
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            cargo install resvg
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            cargo install resvg
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            curl -sL https://github.com/RazrFalcon/resvg/releases/download/v0.11.0/viewsvg-win.zip -O
+            7z x viewsvg-win.zip
+          else
+            echo "$RUNNER_OS not supported"
+            exit 1
+          fi
 
-      - name: Checkout assets
-        uses: actions/checkout@v2
-        with:
-          repository: ozkriff/zemeroth_assets
-          path: assets
+      - name: Export assets
+        shell: bash
+        run: |
+          python ./utils/assets_export.py
+          ls -lR assets
 
       - name: Build
         uses: actions-rs/cargo@v1
@@ -115,7 +107,6 @@ jobs:
 
           cp target/${{ matrix.target }}/release/${{ matrix.bin }} "$release_name"
           cp -r README.md assets "$release_name"
-          rm -rf "$release_name"/assets/.git
 
           if [ "${{ runner.os }}" = "Windows" ]; then
             7z a "$release_file" "$release_name"
@@ -138,11 +129,13 @@ jobs:
 
   wasm:
     name: build (web)
-    needs: [assets]
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install rust
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -150,32 +143,17 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Install cargo-web
-        run: |
-          CARGO_WEB_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/koute/cargo-web/releases/latest)
-          CARGO_WEB_VERSION=$(echo $CARGO_WEB_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
-          CARGO_WEB_HOST_TRIPLE="x86_64-unknown-linux-gnu"
-          CARGO_WEB_URL="https://github.com/koute/cargo-web/releases/download/$CARGO_WEB_VERSION/cargo-web-$CARGO_WEB_HOST_TRIPLE.gz"
+      - name: Install Python
+        uses: actions/setup-python@v2
 
-          echo "Downloading cargo-web from: $CARGO_WEB_URL"
-          curl -L $CARGO_WEB_URL | gzip -d > cargo-web
-          chmod +x cargo-web
+      - name: Install resvg
+        run: cargo install resvg
 
-          mkdir -p ~/.cargo/bin
-          mv cargo-web ~/.cargo/bin
-
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Checkout assets
-        uses: actions/checkout@v2
-        with:
-          repository: ozkriff/zemeroth_assets
-          path: assets
+      - name: Export assets
+        run: python ./utils/assets_export.py
 
       - name: Build
-        run: |
-          cargo web build --release
+        run: ./utils/wasm/build.sh
 
       - name: Package
         id: package
@@ -186,12 +164,7 @@ jobs:
           release_file="${release_name}.zip"
           mkdir "$release_name"
 
-          cp target/wasm32-unknown-unknown/release/zemeroth.js "$release_name"
-          cp target/wasm32-unknown-unknown/release/zemeroth.wasm "$release_name"
-          cp README.md utils/wasm/index.html "$release_name"
-
-          ls assets | sed 's:^:/:' > "$release_name"/index.txt
-          find assets -type f -not -path '*/.git/*' -exec cp '{}' $release_name \;
+          cp README.md static/* "$release_name"
 
           7z a "$release_file" "$release_name"
 

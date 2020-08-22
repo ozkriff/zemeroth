@@ -48,7 +48,7 @@ fn basic_gui(context: &mut Context) -> ZResult<Gui<Message>> {
     let mut gui = Gui::new(context);
     let h = utils::line_heights().large;
     let button_menu = {
-        let icon = Box::new(graphics::Image::new(context, "/icon_menu.png")?);
+        let icon = Box::new(graphics::Image::new(context, "/img/icon_menu.png")?);
         ui::Button::new(context, icon, h, gui.sender(), Message::Menu)?
     };
     let mut layout = ui::VLayout::new();
@@ -73,7 +73,7 @@ fn build_panel_agents(
         let spacer = ui::Spacer::new_horizontal(line_height_small()).stretchable(true);
         line.add(Box::new(spacer));
         {
-            let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+            let icon = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
             let message = Message::AgentInfo(agent_type.clone());
             let button = ui::Button::new(context, icon, line_height(), gui.sender(), message)?;
             line.add(Box::new(button));
@@ -152,7 +152,7 @@ fn build_panel_actions(
         }
         line.add(Box::new(ui::Spacer::new_horizontal(line_height_small())));
         {
-            let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+            let icon = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
             let message = match action.clone() {
                 Action::Recruit { agent_type, .. } => Message::AgentInfo(agent_type),
                 Action::Upgrade { from, to } => Message::UpgradeInfo { from, to },

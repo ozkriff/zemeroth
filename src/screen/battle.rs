@@ -65,7 +65,7 @@ fn line_with_info_button(
 ) -> ZResult<Box<dyn ui::Widget>> {
     let h = line_heights().normal;
     let text = Box::new(Text::new((text, font, FONT_SIZE)));
-    let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+    let icon = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
     let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
     let mut line = Box::new(ui::HLayout::new().stretchable(true));
     line.add(Box::new(ui::Label::new(context, text, h)?));
@@ -110,7 +110,7 @@ fn build_panel_agent_info(
     let line_i = |context: &mut Context, arg: &str, val: i32| -> ZResult<_> {
         line(context, arg, &val.to_string())
     };
-    let image_dot = Image::new(context, "/dot.png")?;
+    let image_dot = Image::new(context, "/img/dot.png")?;
     let line_dot = |context: &mut Context, arg: &str, val: &str, color| -> ZResult<_> {
         let mut line = ui::HLayout::new().stretchable(true);
         let dot_img = Box::new(image_dot.clone());
@@ -245,19 +245,19 @@ fn build_panel_agent_abilities(
         let image_path = match ability.ability {
             // TODO: load all the images only once. Store them in some struct and only clone them here.
             // TODO: Move into view::Images!
-            Ability::Club => "/icon_ability_club.png",
-            Ability::Knockback(_) => "/icon_ability_knockback.png",
-            Ability::Jump(_) => "/icon_ability_jump.png",
-            Ability::Dash => "/icon_ability_dash.png",
-            Ability::Rage(_) => "/icon_ability_rage.png",
-            Ability::Heal(_) => "/icon_ability_heal.png",
-            Ability::BombPush(_) => "/icon_ability_bomb_push.png",
-            Ability::Bomb(_) => "/icon_ability_bomb.png",
-            Ability::BombFire(_) => "/icon_ability_bomb_fire.png",
-            Ability::BombPoison(_) => "/icon_ability_bomb_poison.png",
-            Ability::BombDemonic(_) => "/icon_ability_bomb_demonic.png",
-            Ability::Summon => "/icon_ability_summon.png",
-            Ability::Bloodlust => "/icon_ability_bloodlust.png",
+            Ability::Club => "/img/icon_ability_club.png",
+            Ability::Knockback(_) => "/img/icon_ability_knockback.png",
+            Ability::Jump(_) => "/img/icon_ability_jump.png",
+            Ability::Dash => "/img/icon_ability_dash.png",
+            Ability::Rage(_) => "/img/icon_ability_rage.png",
+            Ability::Heal(_) => "/img/icon_ability_heal.png",
+            Ability::BombPush(_) => "/img/icon_ability_bomb_push.png",
+            Ability::Bomb(_) => "/img/icon_ability_bomb.png",
+            Ability::BombFire(_) => "/img/icon_ability_bomb_fire.png",
+            Ability::BombPoison(_) => "/img/icon_ability_bomb_poison.png",
+            Ability::BombDemonic(_) => "/img/icon_ability_bomb_demonic.png",
+            Ability::Summon => "/img/icon_ability_summon.png",
+            Ability::Bloodlust => "/img/icon_ability_bloodlust.png",
             ref ability => panic!("No icon for {:?}", ability),
         };
         let image = graphics::Image::new(context, image_path)?;
@@ -291,7 +291,7 @@ fn build_panel_agent_abilities(
 
 fn build_panel_end_turn(context: &mut Context, gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
     let h = line_heights().large;
-    let icon = Box::new(graphics::Image::new(context, "/icon_end_turn.png")?);
+    let icon = Box::new(graphics::Image::new(context, "/img/icon_end_turn.png")?);
     let button = ui::Button::new(context, icon, h, gui.sender(), Message::EndTurn)?;
     let layout = ui::VLayout::from_widget(Box::new(button));
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
@@ -354,7 +354,7 @@ fn make_gui(context: &mut Context) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new(context);
     let h = line_heights().large;
     {
-        let icon = Box::new(graphics::Image::new(context, "/icon_menu.png")?);
+        let icon = Box::new(graphics::Image::new(context, "/img/icon_menu.png")?);
         let button = ui::Button::new(context, icon, h, gui.sender(), Message::Exit)?;
         let layout = ui::VLayout::from_widget(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);

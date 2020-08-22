@@ -134,15 +134,8 @@ Tactical battle mechanics are mostly inspired by these games:
 Install all [miniquad's system dependencies][mq_sys_deps].
 
 ```bash
-# Clone this repo
-git clone https://github.com/ozkriff/zemeroth
-cd zemeroth
-
-# Assets are stored in a separate repo.
-# Zemeroth expects them to be in `assets` directory.
-git clone https://github.com/ozkriff/zemeroth_assets assets
-
-# Build and run it
+cargo install resvg
+./utils/assets_export.py
 cargo run
 ```
 
@@ -151,6 +144,8 @@ cargo run
 ## WebAssembly
 
 ```bash
+cargo install resvg
+./utils/assets_export.py
 rustup target add wasm32-unknown-unknown
 ./utils/wasm/build.sh
 cargo install basic-http-server
@@ -170,12 +165,15 @@ This repo contains a bunch of helper crates:
 - [zgui] is a simple and opinionated GUI library
 - [zscene] is a simple scene and declarative animation manager
 
+Also, [resvg] is used for exporting sprites from svg.
+
 [good-web-game]: https://github.com/not-fl3/good-web-game
 [miniquad]: https://github.com/not-fl3/miniquad
 [#564 "Migrate to miniquad"]: https://github.com/ozkriff/zemeroth/issues/564
 [zcomponents]: ./zcomponents
 [zscene]: zscene
 [zgui]: zgui
+[resvg]: https://github.com/RazrFalcon/resvg
 
 ## Contribute
 

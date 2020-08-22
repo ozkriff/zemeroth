@@ -440,7 +440,7 @@ fn generate_brief_obj_info(
     let strength = parts.strength.get(id);
     let damage = strength.base_strength.0 - strength.strength.0;
     let armor = state::get_armor(state, id);
-    let size = 0.2 * view.tile_size();
+    let size = 0.25 * view.tile_size();
     let mut point = view.hex_to_point(obj_pos);
     point.x += view.tile_size() * 0.8;
     point.y -= view.tile_size() * 1.6;
@@ -460,11 +460,11 @@ fn generate_brief_obj_info(
         for &(color, n) in row {
             for _ in 0..n {
                 dots.push((color, point));
-                point.x -= size;
+                point.x -= size * 0.8;
             }
         }
         point.x = base.x;
-        point.y += size;
+        point.y += size * 0.8;
     }
     let mut sprites = Vec::new();
     for &(color, point) in &dots {

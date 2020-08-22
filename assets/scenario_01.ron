@@ -1,0 +1,15 @@
+(
+    rocky_tiles_count: 10,
+    objects: [
+        (owner: None, typename: "boulder", line: None, count: 3),
+        (owner: None, typename: "spike_trap", line: None, count: 3),
+        (owner: Some((0)), typename: "swordsman", line: Some(Front), count: 1),
+        (owner: Some((0)), typename: "hammerman", line: Some(Front), count: 1),
+        (owner: Some((0)), typename: "spearman", line: Some(Middle), count: 1),
+        (owner: Some((0)), typename: "alchemist", line: Some(Middle), count: 1),
+        (owner: Some((1)), typename: "imp", line: Some(Front), count: 4),
+        (owner: Some((1)), typename: "imp_toxic", line: Some(Middle), count: 1),
+        (owner: Some((1)), typename: "imp_bomber", line: Some(Back), count: 1),
+        (owner: Some((1)), typename: "imp_summoner", line: Some(Middle), count: 2),
+    ],
+)

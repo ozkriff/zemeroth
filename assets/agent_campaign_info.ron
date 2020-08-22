@@ -1,0 +1,39 @@
+{
+    "swordsman": (
+        cost: 10,
+        upgrades: ["heavy_swordsman", "elite_swordsman"],
+    ),
+    "elite_swordsman": (
+        cost: 15,
+    ),
+    "heavy_swordsman": (
+        cost: 14,
+    ),
+    "spearman": (
+        cost: 11,
+        upgrades: ["heavy_spearman", "elite_spearman"],
+    ),
+    "elite_spearman": (
+        cost: 15,
+    ),
+    "heavy_spearman": (
+        cost: 14,
+    ),
+    "hammerman": (
+        cost: 11,
+        upgrades: ["heavy_hammerman"],
+    ),
+    "heavy_hammerman": (
+        cost: 15,
+    ),
+    "alchemist": (
+        cost: 12,
+        upgrades: ["healer", "firer"],
+    ),
+    "healer": (
+        cost: 16,
+    ),
+    "firer": (
+        cost: 16,
+    ),
+}

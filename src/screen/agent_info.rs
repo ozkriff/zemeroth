@@ -168,7 +168,7 @@ fn info_panel(
                     line_layout.add(label(context, &text)?);
                     line_layout.add(spacer_s());
                     // TODO: Don't reload images every time, preload them (like object frames)
-                    let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+                    let icon = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
                     let message = Message::AbilityInfo(ability.ability.clone());
                     let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));
@@ -185,7 +185,7 @@ fn info_panel(
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(context, &text)?);
                     line_layout.add(spacer_s());
-                    let icon = Box::new(graphics::Image::new(context, "/icon_info.png")?);
+                    let icon = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
                     let message = Message::PassiveAbilityInfo(ability);
                     let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));
