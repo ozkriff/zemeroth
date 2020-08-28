@@ -48,9 +48,6 @@ jobs:
         run: |
           sudo apt-get -yq --no-install-suggests --no-install-recommends install libx11-dev libxi-dev libgl1-mesa-dev
 
-      - name: Install Python
-        uses: actions/setup-python@v2
-
       - name: Install rust
         uses: actions-rs/toolchain@v1
         with:
@@ -77,7 +74,7 @@ jobs:
       - name: Export assets
         shell: bash
         run: |
-          python ./utils/assets_export.py
+          ./utils/assets_export.sh
           ls -lR assets
 
       - name: Build
@@ -143,14 +140,11 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Install Python
-        uses: actions/setup-python@v2
-
       - name: Install resvg
         run: cargo install resvg
 
       - name: Export assets
-        run: python ./utils/assets_export.py
+        run: ./utils/assets_export.sh
 
       - name: Build
         run: ./utils/wasm/build.sh

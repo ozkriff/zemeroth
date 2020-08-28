@@ -135,7 +135,7 @@ Install all [miniquad's system dependencies][mq_sys_deps].
 
 ```bash
 cargo install resvg
-./utils/assets_export.py
+./utils/assets_export.sh
 cargo run
 ```
 
@@ -145,7 +145,7 @@ cargo run
 
 ```bash
 cargo install resvg
-./utils/assets_export.py
+./utils/assets_export.sh
 rustup target add wasm32-unknown-unknown
 ./utils/wasm/build.sh
 cargo install basic-http-server
