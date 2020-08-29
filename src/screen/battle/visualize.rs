@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use cgmath::{self, InnerSpace, Rad, Rotation, Rotation2};
 use gwg::{
-    graphics::{Color, Point2, Text, Vector2},
+    graphics::{Color, Image, Point2, Text, Vector2},
     Context,
 };
 use log::{info, trace};
@@ -426,6 +426,14 @@ fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Act
     Ok(seq(actions))
 }
 
+pub fn get_effect_icon(view: &BattleView, effect: &effect::Lasting) -> Image {
+    match effect {
+        effect::Lasting::Poison => view.images().effect_poison.clone(),
+        effect::Lasting::Stun => view.images().effect_stun.clone(),
+        effect::Lasting::Bloodlust => view.images().effect_bloodlust.clone(),
+    }
+}
+
 fn generate_brief_obj_info(
     state: &State,
     view: &mut BattleView,
@@ -483,18 +491,14 @@ fn generate_brief_obj_info(
         let health_points = strength.strength.0 + damage + armor.0;
         let health_bar_width = health_points as f32 * size;
         if let Some(effects) = parts.effects.get_opt(id) {
-            let icon_size = size * 2.0;
+            let icon_size = size * 1.7;
             let mut icon_point = base;
             icon_point.y -= icon_size;
-            icon_point.x -= health_bar_width + icon_size * 0.3;
+            icon_point.x -= health_bar_width + icon_size * 0.1;
             for timed_effect in &effects.0 {
                 icon_point.y += icon_size;
                 let effect = &timed_effect.effect;
-                let image = match effect {
-                    effect::Lasting::Poison => view.images().effect_poison.clone(),
-                    effect::Lasting::Stun => view.images().effect_stun.clone(),
-                    effect::Lasting::Bloodlust => view.images().effect_bloodlust.clone(),
-                };
+                let image = get_effect_icon(view, effect);
                 let mut sprite = Sprite::from_image(context, image, icon_size)?;
                 sprite.set_pos(icon_point);
                 sprite.set_centered(true);
