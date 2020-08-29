@@ -105,17 +105,12 @@ jobs:
         shell: bash
         run: |
           if ! command -v resvg &> /dev/null; then
-            if [ "$RUNNER_OS" == "Linux" ]; then
-              cargo install resvg
-            elif [ "$RUNNER_OS" == "macOS" ]; then
-              cargo install resvg
-            elif [ "$RUNNER_OS" == "Windows" ]; then
+            if [ "$RUNNER_OS" == "Windows" ]; then
               curl -sL https://github.com/RazrFalcon/resvg/releases/download/v0.11.0/viewsvg-win.zip -O
               7z x viewsvg-win.zip
               mv resvg ~/.cargo/bin
             else
-              echo "$RUNNER_OS not supported"
-              exit 1
+              cargo install resvg
             fi
           fi
 
