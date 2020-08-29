@@ -483,10 +483,10 @@ fn generate_brief_obj_info(
         let health_points = strength.strength.0 + damage + armor.0;
         let health_bar_width = health_points as f32 * size;
         if let Some(effects) = parts.effects.get_opt(id) {
-            let icon_size = size * 2.0;
+            let icon_size = size * 1.7;
             let mut icon_point = base;
             icon_point.y -= icon_size;
-            icon_point.x -= health_bar_width + icon_size * 0.3;
+            icon_point.x -= health_bar_width + icon_size * 0.1;
             for timed_effect in &effects.0 {
                 icon_point.y += icon_size;
                 let effect = &timed_effect.effect;
