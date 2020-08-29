@@ -78,6 +78,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin/resvg
+            target
+          key: ${{ runner.os }}-${{ matrix.build }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Install rust
         uses: actions-rs/toolchain@v1
         with:
