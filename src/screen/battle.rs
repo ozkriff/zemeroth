@@ -77,6 +77,7 @@ fn line_with_info_button(
 // TODO: consider moving ui `build_*` functions to a sub-module
 fn build_panel_agent_info(
     context: &mut Context,
+    view: &BattleView,
     font: Font,
     gui: &mut Gui<Message>,
     state: &State,
@@ -211,7 +212,25 @@ fn build_panel_agent_info(
                         effect::Duration::Rounds(n) => format!("{} ({}t)", s, n),
                     };
                     let message = Message::LastingEffectInfo(effect.effect.clone());
-                    add(line_with_info_button(context, font, gui, &text, message)?);
+                    let text = Box::new(Text::new((text, font, FONT_SIZE)));
+                    let icon_info = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
+                    let button_info =
+                        ui::Button::new(context, icon_info, h, gui.sender(), message)?;
+                    let icon_effect = visualize::get_effect_icon(view, &effect.effect);
+                    let param = ui::LabelParam {
+                        drawable_k: 0.6,
+                        ..Default::default()
+                    };
+                    let label_effect =
+                        ui::Label::from_params(context, Box::new(icon_effect), h, param)?
+                            .with_color([1.0, 1.0, 1.0, 1.0].into());
+                    let mut line = Box::new(ui::HLayout::new().stretchable(true));
+                    line.add(Box::new(label_effect));
+                    line.add(Box::new(ui::Spacer::new_horizontal(h * 0.1)));
+                    line.add(Box::new(ui::Label::new(context, text, h)?));
+                    line.add(Box::new(ui::Spacer::new_horizontal(0.0).stretchable(true)));
+                    line.add(Box::new(button_info));
+                    add(line);
                     add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
                 }
             }
@@ -552,7 +571,9 @@ impl Battle {
         }
         self.panel_abilities =
             build_panel_agent_abilities(context, &self.view, self.font, gui, state, id, &mode)?;
-        self.panel_info = Some(build_panel_agent_info(context, self.font, gui, state, id)?);
+        self.panel_info = Some(build_panel_agent_info(
+            context, &self.view, self.font, gui, state, id,
+        )?);
         let map = self.pathfinder.map();
         self.view.set_mode(state, context, map, id, &mode)?;
         self.mode = mode;
