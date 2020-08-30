@@ -99,7 +99,7 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
     check_agent_can_attack(state, command.id)?;
     check_agent_ability_ready(state, command.id, &command.ability)?;
     match command.ability {
-        Ability::Knockback(a) => check_ability_knockback(state, command.id, command.pos, a),
+        Ability::Knockback => check_ability_knockback(state, command.id, command.pos),
         Ability::Club => check_ability_club(state, command.id, command.pos),
         Ability::Jump(a) => check_ability_jump(state, command.id, command.pos, a),
         Ability::Poison => check_ability_poison(state, command.id, command.pos),
@@ -121,12 +121,7 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
     }
 }
 
-fn check_ability_knockback(
-    state: &State,
-    id: Id,
-    pos: PosHex,
-    _: ability::Knockback,
-) -> Result<(), Error> {
+fn check_ability_knockback(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     let selected_pos = state.parts().pos.get(id).0;
     check_min_distance(selected_pos, pos, Distance(1))?;
     check_max_distance(selected_pos, pos, Distance(1))?;

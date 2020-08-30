@@ -266,7 +266,7 @@ fn build_panel_agent_abilities(
             // TODO: load all the images only once. Store them in some struct and only clone them here.
             // TODO: Move into view::Images!
             Ability::Club => "/img/icon_ability_club.png",
-            Ability::Knockback(_) => "/img/icon_ability_knockback.png",
+            Ability::Knockback => "/img/icon_ability_knockback.png",
             Ability::Jump(_) => "/img/icon_ability_jump.png",
             Ability::Dash => "/img/icon_ability_dash.png",
             Ability::Rage => "/img/icon_ability_rage.png",

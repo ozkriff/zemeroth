@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
-    battle::{PushStrength, Strength, Weight},
+    battle::{Strength, Weight},
     map::Distance,
 };
 
 /// Active ability.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::From)]
 pub enum Ability {
-    Knockback(Knockback),
+    Knockback,
     Club,
     Jump(Jump),
     Poison,
@@ -27,12 +27,6 @@ pub enum Ability {
     Rage,
     Heal(Heal),
     Bloodlust,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Knockback {
-    #[serde(default)]
-    pub strength: PushStrength,
 }
 
 // TODO: use named fields?
@@ -93,7 +87,7 @@ pub struct RechargeableAbility {
 impl Ability {
     pub fn title(&self) -> String {
         match self {
-            Ability::Knockback(a) => format!("Knockback ({})", a.strength.0),
+            Ability::Knockback => "Knockback".into(),
             Ability::Club => "Club".into(),
             Ability::Jump(a) => format!("Jump ({})", (a.0).0),
             Ability::Poison => "Poison".into(),
@@ -117,9 +111,9 @@ impl Ability {
 
     pub fn description(&self) -> Vec<String> {
         match *self {
-            Ability::Knockback(a) => vec![
+            Ability::Knockback => vec![
                 "Push an adjusted object one tile away.".into(),
-                format!("Can move objects with a weight up to {}.", a.strength.0),
+                "Can move objects with a weight up to Normal.".into(),
             ],
             Ability::Club => vec!["Stun an adjusted agent for one turn.".into()],
             Ability::Jump(a) => vec![

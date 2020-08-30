@@ -253,16 +253,6 @@ fn ability_throw_bomb_push() -> Ability {
     }
     .into()
 }
-fn ability_knockback_normal() -> Ability {
-    ability::Knockback {
-        strength: PushStrength(Weight::Normal),
-    }
-    .into()
-}
-
-fn ability_club() -> Ability {
-    Ability::Club
-}
 
 #[test]
 #[should_panic(expected = "NoPlayerAgents")]
@@ -1185,7 +1175,7 @@ fn stun() {
             "attacker",
             vec![
                 component_agent_one_attack(),
-                component_abilities(&[ability_club()]),
+                component_abilities(&[Ability::Club]),
             ],
         ),
         (
@@ -1206,13 +1196,13 @@ fn stun() {
         command::UseAbility {
             id: Id(0),
             pos: PosHex { q: 0, r: 1 },
-            ability: ability_club(),
+            ability: Ability::Club,
         },
         &[Event {
             active_event: event::UseAbility {
                 id: Id(0),
                 pos: PosHex { q: 0, r: 1 },
-                ability: ability_club(),
+                ability: Ability::Club,
             }
             .into(),
             actor_ids: vec![Id(1), Id(0)],
@@ -1473,7 +1463,7 @@ fn knockback_normal_vs_normal() {
             "knockbacker",
             vec![
                 component_agent_always_hit(),
-                component_abilities(&[ability_knockback_normal()]),
+                component_abilities(&[Ability::Knockback]),
             ],
         ),
         (
@@ -1497,16 +1487,13 @@ fn knockback_normal_vs_normal() {
         command::UseAbility {
             id: Id(0),
             pos: target_position_initial,
-            ability: ability_knockback_normal(),
+            ability: Ability::Knockback,
         },
         &[Event {
             active_event: event::UseAbility {
                 id: Id(0),
                 pos: target_position_initial,
-                ability: ability::Knockback {
-                    strength: PushStrength(Weight::Normal),
-                }
-                .into(),
+                ability: Ability::Knockback,
             }
             .into(),
             actor_ids: vec![Id(1), Id(0)],
@@ -1533,7 +1520,7 @@ fn knockback_normal_vs_heavy() {
             "knockbacker",
             vec![
                 component_agent_always_hit(),
-                component_abilities(&[ability_knockback_normal()]),
+                component_abilities(&[Ability::Knockback]),
             ],
         ),
         (
@@ -1556,16 +1543,13 @@ fn knockback_normal_vs_heavy() {
         command::UseAbility {
             id: Id(0),
             pos: initial_heavy_position,
-            ability: ability_knockback_normal(),
+            ability: Ability::Knockback,
         },
         &[Event {
             active_event: event::UseAbility {
                 id: Id(0),
                 pos: initial_heavy_position,
-                ability: ability::Knockback {
-                    strength: PushStrength(Weight::Normal),
-                }
-                .into(),
+                ability: Ability::Knockback,
             }
             .into(),
             actor_ids: vec![Id(1), Id(0)],
