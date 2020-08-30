@@ -1103,7 +1103,7 @@ fn execute_use_ability_bomb_demonic(
 fn execute_use_ability_summon(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let max_summoned_count = state.parts().summoner.get(command.id).count;
-    let available_typenames = &["imp".into(), "imp_toxic".into(), "imp_bomber".into()];
+    let available_typenames = &["imp".into(), "toxic_imp".into(), "imp_bomber".into()];
     let existing_agents = existing_agent_typenames(state, state.player_id());
     let mut new_agents = Vec::new();
     for pos in state::free_neighbor_positions(state, command.pos, max_summoned_count as _) {

@@ -7,6 +7,7 @@ use gwg::{
     graphics::{self, Color, Font, Image, Point2, Text},
     Context,
 };
+use heck::TitleCase;
 use log::{info, trace};
 use ui::{self, Gui, Widget};
 use zscene::{action, Action, Boxed};
@@ -129,8 +130,8 @@ fn build_panel_agent_info(
         Ok(Box::new(line))
     };
     {
-        // TODO: Show a name for the user, not an identifier (no dashes, etc)
-        add(label_s(context, &format!("~~~ {} ~~~", meta.name.0))?);
+        let title = meta.name.0.to_title_case();
+        add(label_s(context, &format!("~~~ {} ~~~", title))?);
         add(line_dot(
             context,
             "strength:",

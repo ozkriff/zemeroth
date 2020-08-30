@@ -26,6 +26,7 @@ rand = { version = "0.7", features = [] }
 cgmath = { version = "0.17", features = ["mint"] }
 quad-rand = { version = "0.1.1", features = ["rand"] }
 gwg = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }
+heck = "0.3"
 
 [dev-dependencies]
 pretty_assertions = "0.6"

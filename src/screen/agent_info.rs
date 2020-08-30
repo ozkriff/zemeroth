@@ -4,6 +4,7 @@ use gwg::{
     graphics::{self, Color, Image, Point2, Text},
     Context,
 };
+use heck::TitleCase;
 use ui::{self, Gui, Widget};
 
 use crate::{
@@ -120,7 +121,8 @@ fn info_panel(
     };
     {
         if let Some(meta) = info.meta {
-            add(label_s(context, &format!("~~~ {} ~~~", meta.name.0))?);
+            let title = meta.name.0.to_title_case();
+            add(label_s(context, &format!("~~~ {} ~~~", title))?);
             add(spacer_v());
         }
         if let Some(strength) = info.strength {

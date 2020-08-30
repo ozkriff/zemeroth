@@ -8,7 +8,7 @@
         (owner: Some((0)), typename: "spearman", line: Some(Middle), count: 1),
         (owner: Some((0)), typename: "alchemist", line: Some(Middle), count: 1),
         (owner: Some((1)), typename: "imp", line: Some(Front), count: 4),
-        (owner: Some((1)), typename: "imp_toxic", line: Some(Middle), count: 1),
+        (owner: Some((1)), typename: "toxic_imp", line: Some(Middle), count: 1),
         (owner: Some((1)), typename: "imp_bomber", line: Some(Back), count: 1),
         (owner: Some((1)), typename: "imp_summoner", line: Some(Middle), count: 2),
     ],

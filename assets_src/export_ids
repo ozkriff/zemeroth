@@ -2,7 +2,7 @@ tile
 tile_rocks
 poison_cloud
 imp
-imp_toxic
+toxic_imp
 imp_summoner
 imp_summoner_cast
 imp_bomber
