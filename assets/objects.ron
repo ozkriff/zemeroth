@@ -257,7 +257,7 @@
             move_points: 3,
         )),
     ],
-    "imp_toxic": [
+    "toxic_imp": [
         Blocker(()),
         Strength((
             strength: 2,

@@ -202,7 +202,7 @@ impl Ai {
     }
 
     fn try_bloodlust_imp(&self, state: &State, agent_id: Id) -> Option<Command> {
-        let imps = ["imp", "imp_toxic"];
+        let imps = ["imp", "toxic_imp"];
         'target_loop: for target_id in shuffle_vec(state::players_agent_ids(state, self.id)) {
             // AI can bloodlust only "imp"s for now.
             let type_name = state.parts().meta.get(target_id).name.0.as_str();

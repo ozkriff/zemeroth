@@ -1585,7 +1585,7 @@
     <g
        style="display:inline;stroke:none"
        transform="matrix(-0.51279727,0,0,0.44605199,473.55723,-39.812785)"
-       id="imp_toxic"
+       id="toxic_imp"
        inkscape:label="#g4346-2-2-5-7">
       <use
          x="0"
@@ -2511,7 +2511,7 @@
     <use
        x="0"
        y="0"
-       xlink:href="#imp_toxic"
+       xlink:href="#toxic_imp"
        id="use1244"
        transform="matrix(-1,0,0,1,835.74363,-25.755936)"
        width="100%"
