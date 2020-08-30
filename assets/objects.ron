@@ -41,7 +41,7 @@
         )),
         Abilities([
             (ability: Jump(2), base_cooldown: 2),
-            (ability: Rage(2), base_cooldown: 3),
+            (ability: Rage, base_cooldown: 3),
             (ability: Dash, base_cooldown: 1),
         ]),
     ],

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
-    battle::{Attacks, PushStrength, Strength, Weight},
+    battle::{PushStrength, Strength, Weight},
     map::Distance,
 };
 
@@ -24,7 +24,7 @@ pub enum Ability {
     Summon,
     Vanish,
     Dash,
-    Rage(Rage),
+    Rage,
     Heal(Heal),
     Bloodlust,
 }
@@ -38,9 +38,6 @@ pub struct Knockback {
 // TODO: use named fields?
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Jump(pub Distance);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Rage(pub Attacks);
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Heal(pub Strength);
@@ -112,7 +109,7 @@ impl Ability {
             Ability::Vanish => "Vanish".into(),
             Ability::Summon => "Summon".into(),
             Ability::Dash => "Dash".into(),
-            Ability::Rage(a) => format!("Rage ({})", (a.0).0),
+            Ability::Rage => "Rage".into(),
             Ability::Heal(a) => format!("Heal ({})", (a.0).0),
             Ability::Bloodlust => "Bloodlust".into(),
         }
@@ -160,7 +157,7 @@ impl Ability {
                 "Move one tile".into(),
                 "without triggering any reaction attacks.".into(),
             ],
-            Ability::Rage(a) => vec![format!("Instantly receive {} additional attacks.", (a.0).0)],
+            Ability::Rage => vec!["Instantly receive 3 additional attacks.".into()],
             Ability::Heal(a) => vec![
                 format!("Heal {} strength points.", (a.0).0),
                 "Also, removes 'Poison' and 'Stun' lasting effects.".into(),

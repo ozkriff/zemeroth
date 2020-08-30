@@ -111,7 +111,7 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
         Ability::Summon => check_ability_summon(state, command.id, command.pos),
         Ability::Vanish => check_ability_vanish(state, command.id, command.pos),
         Ability::Dash => check_ability_dash(state, command.id, command.pos),
-        Ability::Rage(a) => check_ability_rage(state, command.id, command.pos, a),
+        Ability::Rage => check_ability_rage(state, command.id, command.pos),
         Ability::Heal(a) => check_ability_heal(state, command.id, command.pos, a),
         Ability::Bloodlust => check_ability_bloodlust(state, command.id, command.pos),
         Ability::ExplodePush
@@ -259,7 +259,7 @@ fn check_ability_dash(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     Ok(())
 }
 
-fn check_ability_rage(state: &State, id: Id, pos: PosHex, _: ability::Rage) -> Result<(), Error> {
+fn check_ability_rage(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     check_object_pos(state, id, pos)
 }
 

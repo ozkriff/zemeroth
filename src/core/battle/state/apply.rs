@@ -188,10 +188,9 @@ fn apply_event_use_ability(state: &mut State, event: &event::UseAbility) {
         Ability::Jump(_) | Ability::Dash => {
             parts.pos.get_mut(id).0 = event.pos;
         }
-        Ability::Rage(ability) => {
+        Ability::Rage => {
             let component = parts.agent.get_mut(id);
-            let attacks = ability.0;
-            component.attacks.0 = attacks.0 + 1;
+            component.attacks.0 += 3;
         }
         Ability::Summon => {
             assert!(parts.summoner.get_opt(id).is_some());

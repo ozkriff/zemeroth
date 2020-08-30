@@ -1144,7 +1144,7 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
         Ability::Club => execute_use_ability_club(state, command),
         Ability::Jump(_) => execute_use_ability_jump(state, command),
         Ability::Dash => execute_use_ability_dash(state, command),
-        Ability::Rage(_) => execute_use_ability_rage(state, command),
+        Ability::Rage => execute_use_ability_rage(state, command),
         Ability::Heal(a) => execute_use_ability_heal(state, command, a),
         Ability::Vanish => execute_use_ability_vanish(state, command),
         Ability::ExplodeFire => execute_use_ability_explode_fire(state, command),

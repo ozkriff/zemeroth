@@ -269,7 +269,7 @@ fn build_panel_agent_abilities(
             Ability::Knockback(_) => "/img/icon_ability_knockback.png",
             Ability::Jump(_) => "/img/icon_ability_jump.png",
             Ability::Dash => "/img/icon_ability_dash.png",
-            Ability::Rage(_) => "/img/icon_ability_rage.png",
+            Ability::Rage => "/img/icon_ability_rage.png",
             Ability::Heal(_) => "/img/icon_ability_heal.png",
             Ability::BombPush(_) => "/img/icon_ability_bomb_push.png",
             Ability::Bomb(_) => "/img/icon_ability_bomb.png",
