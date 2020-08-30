@@ -55,16 +55,13 @@ jobs:
     name: ${{ matrix.build }}
     runs-on: ${{ matrix.os }}
 
-    # The build matrix does not yet support 'allow failures' at job level.
-    # See `jobs.nightly` for the nightly job definition.
     strategy:
       matrix:
-        build: [Linux, macOS, Win32, Win64]
+        build: [Linux, macOS, Win32, Win64, Linux-beta]
 
         include:
           - build: Linux
             os: ubuntu-latest
-            packages: libx11-dev libxi-dev libgl1-mesa-dev
           - build: macOS
             os: macOS-latest
           - build: Win32
@@ -73,6 +70,9 @@ jobs:
             target: i686-pc-windows-msvc
           - build: Win64
             os: windows-latest
+          - build: Linux-beta
+            os: ubuntu-latest
+            rust: beta
 
     steps:
       - name: Checkout
@@ -97,9 +97,9 @@ jobs:
           override: true
 
       - name: Install packages (Linux)
-        if: runner.os == 'Linux' && matrix.packages
+        if: runner.os == 'Linux'
         run: |
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install ${{ matrix.packages }}
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install libx11-dev libxi-dev libgl1-mesa-dev
 
       - name: Install resvg
         shell: bash
@@ -149,47 +149,4 @@ jobs:
           override: true
 
       - name: Build
-        run: |
-          ./utils/wasm/build.sh
-
-  nightly:
-    name: Nightly
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-
-        include:
-          - os: ubuntu-latest
-            packages: libx11-dev libxi-dev libgl1-mesa-dev
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Install packages (Linux)
-        if: runner.os == 'Linux' && matrix.packages
-        run: |
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install ${{ matrix.packages }}
-
-      - name: Install rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          profile: minimal
-          override: true
-
-      - name: Build
-        continue-on-error: true
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --examples --all
-
-      - name: Test
-        continue-on-error: true
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all
+        run: ./utils/wasm/build.sh
