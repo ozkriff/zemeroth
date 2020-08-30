@@ -233,27 +233,6 @@ fn rechargeable(ability: Ability) -> RechargeableAbility {
     rechargeable_with_base_cooldown(ability, default_base_cooldown)
 }
 
-const BOMB_THROW_DISTANCE: Distance = Distance(2);
-
-fn ability_throw_bomb() -> Ability {
-    ability::Bomb(BOMB_THROW_DISTANCE).into()
-}
-
-fn ability_throw_bomb_fire() -> Ability {
-    ability::BombFire(BOMB_THROW_DISTANCE).into()
-}
-
-fn ability_throw_bomb_poison() -> Ability {
-    ability::BombPoison(BOMB_THROW_DISTANCE).into()
-}
-
-fn ability_throw_bomb_push() -> Ability {
-    ability::BombPush {
-        throw_distance: BOMB_THROW_DISTANCE,
-    }
-    .into()
-}
-
 #[test]
 #[should_panic(expected = "NoPlayerAgents")]
 fn bad_scenario_no_player_agents() {
@@ -482,7 +461,7 @@ fn throw_bomb_no_harm() {
             "thrower",
             vec![
                 component_agent_one_attack(),
-                component_abilities(&[ability_throw_bomb()]),
+                component_abilities(&[Ability::Bomb]),
             ],
         ),
         ("dull", [component_agent_dull()].to_vec()),
@@ -497,13 +476,13 @@ fn throw_bomb_no_harm() {
         command::UseAbility {
             id: Id(0),
             pos: PosHex { q: 0, r: -2 },
-            ability: ability_throw_bomb(),
+            ability: Ability::Bomb,
         },
         &[Event {
             active_event: event::UseAbility {
                 id: Id(0),
                 pos: PosHex { q: 0, r: -2 },
-                ability: ability::Bomb(Distance(2)).into(),
+                ability: Ability::Bomb,
             }
             .into(),
             actor_ids: vec![Id(0)],
@@ -572,7 +551,7 @@ fn throw_bomb_damage() {
             "thrower",
             vec![
                 component_agent_one_attack(),
-                component_abilities(&[ability_throw_bomb()]),
+                component_abilities(&[Ability::Bomb]),
             ],
         ),
         (
@@ -590,13 +569,13 @@ fn throw_bomb_damage() {
         command::UseAbility {
             id: Id(0),
             pos: PosHex { q: 0, r: 2 },
-            ability: ability_throw_bomb(),
+            ability: Ability::Bomb,
         },
         &[Event {
             active_event: event::UseAbility {
                 id: Id(0),
                 pos: PosHex { q: 0, r: 2 },
-                ability: ability::Bomb(Distance(2)).into(),
+                ability: Ability::Bomb,
             }
             .into(),
             actor_ids: vec![Id(0)],
@@ -676,7 +655,7 @@ fn throw_bomb_poison() {
             "thrower",
             vec![
                 component_agent_one_attack(),
-                component_abilities(&[ability_throw_bomb_poison()]),
+                component_abilities(&[Ability::BombPoison]),
             ],
         ),
         ("weak", vec![component_agent_dull(), component_strength(2)]),
@@ -695,13 +674,13 @@ fn throw_bomb_poison() {
         command::UseAbility {
             id: Id(0),
             pos: PosHex { q: 0, r: 2 },
-            ability: ability_throw_bomb_poison(),
+            ability: Ability::BombPoison,
         },
         &[Event {
             active_event: event::UseAbility {
                 id: Id(0),
                 pos: PosHex { q: 0, r: 2 },
-                ability: ability::BombPoison(Distance(2)).into(),
+                ability: Ability::BombPoison,
             }
             .into(),
             actor_ids: vec![Id(0)],
@@ -910,7 +889,7 @@ fn throw_two_fire_bombs() {
             "thrower",
             vec![
                 component_agent_one_attack(),
-                component_abilities(&[ability_throw_bomb_fire()]),
+                component_abilities(&[Ability::BombFire]),
             ],
         ),
         ("dull", [component_agent_dull()].to_vec()),
@@ -929,13 +908,13 @@ fn throw_two_fire_bombs() {
         command::UseAbility {
             id: Id(0),
             pos: PosHex { q: 0, r: 2 },
-            ability: ability_throw_bomb_fire(),
+            ability: Ability::BombFire,
         },
         &[Event {
             active_event: event::UseAbility {
                 id: Id(0),
                 pos: PosHex { q: 0, r: 2 },
-                ability: ability::BombFire(Distance(2)).into(),
+                ability: Ability::BombFire,
             }
             .into(),
             actor_ids: vec![Id(0)],
@@ -1037,13 +1016,13 @@ fn throw_two_fire_bombs() {
         command::UseAbility {
             id: Id(0),
             pos: PosHex { q: 1, r: 1 },
-            ability: ability_throw_bomb_fire(),
+            ability: Ability::BombFire,
         },
         &[Event {
             active_event: event::UseAbility {
                 id: Id(0),
                 pos: PosHex { q: 1, r: 1 },
-                ability: ability::BombFire(Distance(2)).into(),
+                ability: Ability::BombFire,
             }
             .into(),
             actor_ids: vec![Id(0)],
@@ -1258,7 +1237,7 @@ fn throw_bomb_push_normal() {
             "thrower",
             vec![
                 component_agent_one_attack(),
-                component_abilities(&[ability_throw_bomb_push()]),
+                component_abilities(&[Ability::BombPush]),
             ],
         ),
         (
@@ -1281,17 +1260,14 @@ fn throw_bomb_push_normal() {
         command::UseAbility {
             id: Id(0),
             pos: PosHex { q: 0, r: 2 },
-            ability: ability_throw_bomb_push(),
+            ability: Ability::BombPush,
         },
         &[
             Event {
                 active_event: event::UseAbility {
                     id: Id(0),
                     pos: PosHex { q: 0, r: 2 },
-                    ability: ability::BombPush {
-                        throw_distance: Distance(2),
-                    }
-                    .into(),
+                    ability: Ability::BombPush,
                 }
                 .into(),
                 actor_ids: vec![Id(0)],
@@ -1360,7 +1336,7 @@ fn throw_bomb_push_heavy() {
             "thrower",
             vec![
                 component_agent_one_attack(),
-                component_abilities(&[ability_throw_bomb_push()]),
+                component_abilities(&[Ability::BombPush]),
             ],
         ),
         (
@@ -1384,17 +1360,14 @@ fn throw_bomb_push_heavy() {
         command::UseAbility {
             id: Id(0),
             pos: PosHex { q: 0, r: 2 },
-            ability: ability_throw_bomb_push(),
+            ability: Ability::BombPush,
         },
         &[
             Event {
                 active_event: event::UseAbility {
                     id: Id(0),
                     pos: PosHex { q: 0, r: 2 },
-                    ability: ability::BombPush {
-                        throw_distance: Distance(2),
-                    }
-                    .into(),
+                    ability: Ability::BombPush,
                 }
                 .into(),
                 actor_ids: vec![Id(0)],

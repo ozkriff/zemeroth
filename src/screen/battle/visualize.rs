@@ -904,11 +904,11 @@ fn visualize_event_use_ability(
         | Ability::ExplodePoison => {
             visualize_event_use_ability_explode(state, view, context, event)?
         }
-        Ability::BombPush(_)
-        | Ability::BombDemonic(_)
-        | Ability::BombFire(_)
-        | Ability::BombPoison(_)
-        | Ability::Bomb(_) => visualize_event_use_ability_throw_bomb(state, view, context, event)?,
+        Ability::BombPush
+        | Ability::BombDemonic
+        | Ability::BombFire
+        | Ability::BombPoison
+        | Ability::Bomb => visualize_event_use_ability_throw_bomb(state, view, context, event)?,
         _ => action::Empty::new().boxed(),
     };
     let pos = state.parts().pos.get(event.id).0;

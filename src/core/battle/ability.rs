@@ -16,11 +16,11 @@ pub enum Ability {
     ExplodeDamage,
     ExplodeFire,
     ExplodePoison,
-    Bomb(Bomb),
-    BombPush(BombPush),
-    BombFire(BombFire),
-    BombPoison(BombPoison),
-    BombDemonic(BombDemonic),
+    Bomb,
+    BombPush,
+    BombFire,
+    BombPoison,
+    BombDemonic,
     Summon,
     Vanish,
     Dash,
@@ -35,23 +35,6 @@ pub struct Jump(pub Distance);
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Heal(pub Strength);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Bomb(pub Distance);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct BombDemonic(pub Distance);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct BombPush {
-    pub throw_distance: Distance,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct BombPoison(pub Distance);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct BombFire(pub Distance);
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Status {
@@ -95,11 +78,11 @@ impl Ability {
             Ability::ExplodeDamage => "Explode Damage".into(),
             Ability::ExplodeFire => "Explode Fire".into(),
             Ability::ExplodePoison => "Explode Poison".into(),
-            Ability::Bomb(a) => format!("Bomb ({})", (a.0).0),
-            Ability::BombPush(a) => format!("Bomb Push ({})", a.throw_distance.0),
-            Ability::BombFire(a) => format!("Fire Bomb ({})", (a.0).0),
-            Ability::BombPoison(a) => format!("Poison Bomb ({})", (a.0).0),
-            Ability::BombDemonic(a) => format!("Demonic Bomb ({})", (a.0).0),
+            Ability::Bomb => "Bomb".into(),
+            Ability::BombPush => "Bomb Push".into(),
+            Ability::BombFire => "Fire Bomb".into(),
+            Ability::BombPoison => "Poison Bomb".into(),
+            Ability::BombDemonic => "Demonic Bomb".into(),
             Ability::Vanish => "Vanish".into(),
             Ability::Summon => "Summon".into(),
             Ability::Dash => "Dash".into(),
@@ -120,32 +103,32 @@ impl Ability {
                 format!("Jump for up to {} tiles.", (a.0).0),
                 "Note: Triggers reaction attacks on landing.".into(),
             ],
-            Ability::Bomb(a) => vec![
+            Ability::Bomb => vec![
                 "Throw a bomb that explodes on the next turn.".into(),
                 "Damages all agents on the neighbour tiles.".into(),
-                format!("Can be thrown for up to {} tiles.", (a.0).0),
+                "Can be thrown for up to 3 tiles.".into(),
             ],
-            Ability::BombPush(a) => vec![
+            Ability::BombPush => vec![
                 "Throw a bomb that explodes *instantly*.".into(),
                 "Pushes all agents on the neighbour tiles.".into(),
-                format!("Can be thrown for up to {} tiles.", a.throw_distance.0),
+                "Can be thrown for up to 3 tiles.".into(),
                 format!("Can move objects with a weight up to {}.", Weight::Normal),
             ],
-            Ability::BombFire(a) => vec![
+            Ability::BombFire => vec![
                 "Throw a bomb that explodes on the next turn.".into(),
                 "Creates 7 fires.".into(),
-                format!("Can be thrown for up to {} tiles.", (a.0).0),
+                "Can be thrown for up to 3 tiles.".into(),
             ],
-            Ability::BombPoison(a) => vec![
+            Ability::BombPoison => vec![
                 "Throw a bomb that explodes on the next turn.".into(),
                 "Creates 7 poison clouds.".into(),
-                format!("Can be thrown for up to {} tiles.", (a.0).0),
+                "Can be thrown for up to 3 tiles.".into(),
             ],
-            Ability::BombDemonic(a) => vec![
+            Ability::BombDemonic => vec![
                 "Throw a demonic bomb".into(),
                 "that explodes on the next turn.".into(),
                 "Damages all agents on the neighbour tiles.".into(),
-                format!("Can be thrown for up to {} tiles.", (a.0).0),
+                "Can be thrown for up to 3 tiles.".into(),
             ],
             Ability::Dash => vec![
                 "Move one tile".into(),
