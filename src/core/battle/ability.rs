@@ -1,16 +1,14 @@
 use serde::{Deserialize, Serialize};
 
-use crate::core::{
-    battle::{Strength, Weight},
-    map::Distance,
-};
+use crate::core::battle::{Strength, Weight};
 
 /// Active ability.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::From)]
 pub enum Ability {
     Knockback,
     Club,
-    Jump(Jump),
+    Jump,
+    LongJump,
     Poison,
     ExplodePush,
     ExplodeDamage,
@@ -28,10 +26,6 @@ pub enum Ability {
     Heal(Heal),
     Bloodlust,
 }
-
-// TODO: use named fields?
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Jump(pub Distance);
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Heal(pub Strength);
@@ -72,7 +66,8 @@ impl Ability {
         match self {
             Ability::Knockback => "Knockback".into(),
             Ability::Club => "Club".into(),
-            Ability::Jump(a) => format!("Jump ({})", (a.0).0),
+            Ability::Jump => "Jump".into(),
+            Ability::LongJump => "Long Jump".into(),
             Ability::Poison => "Poison".into(),
             Ability::ExplodePush => "Explode Push".into(),
             Ability::ExplodeDamage => "Explode Damage".into(),
@@ -99,8 +94,12 @@ impl Ability {
                 "Can move objects with a weight up to Normal.".into(),
             ],
             Ability::Club => vec!["Stun an adjusted agent for one turn.".into()],
-            Ability::Jump(a) => vec![
-                format!("Jump for up to {} tiles.", (a.0).0),
+            Ability::Jump => vec![
+                "Jump for up to 2 tiles.".into(),
+                "Note: Triggers reaction attacks on landing.".into(),
+            ],
+            Ability::LongJump => vec![
+                "Jump for up to 3 tiles.".into(),
                 "Note: Triggers reaction attacks on landing.".into(),
             ],
             Ability::Bomb => vec![

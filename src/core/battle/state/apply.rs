@@ -185,7 +185,7 @@ fn apply_event_use_ability(state: &mut State, event: &event::UseAbility) {
         }
     }
     match event.ability {
-        Ability::Jump(_) | Ability::Dash => {
+        Ability::Jump | Ability::LongJump | Ability::Dash => {
             parts.pos.get_mut(id).0 = event.pos;
         }
         Ability::Rage => {

@@ -747,6 +747,12 @@ fn execute_use_ability_jump(_: &mut State, command: &command::UseAbility) -> Exe
     context
 }
 
+fn execute_use_ability_long_jump(_: &mut State, command: &command::UseAbility) -> ExecuteContext {
+    let mut context = ExecuteContext::default();
+    context.moved_actor_ids.push(command.id);
+    context
+}
+
 fn execute_use_ability_dash(_: &mut State, command: &command::UseAbility) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     context.moved_actor_ids.push(command.id);
@@ -1141,7 +1147,8 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
     let mut context = match command.ability {
         Ability::Knockback => execute_use_ability_knockback(state, command),
         Ability::Club => execute_use_ability_club(state, command),
-        Ability::Jump(_) => execute_use_ability_jump(state, command),
+        Ability::Jump => execute_use_ability_jump(state, command),
+        Ability::LongJump => execute_use_ability_long_jump(state, command),
         Ability::Dash => execute_use_ability_dash(state, command),
         Ability::Rage => execute_use_ability_rage(state, command),
         Ability::Heal(a) => execute_use_ability_heal(state, command, a),

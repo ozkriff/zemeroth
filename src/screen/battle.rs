@@ -267,7 +267,8 @@ fn build_panel_agent_abilities(
             // TODO: Move into view::Images!
             Ability::Club => "/img/icon_ability_club.png",
             Ability::Knockback => "/img/icon_ability_knockback.png",
-            Ability::Jump(_) => "/img/icon_ability_jump.png",
+            Ability::Jump => "/img/icon_ability_jump.png",
+            Ability::LongJump => "/img/icon_ability_long_jump.png",
             Ability::Dash => "/img/icon_ability_dash.png",
             Ability::Rage => "/img/icon_ability_rage.png",
             Ability::Heal(_) => "/img/icon_ability_heal.png",

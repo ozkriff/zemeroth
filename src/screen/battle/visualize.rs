@@ -890,7 +890,9 @@ fn visualize_event_use_ability(
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let action_main = match event.ability {
-        Ability::Jump(_) => visualize_event_use_ability_jump(state, view, context, event)?,
+        Ability::Jump | Ability::LongJump => {
+            visualize_event_use_ability_jump(state, view, context, event)?
+        }
         Ability::Dash => visualize_event_use_ability_dash(state, view, context, event)?,
         Ability::Summon => visualize_event_use_ability_summon(state, view, context, event)?,
         Ability::Bloodlust => visualize_event_use_ability_bloodlust(state, view, context, event)?,

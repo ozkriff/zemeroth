@@ -103,7 +103,8 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
     match command.ability {
         Ability::Knockback => check_ability_knockback(state, command.id, command.pos),
         Ability::Club => check_ability_club(state, command.id, command.pos),
-        Ability::Jump(a) => check_ability_jump(state, command.id, command.pos, a),
+        Ability::Jump => check_ability_jump(state, command.id, command.pos, Distance(2)),
+        Ability::LongJump => check_ability_jump(state, command.id, command.pos, Distance(3)),
         Ability::Poison => check_ability_poison(state, command.id, command.pos),
         Ability::Bomb
         | Ability::BombPush
@@ -137,12 +138,12 @@ fn check_ability_jump(
     state: &State,
     id: Id,
     pos: PosHex,
-    ability: ability::Jump,
+    max_distance: Distance,
 ) -> Result<(), Error> {
     let parts = state.parts();
     let agent_pos = parts.pos.get(id).0;
     check_min_distance(agent_pos, pos, Distance(2))?;
-    check_max_distance(agent_pos, pos, ability.0)?;
+    check_max_distance(agent_pos, pos, max_distance)?;
     check_not_blocked_and_is_inboard(state, pos)?;
     Ok(())
 }

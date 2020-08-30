@@ -19,7 +19,7 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: Jump(2), base_cooldown: 2),
+            (ability: Jump, base_cooldown: 2),
         ]),
     ],
     "elite_swordsman": [
@@ -40,7 +40,7 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: Jump(2), base_cooldown: 2),
+            (ability: Jump, base_cooldown: 2),
             (ability: Rage, base_cooldown: 3),
             (ability: Dash, base_cooldown: 1),
         ]),
@@ -197,7 +197,7 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: Jump(3), base_cooldown: 3),
+            (ability: LongJump, base_cooldown: 3),
         ]),
     ],
     "elite_spearman": [
@@ -218,7 +218,7 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: Jump(3), base_cooldown: 3),
+            (ability: LongJump, base_cooldown: 3),
         ]),
     ],
     "heavy_spearman": [
