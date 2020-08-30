@@ -293,7 +293,7 @@ fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: Id) 
                 }
                 PassiveAbility::HeavyImpact
                 | PassiveAbility::PoisonAttack
-                | PassiveAbility::Regenerate(_)
+                | PassiveAbility::Regenerate
                 | PassiveAbility::SpawnPoisonCloudOnDeath => {}
             }
         }
@@ -317,11 +317,10 @@ fn try_execute_passive_abilities_on_begin_turn(state: &mut State, cb: Cb) {
             if state.player_id() != owner {
                 continue;
             }
-
             let abilities = state.parts().passive_abilities.get(id).clone();
             for &ability in &abilities.0 {
                 assert!(state.parts().is_exist(id));
-                if let PassiveAbility::Regenerate(regenerate) = ability {
+                if let PassiveAbility::Regenerate = ability {
                     if state.parts().strength.get(id).strength
                         >= state.parts().strength.get(id).base_strength
                     {
@@ -330,7 +329,7 @@ fn try_execute_passive_abilities_on_begin_turn(state: &mut State, cb: Cb) {
                     let pos = state.parts().pos.get(id).0;
                     let active_event = event::UsePassiveAbility { pos, id, ability }.into();
                     let mut target_effects = Vec::new();
-                    let strength = regenerate.0;
+                    let strength = Strength(1);
                     target_effects.push(effect::Heal { strength }.into());
                     let instant_effects = vec![(id, target_effects)];
                     let event = Event {
@@ -394,7 +393,7 @@ fn try_execute_passive_abilities_on_attack(
                 PassiveAbility::Burn
                 | PassiveAbility::SpikeTrap
                 | PassiveAbility::Poison
-                | PassiveAbility::Regenerate(_)
+                | PassiveAbility::Regenerate
                 | PassiveAbility::SpawnPoisonCloudOnDeath => (),
             }
         }

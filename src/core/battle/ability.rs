@@ -193,11 +193,8 @@ pub enum PassiveAbility {
     Poison,
     SpikeTrap,
     PoisonAttack,
-    Regenerate(Regenerate),
+    Regenerate,
 }
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Regenerate(pub Strength);
 
 impl PassiveAbility {
     pub fn title(self) -> String {
@@ -208,7 +205,7 @@ impl PassiveAbility {
             PassiveAbility::Poison => "Poison".into(),
             PassiveAbility::SpikeTrap => "Spike Trap".into(),
             PassiveAbility::PoisonAttack => "Poison Attack".into(),
-            PassiveAbility::Regenerate(a) => format!("Regenerate ({})", (a.0).0),
+            PassiveAbility::Regenerate => "Regenerate".into(),
         }
     }
 
@@ -232,10 +229,7 @@ impl PassiveAbility {
                 vec!["Damages agents that enter into or begin their turn in the same tile.".into()]
             }
             PassiveAbility::PoisonAttack => vec!["Regular attack poisons the target.".into()],
-            PassiveAbility::Regenerate(a) => vec![format!(
-                "Regenerates {} strength points every turn.",
-                (a.0).0
-            )],
+            PassiveAbility::Regenerate => vec!["Regenerates 1 strength points every turn.".into()],
         }
     }
 }
