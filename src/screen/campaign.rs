@@ -7,6 +7,7 @@ use gwg::{
     graphics::{self, Font, Point2, Text},
     Context,
 };
+use heck::TitleCase;
 use log::info;
 use ui::{self, Gui, Widget};
 
@@ -69,7 +70,8 @@ fn build_panel_agents(
     layout.add(Box::new(ui::Spacer::new_vertical(line_height_small())));
     for agent_type in agents {
         let mut line = ui::HLayout::new().stretchable(true);
-        line.add(label(context, font, &format!("- {}", agent_type.0))?);
+        let title = agent_type.0.to_title_case();
+        line.add(label(context, font, &format!("- {}", title))?);
         let spacer = ui::Spacer::new_horizontal(line_height_small()).stretchable(true);
         line.add(Box::new(spacer));
         {
@@ -99,7 +101,7 @@ fn build_panel_casualties(
     let section_title = "In the last battle you have lost:";
     layout.add(label(context, font, section_title)?);
     for agent_type in casualties {
-        let text = &format!("- {}", agent_type.0);
+        let text = &format!("- {}", agent_type.0.to_title_case());
         layout.add(label(context, font, text)?);
         layout.add(Box::new(ui::Spacer::new_vertical(line_height_small())));
     }
@@ -134,10 +136,13 @@ fn build_panel_actions(
         let action_cost = state.action_cost(action);
         let text = match action {
             Action::Recruit { agent_type } => {
-                format!("Recruit {} for {}r", agent_type.0, action_cost.0)
+                let title = agent_type.0.to_title_case();
+                format!("Recruit {} for {}r", title, action_cost.0)
             }
             Action::Upgrade { from, to } => {
-                format!("Upgrade {} to {} for {}r", from.0, to.0, action_cost.0)
+                let from = from.0.to_title_case();
+                let to = to.0.to_title_case();
+                format!("Upgrade {} to {} for {}r", from, to, action_cost.0)
             }
         };
         {
