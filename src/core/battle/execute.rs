@@ -5,7 +5,7 @@ use log::{error, trace};
 use crate::core::{
     battle::{
         self,
-        ability::{self, Ability, PassiveAbility},
+        ability::{Ability, PassiveAbility},
         check::{check, Error},
         command::{self, Command},
         component::{self, ObjType},
@@ -293,7 +293,7 @@ fn try_execute_passive_abilities_tick(state: &mut State, cb: Cb, target_id: Id) 
                 }
                 PassiveAbility::HeavyImpact
                 | PassiveAbility::PoisonAttack
-                | PassiveAbility::Regenerate(_)
+                | PassiveAbility::Regenerate
                 | PassiveAbility::SpawnPoisonCloudOnDeath => {}
             }
         }
@@ -317,11 +317,10 @@ fn try_execute_passive_abilities_on_begin_turn(state: &mut State, cb: Cb) {
             if state.player_id() != owner {
                 continue;
             }
-
             let abilities = state.parts().passive_abilities.get(id).clone();
             for &ability in &abilities.0 {
                 assert!(state.parts().is_exist(id));
-                if let PassiveAbility::Regenerate(regenerate) = ability {
+                if let PassiveAbility::Regenerate = ability {
                     if state.parts().strength.get(id).strength
                         >= state.parts().strength.get(id).base_strength
                     {
@@ -330,7 +329,7 @@ fn try_execute_passive_abilities_on_begin_turn(state: &mut State, cb: Cb) {
                     let pos = state.parts().pos.get(id).0;
                     let active_event = event::UsePassiveAbility { pos, id, ability }.into();
                     let mut target_effects = Vec::new();
-                    let strength = regenerate.0;
+                    let strength = Strength(1);
                     target_effects.push(effect::Heal { strength }.into());
                     let instant_effects = vec![(id, target_effects)];
                     let event = Event {
@@ -394,7 +393,7 @@ fn try_execute_passive_abilities_on_attack(
                 PassiveAbility::Burn
                 | PassiveAbility::SpikeTrap
                 | PassiveAbility::Poison
-                | PassiveAbility::Regenerate(_)
+                | PassiveAbility::Regenerate
                 | PassiveAbility::SpawnPoisonCloudOnDeath => (),
             }
         }
@@ -448,7 +447,8 @@ fn execute_event_end_turn(state: &mut State, cb: Cb) {
         player_id: player_id_old,
     }
     .into();
-    let actor_ids = state::players_agent_ids(state, player_id_old);
+    let mut actor_ids = state::players_agent_ids(state, player_id_old);
+    actor_ids.sort();
     let event = Event {
         active_event,
         actor_ids,
@@ -465,7 +465,8 @@ fn execute_event_begin_turn(state: &mut State, cb: Cb) {
         player_id: player_id_new,
     }
     .into();
-    let actor_ids = state::players_agent_ids(state, player_id_new);
+    let mut actor_ids = state::players_agent_ids(state, player_id_new);
+    actor_ids.sort();
     let event = Event {
         active_event,
         actor_ids,
@@ -680,12 +681,11 @@ impl ExecuteContext {
 fn execute_use_ability_knockback(
     state: &mut State,
     command: &command::UseAbility,
-    ability: ability::Knockback,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let id = state::blocker_id_at(state, command.pos);
     let from = command.pos;
-    let strength = ability.strength;
+    let strength = PushStrength(Weight::Normal);
     let actor_pos = state.parts().pos.get(command.id).0;
     let dir = Dir::get_dir_from_to(actor_pos, command.pos);
     let blocker_weight = state.parts().blocker.get(id).weight;
@@ -749,6 +749,12 @@ fn execute_use_ability_jump(_: &mut State, command: &command::UseAbility) -> Exe
     context
 }
 
+fn execute_use_ability_long_jump(_: &mut State, command: &command::UseAbility) -> ExecuteContext {
+    let mut context = ExecuteContext::default();
+    context.moved_actor_ids.push(command.id);
+    context
+}
+
 fn execute_use_ability_dash(_: &mut State, command: &command::UseAbility) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     context.moved_actor_ids.push(command.id);
@@ -762,14 +768,11 @@ fn execute_use_ability_rage(_: &mut State, _: &command::UseAbility) -> ExecuteCo
 fn execute_use_ability_heal(
     state: &mut State,
     command: &command::UseAbility,
-    ability: ability::Heal,
+    strength: Strength,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let id = state::blocker_id_at(state, command.pos);
-    let effect = effect::Heal {
-        strength: ability.0,
-    }
-    .into();
+    let effect = effect::Heal { strength }.into();
     context.instant_effects.push((id, vec![effect]));
     context
 }
@@ -1141,23 +1144,25 @@ fn execute_use_ability_bloodlust(
 
 fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility) {
     let mut context = match command.ability {
-        Ability::Knockback(a) => execute_use_ability_knockback(state, command, a),
+        Ability::Knockback => execute_use_ability_knockback(state, command),
         Ability::Club => execute_use_ability_club(state, command),
-        Ability::Jump(_) => execute_use_ability_jump(state, command),
+        Ability::Jump => execute_use_ability_jump(state, command),
+        Ability::LongJump => execute_use_ability_long_jump(state, command),
         Ability::Dash => execute_use_ability_dash(state, command),
-        Ability::Rage(_) => execute_use_ability_rage(state, command),
-        Ability::Heal(a) => execute_use_ability_heal(state, command, a),
+        Ability::Rage => execute_use_ability_rage(state, command),
+        Ability::Heal => execute_use_ability_heal(state, command, Strength(2)),
+        Ability::GreatHeal => execute_use_ability_heal(state, command, Strength(3)),
         Ability::Vanish => execute_use_ability_vanish(state, command),
         Ability::ExplodeFire => execute_use_ability_explode_fire(state, command),
         Ability::ExplodePoison => execute_use_ability_explode_poison(state, command),
         Ability::ExplodePush => execute_use_ability_explode_push(state, command),
         Ability::ExplodeDamage => execute_use_ability_explode_damage(state, command),
         Ability::Poison => execute_use_ability_poison(state, command),
-        Ability::Bomb(_) => execute_use_ability_bomb_damage(state, command),
-        Ability::BombPush(_) => execute_use_ability_bomb_push(state, command),
-        Ability::BombFire(_) => execute_use_ability_bomb_fire(state, command),
-        Ability::BombPoison(_) => execute_use_ability_bomb_poison(state, command),
-        Ability::BombDemonic(_) => execute_use_ability_bomb_demonic(state, command),
+        Ability::Bomb => execute_use_ability_bomb_damage(state, command),
+        Ability::BombPush => execute_use_ability_bomb_push(state, command),
+        Ability::BombFire => execute_use_ability_bomb_fire(state, command),
+        Ability::BombPoison => execute_use_ability_bomb_poison(state, command),
+        Ability::BombDemonic => execute_use_ability_bomb_demonic(state, command),
         Ability::Summon => execute_use_ability_summon(state, command),
         Ability::Bloodlust => execute_use_ability_bloodlust(state, command),
     };

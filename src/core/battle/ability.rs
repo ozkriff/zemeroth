@@ -1,66 +1,32 @@
 use serde::{Deserialize, Serialize};
 
-use crate::core::{
-    battle::{Attacks, PushStrength, Strength, Weight},
-    map::Distance,
-};
+use crate::core::battle::Weight;
 
 /// Active ability.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::From)]
 pub enum Ability {
-    Knockback(Knockback),
+    Knockback,
     Club,
-    Jump(Jump),
+    Jump,
+    LongJump,
     Poison,
     ExplodePush,
     ExplodeDamage,
     ExplodeFire,
     ExplodePoison,
-    Bomb(Bomb),
-    BombPush(BombPush),
-    BombFire(BombFire),
-    BombPoison(BombPoison),
-    BombDemonic(BombDemonic),
+    Bomb,
+    BombPush,
+    BombFire,
+    BombPoison,
+    BombDemonic,
     Summon,
     Vanish,
     Dash,
-    Rage(Rage),
-    Heal(Heal),
+    Rage,
+    Heal,
+    GreatHeal,
     Bloodlust,
 }
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Knockback {
-    #[serde(default)]
-    pub strength: PushStrength,
-}
-
-// TODO: use named fields?
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Jump(pub Distance);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Rage(pub Attacks);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Heal(pub Strength);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Bomb(pub Distance);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct BombDemonic(pub Distance);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct BombPush {
-    pub throw_distance: Distance,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct BombPoison(pub Distance);
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct BombFire(pub Distance);
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Status {
@@ -79,90 +45,129 @@ impl Status {
     }
 }
 
-fn default_status() -> Status {
-    Status::Ready
-}
-
+#[serde(from = "Ability")]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RechargeableAbility {
     pub ability: Ability,
-
-    #[serde(default = "default_status")]
     pub status: Status,
+}
 
-    pub base_cooldown: i32, // TODO: i32 -> Rounds
+impl From<Ability> for RechargeableAbility {
+    fn from(ability: Ability) -> Self {
+        RechargeableAbility {
+            ability,
+            status: Status::Ready,
+        }
+    }
 }
 
 impl Ability {
     pub fn title(&self) -> String {
         match self {
-            Ability::Knockback(a) => format!("Knockback ({})", a.strength.0),
+            Ability::Knockback => "Knockback".into(),
             Ability::Club => "Club".into(),
-            Ability::Jump(a) => format!("Jump ({})", (a.0).0),
+            Ability::Jump => "Jump".into(),
+            Ability::LongJump => "Long Jump".into(),
             Ability::Poison => "Poison".into(),
             Ability::ExplodePush => "Explode Push".into(),
             Ability::ExplodeDamage => "Explode Damage".into(),
             Ability::ExplodeFire => "Explode Fire".into(),
             Ability::ExplodePoison => "Explode Poison".into(),
-            Ability::Bomb(a) => format!("Bomb ({})", (a.0).0),
-            Ability::BombPush(a) => format!("Bomb Push ({})", a.throw_distance.0),
-            Ability::BombFire(a) => format!("Fire Bomb ({})", (a.0).0),
-            Ability::BombPoison(a) => format!("Poison Bomb ({})", (a.0).0),
-            Ability::BombDemonic(a) => format!("Demonic Bomb ({})", (a.0).0),
+            Ability::Bomb => "Bomb".into(),
+            Ability::BombPush => "Bomb Push".into(),
+            Ability::BombFire => "Fire Bomb".into(),
+            Ability::BombPoison => "Poison Bomb".into(),
+            Ability::BombDemonic => "Demonic Bomb".into(),
             Ability::Vanish => "Vanish".into(),
             Ability::Summon => "Summon".into(),
             Ability::Dash => "Dash".into(),
-            Ability::Rage(a) => format!("Rage ({})", (a.0).0),
-            Ability::Heal(a) => format!("Heal ({})", (a.0).0),
+            Ability::Rage => "Rage".into(),
+            Ability::Heal => "Heal".into(),
+            Ability::GreatHeal => "Great Heal".into(),
             Ability::Bloodlust => "Bloodlust".into(),
+        }
+    }
+
+    // TODO: i32 -> Rounds
+    pub fn base_cooldown(&self) -> i32 {
+        match self {
+            Ability::Knockback => 1,
+            Ability::Club => 2,
+            Ability::Jump => 2,
+            Ability::LongJump => 3,
+            Ability::Poison => 2,
+            Ability::ExplodePush => 2,
+            Ability::ExplodeDamage => 2,
+            Ability::ExplodeFire => 2,
+            Ability::ExplodePoison => 2,
+            Ability::Bomb => 2,
+            Ability::BombPush => 2,
+            Ability::BombFire => 2,
+            Ability::BombPoison => 2,
+            Ability::BombDemonic => 2,
+            Ability::Vanish => 2,
+            Ability::Summon => 3,
+            Ability::Dash => 1,
+            Ability::Rage => 3,
+            Ability::Heal => 3,
+            Ability::GreatHeal => 2,
+            Ability::Bloodlust => 3,
         }
     }
 
     pub fn description(&self) -> Vec<String> {
         match *self {
-            Ability::Knockback(a) => vec![
+            Ability::Knockback => vec![
                 "Push an adjusted object one tile away.".into(),
-                format!("Can move objects with a weight up to {}.", a.strength.0),
+                "Can move objects with a weight up to Normal.".into(),
             ],
             Ability::Club => vec!["Stun an adjusted agent for one turn.".into()],
-            Ability::Jump(a) => vec![
-                format!("Jump for up to {} tiles.", (a.0).0),
+            Ability::Jump => vec![
+                "Jump for up to 2 tiles.".into(),
                 "Note: Triggers reaction attacks on landing.".into(),
             ],
-            Ability::Bomb(a) => vec![
+            Ability::LongJump => vec![
+                "Jump for up to 3 tiles.".into(),
+                "Note: Triggers reaction attacks on landing.".into(),
+            ],
+            Ability::Bomb => vec![
                 "Throw a bomb that explodes on the next turn.".into(),
                 "Damages all agents on the neighbour tiles.".into(),
-                format!("Can be thrown for up to {} tiles.", (a.0).0),
+                "Can be thrown for up to 3 tiles.".into(),
             ],
-            Ability::BombPush(a) => vec![
+            Ability::BombPush => vec![
                 "Throw a bomb that explodes *instantly*.".into(),
                 "Pushes all agents on the neighbour tiles.".into(),
-                format!("Can be thrown for up to {} tiles.", a.throw_distance.0),
+                "Can be thrown for up to 3 tiles.".into(),
                 format!("Can move objects with a weight up to {}.", Weight::Normal),
             ],
-            Ability::BombFire(a) => vec![
+            Ability::BombFire => vec![
                 "Throw a bomb that explodes on the next turn.".into(),
                 "Creates 7 fires.".into(),
-                format!("Can be thrown for up to {} tiles.", (a.0).0),
+                "Can be thrown for up to 3 tiles.".into(),
             ],
-            Ability::BombPoison(a) => vec![
+            Ability::BombPoison => vec![
                 "Throw a bomb that explodes on the next turn.".into(),
                 "Creates 7 poison clouds.".into(),
-                format!("Can be thrown for up to {} tiles.", (a.0).0),
+                "Can be thrown for up to 3 tiles.".into(),
             ],
-            Ability::BombDemonic(a) => vec![
+            Ability::BombDemonic => vec![
                 "Throw a demonic bomb".into(),
                 "that explodes on the next turn.".into(),
                 "Damages all agents on the neighbour tiles.".into(),
-                format!("Can be thrown for up to {} tiles.", (a.0).0),
+                "Can be thrown for up to 3 tiles.".into(),
             ],
             Ability::Dash => vec![
                 "Move one tile".into(),
                 "without triggering any reaction attacks.".into(),
             ],
-            Ability::Rage(a) => vec![format!("Instantly receive {} additional attacks.", (a.0).0)],
-            Ability::Heal(a) => vec![
-                format!("Heal {} strength points.", (a.0).0),
+            Ability::Rage => vec!["Instantly receive 3 additional attacks.".into()],
+            Ability::Heal => vec![
+                "Heal 2 strength points.".into(),
+                "Also, removes 'Poison' and 'Stun' lasting effects.".into(),
+            ],
+            Ability::GreatHeal => vec![
+                "Heal 3 strength points.".into(),
                 "Also, removes 'Poison' and 'Stun' lasting effects.".into(),
             ],
             Ability::Summon => vec![
@@ -193,11 +198,8 @@ pub enum PassiveAbility {
     Poison,
     SpikeTrap,
     PoisonAttack,
-    Regenerate(Regenerate),
+    Regenerate,
 }
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Regenerate(pub Strength);
 
 impl PassiveAbility {
     pub fn title(self) -> String {
@@ -208,7 +210,7 @@ impl PassiveAbility {
             PassiveAbility::Poison => "Poison".into(),
             PassiveAbility::SpikeTrap => "Spike Trap".into(),
             PassiveAbility::PoisonAttack => "Poison Attack".into(),
-            PassiveAbility::Regenerate(a) => format!("Regenerate ({})", (a.0).0),
+            PassiveAbility::Regenerate => "Regenerate".into(),
         }
     }
 
@@ -232,10 +234,7 @@ impl PassiveAbility {
                 vec!["Damages agents that enter into or begin their turn in the same tile.".into()]
             }
             PassiveAbility::PoisonAttack => vec!["Regular attack poisons the target.".into()],
-            PassiveAbility::Regenerate(a) => vec![format!(
-                "Regenerates {} strength points every turn.",
-                (a.0).0
-            )],
+            PassiveAbility::Regenerate => vec!["Regenerates 1 strength points every turn.".into()],
         }
     }
 }

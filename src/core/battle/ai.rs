@@ -2,7 +2,7 @@ use log::info;
 
 use crate::core::{
     battle::{
-        ability::{self, Ability},
+        ability::Ability,
         check,
         command::{self, Command},
         effect,
@@ -13,21 +13,10 @@ use crate::core::{
     utils::shuffle_vec,
 };
 
-fn does_agent_have_ability_summon(state: &State, id: Id) -> bool {
+fn does_agent_have_ability(state: &State, id: Id, ability: &Ability) -> bool {
     if let Some(abilities) = state.parts().abilities.get_opt(id) {
-        for ability in &abilities.0 {
-            if let Ability::Summon = ability.ability {
-                return true;
-            }
-        }
-    }
-    false
-}
-
-fn does_agent_have_ability_bomb(state: &State, id: Id) -> bool {
-    if let Some(abilities) = state.parts().abilities.get_opt(id) {
-        for ability in &abilities.0 {
-            if let Ability::BombDemonic(_) = ability.ability {
+        for current_ability in &abilities.0 {
+            if ability == &current_ability.ability {
                 return true;
             }
         }
@@ -170,7 +159,7 @@ impl Ai {
 
     fn try_throw_bomb(&self, state: &State, agent_id: Id) -> Option<Command> {
         // TODO: find ability in the parts and use it here:
-        let ability: Ability = ability::BombDemonic(Distance(3)).into();
+        let ability: Ability = Ability::BombDemonic;
         for &target_id in &shuffle_vec(state::enemy_agent_ids(state, self.id)) {
             let target_pos = state.parts().pos.get(target_id).0;
             for dir in shuffle_vec(map::dirs().collect()) {
@@ -320,13 +309,13 @@ impl Ai {
     }
 
     fn try_to_move(&mut self, state: &State, agent_id: Id) -> Option<Command> {
-        let path_result = if does_agent_have_ability_summon(state, agent_id) {
+        let path_result = if does_agent_have_ability(state, agent_id, &Ability::Summon) {
             let range = DistanceRange {
                 min: Distance(2),
                 max: Distance(4),
             };
             self.try_to_keep_distance(state, agent_id, range)
-        } else if does_agent_have_ability_bomb(state, agent_id) {
+        } else if does_agent_have_ability(state, agent_id, &Ability::BombDemonic) {
             let range = DistanceRange {
                 min: Distance(1),
                 max: Distance(3),

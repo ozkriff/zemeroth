@@ -196,7 +196,7 @@ fn build_panel_agent_info(
             if !abilities.0.is_empty() {
                 add(label_s(context, "~ passive abilities ~")?);
                 for &ability in &abilities.0 {
-                    let text = format!("'{}'", ability.title());
+                    let text = ability.title();
                     let message = Message::PassiveAbilityInfo(ability);
                     add(line_with_info_button(context, font, gui, &text, message)?);
                     add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
@@ -266,16 +266,18 @@ fn build_panel_agent_abilities(
             // TODO: load all the images only once. Store them in some struct and only clone them here.
             // TODO: Move into view::Images!
             Ability::Club => "/img/icon_ability_club.png",
-            Ability::Knockback(_) => "/img/icon_ability_knockback.png",
-            Ability::Jump(_) => "/img/icon_ability_jump.png",
+            Ability::Knockback => "/img/icon_ability_knockback.png",
+            Ability::Jump => "/img/icon_ability_jump.png",
+            Ability::LongJump => "/img/icon_ability_long_jump.png",
             Ability::Dash => "/img/icon_ability_dash.png",
-            Ability::Rage(_) => "/img/icon_ability_rage.png",
-            Ability::Heal(_) => "/img/icon_ability_heal.png",
-            Ability::BombPush(_) => "/img/icon_ability_bomb_push.png",
-            Ability::Bomb(_) => "/img/icon_ability_bomb.png",
-            Ability::BombFire(_) => "/img/icon_ability_bomb_fire.png",
-            Ability::BombPoison(_) => "/img/icon_ability_bomb_poison.png",
-            Ability::BombDemonic(_) => "/img/icon_ability_bomb_demonic.png",
+            Ability::Rage => "/img/icon_ability_rage.png",
+            Ability::Heal => "/img/icon_ability_heal.png",
+            Ability::GreatHeal => "/img/icon_ability_great_heal.png",
+            Ability::BombPush => "/img/icon_ability_bomb_push.png",
+            Ability::Bomb => "/img/icon_ability_bomb.png",
+            Ability::BombFire => "/img/icon_ability_bomb_fire.png",
+            Ability::BombPoison => "/img/icon_ability_bomb_poison.png",
+            Ability::BombDemonic => "/img/icon_ability_bomb_demonic.png",
             Ability::Summon => "/img/icon_ability_summon.png",
             Ability::Bloodlust => "/img/icon_ability_bloodlust.png",
             ref ability => panic!("No icon for {:?}", ability),
@@ -342,7 +344,8 @@ fn build_panel_ability_description(
     let abilities = &state.parts().abilities.get(id).0;
     let r_ability = abilities.iter().find(|r| &r.ability == ability).unwrap();
     let is_enemy_agent = agent_player_id != state.player_id();
-    let text_cooldown = text(&format!("Cooldown: {}", r_ability.base_cooldown));
+    let cooldown = r_ability.ability.base_cooldown();
+    let text_cooldown = text(&format!("Cooldown: {}t", cooldown));
     layout.add(Box::new(ui::Label::new(context, text_cooldown, h)?));
     if !state::can_agent_use_ability(state, id, ability) {
         layout.add(Box::new(ui::Spacer::new_vertical(h / 2.0)));

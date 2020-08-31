@@ -18,9 +18,7 @@
             weapon_type: Slash,
             move_points: 3,
         )),
-        Abilities([
-            (ability: Jump(2), base_cooldown: 2),
-        ]),
+        Abilities([Jump]),
     ],
     "elite_swordsman": [
         Blocker(()),
@@ -39,11 +37,7 @@
             weapon_type: Slash,
             move_points: 3,
         )),
-        Abilities([
-            (ability: Jump(2), base_cooldown: 2),
-            (ability: Rage(2), base_cooldown: 3),
-            (ability: Dash, base_cooldown: 1),
-        ]),
+        Abilities([Jump, Rage, Dash]),
     ],
     "heavy_swordsman": [
         Blocker((
@@ -82,10 +76,7 @@
             dodge: 1,
             move_points: 3,
         )),
-        Abilities([
-            (ability: BombPush((throw_distance: 3)), base_cooldown: 2),
-            (ability: Heal(2), base_cooldown: 3),
-        ]),
+        Abilities([BombPush, Heal]),
     ],
     "healer": [
         Blocker(()),
@@ -104,10 +95,7 @@
             dodge: 1,
             move_points: 3,
         )),
-        Abilities([
-            (ability: BombPoison(3), base_cooldown: 2),
-            (ability: Heal(3), base_cooldown: 2),
-        ]),
+        Abilities([BombPush, BombPoison, GreatHeal]),
     ],
     "firer": [
         Blocker(()),
@@ -126,10 +114,7 @@
             dodge: 1,
             move_points: 3,
         )),
-        Abilities([
-            (ability: BombFire(3), base_cooldown: 2),
-            (ability: Bomb(3), base_cooldown: 1),
-        ]),
+        Abilities([BombPush, BombFire, Bomb]),
     ],
     "hammerman": [
         Blocker(()),
@@ -148,10 +133,7 @@
             weapon_type: Smash,
             move_points: 3,
         )),
-        Abilities([
-            (ability: Knockback((strength: Normal)), base_cooldown: 1),
-            (ability: Club, base_cooldown: 2),
-        ]),
+        Abilities([Knockback, Club]),
     ],
     "heavy_hammerman": [
         Blocker((
@@ -172,10 +154,7 @@
             weapon_type: Smash,
             move_points: 2,
         )),
-        Abilities([
-            (ability: Knockback((strength: Normal)), base_cooldown: 1),
-            (ability: Club, base_cooldown: 2),
-        ]),
+        Abilities([Knockback, Club]),
         PassiveAbilities([
             HeavyImpact,
         ]),
@@ -196,9 +175,7 @@
             weapon_type: Pierce,
             move_points: 3,
         )),
-        Abilities([
-            (ability: Jump(3), base_cooldown: 3),
-        ]),
+        Abilities([LongJump]),
     ],
     "elite_spearman": [
         Blocker(()),
@@ -217,9 +194,7 @@
             dodge: 1,
             move_points: 3,
         )),
-        Abilities([
-            (ability: Jump(3), base_cooldown: 3),
-        ]),
+        Abilities([LongJump]),
     ],
     "heavy_spearman": [
         Blocker((
@@ -293,9 +268,7 @@
             weapon_type: Claw,
             move_points: 3,
         )),
-        Abilities([
-            (ability: BombDemonic(3), base_cooldown: 2),
-        ]),
+        Abilities([BombDemonic]),
     ],
     "imp_summoner": [
         Blocker(()),
@@ -319,13 +292,10 @@
         Summoner((
             count: 2,
         )),
-        Abilities([
-            (ability: Summon, base_cooldown: 3),
-            (ability: Bloodlust, base_cooldown: 3),
-        ]),
+        Abilities([Summon, Bloodlust]),
         PassiveAbilities([
             HeavyImpact,
-            Regenerate(1),
+            Regenerate,
         ]),
     ],
     "boulder": [

@@ -44,6 +44,8 @@ pub enum Error {
     BattleEnded,
 }
 
+const BOMB_THROW_DISTANCE_MAX: Distance = Distance(3);
+
 fn check_command_move_to(state: &State, command: &command::MoveTo) -> Result<(), Error> {
     let agent = try_get_actor(state, command.id)?;
     let agent_player_id = state.parts().belongs_to.get(command.id).0;
@@ -99,20 +101,21 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
     check_agent_can_attack(state, command.id)?;
     check_agent_ability_ready(state, command.id, &command.ability)?;
     match command.ability {
-        Ability::Knockback(a) => check_ability_knockback(state, command.id, command.pos, a),
+        Ability::Knockback => check_ability_knockback(state, command.id, command.pos),
         Ability::Club => check_ability_club(state, command.id, command.pos),
-        Ability::Jump(a) => check_ability_jump(state, command.id, command.pos, a),
+        Ability::Jump => check_ability_jump(state, command.id, command.pos, Distance(2)),
+        Ability::LongJump => check_ability_jump(state, command.id, command.pos, Distance(3)),
         Ability::Poison => check_ability_poison(state, command.id, command.pos),
-        Ability::Bomb(a) => check_ability_bomb(state, command.id, command.pos, a),
-        Ability::BombPush(a) => check_ability_bomb_push(state, command.id, command.pos, a),
-        Ability::BombFire(a) => check_ability_bomb_fire(state, command.id, command.pos, a),
-        Ability::BombPoison(a) => check_ability_bomb_poison(state, command.id, command.pos, a),
-        Ability::BombDemonic(a) => check_ability_bomb_demonic(state, command.id, command.pos, a),
+        Ability::Bomb
+        | Ability::BombPush
+        | Ability::BombFire
+        | Ability::BombPoison
+        | Ability::BombDemonic => check_ability_bomb_throw(state, command.id, command.pos),
         Ability::Summon => check_ability_summon(state, command.id, command.pos),
         Ability::Vanish => check_ability_vanish(state, command.id, command.pos),
         Ability::Dash => check_ability_dash(state, command.id, command.pos),
-        Ability::Rage(a) => check_ability_rage(state, command.id, command.pos, a),
-        Ability::Heal(a) => check_ability_heal(state, command.id, command.pos, a),
+        Ability::Rage => check_ability_rage(state, command.id, command.pos),
+        Ability::Heal | Ability::GreatHeal => check_ability_heal(state, command.id, command.pos),
         Ability::Bloodlust => check_ability_bloodlust(state, command.id, command.pos),
         Ability::ExplodePush
         | Ability::ExplodeDamage
@@ -121,12 +124,7 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
     }
 }
 
-fn check_ability_knockback(
-    state: &State,
-    id: Id,
-    pos: PosHex,
-    _: ability::Knockback,
-) -> Result<(), Error> {
+fn check_ability_knockback(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     let selected_pos = state.parts().pos.get(id).0;
     check_min_distance(selected_pos, pos, Distance(1))?;
     check_max_distance(selected_pos, pos, Distance(1))?;
@@ -140,12 +138,12 @@ fn check_ability_jump(
     state: &State,
     id: Id,
     pos: PosHex,
-    ability: ability::Jump,
+    max_distance: Distance,
 ) -> Result<(), Error> {
     let parts = state.parts();
     let agent_pos = parts.pos.get(id).0;
     check_min_distance(agent_pos, pos, Distance(2))?;
-    check_max_distance(agent_pos, pos, ability.0)?;
+    check_max_distance(agent_pos, pos, max_distance)?;
     check_not_blocked_and_is_inboard(state, pos)?;
     Ok(())
 }
@@ -174,62 +172,9 @@ fn check_ability_explode(state: &State, id: Id, pos: PosHex) -> Result<(), Error
     check_object_pos(state, id, pos)
 }
 
-fn check_ability_bomb(
-    state: &State,
-    id: Id,
-    pos: PosHex,
-    ability: ability::Bomb,
-) -> Result<(), Error> {
+fn check_ability_bomb_throw(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
-    check_max_distance(agent_pos, pos, ability.0)?;
-    check_not_blocked_and_is_inboard(state, pos)?;
-    Ok(())
-}
-
-fn check_ability_bomb_push(
-    state: &State,
-    id: Id,
-    pos: PosHex,
-    ability: ability::BombPush,
-) -> Result<(), Error> {
-    let agent_pos = state.parts().pos.get(id).0;
-    check_max_distance(agent_pos, pos, ability.throw_distance)?;
-    check_not_blocked_and_is_inboard(state, pos)?;
-    Ok(())
-}
-
-fn check_ability_bomb_fire(
-    state: &State,
-    id: Id,
-    pos: PosHex,
-    ability: ability::BombFire,
-) -> Result<(), Error> {
-    let agent_pos = state.parts().pos.get(id).0;
-    check_max_distance(agent_pos, pos, ability.0)?;
-    check_not_blocked_and_is_inboard(state, pos)?;
-    Ok(())
-}
-
-fn check_ability_bomb_poison(
-    state: &State,
-    id: Id,
-    pos: PosHex,
-    ability: ability::BombPoison,
-) -> Result<(), Error> {
-    let agent_pos = state.parts().pos.get(id).0;
-    check_max_distance(agent_pos, pos, ability.0)?;
-    check_not_blocked_and_is_inboard(state, pos)?;
-    Ok(())
-}
-
-fn check_ability_bomb_demonic(
-    state: &State,
-    id: Id,
-    pos: PosHex,
-    ability: ability::BombDemonic,
-) -> Result<(), Error> {
-    let agent_pos = state.parts().pos.get(id).0;
-    check_max_distance(agent_pos, pos, ability.0)?;
+    check_max_distance(agent_pos, pos, BOMB_THROW_DISTANCE_MAX)?;
     check_not_blocked_and_is_inboard(state, pos)?;
     Ok(())
 }
@@ -259,11 +204,11 @@ fn check_ability_dash(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     Ok(())
 }
 
-fn check_ability_rage(state: &State, id: Id, pos: PosHex, _: ability::Rage) -> Result<(), Error> {
+fn check_ability_rage(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     check_object_pos(state, id, pos)
 }
 
-fn check_ability_heal(state: &State, id: Id, pos: PosHex, _: ability::Heal) -> Result<(), Error> {
+fn check_ability_heal(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, Distance(1))?;
     let target_id = match state::agent_id_at_opt(state, pos) {

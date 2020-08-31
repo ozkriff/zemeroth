@@ -890,15 +890,17 @@ fn visualize_event_use_ability(
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let action_main = match event.ability {
-        Ability::Jump(_) => visualize_event_use_ability_jump(state, view, context, event)?,
+        Ability::Jump | Ability::LongJump => {
+            visualize_event_use_ability_jump(state, view, context, event)?
+        }
         Ability::Dash => visualize_event_use_ability_dash(state, view, context, event)?,
         Ability::Summon => visualize_event_use_ability_summon(state, view, context, event)?,
         Ability::Bloodlust => visualize_event_use_ability_bloodlust(state, view, context, event)?,
-        Ability::Heal(_) => visualize_event_use_ability_heal(state, view, context, event)?,
-        Ability::Rage(_) => visualize_event_use_ability_rage(state, view, context, event)?,
-        Ability::Knockback(_) => {
-            visualize_event_use_ability_knockback(state, view, context, event)?
+        Ability::Heal | Ability::GreatHeal => {
+            visualize_event_use_ability_heal(state, view, context, event)?
         }
+        Ability::Rage => visualize_event_use_ability_rage(state, view, context, event)?,
+        Ability::Knockback => visualize_event_use_ability_knockback(state, view, context, event)?,
         Ability::Club => visualize_event_use_ability_club(state, view, context, event)?,
         Ability::ExplodePush
         | Ability::ExplodeDamage
@@ -906,11 +908,11 @@ fn visualize_event_use_ability(
         | Ability::ExplodePoison => {
             visualize_event_use_ability_explode(state, view, context, event)?
         }
-        Ability::BombPush(_)
-        | Ability::BombDemonic(_)
-        | Ability::BombFire(_)
-        | Ability::BombPoison(_)
-        | Ability::Bomb(_) => visualize_event_use_ability_throw_bomb(state, view, context, event)?,
+        Ability::BombPush
+        | Ability::BombDemonic
+        | Ability::BombFire
+        | Ability::BombPoison
+        | Ability::Bomb => visualize_event_use_ability_throw_bomb(state, view, context, event)?,
         _ => action::Empty::new().boxed(),
     };
     let pos = state.parts().pos.get(event.id).0;

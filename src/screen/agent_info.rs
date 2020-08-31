@@ -162,16 +162,16 @@ fn info_panel(
         if let Some(abilities) = info.abilities {
             if !abilities.0.is_empty() {
                 add(label_s(context, "~ abilities ~")?);
-                for ability in &abilities.0 {
-                    let s = ability.ability.title();
-                    let cooldown = ability.base_cooldown;
-                    let text = format!("'{}' (cooldown: {})", s, cooldown);
+                for r_ability in &abilities.0 {
+                    let s = r_ability.ability.title();
+                    let cooldown = r_ability.ability.base_cooldown();
+                    let text = format!("{} (cooldown: {}t)", s, cooldown);
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(context, &text)?);
                     line_layout.add(spacer_s());
                     // TODO: Don't reload images every time, preload them (like object frames)
                     let icon = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
-                    let message = Message::AbilityInfo(ability.ability.clone());
+                    let message = Message::AbilityInfo(r_ability.ability.clone());
                     let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));
                     add(Box::new(line_layout));
@@ -183,9 +183,8 @@ fn info_panel(
             if !abilities.0.is_empty() {
                 add(label_s(context, "~ passive abilities ~")?);
                 for &ability in &abilities.0 {
-                    let text = format!("'{}'", ability.title());
                     let mut line_layout = ui::HLayout::new().stretchable(true);
-                    line_layout.add(label(context, &text)?);
+                    line_layout.add(label(context, &ability.title())?);
                     line_layout.add(spacer_s());
                     let icon = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
                     let message = Message::PassiveAbilityInfo(ability);
@@ -294,7 +293,9 @@ impl Screen for AgentInfo {
         match message {
             Some(Message::Back) => Ok(StackCommand::Pop),
             Some(Message::AbilityInfo(info)) => {
-                let screen = screen::GeneralInfo::new(context, &info.title(), &info.description())?;
+                let mut description = info.description();
+                description.push(format!("Cooldown: {}t", info.base_cooldown()));
+                let screen = screen::GeneralInfo::new(context, &info.title(), &description)?;
                 Ok(StackCommand::PushPopup(Box::new(screen)))
             }
             Some(Message::PassiveAbilityInfo(info)) => {
