@@ -345,7 +345,7 @@ fn build_panel_ability_description(
     let r_ability = abilities.iter().find(|r| &r.ability == ability).unwrap();
     let is_enemy_agent = agent_player_id != state.player_id();
     let cooldown = r_ability.ability.base_cooldown();
-    let text_cooldown = text(&format!("Cooldown: {}", cooldown));
+    let text_cooldown = text(&format!("Cooldown: {}t", cooldown));
     layout.add(Box::new(ui::Label::new(context, text_cooldown, h)?));
     if !state::can_agent_use_ability(state, id, ability) {
         layout.add(Box::new(ui::Spacer::new_vertical(h / 2.0)));
