@@ -196,7 +196,7 @@ fn build_panel_agent_info(
             if !abilities.0.is_empty() {
                 add(label_s(context, "~ passive abilities ~")?);
                 for &ability in &abilities.0 {
-                    let text = format!("'{}'", ability.title());
+                    let text = ability.title();
                     let message = Message::PassiveAbilityInfo(ability);
                     add(line_with_info_button(context, font, gui, &text, message)?);
                     add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
@@ -271,7 +271,8 @@ fn build_panel_agent_abilities(
             Ability::LongJump => "/img/icon_ability_long_jump.png",
             Ability::Dash => "/img/icon_ability_dash.png",
             Ability::Rage => "/img/icon_ability_rage.png",
-            Ability::Heal(_) => "/img/icon_ability_heal.png",
+            Ability::Heal => "/img/icon_ability_heal.png",
+            Ability::GreatHeal => "/img/icon_ability_great_heal.png",
             Ability::BombPush => "/img/icon_ability_bomb_push.png",
             Ability::Bomb => "/img/icon_ability_bomb.png",
             Ability::BombFire => "/img/icon_ability_bomb_fire.png",

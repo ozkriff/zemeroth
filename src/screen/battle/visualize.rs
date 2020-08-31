@@ -896,7 +896,9 @@ fn visualize_event_use_ability(
         Ability::Dash => visualize_event_use_ability_dash(state, view, context, event)?,
         Ability::Summon => visualize_event_use_ability_summon(state, view, context, event)?,
         Ability::Bloodlust => visualize_event_use_ability_bloodlust(state, view, context, event)?,
-        Ability::Heal(_) => visualize_event_use_ability_heal(state, view, context, event)?,
+        Ability::Heal | Ability::GreatHeal => {
+            visualize_event_use_ability_heal(state, view, context, event)?
+        }
         Ability::Rage => visualize_event_use_ability_rage(state, view, context, event)?,
         Ability::Knockback => visualize_event_use_ability_knockback(state, view, context, event)?,
         Ability::Club => visualize_event_use_ability_club(state, view, context, event)?,

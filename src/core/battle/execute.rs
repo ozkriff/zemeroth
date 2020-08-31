@@ -5,7 +5,7 @@ use log::{error, trace};
 use crate::core::{
     battle::{
         self,
-        ability::{self, Ability, PassiveAbility},
+        ability::{Ability, PassiveAbility},
         check::{check, Error},
         command::{self, Command},
         component::{self, ObjType},
@@ -766,14 +766,11 @@ fn execute_use_ability_rage(_: &mut State, _: &command::UseAbility) -> ExecuteCo
 fn execute_use_ability_heal(
     state: &mut State,
     command: &command::UseAbility,
-    ability: ability::Heal,
+    strength: Strength,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let id = state::blocker_id_at(state, command.pos);
-    let effect = effect::Heal {
-        strength: ability.0,
-    }
-    .into();
+    let effect = effect::Heal { strength }.into();
     context.instant_effects.push((id, vec![effect]));
     context
 }
@@ -1151,7 +1148,8 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
         Ability::LongJump => execute_use_ability_long_jump(state, command),
         Ability::Dash => execute_use_ability_dash(state, command),
         Ability::Rage => execute_use_ability_rage(state, command),
-        Ability::Heal(a) => execute_use_ability_heal(state, command, a),
+        Ability::Heal => execute_use_ability_heal(state, command, Strength(2)),
+        Ability::GreatHeal => execute_use_ability_heal(state, command, Strength(3)),
         Ability::Vanish => execute_use_ability_vanish(state, command),
         Ability::ExplodeFire => execute_use_ability_explode_fire(state, command),
         Ability::ExplodePoison => execute_use_ability_explode_poison(state, command),

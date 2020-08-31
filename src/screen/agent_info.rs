@@ -165,7 +165,7 @@ fn info_panel(
                 for ability in &abilities.0 {
                     let s = ability.ability.title();
                     let cooldown = ability.base_cooldown;
-                    let text = format!("'{}' (cooldown: {})", s, cooldown);
+                    let text = format!("{} (cooldown: {})", s, cooldown);
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(context, &text)?);
                     line_layout.add(spacer_s());
@@ -183,9 +183,8 @@ fn info_panel(
             if !abilities.0.is_empty() {
                 add(label_s(context, "~ passive abilities ~")?);
                 for &ability in &abilities.0 {
-                    let text = format!("'{}'", ability.title());
                     let mut line_layout = ui::HLayout::new().stretchable(true);
-                    line_layout.add(label(context, &text)?);
+                    line_layout.add(label(context, &ability.title())?);
                     line_layout.add(spacer_s());
                     let icon = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
                     let message = Message::PassiveAbilityInfo(ability);

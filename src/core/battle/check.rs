@@ -115,7 +115,7 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
         Ability::Vanish => check_ability_vanish(state, command.id, command.pos),
         Ability::Dash => check_ability_dash(state, command.id, command.pos),
         Ability::Rage => check_ability_rage(state, command.id, command.pos),
-        Ability::Heal(a) => check_ability_heal(state, command.id, command.pos, a),
+        Ability::Heal | Ability::GreatHeal => check_ability_heal(state, command.id, command.pos),
         Ability::Bloodlust => check_ability_bloodlust(state, command.id, command.pos),
         Ability::ExplodePush
         | Ability::ExplodeDamage
@@ -208,7 +208,7 @@ fn check_ability_rage(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     check_object_pos(state, id, pos)
 }
 
-fn check_ability_heal(state: &State, id: Id, pos: PosHex, _: ability::Heal) -> Result<(), Error> {
+fn check_ability_heal(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
     let agent_pos = state.parts().pos.get(id).0;
     check_max_distance(agent_pos, pos, Distance(1))?;
     let target_id = match state::agent_id_at_opt(state, pos) {

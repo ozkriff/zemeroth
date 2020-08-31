@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::core::battle::{Strength, Weight};
+use crate::core::battle::Weight;
 
 /// Active ability.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::From)]
@@ -23,12 +23,10 @@ pub enum Ability {
     Vanish,
     Dash,
     Rage,
-    Heal(Heal),
+    Heal,
+    GreatHeal,
     Bloodlust,
 }
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Heal(pub Strength);
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Status {
@@ -82,7 +80,8 @@ impl Ability {
             Ability::Summon => "Summon".into(),
             Ability::Dash => "Dash".into(),
             Ability::Rage => "Rage".into(),
-            Ability::Heal(a) => format!("Heal ({})", (a.0).0),
+            Ability::Heal => "Heal".into(),
+            Ability::GreatHeal => "Great Heal".into(),
             Ability::Bloodlust => "Bloodlust".into(),
         }
     }
@@ -134,8 +133,12 @@ impl Ability {
                 "without triggering any reaction attacks.".into(),
             ],
             Ability::Rage => vec!["Instantly receive 3 additional attacks.".into()],
-            Ability::Heal(a) => vec![
-                format!("Heal {} strength points.", (a.0).0),
+            Ability::Heal => vec![
+                "Heal 2 strength points.".into(),
+                "Also, removes 'Poison' and 'Stun' lasting effects.".into(),
+            ],
+            Ability::GreatHeal => vec![
+                "Heal 3 strength points.".into(),
                 "Also, removes 'Poison' and 'Stun' lasting effects.".into(),
             ],
             Ability::Summon => vec![
