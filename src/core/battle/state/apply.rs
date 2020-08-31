@@ -166,11 +166,12 @@ fn apply_event_use_ability(state: &mut State, event: &event::UseAbility) {
     let id = event.id;
     let parts = state.parts_mut();
     if let Some(abilities) = parts.abilities.get_opt_mut(id) {
-        for ability in &mut abilities.0 {
-            if ability.ability == event.ability {
-                assert_eq!(ability.status, ability::Status::Ready);
-                if ability.base_cooldown != 0 {
-                    ability.status = ability::Status::Cooldown(ability.base_cooldown);
+        for r_ability in &mut abilities.0 {
+            if r_ability.ability == event.ability {
+                let cooldown = r_ability.ability.base_cooldown();
+                assert_eq!(r_ability.status, ability::Status::Ready);
+                if cooldown != 0 {
+                    r_ability.status = ability::Status::Cooldown(cooldown);
                 }
             }
         }

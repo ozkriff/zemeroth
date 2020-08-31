@@ -447,7 +447,8 @@ fn execute_event_end_turn(state: &mut State, cb: Cb) {
         player_id: player_id_old,
     }
     .into();
-    let actor_ids = state::players_agent_ids(state, player_id_old);
+    let mut actor_ids = state::players_agent_ids(state, player_id_old);
+    actor_ids.sort();
     let event = Event {
         active_event,
         actor_ids,
@@ -464,7 +465,8 @@ fn execute_event_begin_turn(state: &mut State, cb: Cb) {
         player_id: player_id_new,
     }
     .into();
-    let actor_ids = state::players_agent_ids(state, player_id_new);
+    let mut actor_ids = state::players_agent_ids(state, player_id_new);
+    actor_ids.sort();
     let event = Event {
         active_event,
         actor_ids,

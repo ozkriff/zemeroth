@@ -6,7 +6,7 @@ use pretty_assertions::assert_eq;
 
 use crate::core::{
     battle::{
-        ability::{self, Ability, PassiveAbility, RechargeableAbility},
+        ability::{Ability, PassiveAbility},
         check,
         command::{self, Command},
         component::{self, Component, ObjType, PlannedAbility, Prototypes, WeaponType},
@@ -125,7 +125,7 @@ fn component_blocker(w: Weight) -> Component {
 }
 
 fn component_abilities(abilities: &[Ability]) -> Component {
-    let abilities = abilities.iter().cloned().map(rechargeable).collect();
+    let abilities = abilities.iter().cloned().map(Into::into).collect();
     component::Abilities(abilities).into()
 }
 
@@ -217,20 +217,6 @@ fn exec(state: &mut State, command: impl Into<Command>) -> Vec<Event> {
 fn exec_and_check(state: &mut State, command: impl Into<Command>, expected_events: &[Event]) {
     let events = exec(state, command);
     assert_eq!(events.as_slice(), expected_events);
-}
-
-fn rechargeable_with_base_cooldown(ability: Ability, base_cooldown: i32) -> RechargeableAbility {
-    let status = ability::Status::Ready;
-    RechargeableAbility {
-        ability,
-        status,
-        base_cooldown,
-    }
-}
-
-fn rechargeable(ability: Ability) -> RechargeableAbility {
-    let default_base_cooldown = 1;
-    rechargeable_with_base_cooldown(ability, default_base_cooldown)
 }
 
 #[test]
@@ -901,6 +887,7 @@ fn throw_two_fire_bombs() {
     ]);
     let scenario = scenario::default()
         .object(P0, "thrower", PosHex { q: 0, r: 0 })
+        .object(P0, "thrower", PosHex { q: -1, r: 0 })
         .object(P1, "dull", PosHex { q: 0, r: -3 });
     let mut state = debug_state(prototypes, scenario);
     exec_and_check(
@@ -919,7 +906,7 @@ fn throw_two_fire_bombs() {
             .into(),
             actor_ids: vec![Id(0)],
             instant_effects: vec![(
-                Id(2),
+                Id(3),
                 vec![
                     effect::Create {
                         pos: PosHex { q: 0, r: 0 },
@@ -940,7 +927,7 @@ fn throw_two_fire_bombs() {
             )],
             timed_effects: Vec::new(),
             scheduled_abilities: vec![(
-                Id(2),
+                Id(3),
                 vec![PlannedAbility {
                     rounds: 1,
                     phase: Phase(0),
@@ -952,7 +939,10 @@ fn throw_two_fire_bombs() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
+        &[
+            event_end_turn(P0, &[Id(0), Id(1)]),
+            event_begin_turn(P1, &[Id(2)]),
+        ],
     );
     let create_fire = |pos| -> Effect {
         effect::Create {
@@ -978,35 +968,35 @@ fn throw_two_fire_bombs() {
         &mut state,
         command::EndTurn,
         &[
-            event_end_turn(P1, &[Id(1)]),
-            event_begin_turn(P0, &[Id(0)]),
+            event_end_turn(P1, &[Id(2)]),
+            event_begin_turn(P0, &[Id(0), Id(1)]),
             Event {
                 active_event: event::UseAbility {
-                    id: Id(2),
+                    id: Id(3),
                     pos: PosHex { q: 0, r: 2 },
                     ability: Ability::ExplodeFire,
                 }
                 .into(),
-                actor_ids: vec![Id(2)],
+                actor_ids: vec![Id(3)],
                 instant_effects: vec![
-                    (Id(2), vec![Effect::Vanish]),
-                    (Id(3), vec![create_fire(PosHex { q: 0, r: 2 })]),
-                    (Id(4), vec![create_fire(PosHex { q: 1, r: 2 })]),
-                    (Id(5), vec![create_fire(PosHex { q: 1, r: 1 })]),
-                    (Id(6), vec![create_fire(PosHex { q: 0, r: 1 })]),
-                    (Id(7), vec![create_fire(PosHex { q: -1, r: 2 })]),
-                    (Id(8), vec![create_fire(PosHex { q: -1, r: 3 })]),
-                    (Id(9), vec![create_fire(PosHex { q: 0, r: 3 })]),
+                    (Id(3), vec![Effect::Vanish]),
+                    (Id(4), vec![create_fire(PosHex { q: 0, r: 2 })]),
+                    (Id(5), vec![create_fire(PosHex { q: 1, r: 2 })]),
+                    (Id(6), vec![create_fire(PosHex { q: 1, r: 1 })]),
+                    (Id(7), vec![create_fire(PosHex { q: 0, r: 1 })]),
+                    (Id(8), vec![create_fire(PosHex { q: -1, r: 2 })]),
+                    (Id(9), vec![create_fire(PosHex { q: -1, r: 3 })]),
+                    (Id(10), vec![create_fire(PosHex { q: 0, r: 3 })]),
                 ],
                 timed_effects: Vec::new(),
                 scheduled_abilities: vec![
-                    (Id(3), vec![planned_ability_vanish()]),
                     (Id(4), vec![planned_ability_vanish()]),
                     (Id(5), vec![planned_ability_vanish()]),
                     (Id(6), vec![planned_ability_vanish()]),
                     (Id(7), vec![planned_ability_vanish()]),
                     (Id(8), vec![planned_ability_vanish()]),
                     (Id(9), vec![planned_ability_vanish()]),
+                    (Id(10), vec![planned_ability_vanish()]),
                 ],
             },
         ],
@@ -1014,33 +1004,33 @@ fn throw_two_fire_bombs() {
     exec_and_check(
         &mut state,
         command::UseAbility {
-            id: Id(0),
+            id: Id(1),
             pos: PosHex { q: 1, r: 1 },
             ability: Ability::BombFire,
         },
         &[Event {
             active_event: event::UseAbility {
-                id: Id(0),
+                id: Id(1),
                 pos: PosHex { q: 1, r: 1 },
                 ability: Ability::BombFire,
             }
             .into(),
-            actor_ids: vec![Id(0)],
+            actor_ids: vec![Id(1)],
             instant_effects: vec![(
-                Id(10),
+                Id(11),
                 vec![
                     effect::Create {
-                        pos: PosHex { q: 0, r: 0 },
+                        pos: PosHex { q: -1, r: 0 },
                         prototype: "bomb_fire".into(),
                         components: vec![
-                            component::Pos(PosHex { q: 0, r: 0 }).into(),
+                            component::Pos(PosHex { q: -1, r: 0 }).into(),
                             component_meta("bomb_fire"),
                         ],
                         is_teleported: false,
                     }
                     .into(),
                     effect::Throw {
-                        from: PosHex { q: 0, r: 0 },
+                        from: PosHex { q: -1, r: 0 },
                         to: PosHex { q: 1, r: 1 },
                     }
                     .into(),
@@ -1048,7 +1038,7 @@ fn throw_two_fire_bombs() {
             )],
             timed_effects: Vec::new(),
             scheduled_abilities: vec![(
-                Id(10),
+                Id(11),
                 vec![PlannedAbility {
                     rounds: 1,
                     phase: Phase(0),
@@ -1060,37 +1050,40 @@ fn throw_two_fire_bombs() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
+        &[
+            event_end_turn(P0, &[Id(0), Id(1)]),
+            event_begin_turn(P1, &[Id(2)]),
+        ],
     );
     exec_and_check(
         &mut state,
         command::EndTurn,
         &[
-            event_end_turn(P1, &[Id(1)]),
-            event_begin_turn(P0, &[Id(0)]),
+            event_end_turn(P1, &[Id(2)]),
+            event_begin_turn(P0, &[Id(0), Id(1)]),
             Event {
                 active_event: event::UseAbility {
-                    id: Id(10),
+                    id: Id(11),
                     pos: PosHex { q: 1, r: 1 },
                     ability: Ability::ExplodeFire,
                 }
                 .into(),
-                actor_ids: vec![Id(10)],
+                actor_ids: vec![Id(11)],
                 instant_effects: vec![
-                    (Id(10), vec![Effect::Vanish]),
-                    (Id(11), vec![create_fire(PosHex { q: 2, r: 1 })]),
-                    (Id(12), vec![create_fire(PosHex { q: 2, r: 0 })]),
-                    (Id(13), vec![create_fire(PosHex { q: 1, r: 0 })]),
+                    (Id(11), vec![Effect::Vanish]),
+                    (Id(12), vec![create_fire(PosHex { q: 2, r: 1 })]),
+                    (Id(13), vec![create_fire(PosHex { q: 2, r: 0 })]),
+                    (Id(14), vec![create_fire(PosHex { q: 1, r: 0 })]),
                 ],
                 timed_effects: Vec::new(),
                 scheduled_abilities: vec![
-                    (Id(5), vec![planned_ability_vanish()]),
-                    (Id(11), vec![planned_ability_vanish()]),
+                    (Id(6), vec![planned_ability_vanish()]),
                     (Id(12), vec![planned_ability_vanish()]),
                     (Id(13), vec![planned_ability_vanish()]),
-                    (Id(6), vec![planned_ability_vanish()]),
-                    (Id(3), vec![planned_ability_vanish()]),
+                    (Id(14), vec![planned_ability_vanish()]),
+                    (Id(7), vec![planned_ability_vanish()]),
                     (Id(4), vec![planned_ability_vanish()]),
+                    (Id(5), vec![planned_ability_vanish()]),
                 ],
             },
         ],
@@ -1098,7 +1091,10 @@ fn throw_two_fire_bombs() {
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
+        &[
+            event_end_turn(P0, &[Id(0), Id(1)]),
+            event_begin_turn(P1, &[Id(2)]),
+        ],
     );
     let event_vanish = |id, pos| -> Event {
         Event {
@@ -1118,31 +1114,34 @@ fn throw_two_fire_bombs() {
         &mut state,
         command::EndTurn,
         &[
-            event_end_turn(P1, &[Id(1)]),
-            event_begin_turn(P0, &[Id(0)]),
-            event_vanish(Id(7), PosHex { q: -1, r: 2 }),
-            event_vanish(Id(8), PosHex { q: -1, r: 3 }),
-            event_vanish(Id(9), PosHex { q: 0, r: 3 }),
+            event_end_turn(P1, &[Id(2)]),
+            event_begin_turn(P0, &[Id(0), Id(1)]),
+            event_vanish(Id(8), PosHex { q: -1, r: 2 }),
+            event_vanish(Id(9), PosHex { q: -1, r: 3 }),
+            event_vanish(Id(10), PosHex { q: 0, r: 3 }),
         ],
     );
     exec_and_check(
         &mut state,
         command::EndTurn,
-        &[event_end_turn(P0, &[Id(0)]), event_begin_turn(P1, &[Id(1)])],
+        &[
+            event_end_turn(P0, &[Id(0), Id(1)]),
+            event_begin_turn(P1, &[Id(2)]),
+        ],
     );
     exec_and_check(
         &mut state,
         command::EndTurn,
         &[
-            event_end_turn(P1, &[Id(1)]),
-            event_begin_turn(P0, &[Id(0)]),
-            event_vanish(Id(3), PosHex { q: 0, r: 2 }),
-            event_vanish(Id(4), PosHex { q: 1, r: 2 }),
-            event_vanish(Id(5), PosHex { q: 1, r: 1 }),
-            event_vanish(Id(6), PosHex { q: 0, r: 1 }),
-            event_vanish(Id(11), PosHex { q: 2, r: 1 }),
-            event_vanish(Id(12), PosHex { q: 2, r: 0 }),
-            event_vanish(Id(13), PosHex { q: 1, r: 0 }),
+            event_end_turn(P1, &[Id(2)]),
+            event_begin_turn(P0, &[Id(0), Id(1)]),
+            event_vanish(Id(4), PosHex { q: 0, r: 2 }),
+            event_vanish(Id(5), PosHex { q: 1, r: 2 }),
+            event_vanish(Id(6), PosHex { q: 1, r: 1 }),
+            event_vanish(Id(7), PosHex { q: 0, r: 1 }),
+            event_vanish(Id(12), PosHex { q: 2, r: 1 }),
+            event_vanish(Id(13), PosHex { q: 2, r: 0 }),
+            event_vanish(Id(14), PosHex { q: 1, r: 0 }),
         ],
     );
 }

@@ -19,7 +19,7 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: Jump, base_cooldown: 2),
+            (ability: Jump),
         ]),
     ],
     "elite_swordsman": [
@@ -40,9 +40,9 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: Jump, base_cooldown: 2),
-            (ability: Rage, base_cooldown: 3),
-            (ability: Dash, base_cooldown: 1),
+            (ability: Jump),
+            (ability: Rage),
+            (ability: Dash),
         ]),
     ],
     "heavy_swordsman": [
@@ -83,8 +83,8 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: BombPush, base_cooldown: 2),
-            (ability: Heal, base_cooldown: 3),
+            (ability: BombPush),
+            (ability: Heal),
         ]),
     ],
     "healer": [
@@ -105,8 +105,9 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: BombPoison, base_cooldown: 2),
-            (ability: GreatHeal, base_cooldown: 2),
+            (ability: BombPush),
+            (ability: BombPoison),
+            (ability: GreatHeal),
         ]),
     ],
     "firer": [
@@ -127,8 +128,9 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: BombFire, base_cooldown: 2),
-            (ability: Bomb, base_cooldown: 1),
+            (ability: BombPush),
+            (ability: BombFire),
+            (ability: Bomb),
         ]),
     ],
     "hammerman": [
@@ -149,8 +151,8 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: Knockback, base_cooldown: 1),
-            (ability: Club, base_cooldown: 2),
+            (ability: Knockback),
+            (ability: Club),
         ]),
     ],
     "heavy_hammerman": [
@@ -173,8 +175,8 @@
             move_points: 2,
         )),
         Abilities([
-            (ability: Knockback, base_cooldown: 1),
-            (ability: Club, base_cooldown: 2),
+            (ability: Knockback),
+            (ability: Club),
         ]),
         PassiveAbilities([
             HeavyImpact,
@@ -197,7 +199,7 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: LongJump, base_cooldown: 3),
+            (ability: LongJump),
         ]),
     ],
     "elite_spearman": [
@@ -218,7 +220,7 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: LongJump, base_cooldown: 3),
+            (ability: LongJump),
         ]),
     ],
     "heavy_spearman": [
@@ -294,7 +296,7 @@
             move_points: 3,
         )),
         Abilities([
-            (ability: BombDemonic, base_cooldown: 2),
+            (ability: BombDemonic),
         ]),
     ],
     "imp_summoner": [
@@ -320,8 +322,8 @@
             count: 2,
         )),
         Abilities([
-            (ability: Summon, base_cooldown: 3),
-            (ability: Bloodlust, base_cooldown: 3),
+            (ability: Summon),
+            (ability: Bloodlust),
         ]),
         PassiveAbilities([
             HeavyImpact,

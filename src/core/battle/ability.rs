@@ -55,8 +55,6 @@ pub struct RechargeableAbility {
 
     #[serde(default = "default_status")]
     pub status: Status,
-
-    pub base_cooldown: i32, // TODO: i32 -> Rounds
 }
 
 impl Ability {
@@ -83,6 +81,33 @@ impl Ability {
             Ability::Heal => "Heal".into(),
             Ability::GreatHeal => "Great Heal".into(),
             Ability::Bloodlust => "Bloodlust".into(),
+        }
+    }
+
+    // TODO: i32 -> Rounds
+    pub fn base_cooldown(&self) -> i32 {
+        match self {
+            Ability::Knockback => 1,
+            Ability::Club => 2,
+            Ability::Jump => 2,
+            Ability::LongJump => 3,
+            Ability::Poison => 2,
+            Ability::ExplodePush => 2,
+            Ability::ExplodeDamage => 2,
+            Ability::ExplodeFire => 2,
+            Ability::ExplodePoison => 2,
+            Ability::Bomb => 2,
+            Ability::BombPush => 2,
+            Ability::BombFire => 2,
+            Ability::BombPoison => 2,
+            Ability::BombDemonic => 2,
+            Ability::Vanish => 2,
+            Ability::Summon => 3,
+            Ability::Dash => 1,
+            Ability::Rage => 3,
+            Ability::Heal => 3,
+            Ability::GreatHeal => 2,
+            Ability::Bloodlust => 3,
         }
     }
 

@@ -162,16 +162,16 @@ fn info_panel(
         if let Some(abilities) = info.abilities {
             if !abilities.0.is_empty() {
                 add(label_s(context, "~ abilities ~")?);
-                for ability in &abilities.0 {
-                    let s = ability.ability.title();
-                    let cooldown = ability.base_cooldown;
+                for r_ability in &abilities.0 {
+                    let s = r_ability.ability.title();
+                    let cooldown = r_ability.ability.base_cooldown();
                     let text = format!("{} (cooldown: {})", s, cooldown);
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(context, &text)?);
                     line_layout.add(spacer_s());
                     // TODO: Don't reload images every time, preload them (like object frames)
                     let icon = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
-                    let message = Message::AbilityInfo(ability.ability.clone());
+                    let message = Message::AbilityInfo(r_ability.ability.clone());
                     let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));
                     add(Box::new(line_layout));
