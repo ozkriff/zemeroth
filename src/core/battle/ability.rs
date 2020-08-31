@@ -45,16 +45,20 @@ impl Status {
     }
 }
 
-fn default_status() -> Status {
-    Status::Ready
-}
-
+#[serde(from = "Ability")]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RechargeableAbility {
     pub ability: Ability,
-
-    #[serde(default = "default_status")]
     pub status: Status,
+}
+
+impl From<Ability> for RechargeableAbility {
+    fn from(ability: Ability) -> Self {
+        RechargeableAbility {
+            ability,
+            status: Status::Ready,
+        }
+    }
 }
 
 impl Ability {
