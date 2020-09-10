@@ -936,7 +936,7 @@ fn execute_use_ability_explode_push(
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
     let from = state.parts().pos.get(command.id).0;
-    for id in state.parts().agent.ids() {
+    for id in state.parts().blocker.ids() {
         let pos = state.parts().pos.get(id).0;
         let distance = map::distance_hex(from, pos);
         if distance.0 > 1 || command.id == id {
@@ -957,7 +957,9 @@ fn execute_use_ability_explode_push(
                 strength: PushStrength(Weight::Normal),
             };
             effects.push(effect.into());
-            context.moved_actor_ids.push(id);
+            if state.parts().agent.get_opt(id).is_some() {
+                context.moved_actor_ids.push(id);
+            }
         }
         context.instant_effects.push((id, effects));
     }
