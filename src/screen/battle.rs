@@ -296,7 +296,7 @@ fn build_panel_agent_abilities(
         if let ability::Status::Cooldown(n) = ability.status {
             let mut layers = ui::LayersLayout::new();
             layers.add(Box::new(button));
-            let text = Text::new((format!("({})", n).as_str(), font, FONT_SIZE));
+            let text = Text::new((format!(" ({})", n).as_str(), font, FONT_SIZE));
             let label = ui::Label::new(context, Box::new(text), h / 2.0)?;
             layers.add(Box::new(label));
             layout.add(Box::new(layers));
