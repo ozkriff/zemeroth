@@ -134,7 +134,7 @@
         },
         offset_x: 0.0,
         offset_y: 0.4,
-        shadow_size_coefficient: 2.5,
+        shadow_size_coefficient: 1.9,
     ),
     "bomb_damage": (
         paths: {
