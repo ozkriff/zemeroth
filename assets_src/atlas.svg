@@ -2327,12 +2327,11 @@
        transform="matrix(0.46025407,0,0,0.46025407,42.5317,-150.93126)"
        id="dot"
        inkscape:label="#layer1-2">
-      <circle
-         r="2.6691811"
-         cy="293.81082"
-         cx="3.1773622"
+      <path
          id="path817"
-         style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.78913498;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+         style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.789135;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0"
+         d="M 5.8465433,293.81082 3.1773622,296.48 0.5081811,293.81082 3.1773622,291.14164 Z"
+         sodipodi:nodetypes="ccccc" />
     </g>
     <rect
        ry="0"
