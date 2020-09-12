@@ -9,8 +9,8 @@ use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
 use crate::{
     core::{
         battle::{
-            self, ability::Ability, command, component::ObjType, execute::hit_chance, movement, Id,
-            Jokers, Moves, State, TileType,
+            self, ability::Ability, command, component::ObjType, execute::hit_chance, movement,
+            state, Id, Jokers, Moves, State, TileType,
         },
         map::{self, Distance, HexMap, PosHex},
         utils::roll_dice,
@@ -545,7 +545,9 @@ pub fn make_action_create_map(
     let mut actions = Vec::new();
     for hex_pos in state.map().iter() {
         actions.push(make_action_show_tile(state, context, view, hex_pos)?);
-        if roll_dice(0, 10) < 2 {
+        let is_free = state::is_tile_completely_free(state, hex_pos);
+        let is_plain = state.map().tile(hex_pos) == TileType::Plain;
+        if is_free && is_plain && roll_dice(0, 10) < 2 {
             actions.push(make_action_grass(context, view, hex_pos)?);
         }
     }
