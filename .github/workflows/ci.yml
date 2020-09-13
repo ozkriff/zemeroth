@@ -108,6 +108,7 @@ jobs:
           args: --all
 
       - uses: actions/upload-artifact@v2
+        name: zemeroth-${{ matrix.build }}
         with:
           path: |
             target/debug/zemeroth
