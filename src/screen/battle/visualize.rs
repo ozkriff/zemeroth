@@ -44,8 +44,8 @@ const TIME_LUNGE_TO: f32 = 0.1;
 const TIME_LUNGE_FROM: f32 = 0.15;
 const TIME_DEFAULT_FLARE: f32 = 0.4;
 
-pub fn seq(actions: Vec<Box<dyn Action>>) -> Box<dyn Action> {
-    action::Sequence::new(actions).boxed()
+pub fn seq(actions: impl Into<Vec<Box<dyn Action>>>) -> Box<dyn Action> {
+    action::Sequence::new(actions.into()).boxed()
 }
 
 pub fn fork(action: Box<dyn Action>) -> Box<dyn Action> {
