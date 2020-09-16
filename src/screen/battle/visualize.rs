@@ -82,26 +82,46 @@ pub fn message(
     Ok(fork(seq(vec![fork(action_move), action_show_hide])))
 }
 
-// TODO: Add some bg? Text is not that readable atm.
 fn announce(
     view: &mut BattleView,
     context: &mut Context,
     text: &str,
     time: Duration,
 ) -> ZResult<Box<dyn Action>> {
-    let text_height = 0.2;
-    let visible = [0.0, 0.0, 0.0, 1.0].into();
-    let invisible = Color { a: 0.0, ..visible };
-    let text = Box::new(Text::new((text, view.font(), font_size())));
-    let mut sprite = Sprite::from_drawable(context, text, text_height)?;
-    sprite.set_centered(true);
-    sprite.set_color(invisible);
-    Ok(seq(vec![
-        action::Show::new(&view.layers().text, &sprite).boxed(),
-        action::ChangeColorTo::new(&sprite, visible, time.mul_f32(0.15)).boxed(),
-        action::Sleep::new(time.mul_f32(0.7)).boxed(),
-        action::ChangeColorTo::new(&sprite, invisible, time.mul_f32(0.25)).boxed(),
-        action::Hide::new(&view.layers().text, &sprite).boxed(),
+    let height_text = 0.2;
+    let height_bg = height_text * 5.0;
+    let time_appear = time.mul_f32(0.25);
+    let time_wait = time.mul_f32(0.5);
+    let time_disappear = time.mul_f32(0.35);
+    let action_show_and_hide = |sprite, color| {
+        let color_invisible = Color { a: 0.0, ..color };
+        seq([
+            action::SetColor::new(&sprite, color_invisible).boxed(),
+            action::Show::new(&view.layers().text, &sprite).boxed(),
+            action::ChangeColorTo::new(&sprite, color, time_appear).boxed(),
+            action::Sleep::new(time_wait).boxed(),
+            action::ChangeColorTo::new(&sprite, color_invisible, time_disappear).boxed(),
+            action::Hide::new(&view.layers().text, &sprite).boxed(),
+        ])
+    };
+    let actions_text = {
+        let color = [0.0, 0.0, 0.0, 1.0].into();
+        let text = Box::new(Text::new((text, view.font(), font_size())));
+        let mut sprite = Sprite::from_drawable(context, text, height_text)?;
+        sprite.set_centered(true);
+        action_show_and_hide(sprite, color)
+    };
+    let actions_bg = {
+        let color = [1.0, 1.0, 1.0, 0.5].into();
+        let image = Box::new(view.images().white_hex.clone());
+        let mut sprite = Sprite::from_drawable(context, image, height_bg)?;
+        sprite.set_centered(true);
+        action_show_and_hide(sprite, color)
+    };
+    Ok(seq([
+        fork(actions_bg),
+        action::Sleep::new(time_s(0.01)).boxed(), // delay the text a little
+        actions_text,
     ]))
 }
 
