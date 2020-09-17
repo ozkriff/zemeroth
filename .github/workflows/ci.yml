@@ -108,8 +108,8 @@ jobs:
           args: --all
 
       - run: ls target
-
       - run: ls target/debug
+      - run: ls target/debug/build
 
       - uses: actions/upload-artifact@v2
         with:
