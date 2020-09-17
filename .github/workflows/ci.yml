@@ -107,10 +107,6 @@ jobs:
           command: test
           args: --all
 
-      - run: ls target
-      - run: ls target/debug
-      - run: tar czf zemeroth-${{ matrix.build }}.tar.gz assets ./target/debug/zemeroth
-
       - name: Prepare artifacts
         run: |
           mkdir zemeroth
