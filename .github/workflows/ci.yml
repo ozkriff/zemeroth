@@ -107,6 +107,10 @@ jobs:
           command: test
           args: --all
 
+      - run: ls target
+
+      - run: ls target/debug
+
       - uses: actions/upload-artifact@v2
         with:
           name: zemeroth-${{ matrix.build }}
