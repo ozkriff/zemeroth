@@ -112,7 +112,7 @@ jobs:
         run: |
           shopt -s extglob # for (|.exe)
           mkdir artifacts
-          cp -r assets target/debug/zemeroth(|.exe) artifacts/
+          cp -r assets *target/debug/zemeroth(|.exe) artifacts/
           tar czvf zemeroth-${{ matrix.build }}.tar.gz artifacts
 
       - name: Upload artifact
