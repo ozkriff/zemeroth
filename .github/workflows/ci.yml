@@ -114,11 +114,12 @@ jobs:
       - name: Prepare artifacts
         run: |
           mkdir zemeroth
-          cp -r assets target/debug/zemeroth zemeroth/
-          ls zemeroth/
           if [ "${{ runner.os }}" = "Windows" ]; then
+            cp -r assets target/debug/zemeroth.exe zemeroth/
+            ls zemeroth/
             7z a zemeroth-${{ matrix.build }}.zip zemeroth
           else
+            cp -r assets target/debug/zemeroth zemeroth/
             tar czvf zemeroth-${{ matrix.build }}.tar.gz zemeroth
           fi
 
