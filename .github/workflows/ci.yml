@@ -122,7 +122,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          # name: zemeroth-${{ matrix.build }}
+          name: zemeroth-${{ matrix.build }}
           path: |
             zemeroth-${{ matrix.build }}.tar.gz
             zemeroth-${{ matrix.build }}.zip
