@@ -107,14 +107,6 @@ jobs:
           command: test
           args: --all
 
-      - name: Prepare artifact
-        shell: bash
-        run: |
-          shopt -s extglob # for (|.exe)
-          mkdir artifacts
-          cp -r assets *target/debug/zemeroth(|.exe) artifacts/
-          tar czvf zemeroth-${{ matrix.build }}.tar.gz artifacts
-
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
