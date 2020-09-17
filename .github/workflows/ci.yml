@@ -116,6 +116,7 @@ jobs:
           name: zemeroth-${{ matrix.build }}
           path: |
             target/debug/zemeroth
+            target/debug/zemeroth.exe
             assets
 
   wasm:
