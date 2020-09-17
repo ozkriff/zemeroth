@@ -108,6 +108,7 @@ jobs:
           args: --all
 
       - name: Prepare artifacts
+        shell: bash
         run: |
           mkdir zemeroth
           if [ "${{ runner.os }}" = "Windows" ]; then
