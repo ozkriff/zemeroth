@@ -109,15 +109,25 @@ jobs:
 
       - run: ls target
       - run: ls target/debug
-      - run: ls target/debug/build
+      - run: tar czf zemeroth-${{ matrix.build }}.tar.gz assets ./target/debug/zemeroth
+
+      - name: Prepare artifacts
+        run: |
+          mkdir zemeroth
+          cp -r assets target/debug/zemeroth zemeroth/
+          ls zemeroth/
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a zemeroth-${{ matrix.build }}.zip zemeroth
+          else
+            tar czvf zemeroth-${{ matrix.build }}.tar.gz zemeroth
+          fi
 
       - uses: actions/upload-artifact@v2
         with:
-          name: zemeroth-${{ matrix.build }}
+          # name: zemeroth-${{ matrix.build }}
           path: |
-            target/debug/zemeroth
-            target/debug/zemeroth.exe
-            assets
+            zemeroth-${{ matrix.build }}.tar.gz
+            zemeroth-${{ matrix.build }}.zip
 
   wasm:
     name: WASM
