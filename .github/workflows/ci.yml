@@ -118,8 +118,11 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          # name: zemeroth-${{ matrix.build }}.tar.gz
-          path: zemeroth-${{ matrix.build }}.tar.gz
+          name: zemeroth-${{ matrix.build }}.tar.gz
+          path: |
+            assets
+            ./target/debug/zemeroth
+            ./target/debug/zemeroth.exe
 
   wasm:
     name: WASM
