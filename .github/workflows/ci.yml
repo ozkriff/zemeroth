@@ -107,23 +107,17 @@ jobs:
           command: test
           args: --all
 
-      - name: Prepare artifacts
+      - name: Prepare artifact
         shell: bash
         run: |
-          mkdir zemeroth
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            cp -r assets target/debug/zemeroth.exe zemeroth/
-            ls zemeroth/
-            7z a zemeroth-${{ matrix.build }}.zip zemeroth
-          else
-            cp -r assets target/debug/zemeroth zemeroth/
-            tar czvf zemeroth-${{ matrix.build }}.tar.gz zemeroth
-          fi
+          cp -r assets target/debug/zemeroth{,exe} zemeroth/
+          tar czvf zemeroth-${{ matrix.build }}.tar.gz zemeroth
 
-      - uses: actions/upload-artifact@v2
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
         with:
-          name: zemeroth-${{ matrix.build }}
-          path: zemeroth-${{ matrix.build }}.*
+          # name: zemeroth-${{ matrix.build }}.tar.gz
+          path: zemeroth-${{ matrix.build }}.tar.gz
 
   wasm:
     name: WASM
