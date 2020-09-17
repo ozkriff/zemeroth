@@ -110,8 +110,9 @@ jobs:
       - name: Prepare artifact
         shell: bash
         run: |
-          cp -r assets target/debug/zemeroth{,exe} zemeroth/
-          tar czvf zemeroth-${{ matrix.build }}.tar.gz zemeroth
+          mkdir artifacts
+          cp -r assets target/debug/zemeroth{,exe} artifacts/
+          tar czvf zemeroth-${{ matrix.build }}.tar.gz artifacts
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
