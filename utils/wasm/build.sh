@@ -2,8 +2,9 @@
 
 set -ex
 
-if [ ! -e assets.tar ]; then
-  cd assets && tar cf assets.tar * && cd .. && mv assets/assets.tar .
+if [ ! -e assets.tar ] || [ $(stat -c %Y assets.tar) -lt $(stat -c %Y assets) ]; then
+  # Check if dir "assets" has been updated
+  cd assets && tar cf assets.tar * && cd .. && mv -f assets/assets.tar .
 fi
 
 cargo build --target wasm32-unknown-unknown --release
