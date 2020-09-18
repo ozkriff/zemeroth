@@ -2,9 +2,7 @@
 
 set -ex
 
-if [ ! -e assets.tar ]; then
-  cd assets && tar cf assets.tar * && cd .. && mv assets/assets.tar .
-fi
+cd assets && tar cf assets.tar * && cd .. && mv -f assets/assets.tar .
 
 cargo build --target wasm32-unknown-unknown --release
 
