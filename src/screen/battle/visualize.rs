@@ -484,15 +484,16 @@ fn generate_brief_obj_info(
         &[(color::ATTACKS, agent.attacks.0)],
         &[(color::MOVES, agent.moves.0)],
     ];
+    let actual_dot_size_k = 0.8;
     for &row in rows {
         for &(color, n) in row {
             for _ in 0..n {
                 dots.push((color, point));
-                point.x -= size * 0.8;
+                point.x -= size * actual_dot_size_k;
             }
         }
         point.x = base.x;
-        point.y += size * 0.8;
+        point.y += size * actual_dot_size_k;
     }
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
@@ -509,12 +510,12 @@ fn generate_brief_obj_info(
     }
     {
         let health_points = strength.strength.0 + damage + armor.0;
-        let health_bar_width = health_points as f32 * size;
+        let health_bar_width = health_points as f32 * size * actual_dot_size_k;
         if let Some(effects) = parts.effects.get_opt(id) {
-            let icon_size = size * 1.7;
+            let icon_size = size * 1.6;
             let mut icon_point = base;
             icon_point.y -= icon_size;
-            icon_point.x -= health_bar_width + icon_size * 0.1;
+            icon_point.x -= health_bar_width + icon_size * 0.4;
             for timed_effect in &effects.0 {
                 icon_point.y += icon_size;
                 let effect = &timed_effect.effect;
