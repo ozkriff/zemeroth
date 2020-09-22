@@ -132,7 +132,7 @@ fn announce(
     ]))
 }
 
-pub fn attack_message(
+fn attack_message(
     view: &mut BattleView,
     context: &mut Context,
     pos: Point2,
@@ -539,7 +539,7 @@ fn generate_brief_obj_info(
     Ok(seq(actions))
 }
 
-pub fn refresh_brief_agent_info(
+fn refresh_brief_agent_info(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
@@ -981,7 +981,7 @@ fn visualize_event_effect_end(
     message(view, context, pos, &format!("[{}] ended", s))
 }
 
-pub fn visualize_lasting_effect(
+fn visualize_lasting_effect(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
@@ -1001,7 +1001,7 @@ pub fn visualize_lasting_effect(
     ]))
 }
 
-pub fn visualize_instant_effect(
+fn visualize_instant_effect(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
