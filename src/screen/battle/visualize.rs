@@ -948,7 +948,11 @@ fn visualize_event_use_ability(
         actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
     }
     actions.push(action_main);
-    actions.push(message(view, context, pos, &format!("<{}>", text))?);
+    // Don't show messages for not that important abilities.
+    match event.ability {
+        Ability::Vanish => {}
+        _ => actions.push(message(view, context, pos, &text)?),
+    }
     Ok(seq(actions))
 }
 
