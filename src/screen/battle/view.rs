@@ -28,9 +28,9 @@ pub enum SelectionMode {
     Ability(Ability),
 }
 
-const TILE_COLOR_WALKABLE: [f32; 4] = [0.1, 0.6, 0.1, 0.5];
-const TILE_COLOR_ATTACKABLE: [f32; 4] = [0.8, 0.0, 0.0, 0.6];
-const TILE_COLOR_ABILITY: [f32; 4] = [0.0, 0.0, 0.9, 0.5];
+const TILE_COLOR_WALKABLE: [f32; 4] = [0.1, 0.6, 0.1, 0.3];
+const TILE_COLOR_ATTACKABLE: [f32; 4] = [0.8, 0.0, 0.0, 0.3];
+const TILE_COLOR_ABILITY: [f32; 4] = [0.0, 0.0, 0.9, 0.3];
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
