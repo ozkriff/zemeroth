@@ -386,6 +386,12 @@ fn make_gui(context: &mut Context) -> ZResult<ui::Gui<Message>> {
     Ok(gui)
 }
 
+#[derive(PartialEq, Copy, Clone)]
+enum CommandOrigin {
+    Player,
+    Internal,
+}
+
 #[derive(Debug)]
 pub struct Battle {
     font: graphics::Font,
@@ -452,7 +458,7 @@ impl Battle {
         self.deselect()?;
         let command = command::EndTurn.into();
         let mut actions = Vec::new();
-        actions.push(self.do_command_inner(context, &command));
+        actions.push(self.do_command_inner(context, &command, CommandOrigin::Internal));
         actions.push(self.do_ai(context));
         self.add_actions(actions);
         Ok(())
@@ -463,8 +469,8 @@ impl Battle {
         let mut actions = Vec::new();
         while let Some(command) = self.ai.command(&self.state) {
             trace!("AI: command = {:?}", command);
-            actions.push(self.do_command_inner(context, &command));
-            actions.push(action::Sleep::new(time_s(0.3)).boxed());
+            actions.push(self.do_command_inner(context, &command, CommandOrigin::Internal));
+            actions.push(action::Sleep::new(time_s(0.2)).boxed());
             if let command::Command::EndTurn(_) = command {
                 break;
             }
@@ -499,23 +505,32 @@ impl Battle {
         &mut self,
         context: &mut Context,
         command: &command::Command,
+        origin: CommandOrigin,
     ) -> Box<dyn Action> {
         trace!("do_command_inner: {:?}", command);
+        self.view.messages_map_mut().clear();
         let mut actions = Vec::new();
         let state = &mut self.state;
         let view = &mut self.view;
         battle::execute(state, command, &mut |state, event, phase| {
             let action = visualize::visualize(state, view, context, event, phase)
                 .expect("Can't visualize the event");
+            view.messages_map_mut().update(action.duration());
             actions.push(action);
+            if origin != CommandOrigin::Player {
+                let actual_sleep_duration = view.messages_map().total_duration().mul_f32(0.3);
+                actions.push(action::Sleep::new(actual_sleep_duration).boxed());
+                view.messages_map_mut().update(actual_sleep_duration);
+            }
         })
         .expect("Can't execute command");
         action::Sequence::new(actions).boxed()
     }
 
     fn do_command(&mut self, context: &mut Context, command: &command::Command) {
-        let action = self.do_command_inner(context, command);
+        let action = self.do_command_inner(context, command, CommandOrigin::Player);
         self.add_action(action);
+        self.view.messages_map_mut().clear();
     }
 
     fn add_actions(&mut self, actions: Vec<Box<dyn Action>>) {
@@ -664,6 +679,7 @@ impl Battle {
                 self.try_move_selected_agent(context, pos);
             }
         }
+        self.view.messages_map_mut().clear();
         Ok(())
     }
 

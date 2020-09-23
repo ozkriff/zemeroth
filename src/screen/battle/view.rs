@@ -12,7 +12,7 @@ use crate::{
             self, ability::Ability, command, component::ObjType, execute::hit_chance, movement,
             state, Id, Jokers, Moves, State, TileType,
         },
-        map::{self, Distance, HexMap, PosHex},
+        map::{self, Dir, Distance, HexMap, PosHex},
         utils::roll_dice,
     },
     geom::{self, hex_to_point},
@@ -137,6 +137,67 @@ impl Images {
 }
 
 #[derive(Debug)]
+pub struct MessagesMap {
+    map: HexMap<Option<Duration>>,
+    total_duration: Duration,
+}
+
+impl MessagesMap {
+    pub fn new(radius: Distance) -> Self {
+        Self {
+            map: HexMap::new(radius),
+            total_duration: Duration::from_secs(0),
+        }
+    }
+
+    pub fn delay_at(&self, pos: PosHex) -> Option<Duration> {
+        self.map.tile(pos)
+    }
+
+    pub fn total_duration(&self) -> Duration {
+        self.total_duration
+    }
+
+    pub fn update(&mut self, dtime: Duration) {
+        for pos in self.map.iter() {
+            let new_duration = match self.map.tile(pos) {
+                Some(t) if t > dtime => Some(t - dtime),
+                _ => None,
+            };
+            self.map.set_tile(pos, new_duration);
+        }
+    }
+
+    pub fn clear(&mut self) {
+        for pos in self.map.iter() {
+            self.map.set_tile(pos, None);
+        }
+        self.total_duration = Duration::from_secs(0);
+    }
+
+    fn mark_tile_as_busy(&mut self, pos: PosHex, duration: Duration) {
+        if !self.map.is_inboard(pos) {
+            return;
+        }
+        let combined_duration = match self.delay_at(pos) {
+            Some(current_duration) => current_duration + duration,
+            None => duration,
+        };
+        self.map.set_tile(pos, Some(combined_duration));
+        self.total_duration = self.total_duration.max(combined_duration);
+    }
+
+    pub fn register_message_at(&mut self, pos: PosHex, duration: Duration) {
+        assert!(self.map.is_inboard(pos));
+        let duration = duration.mul_f32(0.5);
+        self.mark_tile_as_busy(pos, duration);
+        // Also mark neighbors to the left and to the right as busy.
+        self.mark_tile_as_busy(Dir::get_neighbor_pos(pos, Dir::SouthEast), duration);
+        self.mark_tile_as_busy(Dir::get_neighbor_pos(pos, Dir::NorthWest), duration);
+    }
+}
+
+#[derive(Debug)]
 pub struct BattleView {
     font: Font,
     tile_size: f32,
@@ -145,6 +206,7 @@ pub struct BattleView {
     sprites: Sprites,
     images: Images,
     sprite_info: HashMap<ObjType, SpriteInfo>,
+    messages_map: MessagesMap,
 }
 
 impl BattleView {
@@ -183,6 +245,7 @@ impl BattleView {
             tile_size,
             images,
             sprite_info,
+            messages_map: MessagesMap::new(map_radius),
         })
     }
 
@@ -192,6 +255,14 @@ impl BattleView {
 
     pub fn images(&self) -> &Images {
         &self.images
+    }
+
+    pub fn messages_map(&self) -> &MessagesMap {
+        &self.messages_map
+    }
+
+    pub fn messages_map_mut(&mut self) -> &mut MessagesMap {
+        &mut self.messages_map
     }
 
     pub fn message(&mut self, context: &mut Context, pos: PosHex, text: &str) -> ZResult {

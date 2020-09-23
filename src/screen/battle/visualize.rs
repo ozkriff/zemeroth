@@ -68,18 +68,25 @@ pub fn message(
     let point = point - Vector2::new(0.0, view.tile_size() * 1.5);
     sprite.set_pos(point);
     sprite.set_color(invisible);
-    let action_show_hide = seq(vec![
+    let action_show_hide = seq([
         action::Show::new(&view.layers().text, &sprite).boxed(),
-        action::ChangeColorTo::new(&sprite, visible, time_s(0.3)).boxed(),
-        action::Sleep::new(time_s(1.0)).boxed(),
+        action::ChangeColorTo::new(&sprite, visible, time_s(0.4)).boxed(),
+        action::Sleep::new(time_s(0.4)).boxed(),
         // TODO: read the time from Config:
-        action::ChangeColorTo::new(&sprite, invisible, time_s(1.0)).boxed(),
+        action::ChangeColorTo::new(&sprite, invisible, time_s(0.6)).boxed(),
         action::Hide::new(&view.layers().text, &sprite).boxed(),
     ]);
-    let time = action_show_hide.duration();
-    let delta = -Vector2::new(0.0, 0.3);
-    let action_move = action::MoveBy::new(&sprite, delta, time).boxed();
-    Ok(fork(seq(vec![fork(action_move), action_show_hide])))
+    let duration = action_show_hide.duration();
+    let delta = -Vector2::new(0.0, 0.15);
+    let action_move = action::MoveBy::new(&sprite, delta, duration).boxed();
+    let mut actions = Vec::new();
+    if let Some(delay) = view.messages_map().delay_at(pos) {
+        actions.push(action::Sleep::new(delay).boxed());
+    }
+    view.messages_map_mut().register_message_at(pos, duration);
+    actions.push(fork(action_move));
+    actions.push(action_show_hide);
+    Ok(fork(seq(actions)))
 }
 
 fn announce(
@@ -125,7 +132,7 @@ fn announce(
     ]))
 }
 
-pub fn attack_message(
+fn attack_message(
     view: &mut BattleView,
     context: &mut Context,
     pos: Point2,
@@ -140,7 +147,7 @@ pub fn attack_message(
     let point = pos + Vector2::new(0.0, view.tile_size() * 0.5);
     sprite.set_pos(point);
     sprite.set_color(invisible);
-    let action_show_hide = seq(vec![
+    let action_show_hide = seq([
         action::Show::new(&view.layers().text, &sprite).boxed(),
         // TODO: read the time from Config:
         action::ChangeColorTo::new(&sprite, visible, time_s(0.3)).boxed(),
@@ -179,7 +186,7 @@ fn show_blood_particles(
         sprite.set_color(invisible);
         let vector = point - point_origin;
         let layer = view.layers().blood.clone();
-        actions.push(fork(seq(vec![
+        actions.push(fork(seq([
             action::Show::new(&view.layers().flares, &sprite).boxed(),
             fork(action::ChangeColorTo::new(&sprite, visible, time_s(0.2)).boxed()),
             arc_move(view, &sprite, vector),
@@ -204,10 +211,10 @@ fn show_blood_spot(
     point.y += view.tile_size() * 0.1;
     sprite.set_pos(point);
     let color_final: Color = [1.0, 1.0, 1.0, 1.0].into();
-    let time = time_s(0.3);
+    let time = time_s(0.6);
     let layer = view.layers().blood.clone();
     view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION_TURNS, color_final.a);
-    Ok(seq(vec![
+    Ok(seq([
         action::Show::new(&layer, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite, color_final, time).boxed(),
     ]))
@@ -272,7 +279,7 @@ fn show_dust(
             sprite
         };
         let layer = &view.layers().particles;
-        let action_show_hide = seq(vec![
+        let action_show_hide = seq([
             action::Show::new(layer, &sprite).boxed(),
             action::ChangeColorTo::new(&sprite, visible, time_s(0.2)).boxed(),
             action::ChangeColorTo::new(&sprite, invisible, time_s(0.7)).boxed(),
@@ -280,7 +287,7 @@ fn show_dust(
         ]);
         let time = action_show_hide.duration();
         let action_move = action::MoveBy::new(&sprite, vector, time).boxed();
-        let action = seq(vec![fork(action_move), fork(action_show_hide)]);
+        let action = seq([fork(action_move), fork(action_show_hide)]);
         actions.push(action);
     }
     Ok(seq(actions))
@@ -302,7 +309,7 @@ fn show_flare_scale_time(
     sprite.set_centered(true);
     sprite.set_pos(point);
     sprite.set_color(invisible);
-    Ok(seq(vec![
+    Ok(seq([
         action::Show::new(&view.layers().flares, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite, visible, time.mul_f32(0.25)).boxed(),
         action::ChangeColorTo::new(&sprite, invisible, time.mul_f32(0.75)).boxed(),
@@ -364,7 +371,7 @@ fn up_and_down_move(
     let up_slow = Vector2::new(0.0, -height * 0.25);
     let down_slow = -up_slow;
     let down_fast = -up_fast;
-    seq(vec![
+    seq([
         action::MoveBy::new(sprite, up_fast, duration_0_25).boxed(),
         action::MoveBy::new(sprite, up_slow, duration_0_25).boxed(),
         action::MoveBy::new(sprite, down_slow, duration_0_25).boxed(),
@@ -382,7 +389,7 @@ fn move_object_with_shadow(
     let sprite_shadow = view.id_to_shadow_sprite(id).clone();
     let action_sprite_move_to = action::MoveBy::new(&sprite, diff, time_to).boxed();
     let action_shadow_move_to = action::MoveBy::new(&sprite_shadow, diff, time_to).boxed();
-    seq(vec![fork(action_shadow_move_to), action_sprite_move_to])
+    seq([fork(action_shadow_move_to), action_sprite_move_to])
 }
 
 fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<dyn Action> {
@@ -395,22 +402,22 @@ fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<dyn Ac
     let time = time_s(min_time + base_time * (len / 1.0));
     let up_and_down = up_and_down_move(view, sprite, height, time);
     let main_move = action::MoveBy::new(sprite, diff, time).boxed();
-    seq(vec![fork(main_move), up_and_down])
+    seq([fork(main_move), up_and_down])
 }
 
-fn vanish(view: &mut BattleView, target_id: Id) -> Box<dyn Action> {
+fn vanish_with_duration(view: &mut BattleView, target_id: Id, time: Duration) -> Box<dyn Action> {
     trace!("vanish target_id={:?}", target_id);
     let sprite = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
     view.remove_object(target_id);
     let dark = [0.1, 0.1, 0.1, 1.0].into();
     let invisible = [0.1, 0.1, 0.1, 0.0].into();
-    seq(vec![
-        action::Sleep::new(time_s(0.25)).boxed(),
-        action::ChangeColorTo::new(&sprite, dark, time_s(0.2)).boxed(),
-        action::ChangeColorTo::new(&sprite, invisible, time_s(0.2)).boxed(),
+    let time_div_3 = time.div_f32(3.0);
+    seq([
+        action::ChangeColorTo::new(&sprite, dark, time_div_3).boxed(),
+        action::ChangeColorTo::new(&sprite, invisible, time_div_3).boxed(),
         action::Hide::new(&view.layers().objects, &sprite).boxed(),
-        action::ChangeColorTo::new(&sprite_shadow, invisible, time_s(0.2)).boxed(),
+        action::ChangeColorTo::new(&sprite_shadow, invisible, time_div_3).boxed(),
         action::Hide::new(&view.layers().shadows, &sprite_shadow).boxed(),
     ])
 }
@@ -423,11 +430,11 @@ fn show_frame_for_time(
 ) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(id).clone();
     assert!(sprite.has_frame(frame_name));
-    Ok(fork(seq(vec![
+    Ok(seq([
         action::SetFrame::new(&sprite, frame_name).boxed(),
         action::Sleep::new(time).boxed(),
         action::SetFrame::new(&sprite, "").boxed(),
-    ])))
+    ]))
 }
 
 fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Action>> {
@@ -438,7 +445,7 @@ fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Act
             a: 0.0,
             ..sprite.color()
         };
-        actions.push(fork(seq(vec![
+        actions.push(fork(seq([
             action::ChangeColorTo::new(&sprite, color, time_s(0.4)).boxed(),
             action::Hide::new(&view.layers().dots, &sprite).boxed(),
         ])));
@@ -501,7 +508,7 @@ fn generate_brief_obj_info(
         sprite.set_centered(true);
         sprite.set_pos(point);
         sprite.set_color(Color { a: 0.0, ..color });
-        let action = fork(seq(vec![
+        let action = fork(seq([
             action::Show::new(&view.layers().dots, &sprite).boxed(),
             action::ChangeColorTo::new(&sprite, color, time_s(0.1)).boxed(),
         ]));
@@ -532,7 +539,7 @@ fn generate_brief_obj_info(
     Ok(seq(actions))
 }
 
-pub fn refresh_brief_agent_info(
+fn refresh_brief_agent_info(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
@@ -632,11 +639,7 @@ fn visualize_event_move_to(
     let sprite = view.id_to_sprite(event.id).clone();
     let mut actions = Vec::new();
     if let [pos] = event.path.tiles() {
-        let action = fork(seq(vec![
-            action::Sleep::new(time_s(0.4)).boxed(), // to avoid overlapping with a damage msg
-            message(view, context, *pos, "move interrupted")?,
-        ]));
-        actions.push(action);
+        actions.push(message(view, context, *pos, "move interrupted")?);
     }
     for step in event.path.steps() {
         let from = view.hex_to_point(step.from);
@@ -647,7 +650,7 @@ fn visualize_event_move_to(
         let step_height = view.tile_size() * 0.25;
         let step_time = time_s(0.13);
         let move_time = time_s(0.3);
-        let action = seq(vec![
+        let action = seq([
             action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed(),
             fork(move_object_with_shadow(view, event.id, diff, move_time)),
             up_and_down_move(view, &sprite, step_height, step_time),
@@ -690,9 +693,7 @@ fn visualize_event_attack(
     let chances = hit_chance(state, id, event.target_id);
     let attack_msg = format!("{}%", chances.1 * 10);
     actions.push(attack_message(view, context, from, &attack_msg)?);
-    actions.push(action::Sleep::new(time_s(0.1)).boxed());
     if event.mode == event::AttackMode::Reactive {
-        actions.push(action::Sleep::new(time_s(0.3)).boxed());
         actions.push(message(view, context, map_from, "reaction")?);
     }
     let time_to = time_s(TIME_LUNGE_TO);
@@ -730,7 +731,7 @@ fn visualize_event_end_battle(
         PlayerId(1) => "YOU LOSE!",
         _ => unreachable!(),
     };
-    Ok(seq(vec![
+    Ok(seq([
         action::Sleep::new(time_s(1.0)).boxed(),
         announce(view, context, text, time_s(4.0))?,
         action::Sleep::new(time_s(1.0)).boxed(),
@@ -743,7 +744,7 @@ fn visualize_event_end_turn(
     _: &mut Context,
     _: &event::EndTurn,
 ) -> Box<dyn Action> {
-    seq(vec![
+    seq([
         view.update_disappearing_sprites(),
         action::Sleep::new(time_s(0.2)).boxed(),
     ])
@@ -812,7 +813,8 @@ fn visualize_event_use_ability_heal(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
-    show_frame_for_time(view, event.id, "heal", time_s(1.0))
+    let time = time_s(1.0);
+    Ok(fork(show_frame_for_time(view, event.id, "heal", time)?))
 }
 
 fn visualize_event_use_ability_rage(
@@ -821,7 +823,8 @@ fn visualize_event_use_ability_rage(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
-    show_frame_for_time(view, event.id, "rage", time_s(1.0))
+    let time = time_s(1.0);
+    Ok(fork(show_frame_for_time(view, event.id, "rage", time)?))
 }
 
 fn visualize_event_use_ability_knockback(
@@ -852,13 +855,12 @@ fn visualize_event_use_ability_explode(
     let action_dust = show_dust_at_pos(view, context, pos)?;
     let color = [1.0, 0.0, 0.0, 0.7].into();
     let scale = 2.5;
-    let time = time_s(TIME_DEFAULT_FLARE);
+    let time = time_s(TIME_DEFAULT_FLARE * 0.8);
     let action_flare = show_flare_scale_time(view, context, pos, color, scale, time)?;
     let action_ground_mark = show_explosion_ground_mark(view, context, pos)?;
-    Ok(seq(vec![
-        fork(action_flare),
-        fork(action_ground_mark),
-        action_dust,
+    Ok(seq([
+        fork(seq([action_flare, action_dust])),
+        action_ground_mark,
     ]))
 }
 
@@ -876,10 +878,10 @@ fn visualize_event_use_ability_summon(
     let scale = 2.0;
     let time = time_s(TIME_DEFAULT_FLARE);
     let action_flare = show_flare_scale_time(view, context, pos, color, scale, time)?;
-    Ok(seq(vec![
+    Ok(seq([
         action::SetFrame::new(&sprite, frame_name).boxed(),
         action::Sleep::new(time_s(0.3)).boxed(),
-        fork(seq(vec![
+        fork(seq([
             action_flare,
             action::SetFrame::new(&sprite, "").boxed(),
         ])),
@@ -892,7 +894,8 @@ fn visualize_event_use_ability_bloodlust(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
-    show_frame_for_time(view, event.id, "bloodlust", time_s(0.5))
+    let time = time_s(0.5);
+    show_frame_for_time(view, event.id, "bloodlust", time)
 }
 
 fn visualize_event_use_ability_throw_bomb(
@@ -901,7 +904,8 @@ fn visualize_event_use_ability_throw_bomb(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
-    show_frame_for_time(view, event.id, "throw", time_s(0.5))
+    let time = time_s(0.5);
+    Ok(fork(show_frame_for_time(view, event.id, "throw", time)?))
 }
 
 fn visualize_event_use_ability(
@@ -944,7 +948,11 @@ fn visualize_event_use_ability(
         actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
     }
     actions.push(action_main);
-    actions.push(message(view, context, pos, &format!("<{}>", text))?);
+    // Don't show messages for not that important abilities.
+    match event.ability {
+        Ability::Vanish => {}
+        _ => actions.push(message(view, context, pos, &text)?),
+    }
     Ok(seq(actions))
 }
 
@@ -973,7 +981,7 @@ fn visualize_event_effect_end(
     message(view, context, pos, &format!("[{}] ended", s))
 }
 
-pub fn visualize_lasting_effect(
+fn visualize_lasting_effect(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
@@ -987,13 +995,13 @@ pub fn visualize_lasting_effect(
         effect::Lasting::Bloodlust => show_flare(view, context, pos, [1.0, 0.0, 0.0, 0.5].into())?,
     };
     let s = timed_effect.effect.title();
-    Ok(seq(vec![
+    Ok(seq([
         action_flare,
         message(view, context, pos, &format!("[{}]", s))?,
     ]))
 }
 
-pub fn visualize_instant_effect(
+fn visualize_instant_effect(
     state: &State,
     view: &mut BattleView,
     context: &mut Context,
@@ -1083,11 +1091,11 @@ fn visualize_effect_kill(
 ) -> ZResult<Box<dyn Action>> {
     let particles_count = 6;
     let pos = state.parts().pos.get(target_id).0;
-    Ok(fork(seq(vec![
+    Ok(fork(seq([
         show_blood_particles(view, context, pos, effect.attacker_pos, particles_count)?,
         message(view, context, pos, "killed")?,
-        vanish(view, target_id),
-        show_blood_spot(view, context, pos)?,
+        fork(show_blood_spot(view, context, pos)?),
+        vanish_with_duration(view, target_id, time_s(1.5)),
     ])))
 }
 
@@ -1097,8 +1105,7 @@ fn visualize_effect_vanish(
     _: &mut Context,
     target_id: Id,
 ) -> Box<dyn Action> {
-    trace!("visualize_effect_vanish!");
-    fork(vanish(view, target_id))
+    fork(vanish_with_duration(view, target_id, time_s(1.2)))
 }
 
 fn visualize_effect_stun(
@@ -1119,7 +1126,7 @@ fn visualize_effect_heal(
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
     let s = format!("healed +{}", effect.strength.0);
-    Ok(seq(vec![
+    Ok(seq([
         action::Sleep::new(time_s(0.5)).boxed(),
         message(view, context, pos, &s)?,
         show_flare(view, context, pos, [0.0, 0.0, 0.9, 0.7].into())?,
@@ -1135,7 +1142,7 @@ fn wound_msg(effect: &effect::Wound) -> String {
         } else if damage == 0 {
             format!("-{} armor", armor_break)
         } else {
-            format!("-{} strength -{} armor", damage, armor_break)
+            format!("-{} strength & {} armor", damage, armor_break)
         }
     } else {
         "no damage".into()
@@ -1159,14 +1166,9 @@ fn visualize_effect_wound(
     let mut actions = Vec::new();
     let msg = wound_msg(effect);
     if effect.damage.0 > 0 || effect.armor_break.0 > 0 {
-        let particles_count = effect.damage.0 * 4;
-        actions.push(show_blood_particles(
-            view,
-            context,
-            pos,
-            effect.attacker_pos,
-            particles_count,
-        )?);
+        let count = effect.damage.0 * 3;
+        let from = effect.attacker_pos;
+        actions.push(show_blood_particles(view, context, pos, from, count)?);
     }
     actions.push(message(view, context, pos, &msg)?);
     actions.push(action::ChangeColorTo::new(&sprite, c_dark, time).boxed());
@@ -1188,7 +1190,7 @@ fn visualize_effect_knockback(
     let to = view.hex_to_point(effect.to);
     let diff = to - from;
     let time = time_s(0.15);
-    Ok(fork(seq(vec![
+    Ok(fork(seq([
         message(view, context, effect.to, "bump")?,
         move_object_with_shadow(view, target_id, diff, time),
     ])))
@@ -1213,10 +1215,10 @@ fn visualize_effect_fly_off(
     let time = action_main_move.duration();
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
     let action_dust = show_dust_at_pos(view, context, effect.to)?;
-    Ok(fork(seq(vec![
-        message(view, context, effect.to, "fly off")?,
+    Ok(fork(seq([
         fork(action_move_shadow),
         action_main_move,
+        message(view, context, effect.to, "fly off")?,
         action_dust,
     ])))
 }
@@ -1236,7 +1238,7 @@ fn visualize_effect_throw(
     let arc_move = arc_move(view, &sprite, diff);
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, arc_move.duration()).boxed();
     let action_dust = show_dust_at_pos(view, context, effect.to)?;
-    Ok(seq(vec![fork(action_move_shadow), arc_move, action_dust]))
+    Ok(seq([fork(action_move_shadow), arc_move, action_dust]))
 }
 
 fn visualize_effect_dodge(
