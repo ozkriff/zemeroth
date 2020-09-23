@@ -620,7 +620,7 @@ fn throw_bomb_damage() {
                         Id(1),
                         vec![effect::Wound {
                             damage: Strength(1),
-                            armor_break: Strength(1),
+                            armor_break: Strength(0),
                             attacker_pos: None,
                         }
                         .into()],

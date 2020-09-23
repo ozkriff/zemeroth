@@ -830,6 +830,11 @@ fn wound_break_kill(
 ) -> Effect {
     let parts = state.parts();
     let strength = parts.strength.get(id).strength;
+    let armor_break = if let Some(a) = parts.armor.get_opt(id) {
+        utils::clamp_max(armor_break, a.armor)
+    } else {
+        Strength(0)
+    };
     let attacker_pos = None; // Let's assume that this is not a directed attack.
     if strength > damage {
         effect::Wound {

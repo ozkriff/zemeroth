@@ -5,7 +5,7 @@ use crate::core::battle::{
     component::{self, Component, Parts, PlannedAbility},
     effect::{self, Duration, Effect},
     event::{self, ActiveEvent, Event},
-    state, Attacks, Id, Jokers, Moves, Phase, PlayerId, State,
+    state, Attacks, Id, Jokers, Moves, Phase, PlayerId, State, Strength,
 };
 
 pub fn apply(state: &mut State, event: &Event) {
@@ -314,6 +314,9 @@ fn apply_effect_wound(state: &mut State, id: Id, effect: &effect::Wound) {
     let parts = state.parts_mut();
     let damage = effect.damage.0;
     assert!(damage >= 0);
+    if effect.armor_break > Strength(0) {
+        assert!(parts.armor.get_opt(id).is_some());
+    }
     if let Some(armor) = parts.armor.get_opt_mut(id) {
         let armor_break = effect.armor_break;
         armor.armor.0 -= armor_break.0;
