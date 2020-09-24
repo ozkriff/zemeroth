@@ -140,51 +140,46 @@ fn execute_attack_internal(
     command: &command::Attack,
     mode: event::AttackMode,
 ) -> AttackStatus {
-    let weapon_type = state.parts().agent.get(command.attacker_id).weapon_type;
-    let active_event = event::Attack {
-        attacker_id: command.attacker_id,
-        target_id: command.target_id,
+    let attacker_id = command.attacker_id;
+    let target_id = command.target_id;
+    let weapon_type = state.parts().agent.get(attacker_id).weapon_type;
+    let event_attack = event::Attack {
+        attacker_id,
+        target_id,
         mode,
         weapon_type,
-    }
-    .into();
-    let mut target_effects = Vec::new();
+    };
+    let mut context = ExecuteContext::default();
     let mut is_kill = false;
-    if let Some(effect) = try_attack(state, command.attacker_id, command.target_id) {
+    if let Some(effect) = try_attack(state, attacker_id, target_id) {
         if let Effect::Kill(_) = effect {
             is_kill = true;
         }
-        target_effects.push(effect);
+        context.instant_effects.push((target_id, vec![effect]));
     }
-    let mut timed_effects = Vec::new();
-    let status = if target_effects.is_empty() {
-        let attacker_pos = state.parts().pos.get(command.attacker_id).0;
-        target_effects.push(effect::Dodge { attacker_pos }.into());
+    let status = if context.instant_effects.is_empty() {
+        let attacker_pos = state.parts().pos.get(attacker_id).0;
+        let dodge = effect::Dodge { attacker_pos }.into();
+        context.instant_effects.push((target_id, vec![dodge]));
         AttackStatus::Miss
     } else {
         if !is_kill {
-            let mut effects = try_execute_passive_abilities_on_attack(
-                state,
-                command.attacker_id,
-                command.target_id,
-            );
-            target_effects.append(&mut effects.instant);
-            if !effects.timed.is_empty() {
-                timed_effects.push((command.target_id, effects.timed));
-            }
+            let c = try_execute_passive_abilities_on_attack(state, attacker_id, target_id);
+            context.merge_with(c);
         }
         AttackStatus::Hit
     };
-    let mut effects = Vec::new();
-    effects.push((command.target_id, target_effects));
     let event = Event {
-        active_event,
-        actor_ids: vec![command.attacker_id],
-        instant_effects: effects,
-        timed_effects,
-        scheduled_abilities: Vec::new(),
+        active_event: event_attack.into(),
+        actor_ids: vec![attacker_id],
+        instant_effects: context.instant_effects,
+        timed_effects: context.timed_effects,
+        scheduled_abilities: context.scheduled_abilities,
     };
     do_event(state, cb, &event);
+    for id in context.moved_actor_ids {
+        try_execute_passive_abilities_on_move(state, cb, id);
+    }
     status
 }
 
@@ -346,21 +341,16 @@ fn try_execute_passive_abilities_on_begin_turn(state: &mut State, cb: Cb) {
     }
 }
 
-#[derive(Debug, Clone, Default)]
-struct Effects {
-    instant: Vec<Effect>,
-    timed: Vec<effect::Timed>,
-}
-
 fn try_execute_passive_abilities_on_attack(
     state: &mut State,
     attacker_id: Id,
     target_id: Id,
-) -> Effects {
-    let mut effects = Effects::default();
-    let target_pos = state.parts().pos.get(target_id).0;
-    let attacker_pos = state.parts().pos.get(attacker_id).0;
-    if let Some(passive_abilities) = state.parts().passive_abilities.get_opt(attacker_id) {
+) -> ExecuteContext {
+    let mut context = ExecuteContext::default();
+    let parts = state.parts();
+    let target_pos = parts.pos.get(target_id).0;
+    let attacker_pos = parts.pos.get(attacker_id).0;
+    if let Some(passive_abilities) = parts.passive_abilities.get_opt(attacker_id) {
         let abilities = passive_abilities.clone();
         for &ability in &abilities.0 {
             trace!("ability: {:?}", ability);
@@ -369,7 +359,7 @@ fn try_execute_passive_abilities_on_attack(
                     let dir = Dir::get_dir_from_to(attacker_pos, target_pos);
                     let from = target_pos;
                     let strength = PushStrength(Weight::Normal);
-                    let blocker_weight = state.parts().blocker.get(target_id).weight;
+                    let blocker_weight = parts.blocker.get(target_id).weight;
                     let to = if strength.can_push(blocker_weight) {
                         Dir::get_neighbor_pos(target_pos, dir)
                     } else {
@@ -378,17 +368,18 @@ fn try_execute_passive_abilities_on_attack(
                     let is_inboard = state.map().is_inboard(to);
                     if to == from || is_inboard && !state::is_tile_blocked(state, to) {
                         let effect = effect::FlyOff { from, to, strength }.into();
-                        effects.instant.push(effect);
+                        context.instant_effects.push((target_id, vec![effect]));
+                        context.moved_actor_ids.push(target_id);
                     }
                 }
                 PassiveAbility::PoisonAttack => {
-                    let owner = state.parts().belongs_to.get(target_id).0;
+                    let owner = parts.belongs_to.get(target_id).0;
                     let effect = effect::Timed {
                         duration: effect::Duration::Rounds(2),
                         phase: Phase::from_player_id(owner),
                         effect: effect::Lasting::Poison,
                     };
-                    effects.timed.push(effect);
+                    context.timed_effects.push((target_id, vec![effect]));
                 }
                 PassiveAbility::Burn
                 | PassiveAbility::SpikeTrap
@@ -398,7 +389,7 @@ fn try_execute_passive_abilities_on_attack(
             }
         }
     }
-    effects
+    context
 }
 
 fn try_execute_reaction_attacks(state: &mut State, cb: Cb, target_id: Id) -> AttackStatus {
