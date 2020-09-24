@@ -36,7 +36,7 @@ pub struct ExactObject {
 
 // TODO: Split into `Scenario` (exact info) and `ScenarioTemplate`?
 //  Rename  `exact_*` fields to just `*`.
-#[serde(default = "default")]
+#[serde(default)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scenario {
     pub map_radius: map::Distance,
@@ -100,6 +100,19 @@ impl Scenario {
             return Err(Error::NoEnemyAgents);
         }
         Ok(())
+    }
+}
+
+impl Default for Scenario {
+    fn default() -> Self {
+        Self {
+            map_radius: map::Distance(5),
+            players_count: 2,
+            rocky_tiles_count: 0,
+            exact_tiles: HashMap::new(),
+            objects: Vec::new(),
+            exact_objects: Vec::new(),
+        }
     }
 }
 
@@ -179,17 +192,6 @@ pub fn random_pos(state: &State, owner: Option<PlayerId>, line: Option<Line>) ->
     match (owner, line) {
         (Some(player_id), Some(line)) => random_free_sector_pos(state, player_id, line),
         _ => random_free_pos(state),
-    }
-}
-
-pub fn default() -> Scenario {
-    Scenario {
-        map_radius: map::Distance(5),
-        players_count: 2,
-        rocky_tiles_count: 0,
-        exact_tiles: HashMap::new(),
-        objects: Vec::new(),
-        exact_objects: Vec::new(),
     }
 }
 

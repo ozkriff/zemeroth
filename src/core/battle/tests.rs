@@ -14,7 +14,7 @@ use crate::core::{
         event::{self, ActiveEvent, AttackMode, Event},
         execute::{execute, ApplyPhase},
         movement::Path,
-        scenario::{self, ExactObject, Scenario},
+        scenario::{ExactObject, Scenario},
         state::BattleResult,
         Accuracy, Attacks, Dodge, Id, Jokers, MovePoints, Moves, Phase, PlayerId, PushStrength,
         State, Strength, Weight,
@@ -223,7 +223,7 @@ fn exec_and_check(state: &mut State, command: impl Into<Command>, expected_event
 #[should_panic(expected = "NoPlayerAgents")]
 fn bad_scenario_no_player_agents() {
     let prototypes = prototypes(&[("obj", Vec::new())]);
-    let scenario = scenario::default().object_without_owner("obj", PosHex { q: 0, r: 0 });
+    let scenario = Scenario::default().object_without_owner("obj", PosHex { q: 0, r: 0 });
     let (_state, _events) = debug_state_with_events(prototypes, scenario);
 }
 
@@ -231,7 +231,7 @@ fn bad_scenario_no_player_agents() {
 #[should_panic(expected = "NoEnemyAgents")]
 fn bad_scenario_no_enemy_agents() {
     let prototypes = prototypes(&[("agent", [component_agent_dull()].to_vec())]);
-    let scenario = scenario::default().object(P0, "agent", PosHex { q: 0, r: 0 });
+    let scenario = Scenario::default().object(P0, "agent", PosHex { q: 0, r: 0 });
     let (_state, _events) = debug_state_with_events(prototypes, scenario);
 }
 
@@ -239,7 +239,7 @@ fn bad_scenario_no_enemy_agents() {
 #[test]
 fn bad_scenario_bad_pos() {
     let prototypes = prototypes(&[("obj", Vec::new())]);
-    let scenario = scenario::default().object(P0, "obj", PosHex { q: 10, r: 0 });
+    let scenario = Scenario::default().object(P0, "obj", PosHex { q: 10, r: 0 });
     let (_state, _events) = debug_state_with_events(prototypes, scenario);
 }
 
@@ -248,7 +248,7 @@ fn bad_scenario_bad_pos() {
 #[test]
 fn create() {
     let prototypes = prototypes(&[("agent", [component_agent_dull()].to_vec())]);
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "agent", PosHex { q: 0, r: 0 })
         .object(P1, "agent", PosHex { q: 0, r: 2 });
     let (_state, events) = debug_state_with_events(prototypes, scenario);
@@ -304,7 +304,7 @@ fn basic_move() {
         ("mover", [component_agent_move_basic()].to_vec()),
         ("dull", [component_agent_dull()].to_vec()),
     ]);
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "mover", PosHex { q: 0, r: 0 })
         .object(P1, "dull", PosHex { q: 0, r: 2 });
     let mut state = debug_state(prototypes, scenario);
@@ -344,7 +344,7 @@ fn basic_attack() {
         ),
     ]);
     let attacker_pos = PosHex { q: 0, r: 0 };
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "swordsman", attacker_pos)
         .object(P1, "imp", PosHex { q: 0, r: 1 });
     let mut state = debug_state(prototypes, scenario);
@@ -394,7 +394,7 @@ fn kill_and_end_the_battle() {
         ),
     ]);
     let attacker_pos = PosHex { q: 0, r: 0 };
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "swordsman", attacker_pos)
         .object(P1, "imp", PosHex { q: 0, r: 1 });
     let mut state = debug_state(prototypes, scenario);
@@ -453,7 +453,7 @@ fn throw_bomb_no_harm() {
         ("dull", [component_agent_dull()].to_vec()),
         ("bomb_damage", Vec::new()),
     ]);
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "thrower", PosHex { q: 0, r: 0 })
         .object(P1, "dull", PosHex { q: 0, r: 3 });
     let mut state = debug_state(prototypes, scenario);
@@ -546,7 +546,7 @@ fn throw_bomb_damage() {
         ),
         ("bomb_damage", Vec::new()),
     ]);
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "thrower", PosHex { q: 0, r: 0 })
         .object(P1, "weak", PosHex { q: 0, r: 3 });
     let mut state = debug_state(prototypes, scenario);
@@ -651,7 +651,7 @@ fn throw_bomb_poison() {
             vec![component_passive_abilities(&[PassiveAbility::Poison])],
         ),
     ]);
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "thrower", PosHex { q: 0, r: 0 })
         .object(P1, "weak", PosHex { q: 0, r: 3 });
     let mut state = debug_state(prototypes, scenario);
@@ -885,7 +885,7 @@ fn throw_two_fire_bombs() {
             vec![component_passive_abilities(&[PassiveAbility::Burn])],
         ),
     ]);
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "thrower", PosHex { q: 0, r: 0 })
         .object(P0, "thrower", PosHex { q: -1, r: 0 })
         .object(P1, "dull", PosHex { q: 0, r: -3 });
@@ -1165,7 +1165,7 @@ fn stun() {
             ],
         ),
     ]);
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "attacker", PosHex { q: 0, r: 0 })
         .object(P1, "target", PosHex { q: 0, r: 1 });
     let mut state = debug_state(prototypes, scenario);
@@ -1250,7 +1250,7 @@ fn throw_bomb_push_normal() {
         ),
         ("bomb_push", Vec::new()),
     ]);
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "thrower", PosHex { q: 0, r: 0 })
         .object(P1, "weak", PosHex { q: 0, r: 3 });
     let mut state = debug_state(prototypes, scenario);
@@ -1350,7 +1350,7 @@ fn throw_bomb_push_heavy() {
         ("bomb_push", Vec::new()),
     ]);
     let initial_heavy_position = PosHex { q: 1, r: 2 };
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "thrower", PosHex { q: 0, r: 0 })
         .object(P1, "heavy", initial_heavy_position);
     let mut state = debug_state(prototypes, scenario);
@@ -1450,7 +1450,7 @@ fn knockback_normal_vs_normal() {
     ]);
     let target_position_initial = PosHex { q: 0, r: 1 };
     let target_position_updated = PosHex { q: 0, r: 2 };
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "knockbacker", PosHex { q: 0, r: 0 })
         .object(P1, "normal_target", target_position_initial);
     let mut state = debug_state(prototypes, scenario);
@@ -1506,7 +1506,7 @@ fn knockback_normal_vs_heavy() {
         ),
     ]);
     let initial_heavy_position = PosHex { q: 0, r: 1 };
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "knockbacker", PosHex { q: 0, r: 0 })
         .object(P1, "heavy_target", initial_heavy_position);
     let mut state = debug_state(prototypes, scenario);
@@ -1564,7 +1564,7 @@ fn heavy_strike_flyoff_normal_vs_normal() {
     let position_attacker = PosHex { q: 0, r: 0 };
     let position_target_initial = PosHex { q: 0, r: 1 };
     let position_target_updated = PosHex { q: 0, r: 2 };
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "heavy_impacter", position_attacker)
         .object(P1, "normal_target", position_target_initial);
     let mut state = debug_state(prototypes, scenario);
@@ -1629,7 +1629,7 @@ fn heavy_strike_flyoff_normal_vs_heavy() {
     ]);
     let position_attacker = PosHex { q: 0, r: 0 };
     let position_target = PosHex { q: 0, r: 1 };
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "heavy_impacter", position_attacker)
         .object(P1, "heavy_target", position_target);
     let mut state = debug_state(prototypes, scenario);
@@ -1700,7 +1700,7 @@ fn heavy_strike_flyoff_on_spikes() {
     let position_target_initial = PosHex { q: 0, r: 1 };
     let position_target_updated = PosHex { q: 0, r: 2 };
     let position_spikes = position_target_updated;
-    let scenario = scenario::default()
+    let scenario = Scenario::default()
         .object(P0, "heavy_impacter", position_attacker)
         .object(P1, "normal_target", position_target_initial)
         .object_without_owner("spike_trap", position_spikes);
