@@ -234,7 +234,7 @@ mod tests {
     use crate::core::{
         battle::{
             component::ObjType,
-            scenario::{self, Line, ObjectsGroup, Scenario},
+            scenario::{Line, ObjectsGroup, Scenario},
             state::BattleResult,
             PlayerId,
         },
@@ -323,7 +323,7 @@ mod tests {
                     (id_0, "swordsman", Some(Line::Front), 1).into(),
                     (id_1, "imp", Some(Line::Front), 2).into(),
                 ],
-                ..scenario::default()
+                ..Scenario::default()
             };
             let award = Award {
                 recruits: vec![],
@@ -350,7 +350,7 @@ mod tests {
                         (id_0, "swordsman", Some(Line::Front), 1).into(),
                         (id_1, "imp", Some(Line::Front), 2).into(),
                     ],
-                    ..scenario::default()
+                    ..Scenario::default()
                 },
                 award: Award {
                     recruits: vec!["spearman".into()],
@@ -363,7 +363,7 @@ mod tests {
                         (None, "boulder", None, 3).into(),
                         (id_1, "imp", Some(Line::Front), 4).into(),
                     ],
-                    ..scenario::default()
+                    ..Scenario::default()
                 },
                 award: Award {
                     recruits: Vec::new(),
