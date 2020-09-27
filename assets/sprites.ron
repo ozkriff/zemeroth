@@ -183,6 +183,7 @@
         offset_x: 0.0,
         offset_y: 0.2,
         shadow_size_coefficient: 0.001,
+        sub_tile_z: 0.1,
     ),
     "poison_cloud": (
         paths: {
@@ -191,6 +192,7 @@
         offset_x: 0.0,
         offset_y: 0.2,
         shadow_size_coefficient: 2.0,
+        sub_tile_z: 0.2,
     ),
     "spike_trap": (
         paths: {
@@ -199,5 +201,6 @@
         offset_x: 0.0,
         offset_y: 0.5,
         shadow_size_coefficient: 1.4,
+        sub_tile_z: -0.1,
     ),
 }

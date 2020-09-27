@@ -52,6 +52,19 @@ pub fn fork(action: Box<dyn Action>) -> Box<dyn Action> {
     action::Fork::new(action).boxed()
 }
 
+fn action_set_z(layer: &zscene::Layer, sprite: &Sprite, z: f32) -> Box<dyn Action> {
+    let sprite = sprite.clone();
+    let mut layer = layer.clone();
+    let closure = Box::new(move || {
+        layer.set_z(&sprite, z);
+    });
+    action::Custom::new(closure).boxed()
+}
+
+fn hex_pos_to_z(pos: PosHex) -> f32 {
+    pos.r as _
+}
+
 pub fn message(
     view: &mut BattleView,
     context: &mut Context,
@@ -652,6 +665,7 @@ fn visualize_event_move_to(
         let move_time = time_s(0.3);
         let action = seq([
             action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed(),
+            action_set_z(&view.layers().objects, &sprite, hex_pos_to_z(step.to)),
             fork(move_object_with_shadow(view, event.id, diff, move_time)),
             up_and_down_move(view, &sprite, step_height, step_time),
             up_and_down_move(view, &sprite, step_height, step_time),
@@ -778,14 +792,17 @@ fn visualize_event_use_ability_jump(
     let diff = to - from;
     let action_arc_move = arc_move(view, &sprite_object, diff);
     let time = action_arc_move.duration();
+    let z = hex_pos_to_z(event.pos);
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
     let action_dust = show_dust_at_pos(view, context, event.pos)?;
     let mut actions = Vec::new();
+    actions.push(action_set_z(&view.layers().objects, &sprite_object, 200.0));
     if sprite_object.has_frame("jump") {
         actions.push(action::SetFrame::new(&sprite_object, "jump").boxed());
     }
     actions.push(fork(action_move_shadow));
     actions.push(action_arc_move);
+    actions.push(action_set_z(&view.layers().objects, &sprite_object, z));
     if sprite_object.has_frame("jump") {
         actions.push(action::SetFrame::new(&sprite_object, "").boxed());
     }
@@ -799,12 +816,17 @@ fn visualize_event_use_ability_dash(
     _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
+    let sprite = view.id_to_sprite(event.id).clone();
+    let z = hex_pos_to_z(event.pos);
     let from = state.parts().pos.get(event.id).0;
     let point_from = view.hex_to_point(from);
     let point_to = view.hex_to_point(event.pos);
     let diff = point_to - point_from;
     let time = time_s(0.1);
-    Ok(move_object_with_shadow(view, event.id, diff, time))
+    Ok(seq([
+        action_set_z(&view.layers().objects, &sprite, z),
+        move_object_with_shadow(view, event.id, diff, time),
+    ]))
 }
 
 fn visualize_event_use_ability_heal(
@@ -1037,7 +1059,9 @@ fn visualize_effect_create(
         offset_x,
         offset_y,
         shadow_size_coefficient,
+        sub_tile_z,
     } = view.sprite_info(&effect.prototype);
+    let z = hex_pos_to_z(effect.pos) + sub_tile_z;
     let point = view.hex_to_point(effect.pos);
     let color = [1.0, 1.0, 1.0, 1.0].into();
     let size = view.tile_size() * 2.0;
@@ -1077,6 +1101,7 @@ fn visualize_effect_create(
     }
     actions.push(action::Show::new(&view.layers().shadows, &sprite_shadow).boxed());
     actions.push(action::Show::new(&view.layers().objects, &sprite_object).boxed());
+    actions.push(action_set_z(&view.layers().objects, &sprite_object, z));
     actions.push(fork(action_change_shadow_color));
     actions.push(action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed());
     Ok(fork(seq(actions)))
@@ -1186,12 +1211,15 @@ fn visualize_effect_knockback(
     if effect.from == effect.to {
         return message(view, context, effect.from, "Resisted knockback");
     }
+    let sprite = view.id_to_sprite(target_id).clone();
+    let z = hex_pos_to_z(effect.to);
     let from = view.hex_to_point(effect.from);
     let to = view.hex_to_point(effect.to);
     let diff = to - from;
     let time = time_s(0.15);
     Ok(fork(seq([
         message(view, context, effect.to, "bump")?,
+        action_set_z(&view.layers().objects, &sprite, z),
         move_object_with_shadow(view, target_id, diff, time),
     ])))
 }
@@ -1208,6 +1236,7 @@ fn visualize_effect_fly_off(
     }
     let sprite_object = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
+    let z = hex_pos_to_z(effect.to);
     let from = view.hex_to_point(effect.from);
     let to = view.hex_to_point(effect.to);
     let diff = to - from;
@@ -1217,6 +1246,7 @@ fn visualize_effect_fly_off(
     let action_dust = show_dust_at_pos(view, context, effect.to)?;
     Ok(fork(seq([
         fork(action_move_shadow),
+        action_set_z(&view.layers().objects, &sprite_object, z),
         action_main_move,
         message(view, context, effect.to, "fly off")?,
         action_dust,
@@ -1232,13 +1262,18 @@ fn visualize_effect_throw(
 ) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
+    let z = hex_pos_to_z(effect.to);
     let from = view.hex_to_point(effect.from);
     let to = view.hex_to_point(effect.to);
     let diff = to - from;
     let arc_move = arc_move(view, &sprite, diff);
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, arc_move.duration()).boxed();
-    let action_dust = show_dust_at_pos(view, context, effect.to)?;
-    Ok(seq([fork(action_move_shadow), arc_move, action_dust]))
+    Ok(seq([
+        fork(action_move_shadow),
+        arc_move,
+        action_set_z(&view.layers().objects, &sprite, z),
+        show_dust_at_pos(view, context, effect.to)?,
+    ]))
 }
 
 fn visualize_effect_dodge(
