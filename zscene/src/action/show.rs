@@ -18,7 +18,6 @@ impl Show {
 impl Action for Show {
     fn begin(&mut self) {
         assert!(!self.layer.has_sprite(&self.sprite)); // TODO: add unit test for this
-        let mut data = self.layer.data.borrow_mut();
-        data.sprites.push(self.sprite.clone());
+        self.layer.add(&self.sprite);
     }
 }

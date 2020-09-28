@@ -2,8 +2,6 @@ use std::{cell::RefCell, fmt, rc::Rc, time::Duration};
 
 use gwg::{Context, GameResult};
 
-// TODO: z-order? (https://github.com/ozkriff/zemeroth/issues/319)
-
 pub use crate::{
     action::{Action, Boxed},
     sprite::{Facing, Sprite},
@@ -46,8 +44,14 @@ impl From<gwg::GameError> for Error {
 }
 
 #[derive(Debug)]
+struct SpriteWithZ {
+    sprite: Sprite,
+    z: f32,
+}
+
+#[derive(Debug)]
 struct LayerData {
-    sprites: Vec<Sprite>,
+    sprites: Vec<SpriteWithZ>,
 }
 
 #[derive(Debug, Clone)]
@@ -66,17 +70,39 @@ impl Layer {
     }
 
     pub fn add(&mut self, sprite: &Sprite) {
-        self.data.borrow_mut().sprites.push(sprite.clone());
+        let sprite = SpriteWithZ {
+            sprite: sprite.clone(),
+            z: 0.0,
+        };
+        self.data.borrow_mut().sprites.push(sprite);
+        self.sort();
+    }
+
+    pub fn set_z(&mut self, sprite: &Sprite, z: f32) {
+        {
+            let sprites = &mut self.data.borrow_mut().sprites;
+            let sprite = sprites
+                .iter_mut()
+                .find(|other| other.sprite.is_same(sprite))
+                .expect("can't find the sprite");
+            sprite.z = z;
+        }
+        self.sort();
+    }
+
+    fn sort(&mut self) {
+        let sprites = &mut self.data.borrow_mut().sprites;
+        sprites.sort_by(|a, b| a.z.partial_cmp(&b.z).expect("can't find the sprite"));
     }
 
     pub fn remove(&mut self, sprite: &Sprite) {
         let mut data = self.data.borrow_mut();
-        data.sprites.retain(|another| !sprite.is_same(another))
+        data.sprites.retain(|other| !sprite.is_same(&other.sprite))
     }
 
     pub fn has_sprite(&self, sprite: &Sprite) -> bool {
-        let data = self.data.borrow();
-        data.sprites.iter().any(|other| other.is_same(sprite))
+        let sprites = &self.data.borrow_mut().sprites;
+        sprites.iter().any(|other| other.sprite.is_same(sprite))
     }
 }
 
@@ -102,8 +128,8 @@ impl Scene {
 
     pub fn draw(&self, context: &mut Context) -> GameResult<()> {
         for layer in &self.layers {
-            for sprite in &layer.data.borrow().sprites {
-                sprite.draw(context)?;
+            for z_sprite in &layer.data.borrow().sprites {
+                z_sprite.sprite.draw(context)?;
             }
         }
         Ok(())

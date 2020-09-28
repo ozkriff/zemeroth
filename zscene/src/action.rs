@@ -1,12 +1,13 @@
 use std::{fmt::Debug, time::Duration};
 
 pub use crate::action::{
-    change_color_to::ChangeColorTo, empty::Empty, fork::Fork, hide::Hide, move_by::MoveBy,
-    sequence::Sequence, set_color::SetColor, set_facing::SetFacing, set_frame::SetFrame,
-    show::Show, sleep::Sleep,
+    change_color_to::ChangeColorTo, custom::Custom, empty::Empty, fork::Fork, hide::Hide,
+    move_by::MoveBy, sequence::Sequence, set_color::SetColor, set_facing::SetFacing,
+    set_frame::SetFrame, show::Show, sleep::Sleep,
 };
 
 mod change_color_to;
+mod custom;
 mod empty;
 mod fork;
 mod hide;
