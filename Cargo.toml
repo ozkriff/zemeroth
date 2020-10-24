@@ -15,10 +15,10 @@ members = ["zcomponents", "zgui", "zscene"]
 [dependencies]
 ron = "0.6"
 log = "0.4"
-env_logger = "0.7"
+env_logger = "0.8"
 derive_more = "0.99"
 serde = { version = "1.0", features = ['derive'] }
-num = { version = "0.2", default-features = false }
+num = { version = "0.3", default-features = false }
 ui = { path = "zgui", package = "zgui" }
 zscene = { path = "zscene" }
 zcomponents = { path = "zcomponents" }

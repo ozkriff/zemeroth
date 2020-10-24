@@ -1,6 +1,6 @@
 name: Release
 
-on: 
+on:
   release:
     types: [published]
 
@@ -46,7 +46,7 @@ jobs:
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install libx11-dev libxi-dev libgl1-mesa-dev
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
