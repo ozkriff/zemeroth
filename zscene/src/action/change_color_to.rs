@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use gwg::{graphics::Color, timer};
+//use gwg::{graphics::Color, timer};
+
+use macroquad::prelude::Color;
 
 use crate::{Action, Sprite};
 
@@ -34,20 +36,22 @@ impl Action for ChangeColorTo {
         if dtime + self.progress > self.duration {
             dtime = self.duration - self.progress;
         }
-        let progress_f = timer::duration_to_f64(self.progress) as f32;
-        let duration_f = timer::duration_to_f64(self.duration) as f32;
+        let progress_f = crate::duration_to_f64(self.progress) as f32;
+        let duration_f = crate::duration_to_f64(self.duration) as f32;
         let k = progress_f / duration_f;
         let mut color = [0.0; 4];
         for (i, color_i) in color.iter_mut().enumerate().take(4) {
             let diff = self.to[i] - self.from[i];
             *color_i = self.from[i] + diff * k;
         }
-        self.sprite.set_color(color.into());
+        self.sprite
+            .set_color(Color::new(color[0], color[1], color[2], color[3]));
         self.progress += dtime;
     }
 
     fn end(&mut self) {
-        self.sprite.set_color(self.to.into());
+        self.sprite
+            .set_color(Color::new(self.to[0], self.to[1], self.to[2], self.to[3]));
     }
 
     fn duration(&self) -> Duration {

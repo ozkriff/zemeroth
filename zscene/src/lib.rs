@@ -1,6 +1,6 @@
 use std::{cell::RefCell, fmt, rc::Rc, time::Duration};
 
-use gwg::{Context, GameResult};
+//use gwg::{Context, GameResult};
 
 pub use crate::{
     action::{Action, Boxed},
@@ -13,16 +13,20 @@ mod sprite;
 
 pub type Result<T = ()> = std::result::Result<T, Error>;
 
+pub fn duration_to_f64(d: Duration) -> f64 {
+    d.as_secs() as f64 + d.subsec_nanos() as f64 * 1e-9
+}
+
 #[derive(Debug)]
 pub enum Error {
-    GwgError(gwg::GameError),
+    GwgError,
     NoDimensions,
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Error::GwgError(ref e) => write!(f, "gwg Error: {}", e),
+            Error::GwgError => write!(f, "gwg Error"),
             Error::NoDimensions => write!(f, "The drawable has no dimensions"),
         }
     }
@@ -31,17 +35,17 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::GwgError(ref e) => Some(e),
+            Error::GwgError => None,
             Error::NoDimensions => None,
         }
     }
 }
 
-impl From<gwg::GameError> for Error {
-    fn from(e: gwg::GameError) -> Self {
-        Error::GwgError(e)
-    }
-}
+// impl From<gwg::GameError> for Error {
+//     fn from(e: gwg::GameError) -> Self {
+//         Error::GwgError(e)
+//     }
+// }
 
 #[derive(Debug)]
 struct SpriteWithZ {
@@ -126,13 +130,12 @@ impl Scene {
         }
     }
 
-    pub fn draw(&self, context: &mut Context) -> GameResult<()> {
+    pub fn draw(&self) {
         for layer in &self.layers {
             for z_sprite in &layer.data.borrow().sprites {
-                z_sprite.sprite.draw(context)?;
+                z_sprite.sprite.draw();
             }
         }
-        Ok(())
     }
 
     pub fn add_action(&mut self, action: Box<dyn Action>) {

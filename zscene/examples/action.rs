@@ -1,10 +1,7 @@
 use std::time::Duration;
 
-use gwg::{
-    conf, event,
-    graphics::{self, Font, Point2, Rect, Text, Vector2},
-    Context, GameResult,
-};
+use macroquad::prelude::*;
+
 use zscene::{self as zscene, action, Boxed, Layer, Scene, Sprite};
 
 #[derive(Debug, Clone, Default)]
@@ -26,8 +23,8 @@ struct State {
 }
 
 impl State {
-    fn new(context: &mut Context) -> zscene::Result<Self> {
-        let font = graphics::Font::new(context, "/Karla-Regular.ttf")?;
+    async fn new() -> zscene::Result<Self> {
+        let font = load_ttf_font("./resources/Karla-Regular.ttf").await;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
         let mut this = Self {
@@ -35,19 +32,15 @@ impl State {
             scene,
             layers,
         };
-        this.demo_move(context)?;
-        this.demo_show_hide(context)?;
-        {
-            let (w, h) = graphics::drawable_size(context);
-            this.resize(context, w as _, h as _)?;
-        }
+        this.demo_move().await?;
+        this.demo_show_hide()?;
         Ok(this)
     }
 
-    fn demo_move(&mut self, context: &mut Context) -> zscene::Result {
-        let mut sprite = Sprite::from_path(context, "/fire.png", 0.5)?;
-        sprite.set_pos(Point2::new(0.0, -1.0));
-        let delta = Vector2::new(0.0, 1.5);
+    async fn demo_move(&mut self) -> zscene::Result {
+        let mut sprite = Sprite::from_path("./resources/fire.png", 0.5).await?;
+        sprite.set_pos(Vec2::new(0.0, -1.0));
+        let delta = Vec2::new(0.0, 1.5);
         let move_duration = Duration::from_millis(2_000);
         let action = action::Sequence::new(vec![
             action::Show::new(&self.layers.fg, &sprite).boxed(),
@@ -57,19 +50,18 @@ impl State {
         Ok(())
     }
 
-    fn demo_show_hide(&mut self, context: &mut Context) -> zscene::Result {
+    fn demo_show_hide(&mut self) -> zscene::Result {
         let mut sprite = {
-            let font_size = 32.0;
-            let text = Box::new(Text::new(("some text", self.font, font_size)));
-            let mut sprite = Sprite::from_drawable(context, text, 0.1)?;
-            sprite.set_pos(Point2::new(0.0, 0.0));
+            let font_size = 32;
+            let mut sprite = Sprite::from_text(("some text", self.font, font_size), 0.1)?;
+            sprite.set_pos(Vec2::new(0.0, 0.0));
             sprite.set_scale(2.0); // just testing set_size method
             let scale = sprite.scale();
             assert!((scale - 2.0).abs() < 0.001);
             sprite
         };
-        let visible = [0.0, 1.0, 0.0, 1.0].into();
-        let invisible = graphics::Color { a: 0.0, ..visible };
+        let visible = Color::new(0.0, 1.0, 0.0, 1.0);
+        let invisible = Color::new(0.0, 1.0, 0.0, 0.0);
         sprite.set_color(invisible);
         let t = Duration::from_millis(1_000);
         let action = action::Sequence::new(vec![
@@ -82,39 +74,30 @@ impl State {
         self.scene.add_action(action.boxed());
         Ok(())
     }
-
-    fn resize(&mut self, context: &mut Context, w: f32, h: f32) -> zscene::Result {
-        let aspect_ratio = w / h;
-        let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-        graphics::set_screen_coordinates(context, coordinates)?;
-        Ok(())
-    }
 }
 
-impl event::EventHandler for State {
-    fn update(&mut self, context: &mut Context) -> GameResult {
-        let dtime = gwg::timer::delta(context);
-        self.scene.tick(dtime);
-        Ok(())
-    }
+#[macroquad::main("Text")]
+async fn main() {
+    let mut state = State::new().await.expect("Can't create the state");
 
-    fn draw(&mut self, context: &mut Context) -> GameResult {
-        graphics::clear(context, [0.0, 0.0, 0.0, 1.0].into());
-        self.scene.draw(context)?;
-        graphics::present(context)
-    }
+    loop {
+        clear_background(BLACK);
 
-    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
-        self.resize(context, w, h).expect("Can't resize the window");
-    }
-}
+        {
+            let w = screen_width();
+            let h = screen_height();
+            let aspect_ratio = w / h;
+            let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
+            let camera = Camera2D::from_display_rect(coordinates);
 
-fn main() -> gwg::GameResult {
-    gwg::start(
-        conf::Conf {
-            physical_root_dir: Some("resources".into()),
-            ..Default::default()
-        },
-        |mut context| Box::new(State::new(&mut context).expect("Can't create the state")),
-    )
+            set_camera(camera);
+        }
+
+        let dtime = get_frame_time();
+
+        state.scene.tick(Duration::from_secs_f32(dtime));
+        state.scene.draw();
+
+        next_frame().await;
+    }
 }

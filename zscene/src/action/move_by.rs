@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use gwg::{graphics::Vector2, timer};
+use macroquad::prelude::Vec2;
 
 use crate::{Action, Sprite};
 
@@ -8,12 +8,12 @@ use crate::{Action, Sprite};
 pub struct MoveBy {
     sprite: Sprite,
     duration: Duration,
-    delta: Vector2,
+    delta: Vec2,
     progress: Duration,
 }
 
 impl MoveBy {
-    pub fn new(sprite: &Sprite, delta: Vector2, duration: Duration) -> Self {
+    pub fn new(sprite: &Sprite, delta: Vec2, duration: Duration) -> Self {
         Self {
             sprite: sprite.clone(),
             delta,
@@ -29,8 +29,8 @@ impl Action for MoveBy {
         if dtime + self.progress > self.duration {
             dtime = self.duration - self.progress;
         }
-        let dtime_f = timer::duration_to_f64(dtime) as f32;
-        let duration_f = timer::duration_to_f64(self.duration) as f32;
+        let dtime_f = crate::duration_to_f64(dtime) as f32;
+        let duration_f = crate::duration_to_f64(self.duration) as f32;
         let new_pos = old_pos + self.delta * (dtime_f / duration_f);
         self.sprite.set_pos(new_pos);
         self.progress += dtime;

@@ -1,8 +1,15 @@
+#![allow(warnings)]
+
 use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::Rc};
 
-use gwg::{
-    graphics::{self, Drawable, Point2, Rect, Vector2},
-    Context, GameResult,
+// use gwg::{
+//     graphics::{self, Drawable, Point2, Rect, Vector2},
+//     Context, GameResult,
+// };
+
+use macroquad::prelude::{
+    draw_text_ex, draw_texture_ex, load_texture, measure_text, vec2, Color, DrawTextureParams,
+    Font, Rect, TextParams, Texture2D, Vec2, WHITE,
 };
 
 use crate::{Error, Result};
@@ -13,14 +20,42 @@ pub enum Facing {
     Right,
 }
 
+enum Drawable {
+    Texture(Texture2D),
+    Text {
+        label: String,
+        font: Font,
+        font_size: u16,
+    },
+}
+impl Drawable {
+    fn dimensions(&self) -> Rect {
+        match self {
+            Drawable::Texture(texture) => {
+                Rect::new(0.0, 0.0, texture.width() as _, texture.height() as _)
+            }
+            Drawable::Text {
+                label,
+                font,
+                font_size,
+            } => {
+                let (w, h) = measure_text(&label, Some(*font), *font_size, 1.0);
+                Rect::new(0.0, 0.0, w, h)
+            }
+        }
+    }
+}
+
 struct SpriteData {
-    drawable: Option<Box<dyn Drawable>>,
-    drawables: HashMap<String, Option<Box<dyn Drawable>>>,
+    drawable: Option<Drawable>,
+    drawables: HashMap<String, Option<Drawable>>,
     current_frame_name: String,
     dimensions: Rect,
     basic_scale: f32,
-    param: graphics::DrawParam,
-    offset: Vector2,
+    pos: Vec2,
+    scale: Vec2,
+    color: Color,
+    offset: Vec2,
     facing: Facing,
 }
 
@@ -32,7 +67,8 @@ impl fmt::Debug for SpriteData {
             .field("current_frame_name", &self.current_frame_name)
             .field("dimensions", &self.dimensions)
             .field("basic_scale", &self.basic_scale)
-            .field("param", &self.param)
+            .field("pos", &self.pos)
+            .field("scale", &self.scale)
             .field("offset", &self.offset)
             .field("facing", &self.facing)
             .finish()
@@ -45,20 +81,9 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    pub fn from_drawable(
-        context: &mut Context,
-        drawable: Box<dyn Drawable>,
-        height: f32,
-    ) -> Result<Self> {
-        let dimensions = match drawable.dimensions(context) {
-            Some(dimensions) => dimensions,
-            None => return Err(Error::NoDimensions),
-        };
+    fn from_drawable(drawable: Drawable, height: f32) -> Result<Self> {
+        let dimensions = drawable.dimensions();
         let scale = height / dimensions.h;
-        let param = graphics::DrawParam {
-            scale: [scale, scale].into(),
-            ..Default::default()
-        };
         let mut drawables = HashMap::new();
         drawables.insert("".into(), None);
         let data = SpriteData {
@@ -67,117 +92,166 @@ impl Sprite {
             current_frame_name: "".into(),
             dimensions,
             basic_scale: scale,
-            param,
-            offset: Vector2::new(0.0, 0.0),
+            scale: vec2(scale, scale),
+            offset: vec2(0.0, 0.0),
+            color: Color::new(1.0, 1.0, 1.0, 1.0),
+            pos: vec2(0.0, 0.0),
             facing: Facing::Right,
         };
         let data = Rc::new(RefCell::new(data));
         Ok(Self { data })
     }
 
-    pub fn from_image(context: &mut Context, image: graphics::Image, height: f32) -> Result<Self> {
-        Self::from_drawable(context, Box::new(image), height)
+    pub fn from_image(image: Texture2D, height: f32) -> Result<Self> {
+        Self::from_drawable(Drawable::Texture(image), height)
     }
 
-    pub fn from_path<P: AsRef<Path>>(context: &mut Context, path: P, height: f32) -> Result<Self> {
-        let image = graphics::Image::new(context, path)?;
-        Self::from_image(context, image, height)
+    pub fn from_text((label, font, font_size): (&str, Font, u16), height: f32) -> Result<Self> {
+        Self::from_drawable(
+            Drawable::Text {
+                label: label.to_string(),
+                font,
+                font_size,
+            },
+            height,
+        )
     }
 
-    pub fn add_frame(&mut self, frame_name: String, drawable: Box<dyn Drawable>) {
-        let mut data = self.data.borrow_mut();
-        data.drawables.insert(frame_name, Some(drawable));
+    pub async fn from_path(path: &str, height: f32) -> Result<Self> {
+        let image = load_texture(path).await;
+        Self::from_image(image, height)
     }
 
-    pub fn from_paths<S: Eq + Hash + std::borrow::Borrow<str>, P: AsRef<Path>>(
-        context: &mut Context,
-        paths: &HashMap<S, P>,
-        height: f32,
-    ) -> Result<Self> {
-        let path = paths.get(&"").expect("missing default path");
-        let mut this = Self::from_path(context, path.as_ref(), height)?;
-        for (frame_name, frame_path) in paths.iter() {
-            let image = graphics::Image::new(context, frame_path)?;
-            this.add_frame(frame_name.borrow().to_string(), Box::new(image));
-        }
-        Ok(this)
-    }
+    // pub fn add_frame(&mut self, frame_name: String, drawable: Box<dyn Drawable>) {
+    //     let mut data = self.data.borrow_mut();
+    //     data.drawables.insert(frame_name, Some(drawable));
+    // }
+
+    // pub fn from_paths<S: Eq + Hash + std::borrow::Borrow<str>, P: AsRef<Path>>(
+    //     context: &mut Context,
+    //     paths: &HashMap<S, P>,
+    //     height: f32,
+    // ) -> Result<Self> {
+    //     let path = paths.get(&"").expect("missing default path");
+    //     let mut this = Self::from_path(context, path.as_ref(), height)?;
+    //     for (frame_name, frame_path) in paths.iter() {
+    //         let image = graphics::Image::new(context, frame_path)?;
+    //         this.add_frame(frame_name.borrow().to_string(), Box::new(image));
+    //     }
+    //     Ok(this)
+    // }
 
     pub fn has_frame(&self, frame_name: &str) -> bool {
-        let data = self.data.borrow();
-        data.drawables.contains_key(frame_name)
+        // let data = self.data.borrow();
+        // data.drawables.contains_key(frame_name)
+        unimplemented!()
     }
 
     // TODO: Add a usage example
     pub fn set_frame(&mut self, frame_name: &str) {
-        assert!(self.has_frame(frame_name));
-        let mut data = self.data.borrow_mut();
-        let previous_frame_name = data.current_frame_name.clone();
-        let previous_drawable = data.drawable.take().expect("no active drawable");
-        let previous_slot = data
-            .drawables
-            .get_mut(&previous_frame_name)
-            .expect("bad frame name");
-        *previous_slot = Some(previous_drawable);
-        data.drawable = data
-            .drawables
-            .get_mut(frame_name)
-            .expect("bad frame name")
-            .take();
-        assert!(data.drawable.is_some());
-        data.current_frame_name = frame_name.into();
+        // assert!(self.has_frame(frame_name));
+        // let mut data = self.data.borrow_mut();
+        // let previous_frame_name = data.current_frame_name.clone();
+        // let previous_drawable = data.drawable.take().expect("no active drawable");
+        // let previous_slot = data
+        //     .drawables
+        //     .get_mut(&previous_frame_name)
+        //     .expect("bad frame name");
+        // *previous_slot = Some(previous_drawable);
+        // data.drawable = data
+        //     .drawables
+        //     .get_mut(frame_name)
+        //     .expect("bad frame name")
+        //     .take();
+        // assert!(data.drawable.is_some());
+        // data.current_frame_name = frame_name.into();
+        unimplemented!()
     }
 
     pub fn set_facing(&mut self, facing: Facing) {
-        if facing == self.data.borrow().facing {
-            return;
-        }
-        let offset;
-        {
-            let mut data = self.data.borrow_mut();
-            data.facing = facing;
-            data.param.scale.x *= -1.0;
-            let mut dimensions = data.dimensions;
-            dimensions.scale(data.param.scale.x, data.param.scale.y);
-            let off_x = -data.offset.x / dimensions.w;
-            let off_y = -data.offset.y / dimensions.h;
-            offset = Vector2::new(-off_x, off_y);
-        }
-        self.set_offset(offset);
+        // if facing == self.data.borrow().facing {
+        //     return;
+        // }
+        // let offset;
+        // {
+        //     let mut data = self.data.borrow_mut();
+        //     data.facing = facing;
+        //     data.param.scale.x *= -1.0;
+        //     let mut dimensions = data.dimensions;
+        //     dimensions.scale(data.param.scale.x, data.param.scale.y);
+        //     let off_x = -data.offset.x / dimensions.w;
+        //     let off_y = -data.offset.y / dimensions.h;
+        //     offset = Vec2::new(-off_x, off_y);
+        // }
+        // self.set_offset(offset);
+        unimplemented!()
     }
 
     pub fn set_centered(&mut self, is_centered: bool) {
         let offset = if is_centered {
-            Vector2::new(0.5, 0.5)
+            Vec2::new(0.5, 0.5)
         } else {
-            Vector2::new(0.0, 0.0)
+            Vec2::new(0.0, 0.0)
         };
         self.set_offset(offset);
     }
 
     /// [0.0 .. 1.0]
-    pub fn set_offset(&mut self, offset: Vector2) {
+    pub fn set_offset(&mut self, offset: Vec2) {
         let mut data = self.data.borrow_mut();
         let old_offset = data.offset;
-        let mut dimensions = data.dimensions;
-        dimensions.scale(data.param.scale.x, data.param.scale.y);
-        data.offset.x = -dimensions.w * offset.x;
-        data.offset.y = -dimensions.h * offset.y;
-        let mut new_dest: Point2 = data.param.dest.into();
+        let dimensions = data.dimensions;
+        *data.offset.x_mut() = -dimensions.w * data.scale.x() * offset.x();
+        *data.offset.y_mut() = -dimensions.h * data.scale.y() * offset.y();
+        let mut new_dest: Vec2 = data.pos;
         new_dest += data.offset - old_offset;
-        data.param.dest = new_dest.into();
+        data.pos = new_dest.into();
     }
 
-    pub fn draw(&self, context: &mut Context) -> GameResult<()> {
+    pub fn draw(&self) {
         let data = self.data.borrow();
         let drawable = data.drawable.as_ref().expect("no active drawable");
-        drawable.draw(context, data.param)
+        // drawable.draw(context, data.param)
+        match drawable {
+            Drawable::Texture(texture) => {
+                draw_texture_ex(
+                    *texture,
+                    data.pos.x(),
+                    data.pos.y(),
+                    WHITE,
+                    DrawTextureParams {
+                        dest_size: Some(
+                            data.scale * vec2(texture.width() as f32, texture.height() as f32),
+                        ),
+                        ..Default::default()
+                    },
+                );
+            }
+            Drawable::Text {
+                label,
+                font,
+                font_size,
+            } => {
+                draw_text_ex(
+                    &label,
+                    data.pos.x(),
+                    data.pos.y(),
+                    TextParams {
+                        font_size: *font_size,
+                        font: *font,
+                        // TODO: why 2?
+                        font_scale: data.scale.x() / 2.,
+                        color: data.color,
+                        ..Default::default()
+                    },
+                );
+            }
+        }
     }
 
-    pub fn pos(&self) -> Point2 {
+    pub fn pos(&self) -> Vec2 {
         let data = self.data.borrow();
-        let dest: Point2 = data.param.dest.into();
-        dest - data.offset
+        data.pos - data.offset
     }
 
     pub fn rect(&self) -> Rect {
@@ -187,36 +261,35 @@ impl Sprite {
         let r = data.dimensions;
         // TODO: angle?
         Rect {
-            x: pos.x,
-            y: pos.y,
-            w: r.w * data.param.scale.x,
-            h: r.h * data.param.scale.y,
+            x: pos.x(),
+            y: pos.y(),
+            w: r.w * data.scale.x(),
+            h: r.h * data.scale.y(),
         }
     }
 
-    pub fn color(&self) -> graphics::Color {
-        self.data.borrow().param.color
+    pub fn color(&self) -> Color {
+        self.data.borrow().color
     }
 
     pub fn scale(&self) -> f32 {
         let data = self.data.borrow();
-        data.param.scale.y / data.basic_scale
+        data.scale.x() / data.basic_scale
     }
 
-    pub fn set_pos(&mut self, pos: Point2) {
+    pub fn set_pos(&mut self, pos: Vec2) {
         let mut data = self.data.borrow_mut();
-        data.param.dest = (pos + data.offset).into();
+        data.pos = (pos + data.offset).into();
     }
 
-    pub fn set_color(&mut self, color: graphics::Color) {
-        self.data.borrow_mut().param.color = color;
+    pub fn set_color(&mut self, color: Color) {
+        self.data.borrow_mut().color = color;
     }
 
     pub fn set_scale(&mut self, scale: f32) {
         let mut data = self.data.borrow_mut();
         let s = data.basic_scale * scale;
-        let scale = [s, s].into();
-        data.param.scale = scale;
+        data.scale = vec2(s, s);
     }
 
     // TODO: unittest this?
