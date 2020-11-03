@@ -1,9 +1,6 @@
 use std::{io::Read, path::Path, sync::mpsc::Receiver, time::Duration};
 
-use gwg::{
-    graphics::{Font, Rect},
-    Context,
-};
+use macroquad::prelude::{load_file, Font, Rect};
 use serde::de::DeserializeOwned;
 
 use crate::{error::ZError, ZResult};
@@ -14,30 +11,30 @@ pub fn time_s(s: f32) -> Duration {
 }
 
 /// Read a file to a string.
-pub fn read_file<P: AsRef<Path>>(context: &mut Context, path: P) -> ZResult<String> {
-    let mut buf = String::new();
-    let mut file = gwg::filesystem::open(context, path)?;
-    file.read_to_string(&mut buf)?;
-    Ok(buf)
+pub async fn read_file(path: &str) -> ZResult<String> {
+    // TODO: impl from for zerror
+    let data = load_file(path).await.unwrap();
+    let string = String::from_utf8_lossy(&data[..]).to_owned().to_string();
+    Ok(string)
 }
 
-pub fn deserialize_from_file<P, D>(context: &mut Context, path: P) -> ZResult<D>
+pub async fn deserialize_from_file<D>(path: &str) -> ZResult<D>
 where
-    P: AsRef<Path>,
     D: DeserializeOwned,
 {
     let path = path.as_ref();
-    let s = read_file(context, path)?;
+    let s = read_file(path).await?;
     ron::de::from_str(&s).map_err(|e| ZError::from_ron_de_error(e, path.into()))
 }
 
-pub fn default_font(context: &mut Context) -> Font {
-    Font::new(context, "/OpenSans-Regular.ttf").expect("Can't load the default font")
+pub fn default_font() -> Font {
+    //Font::new("/OpenSans-Regular.ttf").expect("Can't load the default font")
+    Font::default()
 }
 
 // TODO: Move to some config (https://github.com/ozkriff/zemeroth/issues/424)
-pub const fn font_size() -> f32 {
-    128.0
+pub const fn font_size() -> u16 {
+    128
 }
 
 pub struct LineHeights {
@@ -59,8 +56,8 @@ pub fn line_heights() -> LineHeights {
 pub const OFFSET_SMALL: f32 = 0.02;
 pub const OFFSET_BIG: f32 = 0.04;
 
-pub fn add_bg(context: &mut Context, w: Box<dyn ui::Widget>) -> ZResult<ui::LayersLayout> {
-    let bg = ui::ColoredRect::new(context, ui::SPRITE_COLOR_BG, w.rect())?.stretchable(true);
+pub fn add_bg(w: Box<dyn ui::Widget>) -> ZResult<ui::LayersLayout> {
+    let bg = ui::ColoredRect::new(ui::SPRITE_COLOR_BG, w.rect())?.stretchable(true);
     let mut layers = ui::LayersLayout::new();
     layers.add(Box::new(bg));
     layers.add(w);
@@ -86,24 +83,17 @@ pub fn add_offsets(w: Box<dyn ui::Widget>, offset: f32) -> Box<dyn ui::Widget> {
     Box::new(layout_v)
 }
 
-pub fn add_offsets_and_bg(
-    context: &mut Context,
-    w: Box<dyn ui::Widget>,
-    offset: f32,
-) -> ZResult<ui::LayersLayout> {
-    add_bg(context, add_offsets(w, offset))
+pub fn add_offsets_and_bg(w: Box<dyn ui::Widget>, offset: f32) -> ZResult<ui::LayersLayout> {
+    add_bg(add_offsets(w, offset))
 }
 
-pub fn add_offsets_and_bg_big(
-    context: &mut Context,
-    w: Box<dyn ui::Widget>,
-) -> ZResult<ui::LayersLayout> {
-    add_offsets_and_bg(context, w, OFFSET_BIG)
+pub fn add_offsets_and_bg_big(w: Box<dyn ui::Widget>) -> ZResult<ui::LayersLayout> {
+    add_offsets_and_bg(w, OFFSET_BIG)
 }
 
 pub fn remove_widget<M: Clone>(gui: &mut ui::Gui<M>, widget: &mut Option<ui::RcWidget>) -> ZResult {
     if let Some(w) = widget.take() {
-        gui.remove(&w)?;
+        gui.remove(&w);
     }
     Ok(())
 }

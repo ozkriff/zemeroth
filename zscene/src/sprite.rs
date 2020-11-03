@@ -3,7 +3,7 @@
 use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::Rc};
 
 // use gwg::{
-//     graphics::{self, Drawable, Point2, Rect, Vector2},
+//     graphics::{self, Drawable, Vec2, Rect, Vector2},
 //     Context, GameResult,
 // };
 
@@ -122,24 +122,26 @@ impl Sprite {
         Self::from_image(image, height)
     }
 
-    // pub fn add_frame(&mut self, frame_name: String, drawable: Box<dyn Drawable>) {
-    //     let mut data = self.data.borrow_mut();
-    //     data.drawables.insert(frame_name, Some(drawable));
-    // }
+    fn add_frame(&mut self, frame_name: String, drawable: Drawable) {
+        let mut data = self.data.borrow_mut();
+        data.drawables.insert(frame_name, Some(drawable));
+    }
 
-    // pub fn from_paths<S: Eq + Hash + std::borrow::Borrow<str>, P: AsRef<Path>>(
-    //     context: &mut Context,
-    //     paths: &HashMap<S, P>,
-    //     height: f32,
-    // ) -> Result<Self> {
-    //     let path = paths.get(&"").expect("missing default path");
-    //     let mut this = Self::from_path(context, path.as_ref(), height)?;
-    //     for (frame_name, frame_path) in paths.iter() {
-    //         let image = graphics::Image::new(context, frame_path)?;
-    //         this.add_frame(frame_name.borrow().to_string(), Box::new(image));
-    //     }
-    //     Ok(this)
-    // }
+    pub async fn from_paths<
+        S: Eq + Hash + std::borrow::Borrow<str>,
+        P: Eq + Hash + std::borrow::Borrow<str>,
+    >(
+        paths: &HashMap<S, P>,
+        height: f32,
+    ) -> Result<Self> {
+        let path = paths.get(&"").expect("missing default path");
+        let mut this = Self::from_path(path.borrow(), height).await?;
+        for (frame_name, frame_path) in paths.iter() {
+            let image = load_texture(frame_path.borrow()).await;
+            this.add_frame(frame_name.borrow().to_string(), Drawable::Texture(image));
+        }
+        Ok(this)
+    }
 
     pub fn has_frame(&self, frame_name: &str) -> bool {
         // let data = self.data.borrow();

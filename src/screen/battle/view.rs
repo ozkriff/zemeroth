@@ -1,9 +1,7 @@
 use std::{collections::HashMap, default::Default, time::Duration};
 
-use gwg::{
-    graphics::{Color, Font, Image, Point2, Text},
-    Context,
-};
+use macroquad::prelude::{load_texture, Color, Font, Texture2D, Vec2};
+
 use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
 
 use crate::{
@@ -19,7 +17,7 @@ use crate::{
     screen::battle::visualize,
     sprite_info::SpriteInfo,
     utils::{self, font_size, time_s},
-    ZResult,
+    Image, ZResult,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -95,43 +93,51 @@ struct Sprites {
 
 #[derive(Debug)]
 pub struct Images {
-    pub selection: Image,
-    pub white_hex: Image,
-    pub tile: Image,
-    pub tile_rocks: Image,
-    pub grass: Image,
-    pub dot: Image,
-    pub blood: Image,
-    pub explosion_ground_mark: Image,
-    pub shadow: Image,
-    pub attack_slash: Image,
-    pub attack_smash: Image,
-    pub attack_pierce: Image,
-    pub attack_claws: Image,
-    pub effect_stun: Image,
-    pub effect_poison: Image,
-    pub effect_bloodlust: Image,
+    pub selection: Texture2D,
+    pub white_hex: Texture2D,
+    pub tile: Texture2D,
+    pub tile_rocks: Texture2D,
+    pub grass: Texture2D,
+    pub dot: Texture2D,
+    pub blood: Texture2D,
+    pub explosion_ground_mark: Texture2D,
+    pub shadow: Texture2D,
+    pub attack_slash: Texture2D,
+    pub attack_smash: Texture2D,
+    pub attack_pierce: Texture2D,
+    pub attack_claws: Texture2D,
+    pub effect_stun: Texture2D,
+    pub effect_poison: Texture2D,
+    pub effect_bloodlust: Texture2D,
+
+    pub icon_info: Texture2D,
+    pub icon_end_turn: Texture2D,
+    pub icon_main_menu: Texture2D,
 }
 
 impl Images {
-    fn new(context: &mut Context) -> ZResult<Self> {
+    async fn new() -> ZResult<Self> {
         Ok(Self {
-            selection: Image::new(context, "/img/selection.png")?,
-            white_hex: Image::new(context, "/img/white_hex.png")?,
-            tile: Image::new(context, "/img/tile.png")?,
-            tile_rocks: Image::new(context, "/img/tile_rocks.png")?,
-            grass: Image::new(context, "/img/grass.png")?,
-            dot: Image::new(context, "/img/dot.png")?,
-            blood: Image::new(context, "/img/blood.png")?,
-            explosion_ground_mark: Image::new(context, "/img/explosion_ground_mark.png")?,
-            shadow: Image::new(context, "/img/shadow.png")?,
-            attack_slash: Image::new(context, "/img/slash.png")?,
-            attack_smash: Image::new(context, "/img/smash.png")?,
-            attack_pierce: Image::new(context, "/img/pierce.png")?,
-            attack_claws: Image::new(context, "/img/claw.png")?,
-            effect_stun: Image::new(context, "/img/effect_stun.png")?,
-            effect_poison: Image::new(context, "/img/effect_poison.png")?,
-            effect_bloodlust: Image::new(context, "/img/effect_bloodlust.png")?,
+            selection: load_texture("assets/img/selection.png").await,
+            white_hex: load_texture("assets/img/white_hex.png").await,
+            tile: load_texture("assets/img/tile.png").await,
+            tile_rocks: load_texture("assets/img/tile_rocks.png").await,
+            grass: load_texture("assets/img/grass.png").await,
+            dot: load_texture("assets/img/dot.png").await,
+            blood: load_texture("assets/img/blood.png").await,
+            explosion_ground_mark: load_texture("assets/img/explosion_ground_mark.png").await,
+            shadow: load_texture("assets/img/shadow.png").await,
+            attack_slash: load_texture("assets/img/slash.png").await,
+            attack_smash: load_texture("assets/img/smash.png").await,
+            attack_pierce: load_texture("assets/img/pierce.png").await,
+            attack_claws: load_texture("assets/img/claw.png").await,
+            effect_stun: load_texture("assets/img/effect_stun.png").await,
+            effect_poison: load_texture("assets/img/effect_poison.png").await,
+            effect_bloodlust: load_texture("assets/img/effect_bloodlust.png").await,
+
+            icon_info: load_texture("assets/img/icon_info.png").await,
+            icon_end_turn: load_texture("assets/img/icon_end_turn.png").await,
+            icon_main_menu: load_texture("assets/img/icon_menu.png").await,
         })
     }
 }
@@ -210,24 +216,25 @@ pub struct BattleView {
 }
 
 impl BattleView {
-    pub fn new(map_radius: Distance, context: &mut Context) -> ZResult<Self> {
-        let font = utils::default_font(context);
-        let images = Images::new(context)?;
+    pub async fn new(map_radius: Distance) -> ZResult<Self> {
+        let font = utils::default_font();
+        // TODO
+        let images = Images::new().await?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
         let map_diameter = map::radius_to_diameter(map_radius);
         let tile_size = tile_size(map_diameter);
         let mut make_marker_sprite = |color: Color| -> ZResult<Sprite> {
             let h = tile_size * 2.0 * geom::FLATNESS_COEFFICIENT;
-            let mut sprite = Sprite::from_image(context, images.selection.clone(), h)?;
+            let mut sprite = Sprite::from_image(images.selection.clone(), h)?;
             sprite.set_centered(true);
             sprite.set_color(color);
             Ok(sprite)
         };
-        let selection_marker = make_marker_sprite([0.0, 0.0, 1.0, 0.8].into())?;
-        let current_tile_marker = make_marker_sprite([0.0, 0.0, 0.0, 0.5].into())?;
-        let sprite_info = utils::deserialize_from_file(context, "/sprites.ron")?;
-        let sprites = Sprites {
+        let selection_marker = make_marker_sprite(Color::new(0.0, 0.0, 1.0, 0.8))?;
+        let current_tile_marker = make_marker_sprite(Color::new(0.0, 0.0, 0.0, 0.5))?;
+        let sprite_info = utils::deserialize_from_file("assets/sprites.ron").await?;
+        let mut sprites = Sprites {
             selection_marker,
             current_tile_marker,
             highlighted_tiles: Vec::new(),
@@ -237,6 +244,51 @@ impl BattleView {
             agent_info: HashMap::new(),
             disappearing_sprites: Vec::new(),
         };
+
+        // for (
+        //     &prototype,
+        //     &SpriteInfo {
+        //         paths,
+        //         offset_x,
+        //         offset_y,
+        //         shadow_size_coefficient,
+        //         sub_tile_z,
+        //     },
+        // ) in &sprite_info
+        // {
+        //     let size = tile_size;
+
+        //     let sprite_object = {
+        //         use zscene::{action, Action, Boxed, Facing, Sprite};
+        //         use crate::{
+        //             core::{
+        //                 battle::{
+        //                     ability::Ability,
+        //                     component::{Component, WeaponType},
+        //                     effect::{self, Effect},
+        //                     event::{self, ActiveEvent, Event},
+        //                     execute::{hit_chance, ApplyPhase},
+        //                     state, Id, PlayerId, State,
+        //                 },
+        //                 map::PosHex,
+        //                 utils::roll_dice,
+        //             },
+        //             geom,
+        //             screen::battle::view::BattleView,
+        //             sprite_info::SpriteInfo,
+        //             utils::{font_size, time_s},
+        //             ZResult,
+        //         };
+
+        //         let mut sprite = Sprite::from_paths(&paths, size).await?;
+        //         //sprite.set_color(Color { a: 0.0, ..color });
+        //         sprite.set_offset(Vec2::new(0.5 - offset_x, 1.0 - offset_y));
+        //         sprite
+        //     };
+
+        //     //sprites.id_to_sprite_map.insert(prototype, sprite_object);
+        // }
+
         Ok(Self {
             font,
             sprites,
@@ -265,8 +317,8 @@ impl BattleView {
         &mut self.messages_map
     }
 
-    pub fn message(&mut self, context: &mut Context, pos: PosHex, text: &str) -> ZResult {
-        let action = visualize::message(self, context, pos, text)?;
+    pub fn message(&mut self, pos: PosHex, text: &str) -> ZResult {
+        let action = visualize::message(self, pos, text)?;
         self.add_action(action);
         Ok(())
     }
@@ -275,8 +327,8 @@ impl BattleView {
         self.scene.tick(dtime);
     }
 
-    pub fn draw(&self, context: &mut Context) -> ZResult {
-        self.scene.draw(context)?;
+    pub fn draw(&self) -> ZResult {
+        self.scene.draw();
         Ok(())
     }
 
@@ -289,7 +341,7 @@ impl BattleView {
         self.tile_size
     }
 
-    pub fn hex_to_point(&self, hex: PosHex) -> Point2 {
+    pub fn hex_to_point(&self, hex: PosHex) -> Vec2 {
         geom::hex_to_point(self.tile_size, hex)
     }
 
@@ -330,7 +382,8 @@ impl BattleView {
         for s in &mut self.sprites.disappearing_sprites {
             s.turns_left -= 1;
             let mut color = s.sprite.color();
-            color.a = (s.initial_alpha / s.turns_total as f32) * s.turns_left as f32;
+            color.0[3] =
+                ((s.initial_alpha / s.turns_total as f32) * s.turns_left as f32 * 255.0) as u8;
             let mut sub_actions = Vec::new();
             sub_actions.push(action::ChangeColorTo::new(&s.sprite, color, time_s(2.0)).boxed());
             if s.turns_left == 0 {
@@ -371,16 +424,14 @@ impl BattleView {
     pub fn set_mode(
         &mut self,
         state: &State,
-        context: &mut Context,
+
         map: &HexMap<movement::Tile>,
         selected_id: Id,
         mode: &SelectionMode,
     ) -> ZResult {
         match mode {
-            SelectionMode::Normal => self.select_normal(state, context, map, selected_id),
-            SelectionMode::Ability(ref ability) => {
-                self.select_ability(state, context, selected_id, ability)
-            }
+            SelectionMode::Normal => self.select_normal(state, map, selected_id),
+            SelectionMode::Ability(ref ability) => self.select_ability(state, selected_id, ability),
         }
     }
 
@@ -391,10 +442,8 @@ impl BattleView {
 
     fn clean_highlighted_tiles(&mut self) {
         for sprite in self.sprites.highlighted_tiles.split_off(0) {
-            let color = Color {
-                a: 0.0,
-                ..sprite.color()
-            };
+            let mut color = sprite.color();
+            color.0[3] = 0;
             let action = {
                 let layer = &self.layers().highlighted_tiles;
                 let time = time_s(0.3);
@@ -439,25 +488,13 @@ impl BattleView {
         self.remove_highlights();
     }
 
-    fn select_normal(
-        &mut self,
-        state: &State,
-        context: &mut Context,
-        map: &HexMap<movement::Tile>,
-        id: Id,
-    ) -> ZResult {
+    fn select_normal(&mut self, state: &State, map: &HexMap<movement::Tile>, id: Id) -> ZResult {
         self.show_selection_marker(state, id);
-        self.show_walkable_tiles(state, context, map, id)?;
-        self.show_attackable_tiles(state, context, id)
+        self.show_walkable_tiles(state, map, id)?;
+        self.show_attackable_tiles(state, id)
     }
 
-    fn select_ability(
-        &mut self,
-        state: &State,
-        context: &mut Context,
-        selected_id: Id,
-        ability: &Ability,
-    ) -> ZResult {
+    fn select_ability(&mut self, state: &State, selected_id: Id, ability: &Ability) -> ZResult {
         self.remove_highlights();
         let positions = state.map().iter();
         for pos in positions {
@@ -465,7 +502,7 @@ impl BattleView {
             let ability = ability.clone();
             let command = command::UseAbility { id, ability, pos }.into();
             if battle::check(state, &command).is_ok() {
-                self.highlight_tile(context, pos, TILE_COLOR_ABILITY.into())?;
+                self.highlight_tile(pos, TILE_COLOR_ABILITY.into())?;
             }
         }
         Ok(())
@@ -490,7 +527,7 @@ impl BattleView {
         }
     }
 
-    fn show_attackable_tiles(&mut self, state: &State, context: &mut Context, id: Id) -> ZResult {
+    fn show_attackable_tiles(&mut self, state: &State, id: Id) -> ZResult {
         let parts = state.parts();
         let selected_agent_player_id = parts.belongs_to.get(id).0;
         for target_id in parts.agent.ids() {
@@ -507,8 +544,8 @@ impl BattleView {
             if battle::check(state, &command_attack).is_err() {
                 continue;
             }
-            self.show_hit_chance_label(state, context, id, target_id)?;
-            self.highlight_tile(context, target_pos, TILE_COLOR_ATTACKABLE.into())?;
+            self.show_hit_chance_label(state, id, target_id)?;
+            self.highlight_tile(target_pos, TILE_COLOR_ATTACKABLE.into())?;
         }
         Ok(())
     }
@@ -516,7 +553,7 @@ impl BattleView {
     fn show_walkable_tiles(
         &mut self,
         state: &State,
-        context: &mut Context,
+
         map: &HexMap<movement::Tile>,
         id: Id,
     ) -> ZResult {
@@ -528,15 +565,15 @@ impl BattleView {
             if map.tile(pos).cost() > agent.move_points {
                 continue;
             }
-            self.highlight_tile(context, pos, TILE_COLOR_WALKABLE.into())?
+            self.highlight_tile(pos, TILE_COLOR_WALKABLE.into())?
         }
         Ok(())
     }
 
-    fn highlight_tile(&mut self, context: &mut Context, pos: PosHex, color: Color) -> ZResult {
+    fn highlight_tile(&mut self, pos: PosHex, color: Color) -> ZResult {
         let size = self.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
-        let mut sprite = Sprite::from_image(context, self.images.white_hex.clone(), size)?;
-        let color_from = Color { a: 0.0, ..color };
+        let mut sprite = Sprite::from_image(self.images.white_hex, size)?;
+        let color_from = Color::new(color.r(), color.g(), color.b(), 0.0);
         sprite.set_centered(true);
         sprite.set_color(color_from);
         sprite.set_pos(hex_to_point(self.tile_size(), pos));
@@ -551,19 +588,12 @@ impl BattleView {
         Ok(())
     }
 
-    fn show_hit_chance_label(
-        &mut self,
-        state: &State,
-        context: &mut Context,
-        attacker_id: Id,
-        target_id: Id,
-    ) -> ZResult {
+    fn show_hit_chance_label(&mut self, state: &State, attacker_id: Id, target_id: Id) -> ZResult {
         let target_pos = state.parts().pos.get(target_id).0;
         let chances = hit_chance(state, attacker_id, target_id);
         let pos = hex_to_point(self.tile_size(), target_pos);
         let text = format!("{}%", chances.1 * 10);
-        let text = Box::new(Text::new((text.as_str(), self.font, font_size())));
-        let mut sprite = Sprite::from_drawable(context, text, 0.1)?;
+        let mut sprite = Sprite::from_text((text.as_str(), self.font, font_size()), 0.1)?;
         sprite.set_pos(pos);
         sprite.set_centered(true);
         sprite.set_color([0.0, 0.0, 0.0, 1.0].into());
@@ -574,52 +604,38 @@ impl BattleView {
     }
 }
 
-fn make_action_show_tile(
-    state: &State,
-    context: &mut Context,
-    view: &BattleView,
-    at: PosHex,
-) -> ZResult<Box<dyn Action>> {
+fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let image = match state.map().tile(at) {
         TileType::Plain => view.images.tile.clone(),
         TileType::Rocks => view.images.tile_rocks.clone(),
     };
     let size = view.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
-    let mut sprite = Sprite::from_image(context, image, size)?;
+    let mut sprite = Sprite::from_image(image, size)?;
     sprite.set_centered(true);
     sprite.set_pos(screen_pos);
     Ok(action::Show::new(&view.layers().bg, &sprite).boxed())
 }
 
-fn make_action_grass(
-    context: &mut Context,
-    view: &BattleView,
-    at: PosHex,
-) -> ZResult<Box<dyn Action>> {
+fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
-    let mut sprite =
-        Sprite::from_image(context, view.images.grass.clone(), view.tile_size() * 2.0)?;
+    let mut sprite = Sprite::from_image(view.images.grass, view.tile_size() * 2.0)?;
     let v_offset = view.tile_size() * 0.5; // depends on the image
     let mut screen_pos_grass = screen_pos + geom::rand_tile_offset(view.tile_size(), 0.5);
-    screen_pos_grass.y -= v_offset;
+    *screen_pos_grass.y_mut() -= v_offset;
     sprite.set_centered(true);
     sprite.set_pos(screen_pos_grass);
     Ok(action::Show::new(&view.layers().grass, &sprite).boxed())
 }
 
-pub fn make_action_create_map(
-    state: &State,
-    context: &mut Context,
-    view: &BattleView,
-) -> ZResult<Box<dyn Action>> {
+pub fn make_action_create_map(state: &State, view: &BattleView) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for hex_pos in state.map().iter() {
-        actions.push(make_action_show_tile(state, context, view, hex_pos)?);
+        actions.push(make_action_show_tile(state, view, hex_pos)?);
         let is_free = state::is_tile_completely_free(state, hex_pos);
         let is_plain = state.map().tile(hex_pos) == TileType::Plain;
         if is_free && is_plain && roll_dice(0, 10) < 2 {
-            actions.push(make_action_grass(context, view, hex_pos)?);
+            actions.push(make_action_grass(view, hex_pos)?);
         }
     }
     Ok(visualize::seq(actions))

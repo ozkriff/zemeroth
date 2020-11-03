@@ -18,7 +18,7 @@ add it to the scene and move it:
 
 ```rust
 let mut sprite = Sprite::from_path(context, "/fire.png", 0.5)?;
-sprite.set_pos(Point2::new(0.0, -1.0));
+sprite.set_pos(Vec2::new(0.0, -1.0));
 let delta = Vector2::new(0.0, 1.5);
 let time = Duration::from_millis(2_000);
 let action = action::Sequence::new(vec![

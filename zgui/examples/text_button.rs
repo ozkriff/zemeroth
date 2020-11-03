@@ -1,21 +1,18 @@
-use gwg::{
-    conf, event,
-    graphics::{self, Font, Point2, Text},
-    Context, GameResult,
-};
 use zgui as ui;
+
+use macroquad::prelude::*;
 
 #[derive(Clone, Copy, Debug)]
 enum Message {
     Command,
 }
 
-fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
-    let font_size = 32.0;
-    let mut gui = ui::Gui::new(context);
+fn make_gui(font: Font) -> ui::Result<ui::Gui<Message>> {
+    let font_size = 32;
+    let mut gui = ui::Gui::new();
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
-    let text = Box::new(Text::new(("Button", font, font_size)));
-    let button = ui::Button::new(context, text, 0.2, gui.sender(), Message::Command)?;
+    let text = ui::Drawable::text("Button", font, font_size);
+    let button = ui::Button::new(text, 0.2, gui.sender(), Message::Command)?;
     gui.add(&ui::pack(button), anchor);
     Ok(gui)
 }
@@ -25,54 +22,37 @@ struct State {
 }
 
 impl State {
-    fn new(context: &mut Context) -> ui::Result<State> {
-        let font = Font::new(context, "/Karla-Regular.ttf")?;
-        let gui = make_gui(context, font)?;
+    async fn new() -> ui::Result<State> {
+        let font = load_ttf_font("./resources/Karla-Regular.ttf").await;
+        let gui = make_gui(font)?;
         Ok(Self { gui })
     }
 
-    fn resize(&mut self, _: &mut Context, w: f32, h: f32) {
+    fn resize(&mut self, w: f32, h: f32) {
         let aspect_ratio = w / h;
         self.gui.resize(aspect_ratio);
     }
 }
 
-impl event::EventHandler for State {
-    fn update(&mut self, _: &mut Context) -> GameResult {
-        Ok(())
-    }
+#[macroquad::main("TextButton")]
+async fn main() {
+    let mut state = State::new().await.expect("Can't create the state");
 
-    fn draw(&mut self, context: &mut Context) -> GameResult {
-        let bg_color = [1.0, 1.0, 1.0, 1.0].into();
-        graphics::clear(context, bg_color);
-        self.gui.draw(context)?;
-        graphics::present(context)
-    }
+    loop {
+        clear_background(WHITE);
 
-    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
-        self.resize(context, w, h);
-    }
+        state.resize(screen_width(), screen_height());
 
-    fn mouse_button_up_event(
-        &mut self,
-        context: &mut Context,
-        _: event::MouseButton,
-        x: f32,
-        y: f32,
-    ) {
-        let window_pos = Point2::new(x, y);
-        let pos = ui::window_to_screen(context, window_pos);
-        let message = self.gui.click(pos);
-        println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);
-    }
-}
+        state.gui.draw();
 
-fn main() -> gwg::GameResult {
-    gwg::start(
-        conf::Conf {
-            physical_root_dir: Some("resources".into()),
-            ..Default::default()
-        },
-        |mut context| Box::new(State::new(&mut context).expect("Can't create the state")),
-    )
+        if is_mouse_button_down(MouseButton::Left) {
+            let (x, y) = mouse_position();
+            let window_pos = vec2(x, y);
+            let pos = ui::window_to_screen(window_pos);
+            let message = state.gui.click(pos);
+            println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);
+        }
+
+        next_frame().await;
+    }
 }

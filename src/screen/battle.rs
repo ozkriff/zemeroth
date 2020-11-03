@@ -3,12 +3,11 @@ use std::{
     time::Duration,
 };
 
-use gwg::{
-    graphics::{self, Color, Font, Image, Point2, Text},
-    Context,
-};
 use heck::TitleCase;
 use log::{info, trace};
+
+use macroquad::prelude::{Color, Font, Vec2};
+
 use ui::{self, Gui, Widget};
 use zscene::{action, Action, Boxed};
 
@@ -38,15 +37,16 @@ use crate::{
         Screen, StackCommand,
     },
     utils::{self, default_font, line_heights, time_s},
-    ZResult,
+    Image, ZResult,
 };
 
 // TODO: Don't use graphics::Image::new in this file! Pre-load all images into View.
+// YEAH GOOD IDEA
 
 mod view;
 mod visualize;
 
-const FONT_SIZE: f32 = utils::font_size();
+const FONT_SIZE: u16 = utils::font_size();
 
 #[derive(Clone, Debug)]
 enum Message {
@@ -58,18 +58,18 @@ enum Message {
 }
 
 fn line_with_info_button(
-    context: &mut Context,
+    view: &BattleView,
     font: Font,
     gui: &mut Gui<Message>,
     text: &str,
     message: Message,
 ) -> ZResult<Box<dyn ui::Widget>> {
     let h = line_heights().normal;
-    let text = Box::new(Text::new((text, font, FONT_SIZE)));
-    let icon = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
-    let button = ui::Button::new(context, icon, h, gui.sender(), message)?;
+    let text = ui::Drawable::text(text, font, FONT_SIZE);
+    let icon = view.images().icon_info;
+    let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), message)?;
     let mut line = Box::new(ui::HLayout::new().stretchable(true));
-    line.add(Box::new(ui::Label::new(context, text, h)?));
+    line.add(Box::new(ui::Label::new(text, h)?));
     line.add(Box::new(ui::Spacer::new_horizontal(0.0).stretchable(true)));
     line.add(Box::new(button));
     Ok(line)
@@ -77,7 +77,6 @@ fn line_with_info_button(
 
 // TODO: consider moving ui `build_*` functions to a sub-module
 fn build_panel_agent_info(
-    context: &mut Context,
     view: &BattleView,
     font: Font,
     gui: &mut Gui<Message>,
@@ -92,48 +91,40 @@ fn build_panel_agent_info(
     let h = line_heights().normal;
     let space_between_buttons = h / 8.0;
     let mut add = |w| layout.add(w);
-    let text_ = |s: &str| Box::new(Text::new((s, font, FONT_SIZE)));
-    let label_ = |context: &mut Context, text: &str| -> ZResult<_> {
-        Ok(ui::Label::new(context, text_(text), h)?)
-    };
-    let label = |context: &mut Context, text: &str| -> ZResult<Box<dyn Widget>> {
-        Ok(Box::new(label_(context, text)?))
-    };
-    let label_s = |context: &mut Context, text: &str| -> ZResult<_> {
-        Ok(Box::new(label_(context, text)?.stretchable(true)))
-    };
-    let line = |context: &mut Context, arg: &str, val: &str| -> ZResult<_> {
+    let text_ = |s: &str| ui::Drawable::text(s, font, FONT_SIZE);
+    let label_ = |text: &str| -> ZResult<_> { Ok(ui::Label::new(text_(text), h)?) };
+    let label = |text: &str| -> ZResult<Box<dyn Widget>> { Ok(Box::new(label_(text)?)) };
+    let label_s = |text: &str| -> ZResult<_> { Ok(Box::new(label_(text)?.stretchable(true))) };
+    let line = |arg: &str, val: &str| -> ZResult<_> {
         let mut line = ui::HLayout::new().stretchable(true);
-        line.add(label(context, arg)?);
+        line.add(label(arg)?);
         line.add(Box::new(ui::Spacer::new_horizontal(h).stretchable(true)));
-        line.add(label(context, val)?);
+        line.add(label(val)?);
         Ok(Box::new(line))
     };
-    let line_i = |context: &mut Context, arg: &str, val: i32| -> ZResult<_> {
-        line(context, arg, &val.to_string())
-    };
-    let image_dot = Image::new(context, "/img/dot.png")?;
-    let line_dot = |context: &mut Context, arg: &str, val: &str, color| -> ZResult<_> {
+    let line_i = |arg: &str, val: i32| -> ZResult<_> { line(arg, &val.to_string()) };
+    let image_dot = view.images().dot;
+    let line_dot = |arg: &str, val: &str, color: Color| -> ZResult<_> {
         let mut line = ui::HLayout::new().stretchable(true);
-        let dot_img = Box::new(image_dot.clone());
-        let dot_color = Color { a: 1.0, ..color };
+        let dot_img = image_dot.clone();
+        let dot_color = Color::new(color.r(), color.g(), color.b(), 1.0);
         let param = ui::LabelParam {
             drawable_k: 0.3,
             ..Default::default()
         };
-        let label_dot = ui::Label::from_params(context, dot_img, h, param)?.with_color(dot_color);
+        let label_dot =
+            ui::Label::from_params(ui::Drawable::Texture(dot_img), h, param)?.with_color(dot_color);
         line.add(Box::new(label_dot));
         line.add(Box::new(ui::Spacer::new_horizontal(h * 0.1)));
-        line.add(label(context, arg)?);
+        line.add(label(arg)?);
         line.add(Box::new(ui::Spacer::new_horizontal(h).stretchable(true)));
-        line.add(label(context, val)?);
+        line.add(label(val)?);
         Ok(Box::new(line))
     };
     {
         let title = meta.name.0.to_title_case();
-        add(label_s(context, &format!("~~~ {} ~~~", title))?);
+        add(label_s(&format!("~~~ {} ~~~", title))?);
         add(line_dot(
-            context,
             "strength:",
             &format!("{}/{}", st.strength.0, st.base_strength.0),
             color::STRENGTH,
@@ -141,71 +132,62 @@ fn build_panel_agent_info(
         if let Some(armor) = parts.armor.get_opt(id) {
             let armor = armor.armor.0;
             if armor != 0 {
-                add(line_dot(
-                    context,
-                    "armor:",
-                    &armor.to_string(),
-                    color::ARMOR,
-                )?);
+                add(line_dot("armor:", &armor.to_string(), color::ARMOR)?);
             }
         }
         if a.jokers.0 != 0 || a.base_jokers.0 != 0 {
             add(line_dot(
-                context,
                 "jokers:",
                 &format!("{}/{}", a.jokers.0, a.base_jokers.0),
                 color::JOKERS,
             )?);
         }
         add(line_dot(
-            context,
             "attacks:",
             &format!("{}/{}", a.attacks.0, a.base_attacks.0),
             color::ATTACKS,
         )?);
         if a.reactive_attacks.0 != 0 {
             add(line_dot(
-                context,
                 "reactive attacks:",
                 &a.reactive_attacks.0.to_string(),
                 color::ATTACKS,
             )?);
         }
         add(line_dot(
-            context,
             "moves:",
             &format!("{}/{}", a.moves.0, a.base_moves.0),
             color::MOVES,
         )?);
         if a.attack_distance.0 != 1 {
-            add(line_i(context, "attack distance:", a.attack_distance.0)?);
+            add(line_i("attack distance:", a.attack_distance.0)?);
         }
-        add(line_i(context, "attack strength:", a.attack_strength.0)?);
-        add(line_i(context, "attack accuracy:", a.attack_accuracy.0)?);
+        add(line_i("attack strength:", a.attack_strength.0)?);
+        add(line_i("attack accuracy:", a.attack_accuracy.0)?);
         if a.attack_break.0 > 0 {
-            add(line_i(context, "armor break:", a.attack_break.0)?);
+            add(line_i("armor break:", a.attack_break.0)?);
         }
         if a.dodge.0 > 0 {
-            add(line_i(context, "dodge:", a.dodge.0)?);
+            add(line_i("dodge:", a.dodge.0)?);
         }
-        add(line_i(context, "move points:", a.move_points.0)?);
+        add(line_i("move points:", a.move_points.0)?);
         if let Some(blocker) = parts.blocker.get_opt(id) {
-            add(line(context, "weight:", &blocker.weight.to_string())?);
+            add(line("weight:", &blocker.weight.to_string())?);
         }
         if let Some(abilities) = parts.passive_abilities.get_opt(id) {
             if !abilities.0.is_empty() {
-                add(label_s(context, "~ passive abilities ~")?);
+                add(label_s("~ passive abilities ~")?);
                 for &ability in &abilities.0 {
                     let text = ability.title();
                     let message = Message::PassiveAbilityInfo(ability);
-                    add(line_with_info_button(context, font, gui, &text, message)?);
+                    add(line_with_info_button(view, font, gui, &text, message)?);
                     add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
                 }
             }
         }
         if let Some(effects) = parts.effects.get_opt(id) {
             if !effects.0.is_empty() {
-                add(label_s(context, "~ effects ~")?);
+                add(label_s("~ effects ~")?);
                 for effect in &effects.0 {
                     let s = effect.effect.title();
                     let text = match effect.duration {
@@ -213,22 +195,26 @@ fn build_panel_agent_info(
                         effect::Duration::Rounds(n) => format!("{} ({}t)", s, n),
                     };
                     let message = Message::LastingEffectInfo(effect.effect.clone());
-                    let text = Box::new(Text::new((text, font, FONT_SIZE)));
-                    let icon_info = Box::new(graphics::Image::new(context, "/img/icon_info.png")?);
-                    let button_info =
-                        ui::Button::new(context, icon_info, h, gui.sender(), message)?;
+                    let text = ui::Drawable::text(&text, font, FONT_SIZE);
+                    let icon_info = view.images().icon_info;
+                    let button_info = ui::Button::new(
+                        ui::Drawable::Texture(icon_info),
+                        h,
+                        gui.sender(),
+                        message,
+                    )?;
                     let icon_effect = visualize::get_effect_icon(view, &effect.effect);
                     let param = ui::LabelParam {
                         drawable_k: 0.6,
                         ..Default::default()
                     };
                     let label_effect =
-                        ui::Label::from_params(context, Box::new(icon_effect), h, param)?
-                            .with_color([1.0, 1.0, 1.0, 1.0].into());
+                        ui::Label::from_params(ui::Drawable::Texture(icon_effect), h, param)?
+                            .with_color(Color::new(1.0, 1.0, 1.0, 1.0));
                     let mut line = Box::new(ui::HLayout::new().stretchable(true));
                     line.add(Box::new(label_effect));
                     line.add(Box::new(ui::Spacer::new_horizontal(h * 0.1)));
-                    line.add(Box::new(ui::Label::new(context, text, h)?));
+                    line.add(Box::new(ui::Label::new(text, h)?));
                     line.add(Box::new(ui::Spacer::new_horizontal(0.0).stretchable(true)));
                     line.add(Box::new(button_info));
                     add(line);
@@ -237,8 +223,8 @@ fn build_panel_agent_info(
             }
         }
     }
-    layout.stretch_to_self(context)?;
-    let layout = utils::add_offsets_and_bg(context, layout, utils::OFFSET_SMALL)?;
+    layout.stretch_to_self()?;
+    let layout = utils::add_offsets_and_bg(layout, utils::OFFSET_SMALL)?;
     let layout = ui::pack(layout);
     let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Bottom);
     gui.add(&layout, anchor);
@@ -246,7 +232,6 @@ fn build_panel_agent_info(
 }
 
 fn build_panel_agent_abilities(
-    context: &mut Context,
     _view: &BattleView, // TODO: use this for cloning stored icon images
     font: Font,
     gui: &mut Gui<Message>,
@@ -262,42 +247,51 @@ fn build_panel_agent_abilities(
     let mut layout = ui::VLayout::new().stretchable(true);
     let h = line_heights().large;
     for ability in abilities {
-        let image_path = match ability.ability {
-            // TODO: load all the images only once. Store them in some struct and only clone them here.
-            // TODO: Move into view::Images!
-            Ability::Club => "/img/icon_ability_club.png",
-            Ability::Knockback => "/img/icon_ability_knockback.png",
-            Ability::Jump => "/img/icon_ability_jump.png",
-            Ability::LongJump => "/img/icon_ability_long_jump.png",
-            Ability::Dash => "/img/icon_ability_dash.png",
-            Ability::Rage => "/img/icon_ability_rage.png",
-            Ability::Heal => "/img/icon_ability_heal.png",
-            Ability::GreatHeal => "/img/icon_ability_great_heal.png",
-            Ability::BombPush => "/img/icon_ability_bomb_push.png",
-            Ability::Bomb => "/img/icon_ability_bomb.png",
-            Ability::BombFire => "/img/icon_ability_bomb_fire.png",
-            Ability::BombPoison => "/img/icon_ability_bomb_poison.png",
-            Ability::BombDemonic => "/img/icon_ability_bomb_demonic.png",
-            Ability::Summon => "/img/icon_ability_summon.png",
-            Ability::Bloodlust => "/img/icon_ability_bloodlust.png",
-            ref ability => panic!("No icon for {:?}", ability),
-        };
-        let image = graphics::Image::new(context, image_path)?;
+        // TODO: yeah now todo below makes way more sense but nah
+        // let image_path = match ability.ability {
+        //     // TODO: load all the images only once. Store them in some struct and only clone them here.
+        //     // TODO: Move into view::Images!
+        //     Ability::Club => "/img/icon_ability_club.png",
+        //     Ability::Knockback => "/img/icon_ability_knockback.png",
+        //     Ability::Jump => "/img/icon_ability_jump.png",
+        //     Ability::LongJump => "/img/icon_ability_long_jump.png",
+        //     Ability::Dash => "/img/icon_ability_dash.png",
+        //     Ability::Rage => "/img/icon_ability_rage.png",
+        //     Ability::Heal => "/img/icon_ability_heal.png",
+        //     Ability::GreatHeal => "/img/icon_ability_great_heal.png",
+        //     Ability::BombPush => "/img/icon_ability_bomb_push.png",
+        //     Ability::Bomb => "/img/icon_ability_bomb.png",
+        //     Ability::BombFire => "/img/icon_ability_bomb_fire.png",
+        //     Ability::BombPoison => "/img/icon_ability_bomb_poison.png",
+        //     Ability::BombDemonic => "/img/icon_ability_bomb_demonic.png",
+        //     Ability::Summon => "/img/icon_ability_summon.png",
+        //     Ability::Bloodlust => "/img/icon_ability_bloodlust.png",
+        //     ref ability => panic!("No icon for {:?}", ability),
+        // };
         let msg = Message::Ability(ability.ability.clone());
-        let mut button = ui::Button::new(context, Box::new(image), h, gui.sender(), msg)?;
+        let mut button = ui::Button::new(
+            ui::Drawable::Text {
+                label: "x".to_string(),
+                font: Font::default(),
+                font_size: 120,
+            },
+            h,
+            gui.sender(),
+            msg,
+        )?;
         if !state::can_agent_use_ability(state, id, &ability.ability) {
             button.set_active(false);
         }
         if let SelectionMode::Ability(selected_ability) = mode {
             if selected_ability == &ability.ability {
-                button.set_color([0.0, 0.0, 0.9, 1.0].into());
+                button.set_color(Color::new(0.0, 0.0, 0.9, 1.0));
             }
         }
         if let ability::Status::Cooldown(n) = ability.status {
             let mut layers = ui::LayersLayout::new();
             layers.add(Box::new(button));
-            let text = Text::new((format!(" ({})", n).as_str(), font, FONT_SIZE));
-            let label = ui::Label::new(context, Box::new(text), h / 2.0)?;
+            let text = ui::Drawable::text(format!(" ({})", n).as_str(), font, FONT_SIZE);
+            let label = ui::Label::new(text, h / 2.0)?;
             layers.add(Box::new(label));
             layout.add(Box::new(layers));
         } else {
@@ -311,10 +305,15 @@ fn build_panel_agent_abilities(
     Ok(Some(packed_layout))
 }
 
-fn build_panel_end_turn(context: &mut Context, gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
+fn build_panel_end_turn(view: &BattleView, gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
     let h = line_heights().large;
-    let icon = Box::new(graphics::Image::new(context, "/img/icon_end_turn.png")?);
-    let button = ui::Button::new(context, icon, h, gui.sender(), Message::EndTurn)?;
+    let icon = view.images().icon_end_turn;
+    let button = ui::Button::new(
+        ui::Drawable::Texture(icon),
+        h,
+        gui.sender(),
+        Message::EndTurn,
+    )?;
     let layout = ui::VLayout::from_widget(Box::new(button));
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
     let packed_layout = ui::pack(layout);
@@ -323,22 +322,21 @@ fn build_panel_end_turn(context: &mut Context, gui: &mut Gui<Message>) -> ZResul
 }
 
 fn build_panel_ability_description(
-    context: &mut Context,
     font: Font,
     gui: &mut Gui<Message>,
     state: &State,
     ability: &Ability,
     id: Id,
 ) -> ZResult<ui::RcWidget> {
-    let text = |s: &str| Box::new(Text::new((s, font, FONT_SIZE)));
+    let text = |s: &str| ui::Drawable::text(s, font, FONT_SIZE);
     let h = line_heights().normal;
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     let text_title = text(&format!("~~~ {} ~~~", ability.title()));
-    let label_title = ui::Label::new(context, text_title, h)?.stretchable(true);
+    let label_title = ui::Label::new(text_title, h)?.stretchable(true);
     layout.add(Box::new(label_title));
     layout.add(Box::new(ui::Spacer::new_vertical(h / 2.0)));
     for line in ability.description() {
-        layout.add(Box::new(ui::Label::new(context, text(&line), h)?));
+        layout.add(Box::new(ui::Label::new(text(&line), h)?));
     }
     let agent_player_id = state.parts().belongs_to.get(id).0;
     let abilities = &state.parts().abilities.get(id).0;
@@ -346,7 +344,7 @@ fn build_panel_ability_description(
     let is_enemy_agent = agent_player_id != state.player_id();
     let cooldown = r_ability.ability.base_cooldown();
     let text_cooldown = text(&format!("Cooldown: {}t", cooldown));
-    layout.add(Box::new(ui::Label::new(context, text_cooldown, h)?));
+    layout.add(Box::new(ui::Label::new(text_cooldown, h)?));
     if !state::can_agent_use_ability(state, id, ability) {
         layout.add(Box::new(ui::Spacer::new_vertical(h / 2.0)));
         let s = if is_enemy_agent {
@@ -356,29 +354,29 @@ fn build_panel_ability_description(
         } else {
             "Can't be used: no attacks or jokers.".into()
         };
-        let color = [0.5, 0.0, 0.0, 1.0].into();
-        let label = ui::Label::new(context, text(&s), h)?.with_color(color);
+        let color = Color::new(0.5, 0.0, 0.0, 1.0);
+        let label = ui::Label::new(text(&s), h)?.with_color(color);
         layout.add(Box::new(label));
     }
     layout.add(Box::new(ui::Spacer::new_vertical(h / 2.0)));
     let text_cancel = text("Click on an empty tile or the ability icon to cancel.");
-    let color_cancel = [0.4, 0.4, 0.4, 1.0].into();
-    let label_cancel_text = ui::Label::new(context, text_cancel, h)?.with_color(color_cancel);
+    let color_cancel = Color::new(0.4, 0.4, 0.4, 1.0);
+    let label_cancel_text = ui::Label::new(text_cancel, h)?.with_color(color_cancel);
     layout.add(Box::new(label_cancel_text));
-    layout.stretch_to_self(context)?;
-    let layout = utils::add_offsets_and_bg(context, layout, utils::OFFSET_SMALL)?;
+    layout.stretch_to_self()?;
+    let layout = utils::add_offsets_and_bg(layout, utils::OFFSET_SMALL)?;
     let layout = ui::pack(layout);
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
     gui.add(&layout, anchor);
     Ok(layout)
 }
 
-fn make_gui(context: &mut Context) -> ZResult<ui::Gui<Message>> {
-    let mut gui = ui::Gui::new(context);
+fn make_gui(view: &BattleView) -> ZResult<ui::Gui<Message>> {
+    let mut gui = ui::Gui::new();
     let h = line_heights().large;
     {
-        let icon = Box::new(graphics::Image::new(context, "/img/icon_menu.png")?);
-        let button = ui::Button::new(context, icon, h, gui.sender(), Message::Exit)?;
+        let icon = view.images().icon_main_menu;
+        let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), Message::Exit)?;
         let layout = ui::VLayout::from_widget(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
         gui.add(&ui::pack(layout), anchor);
@@ -394,7 +392,7 @@ enum CommandOrigin {
 
 #[derive(Debug)]
 pub struct Battle {
-    font: graphics::Font,
+    font: Font,
     gui: Gui<Message>,
     state: State,
     battle_type: scenario::BattleType,
@@ -413,26 +411,25 @@ pub struct Battle {
 }
 
 impl Battle {
-    pub fn new(
-        context: &mut Context,
+    pub async fn new(
         scenario: scenario::Scenario,
         battle_type: scenario::BattleType,
         prototypes: Prototypes,
         sender: Sender<Option<BattleResult>>,
     ) -> ZResult<Self> {
-        let font = default_font(context);
-        let mut gui = make_gui(context)?;
+        let font = default_font();
         let radius = scenario.map_radius;
-        let mut view = BattleView::new(radius, context)?;
+        let mut view = BattleView::new(radius).await?;
+        let mut gui = make_gui(&view)?;
         let mut actions = Vec::new();
         let state = State::new(prototypes, scenario, &mut |state, event, phase| {
-            let action = visualize(state, &mut view, context, event, phase)
-                .expect("Can't visualize the event");
+            let action =
+                visualize(state, &mut view, event, phase).expect("Can't visualize the event");
             actions.push(fork(action));
         });
-        actions.push(make_action_create_map(&state, context, &view)?);
+        actions.push(make_action_create_map(&state, &view)?);
         view.add_action(action::Sequence::new(actions).boxed());
-        let panel_end_turn = Some(build_panel_end_turn(context, &mut gui)?);
+        let panel_end_turn = Some(build_panel_end_turn(&view, &mut gui)?);
         Ok(Self {
             gui,
             font,
@@ -453,23 +450,23 @@ impl Battle {
         })
     }
 
-    fn end_turn(&mut self, context: &mut Context) -> ZResult {
+    fn end_turn(&mut self) -> ZResult {
         utils::remove_widget(&mut self.gui, &mut self.panel_end_turn)?;
         self.deselect()?;
         let command = command::EndTurn.into();
         let mut actions = Vec::new();
-        actions.push(self.do_command_inner(context, &command, CommandOrigin::Internal));
-        actions.push(self.do_ai(context));
+        actions.push(self.do_command_inner(&command, CommandOrigin::Internal));
+        actions.push(self.do_ai());
         self.add_actions(actions);
         Ok(())
     }
 
-    fn do_ai(&mut self, context: &mut Context) -> Box<dyn Action> {
+    fn do_ai(&mut self) -> Box<dyn Action> {
         trace!("AI: <");
         let mut actions = Vec::new();
         while let Some(command) = self.ai.command(&self.state) {
             trace!("AI: command = {:?}", command);
-            actions.push(self.do_command_inner(context, &command, CommandOrigin::Internal));
+            actions.push(self.do_command_inner(&command, CommandOrigin::Internal));
             actions.push(action::Sleep::new(time_s(0.2)).boxed());
             if let command::Command::EndTurn(_) = command {
                 break;
@@ -479,31 +476,31 @@ impl Battle {
         action::Sequence::new(actions).boxed()
     }
 
-    fn use_ability(&mut self, context: &mut Context, ability: Ability) -> ZResult {
+    fn use_ability(&mut self, ability: Ability) -> ZResult {
         let id = self.selected_agent_id.unwrap();
         if let SelectionMode::Ability(current_ability) = &self.mode {
             if current_ability == &ability {
                 // Exit the ability mode if its icon was pressed again.
-                return self.set_mode(context, id, SelectionMode::Normal);
+                return self.set_mode(id, SelectionMode::Normal);
             }
         }
-        self.set_mode(context, id, SelectionMode::Ability(ability))
+        self.set_mode(id, SelectionMode::Ability(ability))
     }
 
-    fn popup_confirm_exit(&mut self, context: &mut Context) -> ZResult<Box<dyn Screen>> {
+    fn popup_confirm_exit(&mut self) -> ZResult<Box<dyn Screen>> {
         let (sender, receiver) = channel();
         self.confirmation_receiver_exit = Some(receiver);
         let message = match self.battle_type {
             scenario::BattleType::Skirmish => "Abandon this battle?",
             scenario::BattleType::CampaignNode => "Abandon the whole campaign?",
         };
-        let popup = screen::Confirm::from_line(context, message, sender)?;
+        let popup = screen::Confirm::from_line(message, sender)?;
         Ok(Box::new(popup))
     }
 
     fn do_command_inner(
         &mut self,
-        context: &mut Context,
+
         command: &command::Command,
         origin: CommandOrigin,
     ) -> Box<dyn Action> {
@@ -513,8 +510,8 @@ impl Battle {
         let state = &mut self.state;
         let view = &mut self.view;
         battle::execute(state, command, &mut |state, event, phase| {
-            let action = visualize::visualize(state, view, context, event, phase)
-                .expect("Can't visualize the event");
+            let action =
+                visualize::visualize(state, view, event, phase).expect("Can't visualize the event");
             view.messages_map_mut().update(action.duration());
             actions.push(action);
             if origin != CommandOrigin::Player {
@@ -527,8 +524,8 @@ impl Battle {
         action::Sequence::new(actions).boxed()
     }
 
-    fn do_command(&mut self, context: &mut Context, command: &command::Command) {
-        let action = self.do_command_inner(context, command, CommandOrigin::Player);
+    fn do_command(&mut self, command: &command::Command) {
+        let action = self.do_command_inner(command, CommandOrigin::Player);
         self.add_action(action);
         self.view.messages_map_mut().clear();
     }
@@ -562,7 +559,7 @@ impl Battle {
         Ok(())
     }
 
-    fn set_mode(&mut self, context: &mut Context, id: Id, mode: SelectionMode) -> ZResult {
+    fn set_mode(&mut self, id: Id, mode: SelectionMode) -> ZResult {
         match mode {
             SelectionMode::Normal => self.deselect()?,
             SelectionMode::Ability(_) => self.remove_selected_highlighted_tiles_and_widgets()?,
@@ -578,28 +575,28 @@ impl Battle {
             SelectionMode::Ability(ref ability) => {
                 utils::remove_widget(gui, &mut self.panel_end_turn)?;
                 self.panel_ability_description = Some(build_panel_ability_description(
-                    context, self.font, gui, state, ability, id,
+                    self.font, gui, state, ability, id,
                 )?);
             }
             SelectionMode::Normal => {
                 self.pathfinder.fill_map(state, id);
                 if self.panel_end_turn.is_none() {
-                    self.panel_end_turn = Some(build_panel_end_turn(context, gui)?);
+                    self.panel_end_turn = Some(build_panel_end_turn(&self.view, gui)?);
                 }
             }
         }
         self.panel_abilities =
-            build_panel_agent_abilities(context, &self.view, self.font, gui, state, id, &mode)?;
+            build_panel_agent_abilities(&self.view, self.font, gui, state, id, &mode)?;
         self.panel_info = Some(build_panel_agent_info(
-            context, &self.view, self.font, gui, state, id,
+            &self.view, self.font, gui, state, id,
         )?);
         let map = self.pathfinder.map();
-        self.view.set_mode(state, context, map, id, &mode)?;
+        self.view.set_mode(state, map, id, &mode)?;
         self.mode = mode;
         Ok(())
     }
 
-    fn handle_agent_click(&mut self, context: &mut Context, id: Id) -> ZResult {
+    fn handle_agent_click(&mut self, id: Id) -> ZResult {
         if self.state.parts().agent.get_opt(id).is_none() {
             // only agents can be selected
             return Ok(());
@@ -614,7 +611,7 @@ impl Battle {
             if other_agent_player_id == selected_agent_player_id
                 || other_agent_player_id == self.state.player_id()
             {
-                self.set_mode(context, id, SelectionMode::Normal)?;
+                self.set_mode(id, SelectionMode::Normal)?;
                 return Ok(());
             }
             let command_attack = command::Attack {
@@ -625,10 +622,10 @@ impl Battle {
             if check(&self.state, &command_attack).is_err() {
                 return Ok(());
             }
-            self.do_command(context, &command_attack);
+            self.do_command(&command_attack);
             self.fill_map();
         } else {
-            self.set_mode(context, id, SelectionMode::Normal)?;
+            self.set_mode(id, SelectionMode::Normal)?;
         }
         Ok(())
     }
@@ -641,7 +638,7 @@ impl Battle {
         }
     }
 
-    fn try_move_selected_agent(&mut self, context: &mut Context, pos: PosHex) {
+    fn try_move_selected_agent(&mut self, pos: PosHex) {
         if let Some(id) = self.selected_agent_id {
             let path = match self.pathfinder.path(pos) {
                 Some(path) => path,
@@ -652,12 +649,12 @@ impl Battle {
             if check(&self.state, &command_move).is_err() {
                 return;
             }
-            self.do_command(context, &command_move);
+            self.do_command(&command_move);
             self.fill_map();
         }
     }
 
-    fn handle_click(&mut self, context: &mut Context, point: Point2) -> ZResult {
+    fn handle_click(&mut self, point: Vec2) -> ZResult {
         let pos = geom::point_to_hex(self.view.tile_size(), point);
         self.gui.click(point);
         if self.block_timer.is_some() {
@@ -667,28 +664,28 @@ impl Battle {
             let id = self.selected_agent_id.unwrap();
             let command = command::UseAbility { id, pos, ability }.into();
             if check(&self.state, &command).is_ok() {
-                self.do_command(context, &command);
+                self.do_command(&command);
             } else {
-                self.view.message(context, pos, "cancelled")?;
+                self.view.message(pos, "cancelled")?;
             }
-            self.set_mode(context, id, SelectionMode::Normal)?;
+            self.set_mode(id, SelectionMode::Normal)?;
         } else if self.state.map().is_inboard(pos) {
             if let Some(id) = state::agent_id_at_opt(&self.state, pos) {
-                self.handle_agent_click(context, id)?;
+                self.handle_agent_click(id)?;
             } else {
-                self.try_move_selected_agent(context, pos);
+                self.try_move_selected_agent(pos);
             }
         }
         self.view.messages_map_mut().clear();
         Ok(())
     }
 
-    fn update_block_timer(&mut self, context: &mut Context, dtime: Duration) -> ZResult {
+    fn update_block_timer(&mut self, dtime: Duration) -> ZResult {
         if let Some(time) = self.block_timer {
             if time < dtime {
                 self.block_timer = None;
                 if let Some(id) = self.selected_agent_id {
-                    self.set_mode(context, id, SelectionMode::Normal)?;
+                    self.set_mode(id, SelectionMode::Normal)?;
                 }
             }
         }
@@ -705,57 +702,60 @@ impl Battle {
 }
 
 impl Screen for Battle {
-    fn update(&mut self, context: &mut Context, dtime: Duration) -> ZResult<StackCommand> {
+    fn update(&mut self, dtime: Duration) -> ZResult<StackCommand> {
         if screen::confirm::try_receive_yes(&self.confirmation_receiver_exit) {
             self.confirmation_receiver_exit = None;
             self.send_battle_result(None);
             return Ok(StackCommand::Pop);
         }
         self.view.tick(dtime);
-        self.update_block_timer(context, dtime)?;
+        self.update_block_timer(dtime)?;
         if self.block_timer.is_none() {
             if let Some(result) = self.state.battle_result().clone() {
                 self.send_battle_result(Some(result));
                 return Ok(StackCommand::Pop);
             }
             if self.panel_end_turn.is_none() && self.mode == SelectionMode::Normal {
-                self.panel_end_turn = Some(build_panel_end_turn(context, &mut self.gui)?);
+                self.panel_end_turn = Some(build_panel_end_turn(&self.view, &mut self.gui)?);
             }
         }
         Ok(StackCommand::None)
     }
 
-    fn draw(&self, context: &mut Context) -> ZResult {
-        self.view.draw(context)?;
-        self.gui.draw(context)?;
+    fn draw(&self) -> ZResult {
+        self.view.draw();
+        self.gui.draw();
         Ok(())
     }
 
-    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<StackCommand> {
+    fn click(&mut self, pos: Vec2) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
         info!("Battle: click: pos={:?}, message={:?}", pos, message);
         match message {
             Some(Message::Exit) => {
-                return Ok(StackCommand::PushPopup(self.popup_confirm_exit(context)?));
+                //return Ok(StackCommand::PushPopup(self.popup_confirm_exit()?));
+                unimplemented!()
             }
             Some(Message::EndTurn) => {
                 assert!(self.block_timer.is_none());
-                self.end_turn(context)?;
+                self.end_turn()?;
             }
-            Some(Message::Ability(ability)) => self.use_ability(context, ability)?,
+            Some(Message::Ability(ability)) => self.use_ability(ability)?,
             Some(Message::PassiveAbilityInfo(ability)) => {
-                let title = &ability.title();
-                let description = &ability.description();
-                let popup = screen::GeneralInfo::new(context, title, description)?;
-                return Ok(StackCommand::PushPopup(Box::new(popup)));
+                // let title = &ability.title();
+                // let description = &ability.description();
+                // let popup = screen::GeneralInfo::new(title, description)?;
+                // return Ok(StackCommand::PushPopup(Box::new(popup)));
+                unimplemented!()
             }
             Some(Message::LastingEffectInfo(effect)) => {
-                let title = &effect.title();
-                let description = &effect.description();
-                let popup = screen::GeneralInfo::new(context, title, description)?;
-                return Ok(StackCommand::PushPopup(Box::new(popup)));
+                // let title = &effect.title();
+                // let description = &effect.description();
+                // let popup = screen::GeneralInfo::new(title, description)?;
+                // return Ok(StackCommand::PushPopup(Box::new(popup)));
+                unimplemented!()
             }
-            None => self.handle_click(context, pos)?,
+            None => self.handle_click(pos)?,
         }
         Ok(StackCommand::None)
     }
@@ -764,7 +764,7 @@ impl Screen for Battle {
         self.gui.resize(aspect_ratio);
     }
 
-    fn move_mouse(&mut self, _context: &mut Context, point: Point2) -> ZResult {
+    fn move_mouse(&mut self, point: Vec2) -> ZResult {
         let pos = geom::point_to_hex(self.view.tile_size(), point);
         if self.state.map().is_inboard(pos) {
             self.view.show_current_tile_marker(pos);

@@ -1,6 +1,6 @@
 use gwg::{
     conf, event,
-    graphics::{self, Font, Point2, Text},
+    graphics::{self, Font, Vec2, Text},
     Context, GameResult,
 };
 use zgui as ui;
@@ -39,7 +39,7 @@ impl State {
         Ok(this)
     }
 
-    fn resize(&mut self, context: &mut Context, w: f32, h: f32) -> GameResult {
+    fn resize(&mut self, w: f32, h: f32) -> GameResult {
         let aspect_ratio = w / h;
         self.gui.resize(aspect_ratio);
         let rect = graphics::Rect::new(0.0, 0.0, w, h);
@@ -47,10 +47,10 @@ impl State {
         Ok(())
     }
 
-    fn draw_scene(&self, context: &mut Context) -> GameResult {
+    fn draw_scene(&self) -> GameResult {
         let circle = {
             let mode = graphics::DrawMode::fill();
-            let pos = Point2::new(150.0, 150.0);
+            let pos = Vec2::new(150.0, 150.0);
             let radius = 100.0;
             let tolerance = 2.0;
             let color = [0.5, 0.5, 0.5, 1.0].into();
@@ -67,7 +67,7 @@ impl event::EventHandler for State {
         Ok(())
     }
 
-    fn draw(&mut self, context: &mut Context) -> GameResult {
+    fn draw(&mut self) -> GameResult {
         let bg_color = [1.0, 1.0, 1.0, 1.0].into();
         graphics::clear(context, bg_color);
         self.draw_scene(context)?;
@@ -75,18 +75,18 @@ impl event::EventHandler for State {
         graphics::present(context)
     }
 
-    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
+    fn resize_event(&mut self, w: f32, h: f32) {
         self.resize(context, w, h).expect("Can't resize the window");
     }
 
     fn mouse_button_up_event(
         &mut self,
-        context: &mut Context,
+        
         _: event::MouseButton,
         x: f32,
         y: f32,
     ) {
-        let window_pos = Point2::new(x, y);
+        let window_pos = Vec2::new(x, y);
         let pos = ui::window_to_screen(context, window_pos);
         let message = self.gui.click(pos);
         println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);

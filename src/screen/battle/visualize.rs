@@ -1,11 +1,7 @@
 use std::time::Duration;
 
-use cgmath::{self, InnerSpace, Rad, Rotation, Rotation2};
-use gwg::{
-    graphics::{Color, Image, Point2, Text, Vector2},
-    Context,
-};
 use log::{info, trace};
+use macroquad::prelude::{Color, Texture2D, Vec2};
 use zscene::{action, Action, Boxed, Facing, Sprite};
 
 use crate::{
@@ -29,14 +25,14 @@ use crate::{
 };
 
 pub mod color {
-    use gwg::graphics::Color;
+    use macroquad::prelude::Color;
 
-    pub const STRENGTH: Color = Color::new(0.0, 0.7, 0.0, 1.0);
-    pub const DAMAGE: Color = Color::new(0.3, 0.5, 0.3, 0.5);
-    pub const ARMOR: Color = Color::new(1.0, 1.0, 0.5, 1.0);
-    pub const JOKERS: Color = Color::new(1.0, 1.0, 1.0, 1.0);
-    pub const ATTACKS: Color = Color::new(1.0, 0.0, 0.0, 1.0);
-    pub const MOVES: Color = Color::new(0.2, 0.2, 1.0, 1.0);
+    pub const STRENGTH: Color = Color::new_const(0, 178, 0, 255);
+    pub const DAMAGE: Color = Color::new_const(76, 127, 76, 127);
+    pub const ARMOR: Color = Color::new_const(255, 255, 127, 255);
+    pub const JOKERS: Color = Color::new_const(255, 255, 255, 255);
+    pub const ATTACKS: Color = Color::new_const(255, 0, 0, 255);
+    pub const MOVES: Color = Color::new_const(51, 51, 255, 255);
 }
 
 const BLOOD_SPRITE_DURATION_TURNS: i32 = 6; // TODO: i32 -> Turns, Rounds, etc
@@ -65,20 +61,14 @@ fn hex_pos_to_z(pos: PosHex) -> f32 {
     pos.r as _
 }
 
-pub fn message(
-    view: &mut BattleView,
-    context: &mut Context,
-    pos: PosHex,
-    text: &str,
-) -> ZResult<Box<dyn Action>> {
+pub fn message(view: &mut BattleView, pos: PosHex, text: &str) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
-    let invisible = Color { a: 0.0, ..visible };
+    let mut invisible = Color::new(0.0, 0.0, 0.0, 0.0);
     let font_size = font_size();
-    let text = Box::new(Text::new((text, view.font(), font_size)));
-    let mut sprite = Sprite::from_drawable(context, text, 0.1)?;
+    let mut sprite = Sprite::from_text((text, view.font(), font_size), 0.1)?;
     sprite.set_centered(true);
     let point = view.hex_to_point(pos);
-    let point = point - Vector2::new(0.0, view.tile_size() * 1.5);
+    let point = point - Vec2::new(0.0, view.tile_size() * 1.5);
     sprite.set_pos(point);
     sprite.set_color(invisible);
     let action_show_hide = seq([
@@ -90,7 +80,7 @@ pub fn message(
         action::Hide::new(&view.layers().text, &sprite).boxed(),
     ]);
     let duration = action_show_hide.duration();
-    let delta = -Vector2::new(0.0, 0.15);
+    let delta = -Vec2::new(0.0, 0.15);
     let action_move = action::MoveBy::new(&sprite, delta, duration).boxed();
     let mut actions = Vec::new();
     if let Some(delay) = view.messages_map().delay_at(pos) {
@@ -102,19 +92,14 @@ pub fn message(
     Ok(fork(seq(actions)))
 }
 
-fn announce(
-    view: &mut BattleView,
-    context: &mut Context,
-    text: &str,
-    time: Duration,
-) -> ZResult<Box<dyn Action>> {
+fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dyn Action>> {
     let height_text = 0.2;
     let height_bg = height_text * 5.0;
     let time_appear = time.mul_f32(0.25);
     let time_wait = time.mul_f32(0.5);
     let time_disappear = time.mul_f32(0.35);
-    let action_show_and_hide = |sprite, color| {
-        let color_invisible = Color { a: 0.0, ..color };
+    let action_show_and_hide = |sprite, color: Color| {
+        let color_invisible = Color::new(color.r(), color.g(), color.b(), 0.0);
         seq([
             action::SetColor::new(&sprite, color_invisible).boxed(),
             action::Show::new(&view.layers().text, &sprite).boxed(),
@@ -126,15 +111,14 @@ fn announce(
     };
     let actions_text = {
         let color = [0.0, 0.0, 0.0, 1.0].into();
-        let text = Box::new(Text::new((text, view.font(), font_size())));
-        let mut sprite = Sprite::from_drawable(context, text, height_text)?;
+        let mut sprite = Sprite::from_text((text, view.font(), font_size()), height_text)?;
         sprite.set_centered(true);
         action_show_and_hide(sprite, color)
     };
     let actions_bg = {
         let color = [1.0, 1.0, 1.0, 0.5].into();
-        let image = Box::new(view.images().white_hex.clone());
-        let mut sprite = Sprite::from_drawable(context, image, height_bg)?;
+        let image = view.images().white_hex;
+        let mut sprite = Sprite::from_image(image, height_bg)?;
         sprite.set_centered(true);
         action_show_and_hide(sprite, color)
     };
@@ -145,19 +129,13 @@ fn announce(
     ]))
 }
 
-fn attack_message(
-    view: &mut BattleView,
-    context: &mut Context,
-    pos: Point2,
-    text: &str,
-) -> ZResult<Box<dyn Action>> {
+fn attack_message(view: &mut BattleView, pos: Vec2, text: &str) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
-    let invisible = Color { a: 0.0, ..visible };
+    let invisible = [0.0, 0.0, 0.0, 0.0].into();
     let font_size = font_size();
-    let text = Box::new(Text::new((text, view.font(), font_size)));
-    let mut sprite = Sprite::from_drawable(context, text, 0.1)?;
+    let mut sprite = Sprite::from_text((text, view.font(), font_size), 0.1)?;
     sprite.set_centered(true);
-    let point = pos + Vector2::new(0.0, view.tile_size() * 0.5);
+    let point = pos + Vec2::new(0.0, view.tile_size() * 0.5);
     sprite.set_pos(point);
     sprite.set_color(invisible);
     let action_show_hide = seq([
@@ -172,7 +150,6 @@ fn attack_message(
 
 fn show_blood_particles(
     view: &mut BattleView,
-    context: &mut Context,
     pos: PosHex,
     from: Option<PosHex>,
     particles_count: i32,
@@ -190,10 +167,10 @@ fn show_blood_particles(
         let point = point_origin + offset;
         let color = [0.7, 0.0, 0.0, 0.6].into();
         let visible = color;
-        let invisible = Color { a: 0.0, ..visible };
+        let invisible = [0.7, 0.0, 0.0, 0.0].into();
         let scale = roll_dice(0.05, 0.15);
         let size = view.tile_size() * 2.0 * scale;
-        let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size)?;
+        let mut sprite = Sprite::from_image(view.images().white_hex, size)?;
         sprite.set_centered(true);
         sprite.set_pos(point_origin);
         sprite.set_color(invisible);
@@ -206,86 +183,71 @@ fn show_blood_particles(
             action::Hide::new(&view.layers().flares, &sprite).boxed(),
             action::Show::new(&layer, &sprite).boxed(),
         ])));
-        view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION_TURNS, visible.a);
+        view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION_TURNS, visible.a());
     }
     Ok(fork(seq(actions)))
 }
 
-fn show_blood_spot(
-    view: &mut BattleView,
-    context: &mut Context,
-    at: PosHex,
-) -> ZResult<Box<dyn Action>> {
-    let mut sprite =
-        Sprite::from_image(context, view.images().blood.clone(), view.tile_size() * 2.0)?;
+fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
+    let mut sprite = Sprite::from_image(view.images().blood, view.tile_size() * 2.0)?;
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
     let mut point = view.hex_to_point(at);
-    point.y += view.tile_size() * 0.1;
+    *point.y_mut() += view.tile_size() * 0.1;
     sprite.set_pos(point);
     let color_final: Color = [1.0, 1.0, 1.0, 1.0].into();
     let time = time_s(0.6);
     let layer = view.layers().blood.clone();
-    view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION_TURNS, color_final.a);
+    view.add_disappearing_sprite(
+        &layer,
+        &sprite,
+        BLOOD_SPRITE_DURATION_TURNS,
+        color_final.a(),
+    );
     Ok(seq([
         action::Show::new(&layer, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite, color_final, time).boxed(),
     ]))
 }
 
-fn show_explosion_ground_mark(
-    view: &mut BattleView,
-    context: &mut Context,
-    at: PosHex,
-) -> ZResult<Box<dyn Action>> {
-    let mut sprite = Sprite::from_image(
-        context,
-        view.images().explosion_ground_mark.clone(),
-        view.tile_size() * 2.0,
-    )?;
+fn show_explosion_ground_mark(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
+    let mut sprite =
+        Sprite::from_image(view.images().explosion_ground_mark, view.tile_size() * 2.0)?;
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 1.0].into());
     sprite.set_pos(view.hex_to_point(at));
     let layer = view.layers().blood.clone();
     let duration = BLOOD_SPRITE_DURATION_TURNS;
-    view.add_disappearing_sprite(&layer, &sprite, duration, sprite.color().a);
+    view.add_disappearing_sprite(&layer, &sprite, duration, sprite.color().a());
     Ok(action::Show::new(&layer, &sprite).boxed())
 }
 
-fn show_dust_at_pos(
-    view: &mut BattleView,
-    context: &mut Context,
-    at: PosHex,
-) -> ZResult<Box<dyn Action>> {
+fn show_dust_at_pos(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let point = view.hex_to_point(at);
     let count = 9;
-    show_dust(view, context, point, count)
+    show_dust(view, point, count)
 }
 
-fn show_dust(
-    view: &mut BattleView,
-    context: &mut Context,
-    at: Point2,
-    count: i32,
-) -> ZResult<Box<dyn Action>> {
+fn show_dust(view: &mut BattleView, at: Vec2, count: i32) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for i in 0..count {
         let k = roll_dice(0.8, 1.2);
         let visible = [0.8 * k, 0.8 * k, 0.7 * k, 0.8 * k].into();
-        let invisible = Color { a: 0.0, ..visible };
+        let invisible = [0.8 * k, 0.8 * k, 0.7 * k, 0.0].into();
         let scale = roll_dice(0.2, 0.4);
         let size = view.tile_size() * 2.0 * scale;
         let vector = {
-            let max = std::f32::consts::PI * 2.0;
-            let rot = cgmath::Basis2::from_angle(Rad((max / count as f32) * i as f32));
-            let n = roll_dice(0.4, 0.6);
-            let mut vector = rot.rotate_vector(Vector2::new(view.tile_size() * n, 0.0));
-            vector.y *= geom::FLATNESS_COEFFICIENT;
-            vector
+            // let max = std::f32::consts::PI * 2.0;
+            // let rot = cgmath::Basis2::from_angle(Rad((max / count as f32) * i as f32));
+            // let n = roll_dice(0.4, 0.6);
+            // let mut vector = rot.rotate_vector(Vec2::new(view.tile_size() * n, 0.0));
+            // vector.y *= geom::FLATNESS_COEFFICIENT;
+            // vector
+            unimplemented!()
         };
         let point = at + vector;
         let sprite = {
-            let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size)?;
+            let mut sprite = Sprite::from_image(view.images().white_hex, size)?;
             sprite.set_centered(true);
             sprite.set_pos(point);
             sprite.set_color(invisible);
@@ -308,16 +270,17 @@ fn show_dust(
 
 fn show_flare_scale_time(
     view: &mut BattleView,
-    context: &mut Context,
     at: PosHex,
     color: Color,
     scale: f32,
     time: Duration,
 ) -> ZResult<Box<dyn Action>> {
     let visible = color;
-    let invisible = Color { a: 0.0, ..visible };
+    //let invisible = Color { a: 0.0, ..visible };
+    let mut invisible = color;
+    invisible.0[3] = 0;
     let size = view.tile_size() * 2.0 * scale;
-    let mut sprite = Sprite::from_image(context, view.images().white_hex.clone(), size)?;
+    let mut sprite = Sprite::from_image(view.images().white_hex, size)?;
     let point = view.hex_to_point(at);
     sprite.set_centered(true);
     sprite.set_pos(point);
@@ -332,13 +295,12 @@ fn show_flare_scale_time(
 
 fn show_weapon_flash(
     view: &mut BattleView,
-    context: &mut Context,
     at: PosHex,
     weapon_type: WeaponType,
     facing_opt: Option<geom::Facing>,
 ) -> ZResult<Box<dyn Action>> {
     let visible = [1.0, 1.0, 1.0, 0.8].into();
-    let invisible = Color { a: 0.1, ..visible };
+    let invisible = [1.0, 1.0, 1.0, 0.1].into();
     let tile_size = view.tile_size();
     let sprite_size = tile_size * 2.0;
     let image = match weapon_type {
@@ -347,8 +309,8 @@ fn show_weapon_flash(
         WeaponType::Pierce => view.images().attack_pierce.clone(),
         WeaponType::Claw => view.images().attack_claws.clone(),
     };
-    let mut sprite = Sprite::from_image(context, image, sprite_size)?;
-    let point = view.hex_to_point(at) - Vector2::new(0.0, tile_size * 0.3);
+    let mut sprite = Sprite::from_image(image, sprite_size)?;
+    let point = view.hex_to_point(at) - Vec2::new(0.0, tile_size * 0.3);
     sprite.set_centered(true);
     sprite.set_pos(point);
     sprite.set_color(invisible);
@@ -363,14 +325,9 @@ fn show_weapon_flash(
     Ok(fork(seq(actions)))
 }
 
-fn show_flare(
-    view: &mut BattleView,
-    context: &mut Context,
-    at: PosHex,
-    color: Color,
-) -> ZResult<Box<dyn Action>> {
+fn show_flare(view: &mut BattleView, at: PosHex, color: Color) -> ZResult<Box<dyn Action>> {
     let scale = 1.0;
-    show_flare_scale_time(view, context, at, color, scale, time_s(TIME_DEFAULT_FLARE))
+    show_flare_scale_time(view, at, color, scale, time_s(TIME_DEFAULT_FLARE))
 }
 
 fn up_and_down_move(
@@ -380,8 +337,8 @@ fn up_and_down_move(
     time: Duration,
 ) -> Box<dyn Action> {
     let duration_0_25 = time.mul_f32(0.25);
-    let up_fast = Vector2::new(0.0, -height * 0.75);
-    let up_slow = Vector2::new(0.0, -height * 0.25);
+    let up_fast = Vec2::new(0.0, -height * 0.75);
+    let up_slow = Vec2::new(0.0, -height * 0.25);
     let down_slow = -up_slow;
     let down_fast = -up_fast;
     seq([
@@ -395,7 +352,7 @@ fn up_and_down_move(
 fn move_object_with_shadow(
     view: &mut BattleView,
     id: Id,
-    diff: Vector2,
+    diff: Vec2,
     time_to: Duration,
 ) -> Box<dyn Action> {
     let sprite = view.id_to_sprite(id).clone();
@@ -405,8 +362,8 @@ fn move_object_with_shadow(
     seq([fork(action_shadow_move_to), action_sprite_move_to])
 }
 
-fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vector2) -> Box<dyn Action> {
-    let len = diff.magnitude();
+fn arc_move(view: &mut BattleView, sprite: &Sprite, diff: Vec2) -> Box<dyn Action> {
+    let len = diff.length();
     let min_height = view.tile_size() * 0.5;
     let base_height = view.tile_size() * 2.0;
     let min_time = 0.25;
@@ -454,10 +411,8 @@ fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Act
     let mut actions = Vec::new();
     let sprites = view.agent_info_get(id);
     for sprite in sprites {
-        let color = Color {
-            a: 0.0,
-            ..sprite.color()
-        };
+        let mut color = sprite.color();
+        color.0[3] = 0;
         actions.push(fork(seq([
             action::ChangeColorTo::new(&sprite, color, time_s(0.4)).boxed(),
             action::Hide::new(&view.layers().dots, &sprite).boxed(),
@@ -466,18 +421,17 @@ fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Act
     Ok(seq(actions))
 }
 
-pub fn get_effect_icon(view: &BattleView, effect: &effect::Lasting) -> Image {
+pub fn get_effect_icon(view: &BattleView, effect: &effect::Lasting) -> Texture2D {
     match effect {
-        effect::Lasting::Poison => view.images().effect_poison.clone(),
-        effect::Lasting::Stun => view.images().effect_stun.clone(),
-        effect::Lasting::Bloodlust => view.images().effect_bloodlust.clone(),
+        effect::Lasting::Poison => view.images().effect_poison,
+        effect::Lasting::Stun => view.images().effect_stun,
+        effect::Lasting::Bloodlust => view.images().effect_bloodlust,
     }
 }
 
 fn generate_brief_obj_info(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     id: Id,
 ) -> ZResult<Box<dyn Action>> {
     let dot_image = view.images().dot.clone();
@@ -490,8 +444,8 @@ fn generate_brief_obj_info(
     let armor = state::get_armor(state, id);
     let size = 0.25 * view.tile_size();
     let mut point = view.hex_to_point(obj_pos);
-    point.x += view.tile_size() * 0.8;
-    point.y -= view.tile_size() * 1.6;
+    *point.x_mut() += view.tile_size() * 0.8;
+    *point.y_mut() -= view.tile_size() * 1.6;
     let mut dots = Vec::new();
     let base = point;
     let rows: &[&[_]] = &[
@@ -509,18 +463,19 @@ fn generate_brief_obj_info(
         for &(color, n) in row {
             for _ in 0..n {
                 dots.push((color, point));
-                point.x -= size * actual_dot_size_k;
+                *point.x_mut() -= size * actual_dot_size_k;
             }
         }
-        point.x = base.x;
-        point.y += size * actual_dot_size_k;
+        *point.x_mut() = base.x();
+        *point.y_mut() += size * actual_dot_size_k;
     }
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
-        let mut sprite = Sprite::from_image(context, dot_image.clone(), size)?;
+        let mut sprite = Sprite::from_image(dot_image, size)?;
         sprite.set_centered(true);
         sprite.set_pos(point);
-        sprite.set_color(Color { a: 0.0, ..color });
+        // TODO
+        //sprite.set_color(Color { a: 0.0, ..color });
         let action = fork(seq([
             action::Show::new(&view.layers().dots, &sprite).boxed(),
             action::ChangeColorTo::new(&sprite, color, time_s(0.1)).boxed(),
@@ -534,13 +489,13 @@ fn generate_brief_obj_info(
         if let Some(effects) = parts.effects.get_opt(id) {
             let icon_size = size * 1.6;
             let mut icon_point = base;
-            icon_point.y -= icon_size;
-            icon_point.x -= health_bar_width + icon_size * 0.4;
+            *icon_point.y_mut() -= icon_size;
+            *icon_point.x_mut() -= health_bar_width + icon_size * 0.4;
             for timed_effect in &effects.0 {
-                icon_point.y += icon_size;
+                *icon_point.y_mut() += icon_size;
                 let effect = &timed_effect.effect;
                 let image = get_effect_icon(view, effect);
-                let mut sprite = Sprite::from_image(context, image, icon_size)?;
+                let mut sprite = Sprite::from_image(image, icon_size)?;
                 sprite.set_pos(icon_point);
                 sprite.set_centered(true);
                 actions.push(action::Show::new(&view.layers().dots, &sprite).boxed());
@@ -555,7 +510,6 @@ fn generate_brief_obj_info(
 fn refresh_brief_agent_info(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     id: Id,
 ) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
@@ -563,7 +517,7 @@ fn refresh_brief_agent_info(
         actions.push(remove_brief_agent_info(view, id)?);
     }
     if state.parts().agent.get_opt(id).is_some() {
-        actions.push(generate_brief_obj_info(state, view, context, id)?);
+        actions.push(generate_brief_obj_info(state, view, id)?);
     }
     Ok(seq(actions))
 }
@@ -571,53 +525,42 @@ fn refresh_brief_agent_info(
 pub fn visualize(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &Event,
     phase: ApplyPhase,
 ) -> ZResult<Box<dyn Action>> {
     trace!("visualize: phase={:?} event={:?}", phase, event);
     match phase {
-        ApplyPhase::Pre => visualize_pre(state, view, context, event),
-        ApplyPhase::Post => visualize_post(state, view, context, event),
+        ApplyPhase::Pre => visualize_pre(state, view, event),
+        ApplyPhase::Post => visualize_post(state, view, event),
     }
 }
 
-fn visualize_pre(
-    state: &State,
-    view: &mut BattleView,
-    context: &mut Context,
-    event: &Event,
-) -> ZResult<Box<dyn Action>> {
+fn visualize_pre(state: &State, view: &mut BattleView, event: &Event) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
-    actions.push(visualize_event(state, view, context, &event.active_event)?);
-    for &(id, ref effects) in &event.instant_effects {
-        for effect in effects {
-            actions.push(visualize_instant_effect(state, view, context, id, &effect)?);
-        }
-    }
-    for &(id, ref effects) in &event.timed_effects {
-        for effect in effects {
-            actions.push(visualize_lasting_effect(state, view, context, id, &effect)?);
-        }
-    }
+    actions.push(visualize_event(state, view, &event.active_event)?);
+    // for &(id, ref effects) in &event.instant_effects {
+    //     for effect in effects {
+    //         actions.push(visualize_instant_effect(state, view, id, &effect)?);
+    //     }
+    // }
+    // for &(id, ref effects) in &event.timed_effects {
+    //     for effect in effects {
+    //         actions.push(visualize_lasting_effect(state, view, id, &effect)?);
+    //     }
+    // }
     Ok(seq(actions))
 }
 
-fn visualize_post(
-    state: &State,
-    view: &mut BattleView,
-    context: &mut Context,
-    event: &Event,
-) -> ZResult<Box<dyn Action>> {
+fn visualize_post(state: &State, view: &mut BattleView, event: &Event) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     for &id in &event.actor_ids {
-        actions.push(refresh_brief_agent_info(state, view, context, id)?);
+        actions.push(refresh_brief_agent_info(state, view, id)?);
     }
     for &(id, _) in &event.instant_effects {
-        actions.push(refresh_brief_agent_info(state, view, context, id)?);
+        actions.push(refresh_brief_agent_info(state, view, id)?);
     }
     for &(id, _) in &event.timed_effects {
-        actions.push(refresh_brief_agent_info(state, view, context, id)?);
+        actions.push(refresh_brief_agent_info(state, view, id)?);
     }
     Ok(seq(actions))
 }
@@ -625,20 +568,19 @@ fn visualize_post(
 fn visualize_event(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &ActiveEvent,
 ) -> ZResult<Box<dyn Action>> {
     info!("{:?}", event);
     let action = match *event {
         ActiveEvent::UsePassiveAbility(_) | ActiveEvent::Create => action::Empty::new().boxed(),
-        ActiveEvent::MoveTo(ref ev) => visualize_event_move_to(state, view, context, ev)?,
-        ActiveEvent::Attack(ref ev) => visualize_event_attack(state, view, context, ev)?,
-        ActiveEvent::EndBattle(ref ev) => visualize_event_end_battle(state, view, context, ev)?,
-        ActiveEvent::EndTurn(ref ev) => visualize_event_end_turn(state, view, context, ev),
-        ActiveEvent::BeginTurn(ref ev) => visualize_event_begin_turn(state, view, context, ev)?,
-        ActiveEvent::EffectTick(ref ev) => visualize_event_effect_tick(state, view, context, ev)?,
-        ActiveEvent::EffectEnd(ref ev) => visualize_event_effect_end(state, view, context, ev)?,
-        ActiveEvent::UseAbility(ref ev) => visualize_event_use_ability(state, view, context, ev)?,
+        ActiveEvent::MoveTo(ref ev) => visualize_event_move_to(state, view, ev)?,
+        ActiveEvent::Attack(ref ev) => visualize_event_attack(state, view, ev)?,
+        ActiveEvent::EndBattle(ref ev) => visualize_event_end_battle(state, view, ev)?,
+        ActiveEvent::EndTurn(ref ev) => visualize_event_end_turn(state, view, ev),
+        ActiveEvent::BeginTurn(ref ev) => visualize_event_begin_turn(state, view, ev)?,
+        ActiveEvent::EffectTick(ref ev) => visualize_event_effect_tick(state, view, ev)?,
+        ActiveEvent::EffectEnd(ref ev) => visualize_event_effect_end(state, view, ev)?,
+        ActiveEvent::UseAbility(ref ev) => visualize_event_use_ability(state, view, ev)?,
     };
     Ok(action)
 }
@@ -646,13 +588,12 @@ fn visualize_event(
 fn visualize_event_move_to(
     _: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &event::MoveTo,
 ) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(event.id).clone();
     let mut actions = Vec::new();
     if let [pos] = event.path.tiles() {
-        actions.push(message(view, context, *pos, "move interrupted")?);
+        actions.push(message(view, *pos, "move interrupted")?);
     }
     for step in event.path.steps() {
         let from = view.hex_to_point(step.from);
@@ -693,7 +634,6 @@ fn lunge(state: &State, view: &mut BattleView, id: Id, to: PosHex) -> ZResult<Bo
 fn visualize_event_attack(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &event::Attack,
 ) -> ZResult<Box<dyn Action>> {
     let id = event.attacker_id;
@@ -706,9 +646,9 @@ fn visualize_event_attack(
     let mut actions = Vec::new();
     let chances = hit_chance(state, id, event.target_id);
     let attack_msg = format!("{}%", chances.1 * 10);
-    actions.push(attack_message(view, context, from, &attack_msg)?);
+    actions.push(attack_message(view, from, &attack_msg)?);
     if event.mode == event::AttackMode::Reactive {
-        actions.push(message(view, context, map_from, "reaction")?);
+        actions.push(message(view, map_from, "reaction")?);
     }
     let time_to = time_s(TIME_LUNGE_TO);
     let time_from = time_s(TIME_LUNGE_FROM);
@@ -722,7 +662,6 @@ fn visualize_event_attack(
     actions.push(move_object_with_shadow(view, id, diff, time_to));
     actions.push(show_weapon_flash(
         view,
-        context,
         map_to,
         event.weapon_type,
         facing_opt,
@@ -737,7 +676,6 @@ fn visualize_event_attack(
 fn visualize_event_end_battle(
     _: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &event::EndBattle,
 ) -> ZResult<Box<dyn Action>> {
     let text = match event.result.winner_id {
@@ -747,7 +685,7 @@ fn visualize_event_end_battle(
     };
     Ok(seq([
         action::Sleep::new(time_s(1.0)).boxed(),
-        announce(view, context, text, time_s(4.0))?,
+        announce(view, text, time_s(4.0))?,
         action::Sleep::new(time_s(1.0)).boxed(),
     ]))
 }
@@ -755,7 +693,6 @@ fn visualize_event_end_battle(
 fn visualize_event_end_turn(
     _: &State,
     view: &mut BattleView,
-    _: &mut Context,
     _: &event::EndTurn,
 ) -> Box<dyn Action> {
     seq([
@@ -767,7 +704,6 @@ fn visualize_event_end_turn(
 fn visualize_event_begin_turn(
     _: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &event::BeginTurn,
 ) -> ZResult<Box<dyn Action>> {
     let text = match event.player_id {
@@ -775,13 +711,12 @@ fn visualize_event_begin_turn(
         PlayerId(1) => "ENEMY TURN",
         _ => unreachable!(),
     };
-    announce(view, context, text, time_s(1.5))
+    announce(view, text, time_s(1.5))
 }
 
 fn visualize_event_use_ability_jump(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let sprite_object = view.id_to_sprite(event.id).clone();
@@ -794,7 +729,7 @@ fn visualize_event_use_ability_jump(
     let time = action_arc_move.duration();
     let z = hex_pos_to_z(event.pos);
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
-    let action_dust = show_dust_at_pos(view, context, event.pos)?;
+    let action_dust = show_dust_at_pos(view, event.pos)?;
     let mut actions = Vec::new();
     actions.push(action_set_z(&view.layers().objects, &sprite_object, 200.0));
     if sprite_object.has_frame("jump") {
@@ -813,7 +748,6 @@ fn visualize_event_use_ability_jump(
 fn visualize_event_use_ability_dash(
     state: &State,
     view: &mut BattleView,
-    _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(event.id).clone();
@@ -832,7 +766,6 @@ fn visualize_event_use_ability_dash(
 fn visualize_event_use_ability_heal(
     _: &State,
     view: &mut BattleView,
-    _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let time = time_s(1.0);
@@ -842,7 +775,6 @@ fn visualize_event_use_ability_heal(
 fn visualize_event_use_ability_rage(
     _: &State,
     view: &mut BattleView,
-    _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let time = time_s(1.0);
@@ -852,7 +784,6 @@ fn visualize_event_use_ability_rage(
 fn visualize_event_use_ability_knockback(
     state: &State,
     view: &mut BattleView,
-    _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     lunge(state, view, event.id, event.pos)
@@ -861,7 +792,6 @@ fn visualize_event_use_ability_knockback(
 fn visualize_event_use_ability_club(
     state: &State,
     view: &mut BattleView,
-    _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     lunge(state, view, event.id, event.pos)
@@ -870,16 +800,15 @@ fn visualize_event_use_ability_club(
 fn visualize_event_use_ability_explode(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
-    let action_dust = show_dust_at_pos(view, context, pos)?;
+    let action_dust = show_dust_at_pos(view, pos)?;
     let color = [1.0, 0.0, 0.0, 0.7].into();
     let scale = 2.5;
     let time = time_s(TIME_DEFAULT_FLARE * 0.8);
-    let action_flare = show_flare_scale_time(view, context, pos, color, scale, time)?;
-    let action_ground_mark = show_explosion_ground_mark(view, context, pos)?;
+    let action_flare = show_flare_scale_time(view, pos, color, scale, time)?;
+    let action_ground_mark = show_explosion_ground_mark(view, pos)?;
     Ok(seq([
         fork(seq([action_flare, action_dust])),
         action_ground_mark,
@@ -889,7 +818,6 @@ fn visualize_event_use_ability_explode(
 fn visualize_event_use_ability_summon(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let sprite = view.id_to_sprite(event.id).clone();
@@ -899,7 +827,7 @@ fn visualize_event_use_ability_summon(
     let color = [1.0, 1.0, 1.0, 0.7].into();
     let scale = 2.0;
     let time = time_s(TIME_DEFAULT_FLARE);
-    let action_flare = show_flare_scale_time(view, context, pos, color, scale, time)?;
+    let action_flare = show_flare_scale_time(view, pos, color, scale, time)?;
     Ok(seq([
         action::SetFrame::new(&sprite, frame_name).boxed(),
         action::Sleep::new(time_s(0.3)).boxed(),
@@ -913,7 +841,6 @@ fn visualize_event_use_ability_summon(
 fn visualize_event_use_ability_bloodlust(
     _: &State,
     view: &mut BattleView,
-    _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let time = time_s(0.5);
@@ -923,7 +850,6 @@ fn visualize_event_use_ability_bloodlust(
 fn visualize_event_use_ability_throw_bomb(
     _: &State,
     view: &mut BattleView,
-    _: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let time = time_s(0.5);
@@ -933,33 +859,26 @@ fn visualize_event_use_ability_throw_bomb(
 fn visualize_event_use_ability(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &event::UseAbility,
 ) -> ZResult<Box<dyn Action>> {
     let action_main = match event.ability {
-        Ability::Jump | Ability::LongJump => {
-            visualize_event_use_ability_jump(state, view, context, event)?
-        }
-        Ability::Dash => visualize_event_use_ability_dash(state, view, context, event)?,
-        Ability::Summon => visualize_event_use_ability_summon(state, view, context, event)?,
-        Ability::Bloodlust => visualize_event_use_ability_bloodlust(state, view, context, event)?,
-        Ability::Heal | Ability::GreatHeal => {
-            visualize_event_use_ability_heal(state, view, context, event)?
-        }
-        Ability::Rage => visualize_event_use_ability_rage(state, view, context, event)?,
-        Ability::Knockback => visualize_event_use_ability_knockback(state, view, context, event)?,
-        Ability::Club => visualize_event_use_ability_club(state, view, context, event)?,
+        Ability::Jump | Ability::LongJump => visualize_event_use_ability_jump(state, view, event)?,
+        Ability::Dash => visualize_event_use_ability_dash(state, view, event)?,
+        Ability::Summon => visualize_event_use_ability_summon(state, view, event)?,
+        Ability::Bloodlust => visualize_event_use_ability_bloodlust(state, view, event)?,
+        Ability::Heal | Ability::GreatHeal => visualize_event_use_ability_heal(state, view, event)?,
+        Ability::Rage => visualize_event_use_ability_rage(state, view, event)?,
+        Ability::Knockback => visualize_event_use_ability_knockback(state, view, event)?,
+        Ability::Club => visualize_event_use_ability_club(state, view, event)?,
         Ability::ExplodePush
         | Ability::ExplodeDamage
         | Ability::ExplodeFire
-        | Ability::ExplodePoison => {
-            visualize_event_use_ability_explode(state, view, context, event)?
-        }
+        | Ability::ExplodePoison => visualize_event_use_ability_explode(state, view, event)?,
         Ability::BombPush
         | Ability::BombDemonic
         | Ability::BombFire
         | Ability::BombPoison
-        | Ability::Bomb => visualize_event_use_ability_throw_bomb(state, view, context, event)?,
+        | Ability::Bomb => visualize_event_use_ability_throw_bomb(state, view, event)?,
         _ => action::Empty::new().boxed(),
     };
     let pos = state.parts().pos.get(event.id).0;
@@ -973,7 +892,7 @@ fn visualize_event_use_ability(
     // Don't show messages for not that important abilities.
     match event.ability {
         Ability::Vanish => {}
-        _ => actions.push(message(view, context, pos, &text)?),
+        _ => actions.push(message(view, pos, &text)?),
     }
     Ok(seq(actions))
 }
@@ -981,67 +900,64 @@ fn visualize_event_use_ability(
 fn visualize_event_effect_tick(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &event::EffectTick,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     match event.effect {
-        effect::Lasting::Poison => show_flare(view, context, pos, [0.0, 0.8, 0.0, 0.7].into()),
-        effect::Lasting::Stun => show_flare(view, context, pos, [1.0, 1.0, 1.0, 0.7].into()),
-        effect::Lasting::Bloodlust => show_flare(view, context, pos, [1.0, 0.0, 0.0, 0.5].into()),
+        effect::Lasting::Poison => show_flare(view, pos, [0.0, 0.8, 0.0, 0.7].into()),
+        effect::Lasting::Stun => show_flare(view, pos, [1.0, 1.0, 1.0, 0.7].into()),
+        effect::Lasting::Bloodlust => show_flare(view, pos, [1.0, 0.0, 0.0, 0.5].into()),
     }
 }
 
 fn visualize_event_effect_end(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     event: &event::EffectEnd,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(event.id).0;
     let s = event.effect.title();
-    message(view, context, pos, &format!("[{}] ended", s))
+    message(view, pos, &format!("[{}] ended", s))
 }
 
 fn visualize_lasting_effect(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
+
     target_id: Id,
     timed_effect: &effect::Timed,
 ) -> ZResult<Box<dyn Action>> {
     let pos = state.parts().pos.get(target_id).0;
     let action_flare = match timed_effect.effect {
-        effect::Lasting::Poison => show_flare(view, context, pos, [0.0, 0.8, 0.0, 0.7].into())?,
-        effect::Lasting::Stun => show_flare(view, context, pos, [1.0, 1.0, 1.0, 0.7].into())?,
-        effect::Lasting::Bloodlust => show_flare(view, context, pos, [1.0, 0.0, 0.0, 0.5].into())?,
+        effect::Lasting::Poison => show_flare(view, pos, [0.0, 0.8, 0.0, 0.7].into())?,
+        effect::Lasting::Stun => show_flare(view, pos, [1.0, 1.0, 1.0, 0.7].into())?,
+        effect::Lasting::Bloodlust => show_flare(view, pos, [1.0, 0.0, 0.0, 0.5].into())?,
     };
     let s = timed_effect.effect.title();
     Ok(seq([
         action_flare,
-        message(view, context, pos, &format!("[{}]", s))?,
+        message(view, pos, &format!("[{}]", s))?,
     ]))
 }
 
 fn visualize_instant_effect(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
     target_id: Id,
     effect: &Effect,
 ) -> ZResult<Box<dyn Action>> {
     trace!("visualize_instant_effect: {:?}", effect);
     let action = match *effect {
-        Effect::Create(ref e) => visualize_effect_create(state, view, context, target_id, e)?,
-        Effect::Kill(ref e) => visualize_effect_kill(state, view, context, target_id, e)?,
-        Effect::Vanish => visualize_effect_vanish(state, view, context, target_id),
-        Effect::Stun => visualize_effect_stun(state, view, context, target_id)?,
-        Effect::Heal(ref e) => visualize_effect_heal(state, view, context, target_id, e)?,
-        Effect::Wound(ref e) => visualize_effect_wound(state, view, context, target_id, e)?,
-        Effect::Knockback(ref e) => visualize_effect_knockback(state, view, context, target_id, e)?,
-        Effect::FlyOff(ref e) => visualize_effect_fly_off(state, view, context, target_id, e)?,
-        Effect::Throw(ref e) => visualize_effect_throw(state, view, context, target_id, e)?,
-        Effect::Dodge(ref e) => visualize_effect_dodge(state, view, context, target_id, e)?,
+        Effect::Create(ref e) => visualize_effect_create(state, view, target_id, e)?,
+        Effect::Kill(ref e) => visualize_effect_kill(state, view, target_id, e)?,
+        Effect::Vanish => visualize_effect_vanish(state, view, target_id),
+        Effect::Stun => visualize_effect_stun(state, view, target_id)?,
+        Effect::Heal(ref e) => visualize_effect_heal(state, view, target_id, e)?,
+        Effect::Wound(ref e) => visualize_effect_wound(state, view, target_id, e)?,
+        Effect::Knockback(ref e) => visualize_effect_knockback(state, view, target_id, e)?,
+        Effect::FlyOff(ref e) => visualize_effect_fly_off(state, view, target_id, e)?,
+        Effect::Throw(ref e) => visualize_effect_throw(state, view, target_id, e)?,
+        Effect::Dodge(ref e) => visualize_effect_dodge(state, view, target_id, e)?,
         Effect::Bloodlust => action::Empty.boxed(),
     };
     Ok(action)
@@ -1050,7 +966,6 @@ fn visualize_instant_effect(
 fn visualize_effect_create(
     _: &State,
     view: &mut BattleView,
-    context: &mut Context,
     target_id: Id,
     effect: &effect::Create,
 ) -> ZResult<Box<dyn Action>> {
@@ -1065,29 +980,19 @@ fn visualize_effect_create(
     let point = view.hex_to_point(effect.pos);
     let color = [1.0, 1.0, 1.0, 1.0].into();
     let size = view.tile_size() * 2.0;
-    let sprite_object = {
-        let mut sprite = Sprite::from_paths(context, &paths, size)?;
-        sprite.set_color(Color { a: 0.0, ..color });
-        sprite.set_offset(Vector2::new(0.5 - offset_x, 1.0 - offset_y));
-        sprite.set_pos(point);
-        for component in &effect.components {
-            if let Component::BelongsTo(belongs_to) = component {
-                if belongs_to.0 == PlayerId(1) {
-                    sprite.set_facing(Facing::Left);
-                }
-            }
-        }
-        sprite
-    };
+
+    // let sprite_object = view.id_to_sprite(target_id);
+    // sprite_object.set_pos(point);
+
     let sprite_shadow = {
         let image_shadow = view.images().shadow.clone();
-        let mut sprite = Sprite::from_image(context, image_shadow, size * shadow_size_coefficient)?;
+        let mut sprite = Sprite::from_image(image_shadow, size * shadow_size_coefficient)?;
         sprite.set_centered(true);
-        sprite.set_color(Color { a: 0.0, ..color });
+        // TODO
+        //sprite.set_color(Color { a: 0.0, ..color });
         sprite.set_pos(point);
         sprite
     };
-    view.add_object(target_id, &sprite_object, &sprite_shadow);
     let action_change_shadow_color =
         action::ChangeColorTo::new(&sprite_shadow, color, time_s(0.2)).boxed();
     let mut actions = Vec::new();
@@ -1095,48 +1000,42 @@ fn visualize_effect_create(
         let white = [1.0, 1.0, 1.0, 0.9].into();
         let scale = 0.9;
         let mut teleportation_flare =
-            |time| show_flare_scale_time(view, context, effect.pos, white, scale, time);
+            |time| show_flare_scale_time(view, effect.pos, white, scale, time);
         actions.push(fork(teleportation_flare(time_s(0.2))?));
         actions.push(fork(teleportation_flare(time_s(1.0))?));
     }
     actions.push(action::Show::new(&view.layers().shadows, &sprite_shadow).boxed());
-    actions.push(action::Show::new(&view.layers().objects, &sprite_object).boxed());
-    actions.push(action_set_z(&view.layers().objects, &sprite_object, z));
-    actions.push(fork(action_change_shadow_color));
-    actions.push(action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed());
+    //actions.push(action::Show::new(&view.layers().objects, &sprite_object).boxed());
+    //actions.push(action_set_z(&view.layers().objects, &sprite_object, z));
+    //actions.push(fork(action_change_shadow_color));
+    //actions.push(action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed());
     Ok(fork(seq(actions)))
 }
 
 fn visualize_effect_kill(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
+
     target_id: Id,
     effect: &effect::Kill,
 ) -> ZResult<Box<dyn Action>> {
     let particles_count = 6;
     let pos = state.parts().pos.get(target_id).0;
     Ok(fork(seq([
-        show_blood_particles(view, context, pos, effect.attacker_pos, particles_count)?,
-        message(view, context, pos, "killed")?,
-        fork(show_blood_spot(view, context, pos)?),
+        show_blood_particles(view, pos, effect.attacker_pos, particles_count)?,
+        message(view, pos, "killed")?,
+        fork(show_blood_spot(view, pos)?),
         vanish_with_duration(view, target_id, time_s(1.5)),
     ])))
 }
 
-fn visualize_effect_vanish(
-    _: &State,
-    view: &mut BattleView,
-    _: &mut Context,
-    target_id: Id,
-) -> Box<dyn Action> {
+fn visualize_effect_vanish(_: &State, view: &mut BattleView, target_id: Id) -> Box<dyn Action> {
     fork(vanish_with_duration(view, target_id, time_s(1.2)))
 }
 
 fn visualize_effect_stun(
     _state: &State,
     _view: &mut BattleView,
-    _context: &mut Context,
     _target_id: Id,
 ) -> ZResult<Box<dyn Action>> {
     Ok(fork(action::Sleep::new(time_s(1.0)).boxed()))
@@ -1145,7 +1044,7 @@ fn visualize_effect_stun(
 fn visualize_effect_heal(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
+
     target_id: Id,
     effect: &effect::Heal,
 ) -> ZResult<Box<dyn Action>> {
@@ -1153,8 +1052,8 @@ fn visualize_effect_heal(
     let s = format!("healed +{}", effect.strength.0);
     Ok(seq([
         action::Sleep::new(time_s(0.5)).boxed(),
-        message(view, context, pos, &s)?,
-        show_flare(view, context, pos, [0.0, 0.0, 0.9, 0.7].into())?,
+        message(view, pos, &s)?,
+        show_flare(view, pos, [0.0, 0.0, 0.9, 0.7].into())?,
     ]))
 }
 
@@ -1177,7 +1076,7 @@ fn wound_msg(effect: &effect::Wound) -> String {
 fn visualize_effect_wound(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
+
     target_id: Id,
     effect: &effect::Wound,
 ) -> ZResult<Box<dyn Action>> {
@@ -1193,9 +1092,9 @@ fn visualize_effect_wound(
     if effect.damage.0 > 0 || effect.armor_break.0 > 0 {
         let count = effect.damage.0 * 3;
         let from = effect.attacker_pos;
-        actions.push(show_blood_particles(view, context, pos, from, count)?);
+        actions.push(show_blood_particles(view, pos, from, count)?);
     }
-    actions.push(message(view, context, pos, &msg)?);
+    actions.push(message(view, pos, &msg)?);
     actions.push(action::ChangeColorTo::new(&sprite, c_dark, time).boxed());
     actions.push(action::ChangeColorTo::new(&sprite, c_normal, time).boxed());
     Ok(fork(seq(actions)))
@@ -1204,12 +1103,12 @@ fn visualize_effect_wound(
 fn visualize_effect_knockback(
     _: &State,
     view: &mut BattleView,
-    context: &mut Context,
+
     target_id: Id,
     effect: &effect::Knockback,
 ) -> ZResult<Box<dyn Action>> {
     if effect.from == effect.to {
-        return message(view, context, effect.from, "Resisted knockback");
+        return message(view, effect.from, "Resisted knockback");
     }
     let sprite = view.id_to_sprite(target_id).clone();
     let z = hex_pos_to_z(effect.to);
@@ -1218,7 +1117,7 @@ fn visualize_effect_knockback(
     let diff = to - from;
     let time = time_s(0.15);
     Ok(fork(seq([
-        message(view, context, effect.to, "bump")?,
+        message(view, effect.to, "bump")?,
         action_set_z(&view.layers().objects, &sprite, z),
         move_object_with_shadow(view, target_id, diff, time),
     ])))
@@ -1227,12 +1126,12 @@ fn visualize_effect_knockback(
 fn visualize_effect_fly_off(
     _: &State,
     view: &mut BattleView,
-    context: &mut Context,
+
     target_id: Id,
     effect: &effect::FlyOff,
 ) -> ZResult<Box<dyn Action>> {
     if effect.from == effect.to {
-        return message(view, context, effect.from, "Resisted fly off");
+        return message(view, effect.from, "Resisted fly off");
     }
     let sprite_object = view.id_to_sprite(target_id).clone();
     let sprite_shadow = view.id_to_shadow_sprite(target_id).clone();
@@ -1243,12 +1142,12 @@ fn visualize_effect_fly_off(
     let action_main_move = arc_move(view, &sprite_object, diff);
     let time = action_main_move.duration();
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
-    let action_dust = show_dust_at_pos(view, context, effect.to)?;
+    let action_dust = show_dust_at_pos(view, effect.to)?;
     Ok(fork(seq([
         fork(action_move_shadow),
         action_set_z(&view.layers().objects, &sprite_object, z),
         action_main_move,
-        message(view, context, effect.to, "fly off")?,
+        message(view, effect.to, "fly off")?,
         action_dust,
     ])))
 }
@@ -1256,7 +1155,7 @@ fn visualize_effect_fly_off(
 fn visualize_effect_throw(
     _: &State,
     view: &mut BattleView,
-    context: &mut Context,
+
     target_id: Id,
     effect: &effect::Throw,
 ) -> ZResult<Box<dyn Action>> {
@@ -1272,14 +1171,14 @@ fn visualize_effect_throw(
         fork(action_move_shadow),
         arc_move,
         action_set_z(&view.layers().objects, &sprite, z),
-        show_dust_at_pos(view, context, effect.to)?,
+        show_dust_at_pos(view, effect.to)?,
     ]))
 }
 
 fn visualize_effect_dodge(
     state: &State,
     view: &mut BattleView,
-    context: &mut Context,
+
     target_id: Id,
     effect: &effect::Dodge,
 ) -> ZResult<Box<dyn Action>> {
@@ -1287,7 +1186,7 @@ fn visualize_effect_dodge(
     let time_to = time_s(0.05);
     let time_from = time_s(0.3);
     let mut actions = Vec::new();
-    actions.push(message(view, context, pos, "dodged")?);
+    actions.push(message(view, pos, "dodged")?);
     let point_a = view.hex_to_point(pos);
     let point_b = view.hex_to_point(effect.attacker_pos);
     let diff = (point_a - point_b).normalize() * view.tile_size() * 0.5;
