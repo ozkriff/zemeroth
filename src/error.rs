@@ -2,7 +2,6 @@ use std::{error, fmt, io, path::PathBuf};
 
 #[derive(Debug, derive_more::From)]
 pub enum ZError {
-    GwgError(gwg::GameError),
     UiError(ui::Error),
     SceneError(zscene::Error),
     RonDeserializeError {
@@ -21,7 +20,6 @@ impl ZError {
 impl fmt::Display for ZError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ZError::GwgError(ref e) => write!(f, "gwg Error: {}", e),
             ZError::UiError(ref e) => write!(f, "ZGUI Error: {}", e),
             ZError::SceneError(ref e) => write!(f, "ZScene Error: {}", e),
             ZError::RonDeserializeError { error, path } => {
@@ -36,7 +34,6 @@ impl fmt::Display for ZError {
 impl error::Error for ZError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            ZError::GwgError(ref e) => Some(e),
             ZError::UiError(ref e) => Some(e),
             ZError::SceneError(ref e) => Some(e),
             ZError::RonDeserializeError { error, .. } => Some(error),
