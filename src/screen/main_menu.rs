@@ -84,7 +84,7 @@ impl Screen for MainMenu {
         trace!("MainMenu: click: pos={:?}, message={:?}", pos, message);
         match message {
             Some(Message::StartInstant) => {
-                let screen = async {
+                let screen = async move {
                     let scenario = utils::deserialize_from_file("assets/scenario_01.ron")
                         .await
                         .unwrap();

@@ -2,11 +2,6 @@
 
 use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::Rc};
 
-// use gwg::{
-//     graphics::{self, Drawable, Vec2, Rect, Vector2},
-//     Context, GameResult,
-// };
-
 use macroquad::prelude::{
     draw_text_ex, draw_texture_ex, load_texture, measure_text, vec2, Color, DrawTextureParams,
     Font, Rect, TextParams, Texture2D, Vec2, WHITE,
@@ -20,6 +15,7 @@ pub enum Facing {
     Right,
 }
 
+#[derive(Clone, Debug)]
 enum Drawable {
     Texture(Texture2D),
     Text {
@@ -81,6 +77,27 @@ pub struct Sprite {
 }
 
 impl Sprite {
+    pub fn deep_clone(&self) -> Self {
+        let data = self.data.borrow();
+
+        let cloned_data = SpriteData {
+            drawable: data.drawable.clone(),
+            drawables: data.drawables.clone(),
+            current_frame_name: data.current_frame_name.clone(),
+            dimensions: data.dimensions.clone(),
+            basic_scale: data.basic_scale.clone(),
+            pos: data.pos.clone(),
+            scale: data.scale.clone(),
+            color: data.color.clone(),
+            offset: data.offset.clone(),
+            facing: data.facing.clone(),
+        };
+
+        Sprite {
+            data: Rc::new(RefCell::new(cloned_data)),
+        }
+    }
+
     fn from_drawable(drawable: Drawable, height: f32) -> Result<Self> {
         let dimensions = drawable.dimensions();
         let scale = height / dimensions.h;
@@ -144,49 +161,46 @@ impl Sprite {
     }
 
     pub fn has_frame(&self, frame_name: &str) -> bool {
-        // let data = self.data.borrow();
-        // data.drawables.contains_key(frame_name)
-        unimplemented!()
+        let data = self.data.borrow();
+        data.drawables.contains_key(frame_name)
     }
 
     // TODO: Add a usage example
     pub fn set_frame(&mut self, frame_name: &str) {
-        // assert!(self.has_frame(frame_name));
-        // let mut data = self.data.borrow_mut();
-        // let previous_frame_name = data.current_frame_name.clone();
-        // let previous_drawable = data.drawable.take().expect("no active drawable");
-        // let previous_slot = data
-        //     .drawables
-        //     .get_mut(&previous_frame_name)
-        //     .expect("bad frame name");
-        // *previous_slot = Some(previous_drawable);
-        // data.drawable = data
-        //     .drawables
-        //     .get_mut(frame_name)
-        //     .expect("bad frame name")
-        //     .take();
-        // assert!(data.drawable.is_some());
-        // data.current_frame_name = frame_name.into();
-        unimplemented!()
+        assert!(self.has_frame(frame_name));
+        let mut data = self.data.borrow_mut();
+        let previous_frame_name = data.current_frame_name.clone();
+        let previous_drawable = data.drawable.take().expect("no active drawable");
+        let previous_slot = data
+            .drawables
+            .get_mut(&previous_frame_name)
+            .expect("bad frame name");
+        *previous_slot = Some(previous_drawable);
+        data.drawable = data
+            .drawables
+            .get_mut(frame_name)
+            .expect("bad frame name")
+            .take();
+        assert!(data.drawable.is_some());
+        data.current_frame_name = frame_name.into();
     }
 
     pub fn set_facing(&mut self, facing: Facing) {
-        // if facing == self.data.borrow().facing {
-        //     return;
-        // }
-        // let offset;
-        // {
-        //     let mut data = self.data.borrow_mut();
-        //     data.facing = facing;
-        //     data.param.scale.x *= -1.0;
-        //     let mut dimensions = data.dimensions;
-        //     dimensions.scale(data.param.scale.x, data.param.scale.y);
-        //     let off_x = -data.offset.x / dimensions.w;
-        //     let off_y = -data.offset.y / dimensions.h;
-        //     offset = Vec2::new(-off_x, off_y);
-        // }
-        // self.set_offset(offset);
-        unimplemented!()
+        if facing == self.data.borrow().facing {
+            return;
+        }
+        let offset;
+        {
+            let mut data = self.data.borrow_mut();
+            data.facing = facing;
+            *data.scale.x_mut() *= -1.0;
+            let mut dimensions = data.dimensions;
+            dimensions.scale(data.scale.x(), data.scale.y());
+            let off_x = -data.offset.x() / dimensions.w;
+            let off_y = -data.offset.y() / dimensions.h;
+            offset = Vec2::new(-off_x, off_y);
+        }
+        self.set_offset(offset);
     }
 
     pub fn set_centered(&mut self, is_centered: bool) {

@@ -212,13 +212,13 @@ pub struct BattleView {
     sprites: Sprites,
     images: Images,
     sprite_info: HashMap<ObjType, SpriteInfo>,
+    pub sprite_sprites: HashMap<ObjType, Sprite>,
     messages_map: MessagesMap,
 }
 
 impl BattleView {
     pub async fn new(map_radius: Distance) -> ZResult<Self> {
         let font = utils::default_font();
-        // TODO
         let images = Images::new().await?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
@@ -233,7 +233,9 @@ impl BattleView {
         };
         let selection_marker = make_marker_sprite(Color::new(0.0, 0.0, 1.0, 0.8))?;
         let current_tile_marker = make_marker_sprite(Color::new(0.0, 0.0, 0.0, 0.5))?;
-        let sprite_info = utils::deserialize_from_file("assets/sprites.ron").await?;
+        let sprite_info: HashMap<ObjType, SpriteInfo> =
+            utils::deserialize_from_file("assets/sprites.ron").await?;
+
         let mut sprites = Sprites {
             selection_marker,
             current_tile_marker,
@@ -245,49 +247,30 @@ impl BattleView {
             disappearing_sprites: Vec::new(),
         };
 
-        // for (
-        //     &prototype,
-        //     &SpriteInfo {
-        //         paths,
-        //         offset_x,
-        //         offset_y,
-        //         shadow_size_coefficient,
-        //         sub_tile_z,
-        //     },
-        // ) in &sprite_info
-        // {
-        //     let size = tile_size;
+        let mut sprite_sprites = HashMap::new();
 
-        //     let sprite_object = {
-        //         use zscene::{action, Action, Boxed, Facing, Sprite};
-        //         use crate::{
-        //             core::{
-        //                 battle::{
-        //                     ability::Ability,
-        //                     component::{Component, WeaponType},
-        //                     effect::{self, Effect},
-        //                     event::{self, ActiveEvent, Event},
-        //                     execute::{hit_chance, ApplyPhase},
-        //                     state, Id, PlayerId, State,
-        //                 },
-        //                 map::PosHex,
-        //                 utils::roll_dice,
-        //             },
-        //             geom,
-        //             screen::battle::view::BattleView,
-        //             sprite_info::SpriteInfo,
-        //             utils::{font_size, time_s},
-        //             ZResult,
-        //         };
+        for (
+            prototype,
+            SpriteInfo {
+                paths,
+                offset_x,
+                offset_y,
+                shadow_size_coefficient,
+                sub_tile_z,
+            },
+        ) in sprite_info.iter()
+        {
+            let size = tile_size * 2.0;
 
-        //         let mut sprite = Sprite::from_paths(&paths, size).await?;
-        //         //sprite.set_color(Color { a: 0.0, ..color });
-        //         sprite.set_offset(Vec2::new(0.5 - offset_x, 1.0 - offset_y));
-        //         sprite
-        //     };
+            let sprite_object = {
+                let mut sprite = Sprite::from_paths(&paths, size).await?;
+                //sprite.set_color(Color { a: 0.0, ..color });
+                sprite.set_offset(Vec2::new(0.5 - offset_x, 1.0 - offset_y));
+                sprite
+            };
 
-        //     //sprites.id_to_sprite_map.insert(prototype, sprite_object);
-        // }
+            sprite_sprites.insert(prototype.clone(), sprite_object);
+        }
 
         Ok(Self {
             font,
@@ -297,6 +280,7 @@ impl BattleView {
             tile_size,
             images,
             sprite_info,
+            sprite_sprites,
             messages_map: MessagesMap::new(map_radius),
         })
     }

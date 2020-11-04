@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use log::{info, trace};
-use macroquad::prelude::{Color, Texture2D, Vec2};
+use macroquad::prelude::{Color, Vec2, Texture2D};
 use zscene::{action, Action, Boxed, Facing, Sprite};
 
 use crate::{
@@ -189,7 +189,8 @@ fn show_blood_particles(
 }
 
 fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
-    let mut sprite = Sprite::from_image(view.images().blood, view.tile_size() * 2.0)?;
+    let mut sprite =
+        Sprite::from_image(view.images().blood, view.tile_size() * 2.0)?;
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
     let mut point = view.hex_to_point(at);
@@ -211,8 +212,10 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
 }
 
 fn show_explosion_ground_mark(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
-    let mut sprite =
-        Sprite::from_image(view.images().explosion_ground_mark, view.tile_size() * 2.0)?;
+    let mut sprite = Sprite::from_image(
+        view.images().explosion_ground_mark,
+        view.tile_size() * 2.0,
+    )?;
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 1.0].into());
     sprite.set_pos(view.hex_to_point(at));
@@ -474,8 +477,7 @@ fn generate_brief_obj_info(
         let mut sprite = Sprite::from_image(dot_image, size)?;
         sprite.set_centered(true);
         sprite.set_pos(point);
-        // TODO
-        //sprite.set_color(Color { a: 0.0, ..color });
+        sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
         let action = fork(seq([
             action::Show::new(&view.layers().dots, &sprite).boxed(),
             action::ChangeColorTo::new(&sprite, color, time_s(0.1)).boxed(),
@@ -538,16 +540,16 @@ pub fn visualize(
 fn visualize_pre(state: &State, view: &mut BattleView, event: &Event) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
     actions.push(visualize_event(state, view, &event.active_event)?);
-    // for &(id, ref effects) in &event.instant_effects {
-    //     for effect in effects {
-    //         actions.push(visualize_instant_effect(state, view, id, &effect)?);
-    //     }
-    // }
-    // for &(id, ref effects) in &event.timed_effects {
-    //     for effect in effects {
-    //         actions.push(visualize_lasting_effect(state, view, id, &effect)?);
-    //     }
-    // }
+    for &(id, ref effects) in &event.instant_effects {
+        for effect in effects {
+            actions.push(visualize_instant_effect(state, view, id, &effect)?);
+        }
+    }
+    for &(id, ref effects) in &event.timed_effects {
+        for effect in effects {
+            actions.push(visualize_lasting_effect(state, view, id, &effect)?);
+        }
+    }
     Ok(seq(actions))
 }
 
@@ -943,6 +945,7 @@ fn visualize_lasting_effect(
 fn visualize_instant_effect(
     state: &State,
     view: &mut BattleView,
+
     target_id: Id,
     effect: &Effect,
 ) -> ZResult<Box<dyn Action>> {
@@ -966,6 +969,7 @@ fn visualize_instant_effect(
 fn visualize_effect_create(
     _: &State,
     view: &mut BattleView,
+
     target_id: Id,
     effect: &effect::Create,
 ) -> ZResult<Box<dyn Action>> {
@@ -978,21 +982,19 @@ fn visualize_effect_create(
     } = view.sprite_info(&effect.prototype);
     let z = hex_pos_to_z(effect.pos) + sub_tile_z;
     let point = view.hex_to_point(effect.pos);
-    let color = [1.0, 1.0, 1.0, 1.0].into();
+    let color = Color::new(1.0, 1.0, 1.0, 1.0);
     let size = view.tile_size() * 2.0;
-
-    // let sprite_object = view.id_to_sprite(target_id);
-    // sprite_object.set_pos(point);
-
+    let mut sprite_object = view.sprite_sprites[&effect.prototype].deep_clone();
+    sprite_object.set_pos(point);
     let sprite_shadow = {
         let image_shadow = view.images().shadow.clone();
         let mut sprite = Sprite::from_image(image_shadow, size * shadow_size_coefficient)?;
         sprite.set_centered(true);
-        // TODO
-        //sprite.set_color(Color { a: 0.0, ..color });
+        sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
         sprite.set_pos(point);
         sprite
     };
+    view.add_object(target_id, &sprite_object, &sprite_shadow);
     let action_change_shadow_color =
         action::ChangeColorTo::new(&sprite_shadow, color, time_s(0.2)).boxed();
     let mut actions = Vec::new();
@@ -1005,10 +1007,10 @@ fn visualize_effect_create(
         actions.push(fork(teleportation_flare(time_s(1.0))?));
     }
     actions.push(action::Show::new(&view.layers().shadows, &sprite_shadow).boxed());
-    //actions.push(action::Show::new(&view.layers().objects, &sprite_object).boxed());
-    //actions.push(action_set_z(&view.layers().objects, &sprite_object, z));
-    //actions.push(fork(action_change_shadow_color));
-    //actions.push(action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed());
+    actions.push(action::Show::new(&view.layers().objects, &sprite_object).boxed());
+    actions.push(action_set_z(&view.layers().objects, &sprite_object, z));
+    actions.push(fork(action_change_shadow_color));
+    actions.push(action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed());
     Ok(fork(seq(actions)))
 }
 
