@@ -10,7 +10,7 @@ mod utils;
 
 use macroquad::prelude::{
     is_mouse_button_down, next_frame, screen_height, screen_width, set_camera, Camera2D,
-    MouseButton, Rect, mouse_position, vec2
+    MouseButton, Rect, mouse_position, vec2, is_mouse_button_pressed
 };
 
 type ZResult<T = ()> = Result<T, error::ZError>;
@@ -119,7 +119,7 @@ async fn main() {
             .resize(aspect_ratio)
             .expect("Can't resize screens");
 
-        if is_mouse_button_down(MouseButton::Left) {
+        if is_mouse_button_pressed(MouseButton::Left) {
             let window_pos = mouse_position();
             let pos = camera.screen_to_world(vec2(window_pos.0, window_pos.1));
             state.screens.click(pos).await.expect("Can't handle click event");
