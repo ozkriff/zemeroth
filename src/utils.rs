@@ -27,9 +27,16 @@ where
     ron::de::from_str(&s).map_err(|e| ZError::from_ron_de_error(e, path.into()))
 }
 
+// TODO; deprecate in favour of default_font_2
 pub fn default_font() -> Font {
     //Font::new("/OpenSans-Regular.ttf").expect("Can't load the default font")
     Font::default()
+}
+
+pub async fn default_font_2() -> Font {
+    //Font::new("/OpenSans-Regular.ttf").expect("Can't load the default font")
+    // Font::default() // TODO: !!!
+    macroquad::text::load_ttf_font("./assets/OpenSans-Regular.ttf").await
 }
 
 // TODO: Move to some config (https://github.com/ozkriff/zemeroth/issues/424)

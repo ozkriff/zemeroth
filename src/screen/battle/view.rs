@@ -218,7 +218,7 @@ pub struct BattleView {
 
 impl BattleView {
     pub async fn new(map_radius: Distance) -> ZResult<Self> {
-        let font = utils::default_font();
+        let font = utils::default_font_2().await;
         let images = Images::new().await?;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());

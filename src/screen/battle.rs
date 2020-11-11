@@ -272,7 +272,7 @@ fn build_panel_agent_abilities(
         let mut button = ui::Button::new(
             ui::Drawable::Text {
                 label: "x".to_string(),
-                font: Font::default(),
+                font,
                 font_size: 120,
             },
             h,
@@ -417,7 +417,7 @@ impl Battle {
         prototypes: Prototypes,
         sender: Sender<Option<BattleResult>>,
     ) -> ZResult<Self> {
-        let font = default_font();
+        let font = utils::default_font_2().await;
         let radius = scenario.map_radius;
         let mut view = BattleView::new(radius).await?;
         let mut gui = make_gui(&view)?;

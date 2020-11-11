@@ -57,7 +57,7 @@ pub struct MainMenu {
 // TODO: add the game's version to one of the corners
 impl MainMenu {
     pub async fn new() -> ZResult<Self> {
-        let font = utils::default_font();
+        let font = utils::default_font_2().await;
         let gui = make_gui(font)?;
         let mut sprite = Sprite::from_path("assets/img/tile.png", 0.1).await?;
         sprite.set_centered(true);
