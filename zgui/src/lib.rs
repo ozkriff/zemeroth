@@ -102,7 +102,10 @@ impl Drawable {
                 font,
                 font_size,
             } => {
-                let (w, h) = measure_text(&label, Some(*font), *font_size, 1.0);
+                // TODO: dirty hack to have a fixed height for text. Fix it somehow. (same in zgui)
+                let (w, _) = measure_text(&label, Some(*font), *font_size, 1.0);
+                let (_, h) = measure_text(&"|", Some(*font), *font_size, 1.0);
+                let h = h * 1.4; // TODO: magic hack coefficient
                 Rect::new(0.0, 0.0, w, h)
             }
             Drawable::SolidRect { rect, .. } => rect.clone(),
@@ -172,7 +175,8 @@ impl Sprite {
                     &label,
                     self.pos.x(),
                     // TODO: this actually looks like macroquad bug in text positioning :/
-                    self.pos.y() - *font_size as f32 * self.scale.x() * 0.35,
+                    // self.pos.y() - *font_size as f32 * self.scale.x() * 0.35,
+                    self.pos.y(),
                     TextParams {
                         font_size: *font_size,
                         font: *font,

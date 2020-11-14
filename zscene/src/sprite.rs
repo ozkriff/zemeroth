@@ -37,8 +37,10 @@ impl Drawable {
                 font,
                 font_size,
             } => {
-                let (w, h) = measure_text(&label, Some(*font), *font_size, 1.0);
-                // Rect::new(0.0, 0.0, w, h)
+                // TODO: dirty hack to have a fixed height for text. Fix it somehow. (same in zgui)
+                let (w, _) = measure_text(&label, Some(*font), *font_size, 1.0);
+                let (_, h) = measure_text(&"|", Some(*font), *font_size, 1.0);
+                let h = h * 1.4; // TODO: magic hack coefficient
                 Rect::new(-w / 1.0, -h / 1.0, w / 1.0, h / 1.0)
             }
         }

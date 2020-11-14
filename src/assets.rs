@@ -33,7 +33,6 @@ pub fn get() -> &'static Assets {
     INSTANCE.get().expect("TODO: err msg")
 }
 
-// type SpritesInfo = HashMap<String, SpriteInfo>;
 type SpritesInfo = HashMap<ObjType, SpriteInfo>;
 
 #[derive(Debug)]
@@ -100,7 +99,6 @@ pub struct Images {
 
     pub ability_icons: HashMap<Ability, Texture2D>,
 
-    // TODO: HashMap<WeaponType, Texture2D>
     pub attack_slash: Texture2D,
     pub attack_smash: Texture2D,
     pub attack_pierce: Texture2D,
