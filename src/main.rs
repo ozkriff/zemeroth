@@ -1,6 +1,14 @@
 #![windows_subsystem = "windows"]
-#![allow(warnings)]
+// #![allow(warnings)] // TODO: remove
+#![allow(
+    unused_imports,
+    unreachable_code,
+    unused_variables,
+    unused_mut,
+    dead_code
+)] // TODO: remove!
 
+mod assets;
 mod core;
 mod error;
 mod geom;
@@ -9,31 +17,33 @@ mod sprite_info;
 mod utils;
 
 use macroquad::prelude::{
-    is_mouse_button_down, next_frame, screen_height, screen_width, set_camera, Camera2D,
-    MouseButton, Rect, mouse_position, vec2, is_mouse_button_pressed
+    is_mouse_button_down, is_mouse_button_pressed, mouse_position, next_frame, screen_height,
+    screen_width, set_camera, vec2, Camera2D, MouseButton, Rect,
 };
 
 type ZResult<T = ()> = Result<T, error::ZError>;
 
+// TODO: remove this?
 pub struct Image {}
 impl Image {
-    pub fn new(path: &str) -> Result<ui::Drawable, ()> {
+    pub fn new(_path: &str) -> Result<ui::Drawable, ()> {
         unimplemented!()
     }
 }
+
 struct MainState {
     screens: screen::Screens,
 }
 
 impl MainState {
-    async fn new() -> ZResult<Self> {
-        let start_screen = Box::new(screen::MainMenu::new().await?);
+    fn new() -> ZResult<Self> {
+        let start_screen = Box::new(screen::MainMenu::new()?);
         let screens = screen::Screens::new(start_screen)?;
-        let mut this = Self { screens };
+        let this = Self { screens };
         Ok(this)
     }
 
-    fn resize(&mut self, w: f32, h: f32) {}
+    fn resize(&mut self, w: f32, h: f32) {} // TODO: ??
 }
 
 //     fn resize_event(&mut self, w: f32, h: f32) {
@@ -101,19 +111,21 @@ impl MainState {
 
 #[macroquad::main("Zemeroth")]
 async fn main() {
-    let mut state = MainState::new().await.expect("Can't create the main state");
+    // TODO: init logger
+    // TODO: init random!
+    assets::load_assets().await;
+    let mut state = MainState::new().expect("Can't create the main state");
 
     loop {
-        state.screens.update().await.expect("Update call failed");
+        state.screens.update().expect("Update call failed");
 
         state.screens.draw().expect("Draw call failed");
 
+        // TODO: extract helper function
         let aspect_ratio = screen_width() / screen_height();
         let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
         let camera = Camera2D::from_display_rect(coordinates);
-
         set_camera(camera);
-
         state
             .screens
             .resize(aspect_ratio)
@@ -122,7 +134,7 @@ async fn main() {
         if is_mouse_button_pressed(MouseButton::Left) {
             let window_pos = mouse_position();
             let pos = camera.screen_to_world(vec2(window_pos.0, window_pos.1));
-            state.screens.click(pos).await.expect("Can't handle click event");
+            state.screens.click(pos).expect("Can't handle click event");
         }
         next_frame().await;
     }

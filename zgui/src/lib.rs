@@ -1,5 +1,5 @@
 //! Tiny and opinionated GUI.
-#![allow(warnings)]
+#![allow(warnings)] // TODO: remove
 
 use std::{
     cell::RefCell,
@@ -20,7 +20,7 @@ pub const SPRITE_COLOR: Color = BLACK;
 pub const SPRITE_COLOR_INACTIVE: Color = Color::new_const(102, 102, 102, 127);
 pub const SPRITE_COLOR_BG: Color = Color::new_const(204, 204, 204, 127);
 pub const SPRITE_COLOR_BG_HIGHLIGHTED: Color = Color::new_const(229, 229, 229, 255);
-pub const SPRITE_COLOR_BUTTON_BORDER: Color = Color::new_const(255, 0, 0, 229);
+pub const SPRITE_COLOR_BUTTON_BORDER: Color = Color::new_const(0, 0, 0, 229);
 
 // TODO: What should we do if some widget changes its size?
 
@@ -803,10 +803,12 @@ impl<Message: Clone + Debug> Button<Message> {
     fn make_border(height: f32, outer: Rect, inner: Rect) -> Result<Sprite> {
         let bg_mesh = Drawable::LinesRect {
             rect: outer,
-            thickness: (outer.w - inner.w) / 2.,
+            thickness: (outer.w - inner.w),
+            // thickness: (outer.w - inner.w) / 2.,
+            // thickness: (outer.w - inner.w) * 8.0,
         };
         let mut bg = Sprite::new(bg_mesh, height)?;
-        bg.set_color(SPRITE_COLOR_BG);
+        bg.set_color(SPRITE_COLOR_BUTTON_BORDER);
         Ok(bg)
     }
 

@@ -1,8 +1,13 @@
+use std::{fmt::Debug, sync::Mutex, time::Duration};
+
 use log::info;
-use std::{fmt::Debug, time::Duration};
+use macroquad::{
+    coroutines::Coroutine,
+    prelude::{clear_background, Color, Vec2},
+};
+// use once_cell::sync::Lazy;
 
 use crate::ZResult;
-use macroquad::prelude::{clear_background, Color, Vec2};
 
 mod agent_info;
 mod battle;
@@ -10,8 +15,6 @@ mod campaign;
 mod confirm;
 mod general_info;
 mod main_menu;
-
-use macroquad::coroutines::Coroutine;
 
 pub use self::{
     agent_info::AgentInfo, battle::Battle, campaign::Campaign, confirm::Confirm,
@@ -21,13 +24,11 @@ pub use self::{
 const COLOR_SCREEN_BG: Color = Color::new_const(229, 229, 204, 255);
 const COLOR_POPUP_BG: Color = Color::new_const(229, 229, 204, 229);
 
-static mut SCREEN_HACK: Option<Box<Screen>> = None;
-
 #[derive(Debug)]
 pub enum StackCommand {
     None,
-    PushScreen(Coroutine),
-    PushPopup(Coroutine),
+    PushScreen(Box<dyn Screen>),
+    PushPopup(Box<dyn Screen>),
     Pop,
 }
 
@@ -84,7 +85,7 @@ fn make_popup_bg_mesh() -> ZResult<ui::Drawable> {
 pub struct Screens {
     screens: Vec<ScreenWithPopups>,
     popup_bg_mesh: ui::Drawable,
-    pending_coroutine: Option<macroquad::coroutines::Coroutine>,
+    // pending_coroutine: Option<macroquad::coroutines::Coroutine>,
 }
 
 impl Screens {
@@ -92,47 +93,33 @@ impl Screens {
         Ok(Self {
             screens: vec![ScreenWithPopups::new(start_screen)],
             popup_bg_mesh: make_popup_bg_mesh()?,
-            pending_coroutine: None,
+            // pending_coroutine: None,
         })
     }
 
-    pub async fn update(&mut self) -> ZResult {
+    pub fn update(&mut self) -> ZResult {
         let dtime = macroquad::time::get_frame_time();
-        if let Some(coroutine) = self.pending_coroutine {
-            if coroutine.is_done() {
-                self.pending_coroutine = None;
-                self.screens.push(ScreenWithPopups::new(unsafe {
-                    SCREEN_HACK.take().unwrap()
-                }));
-            }
-            Ok(())
-        } else {
-            let command = self
-                .screen_mut()
-                .top_mut()
-                .update(std::time::Duration::from_secs_f32(dtime))?;
-            self.handle_command(command).await
-        }
+        let dtime = std::time::Duration::from_secs_f32(dtime);
+        let command = self.screen_mut().top_mut().update(dtime)?;
+        self.handle_command(command)
     }
 
     pub fn draw(&self) -> ZResult {
         clear_background(COLOR_SCREEN_BG);
-        if self.pending_coroutine.is_none() {
-            let screen = self.screen();
-            screen.screen.draw()?;
-            for popup in &screen.popups {
-                //graphics::draw(&self.popup_bg_mesh, graphics::DrawParam::default());
-                unimplemented!();
-                popup.draw()?;
-            }
+        let screen = self.screen();
+        screen.screen.draw()?;
+        for popup in &screen.popups {
+            //graphics::draw(&self.popup_bg_mesh, graphics::DrawParam::default());
+            unimplemented!(); // TODO: !
+            popup.draw()?;
         }
 
         Ok(())
     }
 
-    pub async fn click(&mut self, pos: Vec2) -> ZResult {
+    pub fn click(&mut self, pos: Vec2) -> ZResult {
         let command = self.screen_mut().top_mut().click(pos)?;
-        self.handle_command(command).await
+        self.handle_command(command)
     }
 
     pub fn move_mouse(&mut self, pos: Vec2) -> ZResult {
@@ -150,13 +137,13 @@ impl Screens {
         Ok(())
     }
 
-    pub async fn handle_command(&mut self, command: StackCommand) -> ZResult {
+    pub fn handle_command(&mut self, command: StackCommand) -> ZResult {
         match command {
             StackCommand::None => {}
-            StackCommand::PushScreen(coroutine) => {
+            StackCommand::PushScreen(screen) => {
                 info!("Screens::handle_command: PushScreen");
-                self.pending_coroutine = Some(coroutine);
-                //self.screens.push(ScreenWithPopups::new(screen));
+                // self.pending_coroutine = Some(coroutine);
+                self.screens.push(ScreenWithPopups::new(screen));
             }
             StackCommand::Pop => {
                 info!("Screens::handle_command: Pop");
@@ -171,7 +158,8 @@ impl Screens {
             }
             StackCommand::PushPopup(screen) => {
                 info!("Screens::handle_command: PushPopup");
-                //self.screen_mut().popups.push(screen);
+                // self.pending_coroutine = Some(coroutine);
+                self.screen_mut().popups.push(screen);
             }
         }
         Ok(())

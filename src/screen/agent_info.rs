@@ -5,6 +5,7 @@ use macroquad::prelude::{Color, Font, Vec2};
 use ui::{self, Gui, Widget};
 
 use crate::{
+    assets,
     core::battle::{
         ability::{Ability, PassiveAbility},
         component::{self, Component, ObjType, Prototypes},
@@ -53,17 +54,9 @@ impl StaticObjectInfo {
     }
 }
 
-type SpritesInfo = HashMap<String, SpriteInfo>;
-
-async fn load_sprites_info() -> ZResult<SpritesInfo> {
-    let info = utils::deserialize_from_file("/sprites.ron").await?;
-    Ok(info)
-}
-
-async fn agent_image(typename: &ObjType) -> ZResult<Box<dyn ui::Widget>> {
+fn agent_image(typename: &ObjType) -> ZResult<Box<dyn ui::Widget>> {
     let h = 0.3;
-    let sprites_info = load_sprites_info().await?;
-    let sprite_info = sprites_info[&typename.0].clone();
+    let sprite_info = assets::get().sprites_info[typename].clone();
     let default_frame = "";
     let default_frame_path = &sprite_info.paths[default_frame];
     let image = crate::Image::new(default_frame_path).expect("Can't load agent's image");
@@ -80,18 +73,18 @@ enum Message {
     PassiveAbilityInfo(PassiveAbility),
 }
 
-async fn info_panel(
-    font: Font,
+fn info_panel(
     gui: &mut ui::Gui<Message>,
     prototypes: &Prototypes,
     typename: &ObjType,
 ) -> ZResult<Box<dyn ui::Widget>> {
+    let font = assets::get().font;
     let proto = &prototypes.0[&typename];
     let info = StaticObjectInfo::new(&typename, proto);
     let h = utils::line_heights().normal;
     let space_between_buttons = h / 8.0;
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
-    layout.add(agent_image(typename).await?);
+    layout.add(agent_image(typename)?);
     let mut add = |w| layout.add(w);
     let text_ = |s: &str| ui::Drawable::text(s, font, utils::font_size());
     let label_ = |text: &str| -> ZResult<_> { Ok(ui::Label::new(text_(text), h)?) };
@@ -189,10 +182,11 @@ async fn info_panel(
 }
 
 fn button_back(
-    font: Font,
+    // font: Font,
     gui: &mut ui::Gui<Message>,
     layout_width: f32,
 ) -> ZResult<Box<dyn ui::Widget>> {
+    let font = assets::get().font;
     let h = utils::line_heights().normal;
     let text = ui::Drawable::text("back", font, utils::font_size());
     let msg = Message::Back;
@@ -204,37 +198,37 @@ fn button_back(
 
 #[derive(Debug)]
 pub struct AgentInfo {
-    font: Font,
+    // font: Font,
     gui: Gui<Message>,
 }
 
 impl AgentInfo {
-    pub async fn new_agent_info(prototypes: &Prototypes, typename: &ObjType) -> ZResult<Self> {
-        let font = utils::default_font();
+    pub fn new_agent_info(prototypes: &Prototypes, typename: &ObjType) -> ZResult<Self> {
+        // let font = utils::default_font();
         let mut gui = ui::Gui::new();
         let mut layout = ui::VLayout::new();
         let h = utils::line_heights().big;
-        layout.add(info_panel(font, &mut gui, prototypes, typename).await?);
+        layout.add(info_panel(&mut gui, prototypes, typename)?);
         layout.add(Box::new(ui::Spacer::new_vertical(h)));
-        layout.add(button_back(font, &mut gui, layout.rect().w)?);
+        layout.add(button_back(&mut gui, layout.rect().w)?);
         let layout = utils::add_offsets_and_bg_big(Box::new(layout))?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         gui.add(&ui::pack(layout), anchor);
-        Ok(Self { font, gui })
+        Ok(Self { gui })
     }
 
-    pub async fn new_upgrade_info(
+    pub fn new_upgrade_info(
         prototypes: &Prototypes,
         from: &ObjType,
         to: &ObjType,
     ) -> ZResult<Self> {
-        let font = utils::default_font();
+        let font = assets::get().font;
         let mut gui = ui::Gui::new();
         let mut layout = ui::VLayout::new();
         let h = utils::line_heights().big;
         let line = {
             let mut line = Box::new(ui::HLayout::new());
-            let panel_from = info_panel(font, &mut gui, prototypes, from).await?;
+            let panel_from = info_panel(&mut gui, prototypes, from)?;
             let panel_from_height = panel_from.rect().h;
             line.add(panel_from);
             line.add(Box::new(ui::Spacer::new_horizontal(h)));
@@ -247,16 +241,16 @@ impl AgentInfo {
             };
             line.add(col);
             line.add(Box::new(ui::Spacer::new_horizontal(h)));
-            line.add(info_panel(font, &mut gui, prototypes, to).await?);
+            line.add(info_panel(&mut gui, prototypes, to)?);
             line
         };
         layout.add(line);
         layout.add(Box::new(ui::Spacer::new_vertical(h)));
-        layout.add(button_back(font, &mut gui, layout.rect().w)?);
+        layout.add(button_back(&mut gui, layout.rect().w)?);
         let layout = utils::add_offsets_and_bg_big(Box::new(layout))?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         gui.add(&ui::pack(layout), anchor);
-        Ok(Self { font, gui })
+        Ok(Self { gui })
     }
 }
 

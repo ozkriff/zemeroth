@@ -249,6 +249,7 @@ dependencies = [
 [[package]]
 name = "macroquad"
 version = "0.3.0-alpha.9"
+source = "git+https://github.com/not-fl3/macroquad#46d04ebeae10ec83b0d7c13f6972dcd68c170940"
 dependencies = [
  "fontdue",
  "glam",
@@ -262,6 +263,7 @@ dependencies = [
 [[package]]
 name = "macroquad_macro"
 version = "0.1.0"
+source = "git+https://github.com/not-fl3/macroquad#46d04ebeae10ec83b0d7c13f6972dcd68c170940"
 
 [[package]]
 name = "memchr"
@@ -359,6 +361,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "once_cell"
+version = "1.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13bd41f508810a131401606d54ac32a467c97172d74ba7662562ebba5ad07fa0"
+
+[[package]]
 name = "output_vt100"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -409,6 +417,7 @@ dependencies = [
 [[package]]
 name = "quad-gl"
 version = "0.2.10"
+source = "git+https://github.com/not-fl3/macroquad#46d04ebeae10ec83b0d7c13f6972dcd68c170940"
 dependencies = [
  "glam",
  "image",
@@ -681,6 +690,7 @@ dependencies = [
  "log",
  "macroquad",
  "num",
+ "once_cell",
  "pretty_assertions",
  "quad-rand",
  "rand",

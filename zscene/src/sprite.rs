@@ -119,7 +119,7 @@ impl Sprite {
         Ok(Self { data })
     }
 
-    pub fn from_image(image: Texture2D, height: f32) -> Result<Self> {
+    pub fn from_image(image: Texture2D, height: f32) -> Self {
         Self::from_drawable(Drawable::Texture(image), height)
     }
 
@@ -144,6 +144,8 @@ impl Sprite {
         data.drawables.insert(frame_name, Some(drawable));
     }
 
+    // TODO: deprecate?
+    // TODO: try to simplify the signature
     pub async fn from_paths<
         S: Eq + Hash + std::borrow::Borrow<str>,
         P: Eq + Hash + std::borrow::Borrow<str>,
@@ -152,12 +154,28 @@ impl Sprite {
         height: f32,
     ) -> Result<Self> {
         let path = paths.get(&"").expect("missing default path");
-        let mut this = Self::from_path(path.borrow(), height).await?;
+        let mut this = Self::from_path(path.borrow(), height).await;
         for (frame_name, frame_path) in paths.iter() {
             let image = load_texture(frame_path.borrow()).await;
             this.add_frame(frame_name.borrow().to_string(), Drawable::Texture(image));
         }
         Ok(this)
+    }
+
+    // TODO: try to simplify the signature
+    pub fn from_images<S: Eq + Hash + std::borrow::Borrow<str>>(
+        paths: &HashMap<S, Texture2D>, // TODO: rename, it's not "paths" anymore
+        height: f32,
+    ) -> Self {
+        let image = paths.get(&"").expect("missing default path").clone();
+        let mut this = Self::from_image(image, height);
+        for (frame_name, image) in paths.iter() {
+            this.add_frame(
+                frame_name.borrow().to_string(),
+                Drawable::Texture(image.clone()),
+            );
+        }
+        this
     }
 
     pub fn has_frame(&self, frame_name: &str) -> bool {
@@ -234,7 +252,7 @@ impl Sprite {
                     *texture,
                     data.pos.x(),
                     data.pos.y(),
-                    WHITE,
+                    data.color,
                     DrawTextureParams {
                         dest_size: Some(
                             data.scale * vec2(texture.width() as f32, texture.height() as f32),

@@ -9,6 +9,7 @@ use macroquad::prelude::{Color, Font, Vec2};
 use ui::{self, Gui, Widget};
 
 use crate::{
+    assets,
     core::{
         battle::{
             component::{ObjType, Prototypes},
@@ -57,10 +58,11 @@ fn basic_gui() -> ZResult<Gui<Message>> {
 }
 
 fn build_panel_agents(
-    font: Font,
+    // font: Font,
     gui: &mut ui::Gui<Message>,
     agents: &[ObjType],
 ) -> ZResult<Box<dyn ui::Widget>> {
+    let font = assets::get().font;
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     layout.add(label(font, "Your group consists of:")?);
     layout.add(Box::new(ui::Spacer::new_vertical(line_height_small())));
@@ -84,7 +86,8 @@ fn build_panel_agents(
     Ok(Box::new(layout))
 }
 
-fn build_panel_casualties(font: Font, state: &State) -> ZResult<Option<Box<dyn ui::Widget>>> {
+fn build_panel_casualties(state: &State) -> ZResult<Option<Box<dyn ui::Widget>>> {
+    let font = assets::get().font;
     let casualties = state.last_battle_casualties();
     if casualties.is_empty() {
         return Ok(None);
@@ -101,7 +104,8 @@ fn build_panel_casualties(font: Font, state: &State) -> ZResult<Option<Box<dyn u
     Ok(Some(Box::new(layout)))
 }
 
-fn build_panel_renown(font: Font, state: &State) -> ZResult<Box<dyn ui::Widget>> {
+fn build_panel_renown(state: &State) -> ZResult<Box<dyn ui::Widget>> {
+    let font = assets::get().font;
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     let renown_text = &format!("Your renown is: {}r", state.renown().0);
     layout.add(label(font, renown_text)?);
@@ -110,10 +114,11 @@ fn build_panel_renown(font: Font, state: &State) -> ZResult<Box<dyn ui::Widget>>
 }
 
 fn build_panel_actions(
-    font: Font,
+    // font: Font,
     gui: &mut ui::Gui<Message>,
     state: &State,
 ) -> ZResult<Box<dyn ui::Widget>> {
+    let font = assets::get().font;
     let h = line_height();
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     layout.add(label(font, "Actions:")?);
@@ -180,7 +185,6 @@ fn label(font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
 #[derive(Debug)]
 pub struct Campaign {
     state: State,
-    font: Font,
     receiver_battle_result: Option<Receiver<Option<BattleResult>>>,
     receiver_exit_confirmation: Option<Receiver<screen::confirm::Message>>,
     gui: Gui<Message>,
@@ -189,15 +193,13 @@ pub struct Campaign {
 }
 
 impl Campaign {
-    pub async fn new() -> ZResult<Self> {
-        let plan = utils::deserialize_from_file("/campaign_01.ron").await?;
-        let upgrades = utils::deserialize_from_file("/agent_campaign_info.ron").await?;
-        let state = State::new(plan, upgrades);
-        let font = utils::default_font();
+    pub fn new() -> ZResult<Self> {
+        let campaign_plan = assets::get().campaign_plan.clone();
+        let agent_campaign_info = assets::get().agent_campaign_info.clone();
+        let state = State::new(campaign_plan, agent_campaign_info);
         let gui = basic_gui()?;
         let mut this = Self {
             gui,
-            font,
             state,
             receiver_battle_result: None,
             receiver_exit_confirmation: None,
@@ -221,19 +223,20 @@ impl Campaign {
     // TODO: Wrap the list into `ScrollArea`
     fn set_mode_preparing(&mut self) -> ZResult {
         let state = &self.state;
+        let font = assets::get().font;
         let gui = &mut self.gui;
         let mut layout = ui::VLayout::new().stretchable(true);
-        if let Some(panel) = build_panel_casualties(self.font, state)? {
+        if let Some(panel) = build_panel_casualties(state)? {
             layout.add(panel);
             layout.add(Box::new(ui::Spacer::new_vertical(line_height())));
         }
         let mut line = ui::HLayout::new().stretchable(true);
-        line.add(build_panel_agents(self.font, gui, state.agents())?);
+        line.add(build_panel_agents(gui, state.agents())?);
         line.add(Box::new(ui::Spacer::new_horizontal(line_height())));
-        line.add(build_panel_renown(self.font, state)?);
+        line.add(build_panel_renown(state)?);
         layout.add(Box::new(line));
         layout.add(Box::new(ui::Spacer::new_vertical(line_height())));
-        layout.add(build_panel_actions(self.font, gui, state)?);
+        layout.add(build_panel_actions(gui, state)?);
         layout.stretch_to_self()?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         let layout = ui::pack(layout);
@@ -257,8 +260,9 @@ impl Campaign {
     }
 
     fn add_label_central_message(&mut self, text: &str) -> ZResult {
+        let font = assets::get().font;
         let h = utils::line_heights().large;
-        let text = ui::Drawable::text(text, self.font, FONT_SIZE);
+        let text = ui::Drawable::text(text, font, FONT_SIZE);
         let label = ui::pack(ui::Label::new_with_bg(text, h)?);
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         self.gui.add(&label, anchor);
@@ -266,7 +270,7 @@ impl Campaign {
         Ok(())
     }
 
-    async fn start_battle(&mut self) -> ZResult<Box<dyn Screen>> {
+    fn start_battle(&mut self) -> ZResult<Box<dyn Screen>> {
         let mut scenario = self.state.scenario().clone();
         // TODO: extract a function for this? add_player_agents_to_scenario?
         for typename in self.state.agents() {
@@ -279,9 +283,9 @@ impl Campaign {
         }
         let (sender, receiver) = channel();
         self.receiver_battle_result = Some(receiver);
-        let prototypes = Prototypes::from_str(&utils::read_file("/objects.ron").await?);
+        let prototypes = assets::get().prototypes.clone(); // TODO: Do I really need to clone here?
         let battle_type = BattleType::CampaignNode;
-        let screen = screen::Battle::new(scenario, battle_type, prototypes, sender).await?;
+        let screen = screen::Battle::new(scenario, battle_type, prototypes, sender)?;
         Ok(Box::new(screen))
     }
 }
@@ -346,14 +350,15 @@ impl Screen for Campaign {
                 }
             }
             Some(Message::AgentInfo(typename)) => {
-                // let prototypes = Prototypes::from_str(&utils::read_file("/objects.ron")?);
+                // let prototypes = &assets::get().prototypes;
+                // let prototypes = &assets::get().prototypes;
                 // let popup = screen::AgentInfo::new_agent_info(&prototypes, &typename)?;
                 // Ok(StackCommand::PushPopup(Box::new(popup)))
                 unimplemented!()
             }
             Some(Message::UpgradeInfo { from, to }) => {
-                // let prototypes = Prototypes::from_str(&utils::read_file("/objects.ron")?);
-                // let popup = screen::AgentInfo::new_upgrade_info(&prototypes, &from, &to)?;
+                // let prototypes = &assets::get().prototypes;
+                // let popup = screen::AgentInfo::new_upgrade_info(prototypes, &from, &to)?;
                 // Ok(StackCommand::PushPopup(Box::new(popup)))
                 unimplemented!()
             }

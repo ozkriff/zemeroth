@@ -1,7 +1,5 @@
 use std::time::Duration;
 
-//use gwg::{graphics::Color, timer};
-
 use macroquad::prelude::Color;
 
 use crate::{Action, Sprite};

@@ -5,6 +5,7 @@ use macroquad::prelude::{load_texture, Color, Font, Texture2D, Vec2};
 use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
 
 use crate::{
+    assets,
     core::{
         battle::{
             self, ability::Ability, command, component::ObjType, execute::hit_chance, movement,
@@ -65,6 +66,10 @@ impl Layers {
     }
 }
 
+fn images() -> &'static assets::Images {
+    &assets::get().images
+}
+
 pub fn tile_size(map_height: Distance) -> f32 {
     1.0 / (map_height.0 as f32 * 0.75)
 }
@@ -89,57 +94,6 @@ struct Sprites {
     id_to_shadow_map: HashMap<Id, Sprite>,
     agent_info: HashMap<Id, Vec<Sprite>>,
     disappearing_sprites: Vec<DisappearingSprite>,
-}
-
-#[derive(Debug)]
-pub struct Images {
-    pub selection: Texture2D,
-    pub white_hex: Texture2D,
-    pub tile: Texture2D,
-    pub tile_rocks: Texture2D,
-    pub grass: Texture2D,
-    pub dot: Texture2D,
-    pub blood: Texture2D,
-    pub explosion_ground_mark: Texture2D,
-    pub shadow: Texture2D,
-    pub attack_slash: Texture2D,
-    pub attack_smash: Texture2D,
-    pub attack_pierce: Texture2D,
-    pub attack_claws: Texture2D,
-    pub effect_stun: Texture2D,
-    pub effect_poison: Texture2D,
-    pub effect_bloodlust: Texture2D,
-
-    pub icon_info: Texture2D,
-    pub icon_end_turn: Texture2D,
-    pub icon_main_menu: Texture2D,
-}
-
-impl Images {
-    async fn new() -> ZResult<Self> {
-        Ok(Self {
-            selection: load_texture("assets/img/selection.png").await,
-            white_hex: load_texture("assets/img/white_hex.png").await,
-            tile: load_texture("assets/img/tile.png").await,
-            tile_rocks: load_texture("assets/img/tile_rocks.png").await,
-            grass: load_texture("assets/img/grass.png").await,
-            dot: load_texture("assets/img/dot.png").await,
-            blood: load_texture("assets/img/blood.png").await,
-            explosion_ground_mark: load_texture("assets/img/explosion_ground_mark.png").await,
-            shadow: load_texture("assets/img/shadow.png").await,
-            attack_slash: load_texture("assets/img/slash.png").await,
-            attack_smash: load_texture("assets/img/smash.png").await,
-            attack_pierce: load_texture("assets/img/pierce.png").await,
-            attack_claws: load_texture("assets/img/claw.png").await,
-            effect_stun: load_texture("assets/img/effect_stun.png").await,
-            effect_poison: load_texture("assets/img/effect_poison.png").await,
-            effect_bloodlust: load_texture("assets/img/effect_bloodlust.png").await,
-
-            icon_info: load_texture("assets/img/icon_info.png").await,
-            icon_end_turn: load_texture("assets/img/icon_end_turn.png").await,
-            icon_main_menu: load_texture("assets/img/icon_menu.png").await,
-        })
-    }
 }
 
 #[derive(Debug)]
@@ -205,38 +159,32 @@ impl MessagesMap {
 
 #[derive(Debug)]
 pub struct BattleView {
-    font: Font,
     tile_size: f32,
     layers: Layers,
     scene: Scene,
     sprites: Sprites,
-    images: Images,
-    sprite_info: HashMap<ObjType, SpriteInfo>,
-    pub sprite_sprites: HashMap<ObjType, Sprite>,
+
+    // TODO: Do I need this at all?
+    // object_sprites: HashMap<ObjType, Sprite>, // TODO: rename to "sprite_prototypes"?
     messages_map: MessagesMap,
 }
 
 impl BattleView {
-    pub async fn new(map_radius: Distance) -> ZResult<Self> {
-        let font = utils::default_font_2().await;
-        let images = Images::new().await?;
+    pub fn new(map_radius: Distance) -> ZResult<Self> {
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
         let map_diameter = map::radius_to_diameter(map_radius);
         let tile_size = tile_size(map_diameter);
-        let mut make_marker_sprite = |color: Color| -> ZResult<Sprite> {
+        let make_marker_sprite = |color: Color| -> ZResult<Sprite> {
             let h = tile_size * 2.0 * geom::FLATNESS_COEFFICIENT;
-            let mut sprite = Sprite::from_image(images.selection.clone(), h)?;
+            let mut sprite = Sprite::from_image(images().selection.clone(), h);
             sprite.set_centered(true);
             sprite.set_color(color);
             Ok(sprite)
         };
         let selection_marker = make_marker_sprite(Color::new(0.0, 0.0, 1.0, 0.8))?;
         let current_tile_marker = make_marker_sprite(Color::new(0.0, 0.0, 0.0, 0.5))?;
-        let sprite_info: HashMap<ObjType, SpriteInfo> =
-            utils::deserialize_from_file("assets/sprites.ron").await?;
-
-        let mut sprites = Sprites {
+        let sprites = Sprites {
             selection_marker,
             current_tile_marker,
             highlighted_tiles: Vec::new(),
@@ -246,51 +194,23 @@ impl BattleView {
             agent_info: HashMap::new(),
             disappearing_sprites: Vec::new(),
         };
-
-        let mut sprite_sprites = HashMap::new();
-
-        for (
-            prototype,
-            SpriteInfo {
-                paths,
-                offset_x,
-                offset_y,
-                shadow_size_coefficient,
-                sub_tile_z,
-            },
-        ) in sprite_info.iter()
-        {
-            let size = tile_size * 2.0;
-
-            let sprite_object = {
-                let mut sprite = Sprite::from_paths(&paths, size).await?;
-                //sprite.set_color(Color { a: 0.0, ..color });
-                sprite.set_offset(Vec2::new(0.5 - offset_x, 1.0 - offset_y));
-                sprite
-            };
-
-            sprite_sprites.insert(prototype.clone(), sprite_object);
-        }
-
         Ok(Self {
-            font,
             sprites,
             scene,
             layers,
             tile_size,
-            images,
-            sprite_info,
-            sprite_sprites,
             messages_map: MessagesMap::new(map_radius),
         })
     }
 
-    pub fn font(&self) -> Font {
-        self.font
-    }
-
-    pub fn images(&self) -> &Images {
-        &self.images
+    pub fn object_sprite(&self, obj_type: &ObjType) -> Sprite {
+        let assets = assets::get();
+        let info = assets.sprites_info.get(obj_type).expect("TODO: err msg");
+        let frames = &assets.sprite_frames[obj_type];
+        let mut sprite = Sprite::from_images(frames, self.tile_size() * 2.0);
+        //sprite.set_color(Color { a: 0.0, ..color }); // TODO: ???
+        sprite.set_offset(Vec2::new(0.5 - info.offset_x, 1.0 - info.offset_y));
+        sprite
     }
 
     pub fn messages_map(&self) -> &MessagesMap {
@@ -401,9 +321,9 @@ impl BattleView {
         self.sprites.agent_info.insert(id, sprites);
     }
 
-    pub fn sprite_info(&self, obj_type: &ObjType) -> SpriteInfo {
-        self.sprite_info[&obj_type].clone()
-    }
+    // pub fn sprite_info(&self, obj_type: &ObjType) -> SpriteInfo {
+    //     assets::get().sprites_info[obj_type].clone() // TODO
+    // }
 
     pub fn set_mode(
         &mut self,
@@ -556,7 +476,7 @@ impl BattleView {
 
     fn highlight_tile(&mut self, pos: PosHex, color: Color) -> ZResult {
         let size = self.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
-        let mut sprite = Sprite::from_image(self.images.white_hex, size)?;
+        let mut sprite = Sprite::from_image(images().white_hex, size);
         let color_from = Color::new(color.r(), color.g(), color.b(), 0.0);
         sprite.set_centered(true);
         sprite.set_color(color_from);
@@ -577,7 +497,8 @@ impl BattleView {
         let chances = hit_chance(state, attacker_id, target_id);
         let pos = hex_to_point(self.tile_size(), target_pos);
         let text = format!("{}%", chances.1 * 10);
-        let mut sprite = Sprite::from_text((text.as_str(), self.font, font_size()), 0.1)?;
+        let font = assets::get().font;
+        let mut sprite = Sprite::from_text((text.as_str(), font, font_size()), 0.1);
         sprite.set_pos(pos);
         sprite.set_centered(true);
         sprite.set_color([0.0, 0.0, 0.0, 1.0].into());
@@ -591,11 +512,11 @@ impl BattleView {
 fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let image = match state.map().tile(at) {
-        TileType::Plain => view.images.tile.clone(),
-        TileType::Rocks => view.images.tile_rocks.clone(),
+        TileType::Plain => images().tile.clone(),
+        TileType::Rocks => images().tile_rocks.clone(),
     };
     let size = view.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
-    let mut sprite = Sprite::from_image(image, size)?;
+    let mut sprite = Sprite::from_image(image, size);
     sprite.set_centered(true);
     sprite.set_pos(screen_pos);
     Ok(action::Show::new(&view.layers().bg, &sprite).boxed())
@@ -603,7 +524,7 @@ fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResul
 
 fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
-    let mut sprite = Sprite::from_image(view.images.grass, view.tile_size() * 2.0)?;
+    let mut sprite = Sprite::from_image(images().grass, view.tile_size() * 2.0);
     let v_offset = view.tile_size() * 0.5; // depends on the image
     let mut screen_pos_grass = screen_pos + geom::rand_tile_offset(view.tile_size(), 0.5);
     *screen_pos_grass.y_mut() -= v_offset;

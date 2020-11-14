@@ -1,10 +1,11 @@
 use std::time::Duration;
 
 use log::{info, trace};
-use macroquad::prelude::{Color, Vec2, Texture2D};
+use macroquad::prelude::{Color, Texture2D, Vec2};
 use zscene::{action, Action, Boxed, Facing, Sprite};
 
 use crate::{
+    assets,
     core::{
         battle::{
             ability::Ability,
@@ -61,11 +62,16 @@ fn hex_pos_to_z(pos: PosHex) -> f32 {
     pos.r as _
 }
 
+fn images() -> &'static assets::Images {
+    &assets::get().images
+}
+
 pub fn message(view: &mut BattleView, pos: PosHex, text: &str) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let mut invisible = Color::new(0.0, 0.0, 0.0, 0.0);
     let font_size = font_size();
-    let mut sprite = Sprite::from_text((text, view.font(), font_size), 0.1)?;
+    let font = assets::get().font;
+    let mut sprite = Sprite::from_text((text, font, font_size), 0.1);
     sprite.set_centered(true);
     let point = view.hex_to_point(pos);
     let point = point - Vec2::new(0.0, view.tile_size() * 1.5);
@@ -111,14 +117,15 @@ fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dy
     };
     let actions_text = {
         let color = [0.0, 0.0, 0.0, 1.0].into();
-        let mut sprite = Sprite::from_text((text, view.font(), font_size()), height_text)?;
+        let font = assets::get().font;
+        let mut sprite = Sprite::from_text((text, font, font_size()), height_text);
         sprite.set_centered(true);
         action_show_and_hide(sprite, color)
     };
     let actions_bg = {
         let color = [1.0, 1.0, 1.0, 0.5].into();
-        let image = view.images().white_hex;
-        let mut sprite = Sprite::from_image(image, height_bg)?;
+        let image = images().white_hex;
+        let mut sprite = Sprite::from_image(image, height_bg);
         sprite.set_centered(true);
         action_show_and_hide(sprite, color)
     };
@@ -133,7 +140,8 @@ fn attack_message(view: &mut BattleView, pos: Vec2, text: &str) -> ZResult<Box<d
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = [0.0, 0.0, 0.0, 0.0].into();
     let font_size = font_size();
-    let mut sprite = Sprite::from_text((text, view.font(), font_size), 0.1)?;
+    let font = assets::get().font;
+    let mut sprite = Sprite::from_text((text, font, font_size), 0.1);
     sprite.set_centered(true);
     let point = pos + Vec2::new(0.0, view.tile_size() * 0.5);
     sprite.set_pos(point);
@@ -170,7 +178,7 @@ fn show_blood_particles(
         let invisible = [0.7, 0.0, 0.0, 0.0].into();
         let scale = roll_dice(0.05, 0.15);
         let size = view.tile_size() * 2.0 * scale;
-        let mut sprite = Sprite::from_image(view.images().white_hex, size)?;
+        let mut sprite = Sprite::from_image(images().white_hex, size);
         sprite.set_centered(true);
         sprite.set_pos(point_origin);
         sprite.set_color(invisible);
@@ -189,8 +197,7 @@ fn show_blood_particles(
 }
 
 fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
-    let mut sprite =
-        Sprite::from_image(view.images().blood, view.tile_size() * 2.0)?;
+    let mut sprite = Sprite::from_image(images().blood, view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
     let mut point = view.hex_to_point(at);
@@ -212,10 +219,7 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
 }
 
 fn show_explosion_ground_mark(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
-    let mut sprite = Sprite::from_image(
-        view.images().explosion_ground_mark,
-        view.tile_size() * 2.0,
-    )?;
+    let mut sprite = Sprite::from_image(images().explosion_ground_mark, view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 1.0].into());
     sprite.set_pos(view.hex_to_point(at));
@@ -246,11 +250,12 @@ fn show_dust(view: &mut BattleView, at: Vec2, count: i32) -> ZResult<Box<dyn Act
             // let mut vector = rot.rotate_vector(Vec2::new(view.tile_size() * n, 0.0));
             // vector.y *= geom::FLATNESS_COEFFICIENT;
             // vector
-            unimplemented!()
+            // unimplemented!() // TODO: reimplement!
+            Vec2::new(0.0, 0.0)
         };
         let point = at + vector;
         let sprite = {
-            let mut sprite = Sprite::from_image(view.images().white_hex, size)?;
+            let mut sprite = Sprite::from_image(images().white_hex, size);
             sprite.set_centered(true);
             sprite.set_pos(point);
             sprite.set_color(invisible);
@@ -283,7 +288,7 @@ fn show_flare_scale_time(
     let mut invisible = color;
     invisible.0[3] = 0;
     let size = view.tile_size() * 2.0 * scale;
-    let mut sprite = Sprite::from_image(view.images().white_hex, size)?;
+    let mut sprite = Sprite::from_image(images().white_hex, size);
     let point = view.hex_to_point(at);
     sprite.set_centered(true);
     sprite.set_pos(point);
@@ -302,17 +307,18 @@ fn show_weapon_flash(
     weapon_type: WeaponType,
     facing_opt: Option<geom::Facing>,
 ) -> ZResult<Box<dyn Action>> {
+    let images = &assets::get().images;
     let visible = [1.0, 1.0, 1.0, 0.8].into();
     let invisible = [1.0, 1.0, 1.0, 0.1].into();
     let tile_size = view.tile_size();
     let sprite_size = tile_size * 2.0;
     let image = match weapon_type {
-        WeaponType::Slash => view.images().attack_slash.clone(),
-        WeaponType::Smash => view.images().attack_smash.clone(),
-        WeaponType::Pierce => view.images().attack_pierce.clone(),
-        WeaponType::Claw => view.images().attack_claws.clone(),
+        WeaponType::Slash => images.attack_slash.clone(),
+        WeaponType::Smash => images.attack_smash.clone(),
+        WeaponType::Pierce => images.attack_pierce.clone(),
+        WeaponType::Claw => images.attack_claws.clone(),
     };
-    let mut sprite = Sprite::from_image(image, sprite_size)?;
+    let mut sprite = Sprite::from_image(image, sprite_size);
     let point = view.hex_to_point(at) - Vec2::new(0.0, tile_size * 0.3);
     sprite.set_centered(true);
     sprite.set_pos(point);
@@ -424,11 +430,12 @@ fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Act
     Ok(seq(actions))
 }
 
-pub fn get_effect_icon(view: &BattleView, effect: &effect::Lasting) -> Texture2D {
+pub fn get_effect_icon(effect: &effect::Lasting) -> Texture2D {
+    let images = &assets::get().images;
     match effect {
-        effect::Lasting::Poison => view.images().effect_poison,
-        effect::Lasting::Stun => view.images().effect_stun,
-        effect::Lasting::Bloodlust => view.images().effect_bloodlust,
+        effect::Lasting::Poison => images.effect_poison,
+        effect::Lasting::Stun => images.effect_stun,
+        effect::Lasting::Bloodlust => images.effect_bloodlust,
     }
 }
 
@@ -437,7 +444,7 @@ fn generate_brief_obj_info(
     view: &mut BattleView,
     id: Id,
 ) -> ZResult<Box<dyn Action>> {
-    let dot_image = view.images().dot.clone();
+    let dot_image = images().dot.clone();
     let mut actions = Vec::new();
     let parts = state.parts();
     let agent = parts.agent.get(id);
@@ -474,7 +481,7 @@ fn generate_brief_obj_info(
     }
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
-        let mut sprite = Sprite::from_image(dot_image, size)?;
+        let mut sprite = Sprite::from_image(dot_image, size);
         sprite.set_centered(true);
         sprite.set_pos(point);
         sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
@@ -496,8 +503,8 @@ fn generate_brief_obj_info(
             for timed_effect in &effects.0 {
                 *icon_point.y_mut() += icon_size;
                 let effect = &timed_effect.effect;
-                let image = get_effect_icon(view, effect);
-                let mut sprite = Sprite::from_image(image, icon_size)?;
+                let image = get_effect_icon(effect);
+                let mut sprite = Sprite::from_image(image, icon_size);
                 sprite.set_pos(icon_point);
                 sprite.set_centered(true);
                 actions.push(action::Show::new(&view.layers().dots, &sprite).boxed());
@@ -969,7 +976,6 @@ fn visualize_instant_effect(
 fn visualize_effect_create(
     _: &State,
     view: &mut BattleView,
-
     target_id: Id,
     effect: &effect::Create,
 ) -> ZResult<Box<dyn Action>> {
@@ -979,24 +985,26 @@ fn visualize_effect_create(
         offset_y,
         shadow_size_coefficient,
         sub_tile_z,
-    } = view.sprite_info(&effect.prototype);
+    } = &assets::get().sprites_info[&effect.prototype];
     let z = hex_pos_to_z(effect.pos) + sub_tile_z;
     let point = view.hex_to_point(effect.pos);
     let color = Color::new(1.0, 1.0, 1.0, 1.0);
     let size = view.tile_size() * 2.0;
-    let mut sprite_object = view.sprite_sprites[&effect.prototype].deep_clone();
+    let mut sprite_object = view.object_sprite(&effect.prototype);
     sprite_object.set_pos(point);
+    // sprite_object.set_color(Color::new(0.0, 0.0, 0.0, 1.0));
     let sprite_shadow = {
-        let image_shadow = view.images().shadow.clone();
-        let mut sprite = Sprite::from_image(image_shadow, size * shadow_size_coefficient)?;
+        let image_shadow = images().shadow.clone();
+        let mut sprite = Sprite::from_image(image_shadow, size * shadow_size_coefficient);
         sprite.set_centered(true);
-        sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
+        // sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
+        // sprite.set_color(Color::new(1.0, 1.0, 1.0, 0.0));
         sprite.set_pos(point);
         sprite
     };
     view.add_object(target_id, &sprite_object, &sprite_shadow);
     let action_change_shadow_color =
-        action::ChangeColorTo::new(&sprite_shadow, color, time_s(0.2)).boxed();
+        action::ChangeColorTo::new(&sprite_shadow, color, time_s(0.9)).boxed();
     let mut actions = Vec::new();
     if effect.is_teleported {
         let white = [1.0, 1.0, 1.0, 0.9].into();
@@ -1011,6 +1019,7 @@ fn visualize_effect_create(
     actions.push(action_set_z(&view.layers().objects, &sprite_object, z));
     actions.push(fork(action_change_shadow_color));
     actions.push(action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed());
+    actions.push(action::ChangeColorTo::new(&sprite_object, color, time_s(0.9)).boxed());
     Ok(fork(seq(actions)))
 }
 

@@ -7,6 +7,7 @@ use macroquad::prelude::{Color, Font, Vec2};
 use ui::{self, Gui, Widget};
 
 use crate::{
+    assets,
     screen::{Screen, StackCommand},
     utils, ZResult,
 };
@@ -31,7 +32,7 @@ pub struct Confirm {
 
 impl Confirm {
     pub fn from_lines(lines: &[impl AsRef<str>], sender: Sender<Message>) -> ZResult<Self> {
-        let font = utils::default_font();
+        let font = assets::get().font;
         let h = utils::line_heights().big;
         let font_size = utils::font_size();
         let mut layout = ui::VLayout::new();
@@ -48,7 +49,7 @@ impl Confirm {
     }
 
     pub fn from_widget(widget: Box<dyn ui::Widget>, sender: Sender<Message>) -> ZResult<Self> {
-        let font = utils::default_font();
+        let font = assets::get().font;
         let mut gui = ui::Gui::new();
         let h = utils::line_heights().big;
         let font_size = utils::font_size();

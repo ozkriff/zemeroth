@@ -3,13 +3,17 @@ use std::{
     time::Duration,
 };
 
-use macroquad::prelude::{Color, Font, Vec2};
+use macroquad::{
+    coroutines::start_coroutine,
+    prelude::{Color, Font, Vec2},
+};
 
 use log::trace;
 use ui::{self, Gui, Widget};
 use zscene::Sprite;
 
 use crate::{
+    assets,
     core::battle::{component::Prototypes, scenario, state},
     screen::{self, Screen, StackCommand},
     utils, ZResult,
@@ -22,7 +26,8 @@ enum Message {
     StartCampaign,
 }
 
-fn make_gui(font: Font) -> ZResult<ui::Gui<Message>> {
+fn make_gui() -> ZResult<ui::Gui<Message>> {
+    let font = assets::get().font;
     let mut gui = ui::Gui::new();
     let h = utils::line_heights().large;
     let font_size = utils::font_size();
@@ -56,12 +61,8 @@ pub struct MainMenu {
 
 // TODO: add the game's version to one of the corners
 impl MainMenu {
-    pub async fn new() -> ZResult<Self> {
-        let font = utils::default_font_2().await;
-        let gui = make_gui(font)?;
-        let mut sprite = Sprite::from_path("assets/img/tile.png", 0.1).await?;
-        sprite.set_centered(true);
-        sprite.set_pos(Vec2::new(0.5, 0.5));
+    pub fn new() -> ZResult<Self> {
+        let gui = make_gui()?;
         Ok(Self {
             gui,
             receiver_battle_result: None,
@@ -84,24 +85,13 @@ impl Screen for MainMenu {
         trace!("MainMenu: click: pos={:?}, message={:?}", pos, message);
         match message {
             Some(Message::StartInstant) => {
-                let screen = async move {
-                    let scenario = utils::deserialize_from_file("assets/scenario_01.ron")
-                        .await
-                        .unwrap();
-                    let (sender, receiver) = channel();
-                    self.receiver_battle_result = Some(receiver);
-                    let proto = Prototypes::from_str(
-                        &utils::read_file("assets/objects.ron").await.unwrap(),
-                    );
-                    let battle_type = scenario::BattleType::Skirmish;
-
-                    let screen = screen::Battle::new(scenario, battle_type, proto, sender)
-                        .await
-                        .unwrap();
-                    unsafe { crate::screen::SCREEN_HACK = Some(Box::new(screen)) };
-                };
-                let coroutine = unsafe { macroquad::coroutines::start_coroutine(screen) };
-                Ok(StackCommand::PushScreen(coroutine))
+                let prototypes = assets::get().prototypes.clone(); // TODO: Do I really need to clone here?
+                let scenario = assets::get().demo_scenario.clone();
+                let (sender, receiver) = channel();
+                self.receiver_battle_result = Some(receiver);
+                let battle_type = scenario::BattleType::Skirmish;
+                let screen = screen::Battle::new(scenario, battle_type, prototypes, sender)?;
+                Ok(StackCommand::PushScreen(Box::new(screen)))
             }
             Some(Message::StartCampaign) => {
                 // let screen = screen::Campaign::new()?;

@@ -1,10 +1,11 @@
 use std::time::Duration;
 
-use macroquad::prelude::{Vec2, Color, Font};
+use macroquad::prelude::{Color, Font, Vec2};
 
 use ui::{self, Gui, Widget};
 
 use crate::{
+    assets,
     screen::{Screen, StackCommand},
     utils, ZResult,
 };
@@ -21,22 +22,16 @@ pub struct GeneralInfo {
 }
 
 impl GeneralInfo {
-    pub fn new( title: &str, lines: &[String]) -> ZResult<Self> {
-        let font = utils::default_font();
+    pub fn new(title: &str, lines: &[String]) -> ZResult<Self> {
+        let font = assets::get().font;
         let mut gui = ui::Gui::new();
         let h = utils::line_heights().normal;
         let font_size = utils::font_size();
         let mut layout = Box::new(ui::VLayout::new().stretchable(true));
         let text_ = |s: &str| ui::Drawable::text(s, font, font_size);
-        let label_ = | text: &str| -> ZResult<_> {
-            Ok(ui::Label::new(text_(text), h)?)
-        };
-        let label = | text: &str| -> ZResult<_> {
-            Ok(Box::new(label_(text)?))
-        };
-        let label_s = | text: &str| -> ZResult<_> {
-            Ok(Box::new(label_(text)?.stretchable(true)))
-        };
+        let label_ = |text: &str| -> ZResult<_> { Ok(ui::Label::new(text_(text), h)?) };
+        let label = |text: &str| -> ZResult<_> { Ok(Box::new(label_(text)?)) };
+        let label_s = |text: &str| -> ZResult<_> { Ok(Box::new(label_(text)?.stretchable(true))) };
         let spacer = || Box::new(ui::Spacer::new_vertical(h * 0.5));
         layout.add(label_s(&format!("~~~ {} ~~~", title))?);
         layout.add(spacer());
@@ -46,8 +41,7 @@ impl GeneralInfo {
         layout.add(spacer());
         {
             let mut button =
-                ui::Button::new(text_("back"), h, gui.sender(), Message::Back)?
-                    .stretchable(true);
+                ui::Button::new(text_("back"), h, gui.sender(), Message::Back)?.stretchable(true);
             button.stretch(layout.rect().w / 3.0)?;
             button.set_stretchable(false);
             layout.add(Box::new(button));

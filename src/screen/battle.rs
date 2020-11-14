@@ -6,12 +6,16 @@ use std::{
 use heck::TitleCase;
 use log::{info, trace};
 
-use macroquad::prelude::{Color, Font, Vec2};
+use macroquad::{
+    coroutines::start_coroutine,
+    prelude::{Color, Font, Vec2},
+};
 
 use ui::{self, Gui, Widget};
 use zscene::{action, Action, Boxed};
 
 use crate::{
+    assets,
     core::{
         battle::{
             self,
@@ -36,7 +40,7 @@ use crate::{
         },
         Screen, StackCommand,
     },
-    utils::{self, default_font, line_heights, time_s},
+    utils::{self, line_heights, time_s},
     Image, ZResult,
 };
 
@@ -57,6 +61,10 @@ enum Message {
     LastingEffectInfo(effect::Lasting),
 }
 
+fn images() -> &'static assets::Images {
+    &assets::get().images
+}
+
 fn line_with_info_button(
     view: &BattleView,
     font: Font,
@@ -66,7 +74,7 @@ fn line_with_info_button(
 ) -> ZResult<Box<dyn ui::Widget>> {
     let h = line_heights().normal;
     let text = ui::Drawable::text(text, font, FONT_SIZE);
-    let icon = view.images().icon_info;
+    let icon = images().icon_info;
     let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), message)?;
     let mut line = Box::new(ui::HLayout::new().stretchable(true));
     line.add(Box::new(ui::Label::new(text, h)?));
@@ -103,7 +111,7 @@ fn build_panel_agent_info(
         Ok(Box::new(line))
     };
     let line_i = |arg: &str, val: i32| -> ZResult<_> { line(arg, &val.to_string()) };
-    let image_dot = view.images().dot;
+    let image_dot = images().dot;
     let line_dot = |arg: &str, val: &str, color: Color| -> ZResult<_> {
         let mut line = ui::HLayout::new().stretchable(true);
         let dot_img = image_dot.clone();
@@ -196,14 +204,14 @@ fn build_panel_agent_info(
                     };
                     let message = Message::LastingEffectInfo(effect.effect.clone());
                     let text = ui::Drawable::text(&text, font, FONT_SIZE);
-                    let icon_info = view.images().icon_info;
+                    let icon_info = images().icon_info;
                     let button_info = ui::Button::new(
                         ui::Drawable::Texture(icon_info),
                         h,
                         gui.sender(),
                         message,
                     )?;
-                    let icon_effect = visualize::get_effect_icon(view, &effect.effect);
+                    let icon_effect = visualize::get_effect_icon(&effect.effect);
                     let param = ui::LabelParam {
                         drawable_k: 0.6,
                         ..Default::default()
@@ -307,7 +315,7 @@ fn build_panel_agent_abilities(
 
 fn build_panel_end_turn(view: &BattleView, gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
     let h = line_heights().large;
-    let icon = view.images().icon_end_turn;
+    let icon = images().icon_end_turn;
     let button = ui::Button::new(
         ui::Drawable::Texture(icon),
         h,
@@ -375,7 +383,7 @@ fn make_gui(view: &BattleView) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new();
     let h = line_heights().large;
     {
-        let icon = view.images().icon_main_menu;
+        let icon = images().icon_main_menu;
         let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), Message::Exit)?;
         let layout = ui::VLayout::from_widget(Box::new(button));
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
@@ -411,17 +419,18 @@ pub struct Battle {
 }
 
 impl Battle {
-    pub async fn new(
+    pub fn new(
         scenario: scenario::Scenario,
         battle_type: scenario::BattleType,
         prototypes: Prototypes,
         sender: Sender<Option<BattleResult>>,
     ) -> ZResult<Self> {
-        let font = utils::default_font_2().await;
+        let font = assets::get().font;
         let radius = scenario.map_radius;
-        let mut view = BattleView::new(radius).await?;
+        let mut view = BattleView::new(radius)?;
         let mut gui = make_gui(&view)?;
         let mut actions = Vec::new();
+        // actions.push(action::Sleep::new(time_s(1.0)).boxed());
         let state = State::new(prototypes, scenario, &mut |state, event, phase| {
             let action =
                 visualize(state, &mut view, event, phase).expect("Can't visualize the event");
@@ -723,7 +732,7 @@ impl Screen for Battle {
     }
 
     fn draw(&self) -> ZResult {
-        self.view.draw();
+        self.view.draw()?;
         self.gui.draw();
         Ok(())
     }
@@ -733,8 +742,10 @@ impl Screen for Battle {
         info!("Battle: click: pos={:?}, message={:?}", pos, message);
         match message {
             Some(Message::Exit) => {
-                //return Ok(StackCommand::PushPopup(self.popup_confirm_exit()?));
-                unimplemented!()
+                return Ok(StackCommand::PushPopup(self.popup_confirm_exit()?));
+                // unimplemented!()
+                // let screen = self.popup_confirm_exit()?;
+                // return Ok(StackCommand::PushScreen(unsafe { start_coroutine(screen) }));
             }
             Some(Message::EndTurn) => {
                 assert!(self.block_timer.is_none());

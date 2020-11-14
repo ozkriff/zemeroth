@@ -2,7 +2,7 @@ use std::{error, fmt, io, path::PathBuf};
 
 #[derive(Debug, derive_more::From)]
 pub enum ZError {
-    GwgError,
+    GwgError, // TODO: rename to MacroquadError
     UiError(ui::Error),
     SceneError(zscene::Error),
     RonDeserializeError {
