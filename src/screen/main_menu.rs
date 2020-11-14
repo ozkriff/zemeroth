@@ -3,9 +3,8 @@ use std::{
     time::Duration,
 };
 
-use macroquad::prelude::Vec2;
-
 use log::trace;
+use macroquad::prelude::Vec2;
 use ui::{self, Gui, Widget};
 
 use crate::{

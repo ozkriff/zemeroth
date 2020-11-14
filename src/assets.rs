@@ -1,3 +1,5 @@
+//! TODO: Document the motivation behind this module.
+
 use std::collections::HashMap;
 
 use macroquad::{
@@ -9,6 +11,7 @@ use once_cell::sync::OnceCell;
 use crate::{
     core::{
         battle::{
+            ability::Ability,
             component::{ObjType, Prototypes},
             scenario::Scenario,
         },
@@ -94,13 +97,21 @@ pub struct Images {
     pub blood: Texture2D,
     pub explosion_ground_mark: Texture2D,
     pub shadow: Texture2D,
+
+    pub ability_icons: HashMap<Ability, Texture2D>,
+
+    // TODO: HashMap<WeaponType, Texture2D>
     pub attack_slash: Texture2D,
     pub attack_smash: Texture2D,
     pub attack_pierce: Texture2D,
     pub attack_claws: Texture2D,
+
+    // TODO: HashMap<Effect, Texture2D>
     pub effect_stun: Texture2D,
     pub effect_poison: Texture2D,
     pub effect_bloodlust: Texture2D,
+
+    // TODO: Extract to Icons struct
     pub icon_info: Texture2D,
     pub icon_end_turn: Texture2D,
     pub icon_main_menu: Texture2D,
@@ -108,6 +119,7 @@ pub struct Images {
 
 impl Images {
     pub async fn load() -> Self {
+        let ability_icons = load_ability_icons().await;
         Self {
             selection: load_texture("assets/img/selection.png").await,
             white_hex: load_texture("assets/img/white_hex.png").await,
@@ -118,16 +130,45 @@ impl Images {
             blood: load_texture("assets/img/blood.png").await,
             explosion_ground_mark: load_texture("assets/img/explosion_ground_mark.png").await,
             shadow: load_texture("assets/img/shadow.png").await,
+            ability_icons,
+
             attack_slash: load_texture("assets/img/slash.png").await,
             attack_smash: load_texture("assets/img/smash.png").await,
             attack_pierce: load_texture("assets/img/pierce.png").await,
             attack_claws: load_texture("assets/img/claw.png").await,
+
             effect_stun: load_texture("assets/img/effect_stun.png").await,
             effect_poison: load_texture("assets/img/effect_poison.png").await,
             effect_bloodlust: load_texture("assets/img/effect_bloodlust.png").await,
+
             icon_info: load_texture("assets/img/icon_info.png").await,
             icon_end_turn: load_texture("assets/img/icon_end_turn.png").await,
             icon_main_menu: load_texture("assets/img/icon_menu.png").await,
         }
     }
+}
+
+pub async fn load_ability_icons() -> HashMap<Ability, Texture2D> {
+    let mut map = HashMap::new();
+    for (ref ability, name) in &[
+        (Ability::Knockback, "knockback"),
+        (Ability::Club, "club"),
+        (Ability::Jump, "jump"),
+        (Ability::LongJump, "long_jump"),
+        (Ability::Bomb, "bomb"),
+        (Ability::BombPush, "bomb_push"),
+        (Ability::BombFire, "bomb_fire"),
+        (Ability::BombPoison, "bomb_poison"),
+        (Ability::BombDemonic, "bomb_demonic"),
+        (Ability::Summon, "summon"),
+        (Ability::Dash, "dash"),
+        (Ability::Rage, "rage"),
+        (Ability::Heal, "heal"),
+        (Ability::GreatHeal, "great_heal"),
+        (Ability::Bloodlust, "bloodlust"),
+    ] {
+        let texture = load_texture(&format!("assets/img/icon_ability_{}.png", name)).await;
+        map.insert(*ability, texture);
+    }
+    map
 }

@@ -5,7 +5,6 @@ use std::{
 
 use heck::TitleCase;
 use log::{info, trace};
-
 use macroquad::prelude::{Color, Vec2};
 
 use ui::{self, Gui, Widget};
@@ -41,8 +40,6 @@ use crate::{
     ZResult,
 };
 
-// TODO: consider removing view: &BattleView from most of funcs arguments
-
 // TODO: Don't use graphics::Image::new in this file! Pre-load all images into View.
 // YEAH GOOD IDEA
 
@@ -65,7 +62,6 @@ fn images() -> &'static assets::Images {
 }
 
 fn line_with_info_button(
-    _view: &BattleView,
     gui: &mut Gui<Message>,
     text: &str,
     message: Message,
@@ -83,12 +79,7 @@ fn line_with_info_button(
 }
 
 // TODO: consider moving ui `build_*` functions to a sub-module
-fn build_panel_agent_info(
-    view: &BattleView,
-    gui: &mut Gui<Message>,
-    state: &State,
-    id: Id,
-) -> ZResult<ui::RcWidget> {
+fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZResult<ui::RcWidget> {
     let font = assets::get().font;
     let parts = state.parts();
     let st = parts.strength.get(id);
@@ -187,7 +178,7 @@ fn build_panel_agent_info(
                 for &ability in &abilities.0 {
                     let text = ability.title();
                     let message = Message::PassiveAbilityInfo(ability);
-                    add(line_with_info_button(view, gui, &text, message)?);
+                    add(line_with_info_button(gui, &text, message)?);
                     add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
                 }
             }
@@ -239,7 +230,6 @@ fn build_panel_agent_info(
 }
 
 fn build_panel_agent_abilities(
-    _view: &BattleView, // TODO: use this for cloning stored icon images (no, get from assets.rs)
     gui: &mut Gui<Message>,
     state: &State,
     id: Id,
@@ -254,42 +244,11 @@ fn build_panel_agent_abilities(
     let mut layout = ui::VLayout::new().stretchable(true);
     let h = line_heights().large;
     for ability in abilities {
-        // TODO TODO TODO TODO TODO
-        // TODO TODO TODO TODO TODO
-        // TODO TODO TODO TODO TODO
-
-        // TODO: yeah now todo below makes way more sense but nah
-        // let image_path = match ability.ability {
-        //     // TODO: load all the images only once. Store them in some struct and only clone them here.
-        //     // TODO: Move into view::Images!
-        //     Ability::Club => "/img/icon_ability_club.png",
-        //     Ability::Knockback => "/img/icon_ability_knockback.png",
-        //     Ability::Jump => "/img/icon_ability_jump.png",
-        //     Ability::LongJump => "/img/icon_ability_long_jump.png",
-        //     Ability::Dash => "/img/icon_ability_dash.png",
-        //     Ability::Rage => "/img/icon_ability_rage.png",
-        //     Ability::Heal => "/img/icon_ability_heal.png",
-        //     Ability::GreatHeal => "/img/icon_ability_great_heal.png",
-        //     Ability::BombPush => "/img/icon_ability_bomb_push.png",
-        //     Ability::Bomb => "/img/icon_ability_bomb.png",
-        //     Ability::BombFire => "/img/icon_ability_bomb_fire.png",
-        //     Ability::BombPoison => "/img/icon_ability_bomb_poison.png",
-        //     Ability::BombDemonic => "/img/icon_ability_bomb_demonic.png",
-        //     Ability::Summon => "/img/icon_ability_summon.png",
-        //     Ability::Bloodlust => "/img/icon_ability_bloodlust.png",
-        //     ref ability => panic!("No icon for {:?}", ability),
-        // };
+        let icons = &assets::get().images.ability_icons;
+        let texture = icons.get(&ability.ability).expect("No icon found");
+        let drawable = ui::Drawable::Texture(texture.clone());
         let msg = Message::Ability(ability.ability.clone());
-        let mut button = ui::Button::new(
-            ui::Drawable::Text {
-                label: "x".to_string(),
-                font,
-                font_size: 120,
-            },
-            h,
-            gui.sender(),
-            msg,
-        )?;
+        let mut button = ui::Button::new(drawable, h, gui.sender(), msg)?;
         if !state::can_agent_use_ability(state, id, &ability.ability) {
             button.set_active(false);
         }
@@ -316,7 +275,7 @@ fn build_panel_agent_abilities(
     Ok(Some(packed_layout))
 }
 
-fn build_panel_end_turn(_view: &BattleView, gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
+fn build_panel_end_turn(gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
     let h = line_heights().large;
     let icon = images().icon_end_turn;
     let button = ui::Button::new(
@@ -382,7 +341,7 @@ fn build_panel_ability_description(
     Ok(layout)
 }
 
-fn make_gui(_view: &BattleView) -> ZResult<ui::Gui<Message>> {
+fn make_gui() -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new();
     let h = line_heights().large;
     let icon = images().icon_main_menu;
@@ -427,7 +386,7 @@ impl Battle {
     ) -> ZResult<Self> {
         let radius = scenario.map_radius;
         let mut view = BattleView::new(radius)?;
-        let mut gui = make_gui(&view)?;
+        let mut gui = make_gui()?;
         let mut actions = Vec::new();
         let state = State::new(prototypes, scenario, &mut |state, event, phase| {
             let action =
@@ -436,7 +395,7 @@ impl Battle {
         });
         actions.push(make_action_create_map(&state, &view)?);
         view.add_action(action::Sequence::new(actions).boxed());
-        let panel_end_turn = Some(build_panel_end_turn(&view, &mut gui)?);
+        let panel_end_turn = Some(build_panel_end_turn(&mut gui)?);
         Ok(Self {
             gui,
             view,
@@ -585,12 +544,12 @@ impl Battle {
             SelectionMode::Normal => {
                 self.pathfinder.fill_map(state, id);
                 if self.panel_end_turn.is_none() {
-                    self.panel_end_turn = Some(build_panel_end_turn(&self.view, gui)?);
+                    self.panel_end_turn = Some(build_panel_end_turn(gui)?);
                 }
             }
         }
-        self.panel_abilities = build_panel_agent_abilities(&self.view, gui, state, id, &mode)?;
-        self.panel_info = Some(build_panel_agent_info(&self.view, gui, state, id)?);
+        self.panel_abilities = build_panel_agent_abilities(gui, state, id, &mode)?;
+        self.panel_info = Some(build_panel_agent_info(gui, state, id)?);
         let map = self.pathfinder.map();
         self.view.set_mode(state, map, id, &mode)?;
         self.mode = mode;
@@ -717,7 +676,7 @@ impl Screen for Battle {
                 return Ok(StackCommand::Pop);
             }
             if self.panel_end_turn.is_none() && self.mode == SelectionMode::Normal {
-                self.panel_end_turn = Some(build_panel_end_turn(&self.view, &mut self.gui)?);
+                self.panel_end_turn = Some(build_panel_end_turn(&mut self.gui)?);
             }
         }
         Ok(StackCommand::None)

@@ -10,7 +10,7 @@ pub fn time_s(s: f32) -> Duration {
     Duration::from_millis(ms as u64)
 }
 
-// TODO: move to assets.rs? not sure
+// TODO: move to assets.rs and make private?
 /// Read a file to a string.
 pub async fn read_file(path: &str) -> ZResult<String> {
     // TODO: impl from for zerror
@@ -19,6 +19,7 @@ pub async fn read_file(path: &str) -> ZResult<String> {
     Ok(string)
 }
 
+// TODO: move to assets.rs and make private?
 pub async fn deserialize_from_file<D: DeserializeOwned>(path: &str) -> ZResult<D> {
     let s = read_file(path).await?;
     ron::de::from_str(&s).map_err(|e| ZError::from_ron_de_error(e, path.into()))

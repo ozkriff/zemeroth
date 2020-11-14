@@ -137,7 +137,8 @@ impl Sprite {
         )
     }
 
-    // TODO: deprecate?
+    // TODO: remove?
+    #[deprecated]
     pub async fn from_path(path: &str, height: f32) -> Self {
         let image = load_texture(path).await;
         Self::from_image(image, height)
@@ -150,6 +151,7 @@ impl Sprite {
 
     // TODO: deprecate?
     // TODO: try to simplify the signature
+    #[deprecated]
     pub async fn from_paths<
         S: Eq + Hash + std::borrow::Borrow<str>,
         P: Eq + Hash + std::borrow::Borrow<str>,

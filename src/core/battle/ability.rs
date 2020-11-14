@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::battle::Weight;
 
 /// Active ability.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::From)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, derive_more::From)]
 pub enum Ability {
     Knockback,
     Club,
