@@ -1,10 +1,7 @@
-use std::{collections::HashMap, time::Duration};
+use std::time::Duration;
 
 use heck::TitleCase;
-use macroquad::{
-    prelude::{Color, Vec2},
-    text::Font,
-};
+use macroquad::prelude::{Color, Vec2};
 use ui::{self, Gui, Widget};
 
 use crate::{
@@ -14,7 +11,6 @@ use crate::{
         component::{self, Component, ObjType, Prototypes},
     },
     screen::{self, Screen, StackCommand},
-    sprite_info::SpriteInfo,
     utils, ZResult,
 };
 

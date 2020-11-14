@@ -240,7 +240,7 @@ fn show_dust_at_pos(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action
 
 fn show_dust(view: &mut BattleView, at: Vec2, count: i32) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
-    for i in 0..count {
+    for _ /*i*/ in 0..count { // TODO
         let k = roll_dice(0.8, 1.2);
         let visible = [0.8 * k, 0.8 * k, 0.7 * k, 0.8 * k].into();
         let invisible = [0.8 * k, 0.8 * k, 0.7 * k, 0.0].into();
@@ -983,23 +983,34 @@ fn visualize_effect_create(
     effect: &effect::Create,
 ) -> ZResult<Box<dyn Action>> {
     let SpriteInfo {
-        paths,
-        offset_x,
-        offset_y,
         shadow_size_coefficient,
         sub_tile_z,
+        ..
     } = &assets::get().sprites_info[&effect.prototype];
     let z = hex_pos_to_z(effect.pos) + sub_tile_z;
     let point = view.hex_to_point(effect.pos);
     let color = Color::new(1.0, 1.0, 1.0, 1.0);
     let size = view.tile_size() * 2.0;
-    let mut sprite_object = view.object_sprite(&effect.prototype);
-    sprite_object.set_pos(point);
-    // sprite_object.set_color(Color::new(0.0, 0.0, 0.0, 1.0));
+    let sprite_object = {
+        let mut sprite = view.object_sprite(&effect.prototype);
+        // sprite.set_color(Color { a: 0.0, ..color }); // TODO: ???
+        // sprite.set_color(Color::new(1.0, 1.0, 1.0, 1.0));
+        sprite.set_pos(point);
+        // Turn enemies left.
+        for component in &effect.components {
+            if let Component::BelongsTo(belongs_to) = component {
+                if belongs_to.0 == PlayerId(1) {
+                    sprite.set_facing(Facing::Left);
+                }
+            }
+        }
+        sprite
+    };
     let sprite_shadow = {
         let image_shadow = images().shadow.clone();
         let mut sprite = Sprite::from_image(image_shadow, size * shadow_size_coefficient);
         sprite.set_centered(true);
+        // TODO
         // sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
         // sprite.set_color(Color::new(1.0, 1.0, 1.0, 0.0));
         sprite.set_pos(point);

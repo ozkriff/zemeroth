@@ -5,17 +5,14 @@ use std::{
 
 use heck::TitleCase;
 use log::info;
-use macroquad::{
-    prelude::{Color, Vec2},
-    text::Font,
-};
+use macroquad::{prelude::Vec2, text::Font};
 use ui::{self, Gui, Widget};
 
 use crate::{
     assets,
     core::{
         battle::{
-            component::{ObjType, Prototypes},
+            component::ObjType,
             scenario::{self, BattleType},
             state::BattleResult,
             PlayerId,
@@ -221,7 +218,6 @@ impl Campaign {
     // TODO: Wrap the list into `ScrollArea`
     fn set_mode_preparing(&mut self) -> ZResult {
         let state = &self.state;
-        let font = assets::get().font;
         let gui = &mut self.gui;
         let mut layout = ui::VLayout::new().stretchable(true);
         if let Some(panel) = build_panel_casualties(state)? {

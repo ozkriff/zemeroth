@@ -1,9 +1,6 @@
 use std::time::Duration;
 
-use macroquad::{
-    prelude::{Color, Vec2},
-    text::Font,
-};
+use macroquad::prelude::Vec2;
 
 use ui::{self, Gui, Widget};
 

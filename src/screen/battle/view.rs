@@ -1,10 +1,6 @@
 use std::{collections::HashMap, default::Default, time::Duration};
 
-use macroquad::{
-    prelude::{Color, Vec2},
-    text::Font,
-    texture::{load_texture, Texture2D},
-};
+use macroquad::prelude::{Color, Vec2};
 
 use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
 
@@ -20,9 +16,8 @@ use crate::{
     },
     geom::{self, hex_to_point},
     screen::battle::visualize,
-    sprite_info::SpriteInfo,
-    utils::{self, font_size, time_s},
-    Image, ZResult,
+    utils::{font_size, time_s},
+    ZResult,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -212,7 +207,6 @@ impl BattleView {
         let info = assets.sprites_info.get(obj_type).expect("TODO: err msg");
         let frames = &assets.sprite_frames[obj_type];
         let mut sprite = Sprite::from_images(frames, self.tile_size() * 2.0);
-        //sprite.set_color(Color { a: 0.0, ..color }); // TODO: ???
         sprite.set_offset(Vec2::new(0.5 - info.offset_x, 1.0 - info.offset_y));
         sprite
     }

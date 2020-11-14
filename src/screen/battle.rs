@@ -6,10 +6,7 @@ use std::{
 use heck::TitleCase;
 use log::{info, trace};
 
-use macroquad::{
-    prelude::{Color, Vec2},
-    text::Font,
-};
+use macroquad::prelude::{Color, Vec2};
 
 use ui::{self, Gui, Widget};
 use zscene::{action, Action, Boxed};
@@ -41,8 +38,10 @@ use crate::{
         Screen, StackCommand,
     },
     utils::{self, line_heights, time_s},
-    Image, ZResult,
+    ZResult,
 };
+
+// TODO: consider removing view: &BattleView from most of funcs arguments
 
 // TODO: Don't use graphics::Image::new in this file! Pre-load all images into View.
 // YEAH GOOD IDEA
@@ -66,7 +65,7 @@ fn images() -> &'static assets::Images {
 }
 
 fn line_with_info_button(
-    view: &BattleView,
+    _view: &BattleView,
     gui: &mut Gui<Message>,
     text: &str,
     message: Message,
@@ -317,7 +316,7 @@ fn build_panel_agent_abilities(
     Ok(Some(packed_layout))
 }
 
-fn build_panel_end_turn(view: &BattleView, gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
+fn build_panel_end_turn(_view: &BattleView, gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
     let h = line_heights().large;
     let icon = images().icon_end_turn;
     let button = ui::Button::new(
@@ -383,7 +382,7 @@ fn build_panel_ability_description(
     Ok(layout)
 }
 
-fn make_gui(view: &BattleView) -> ZResult<ui::Gui<Message>> {
+fn make_gui(_view: &BattleView) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new();
     let h = line_heights().large;
     let icon = images().icon_main_menu;
@@ -426,7 +425,6 @@ impl Battle {
         prototypes: Prototypes,
         sender: Sender<Option<BattleResult>>,
     ) -> ZResult<Self> {
-        let font = assets::get().font;
         let radius = scenario.map_radius;
         let mut view = BattleView::new(radius)?;
         let mut gui = make_gui(&view)?;

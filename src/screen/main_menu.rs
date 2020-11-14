@@ -3,18 +3,14 @@ use std::{
     time::Duration,
 };
 
-use macroquad::{
-    prelude::{Color, Vec2},
-    text::Font,
-};
+use macroquad::prelude::Vec2;
 
 use log::trace;
 use ui::{self, Gui, Widget};
-use zscene::Sprite;
 
 use crate::{
     assets,
-    core::battle::{component::Prototypes, scenario, state},
+    core::battle::{scenario, state},
     screen::{self, Screen, StackCommand},
     utils, ZResult,
 };

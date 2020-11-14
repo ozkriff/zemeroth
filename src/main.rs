@@ -1,6 +1,6 @@
 #![windows_subsystem = "windows"]
-// #![allow(warnings)] // TODO: remove
-#![allow(unused_imports, unreachable_code, unused_variables, dead_code)] // TODO: remove!
+#![allow(clippy::eval_order_dependence)] // TODO
+#![allow(clippy::clone_on_copy)] // TODO
 
 mod assets;
 mod core;
@@ -22,6 +22,7 @@ type ZResult<T = ()> = Result<T, error::ZError>;
 // TODO: remove this
 pub struct Image {}
 impl Image {
+    #[allow(clippy::new_ret_no_self)] // TODO
     pub fn new(_path: &str) -> Result<ui::Drawable, ()> {
         // TODO: this is just a tmp hack. Use cloned images instead!
         Ok(ui::Drawable::Text {
@@ -44,7 +45,8 @@ impl MainState {
         Ok(this)
     }
 
-    fn resize(&mut self, w: f32, h: f32) {} // TODO: ??
+    #[allow(dead_code)] // TODO
+    fn resize(&mut self, _w: f32, _h: f32) {} // TODO: ??
 }
 
 //     fn resize_event(&mut self, w: f32, h: f32) {

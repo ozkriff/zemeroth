@@ -1,4 +1,4 @@
-use std::{fmt::Debug, sync::Mutex, time::Duration};
+use std::{fmt::Debug, time::Duration};
 
 use log::info;
 use macroquad::{
@@ -126,6 +126,7 @@ impl Screens {
         self.handle_command(command)
     }
 
+    #[allow(dead_code)] // TODO
     pub fn move_mouse(&mut self, pos: Vec2) -> ZResult {
         self.screen_mut().top_mut().move_mouse(pos)
     }

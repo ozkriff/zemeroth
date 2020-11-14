@@ -1,6 +1,6 @@
-use std::{io::Read, path::Path, sync::mpsc::Receiver, time::Duration};
+use std::{sync::mpsc::Receiver, time::Duration};
 
-use macroquad::{file::load_file, prelude::Rect, text::Font};
+use macroquad::{file::load_file, prelude::Rect};
 use serde::de::DeserializeOwned;
 
 use crate::{error::ZError, ZResult};
@@ -19,11 +19,7 @@ pub async fn read_file(path: &str) -> ZResult<String> {
     Ok(string)
 }
 
-pub async fn deserialize_from_file<D>(path: &str) -> ZResult<D>
-where
-    D: DeserializeOwned,
-{
-    let path = path.as_ref();
+pub async fn deserialize_from_file<D: DeserializeOwned>(path: &str) -> ZResult<D> {
     let s = read_file(path).await?;
     ron::de::from_str(&s).map_err(|e| ZError::from_ron_de_error(e, path.into()))
 }

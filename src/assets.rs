@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Mutex};
+use std::collections::HashMap;
 
 use macroquad::{
     text::{self, Font},
@@ -18,7 +18,6 @@ use crate::{
     utils::{self, deserialize_from_file},
     ZResult,
 };
-use macroquad::texture::load_image;
 
 static INSTANCE: OnceCell<Assets> = OnceCell::new();
 
@@ -83,6 +82,7 @@ impl Assets {
     }
 }
 
+// TODO: rename to Textures?
 #[derive(Debug)]
 pub struct Images {
     pub selection: Texture2D,
