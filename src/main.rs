@@ -10,9 +10,11 @@ mod screen;
 mod sprite_info;
 mod utils;
 
-use macroquad::prelude::{
-    is_mouse_button_down, is_mouse_button_pressed, mouse_position, next_frame, screen_height,
-    screen_width, set_camera, Camera2D, MouseButton, Rect, Vec2,
+use macroquad::{
+    camera::{set_camera, Camera2D},
+    input,
+    prelude::{Rect, Vec2},
+    window,
 };
 
 type ZResult<T = ()> = Result<T, error::ZError>;
@@ -121,7 +123,7 @@ async fn main() {
         state.screens.draw().expect("Draw call failed");
 
         // TODO: extract helper function
-        let aspect_ratio = screen_width() / screen_height();
+        let aspect_ratio = window::screen_width() / window::screen_height();
         let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
         let camera = Camera2D::from_display_rect(coordinates);
         set_camera(camera);
@@ -130,11 +132,11 @@ async fn main() {
             .resize(aspect_ratio)
             .expect("Can't resize screens");
 
-        if is_mouse_button_pressed(MouseButton::Left) {
-            let window_pos = mouse_position();
+        if input::is_mouse_button_pressed(input::MouseButton::Left) {
+            let window_pos = input::mouse_position();
             let pos = camera.screen_to_world(Vec2::new(window_pos.0, window_pos.1));
             state.screens.click(pos).expect("Can't handle click event");
         }
-        next_frame().await;
+        window::next_frame().await;
     }
 }

@@ -1,6 +1,10 @@
 use std::{collections::HashMap, default::Default, time::Duration};
 
-use macroquad::prelude::{load_texture, Color, Font, Texture2D, Vec2};
+use macroquad::{
+    prelude::{Color, Vec2},
+    text::Font,
+    texture::{load_texture, Texture2D},
+};
 
 use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
 

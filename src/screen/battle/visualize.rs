@@ -1,7 +1,10 @@
 use std::time::Duration;
 
 use log::{info, trace};
-use macroquad::prelude::{Color, Texture2D, Vec2};
+use macroquad::{
+    prelude::{Color, Vec2},
+    texture::Texture2D,
+};
 use zscene::{action, Action, Boxed, Facing, Sprite};
 
 use crate::{

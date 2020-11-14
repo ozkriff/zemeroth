@@ -1,6 +1,5 @@
 use std::{collections::HashMap, sync::Mutex};
 
-// use macroquad::prelude::{load_texture, Color, Font, Texture2D, Vec2};
 use macroquad::{
     text::{self, Font},
     texture::{load_texture, Texture2D},

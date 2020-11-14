@@ -1,7 +1,10 @@
 use std::{collections::HashMap, time::Duration};
 
 use heck::TitleCase;
-use macroquad::prelude::{Color, Font, Vec2};
+use macroquad::{
+    prelude::{Color, Vec2},
+    text::Font,
+};
 use ui::{self, Gui, Widget};
 
 use crate::{

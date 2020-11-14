@@ -1,6 +1,6 @@
 use std::{io::Read, path::Path, sync::mpsc::Receiver, time::Duration};
 
-use macroquad::prelude::{load_file, Font, Rect};
+use macroquad::{file::load_file, prelude::Rect, text::Font};
 use serde::de::DeserializeOwned;
 
 use crate::{error::ZError, ZResult};

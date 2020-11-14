@@ -4,8 +4,8 @@ use std::{
 };
 
 use macroquad::{
-    coroutines::start_coroutine,
-    prelude::{Color, Font, Vec2},
+    prelude::{Color, Vec2},
+    text::Font,
 };
 
 use log::trace;

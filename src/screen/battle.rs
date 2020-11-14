@@ -7,8 +7,8 @@ use heck::TitleCase;
 use log::{info, trace};
 
 use macroquad::{
-    coroutines::start_coroutine,
-    prelude::{Color, Font, Vec2},
+    prelude::{Color, Vec2},
+    text::Font,
 };
 
 use ui::{self, Gui, Widget};
