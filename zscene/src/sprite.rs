@@ -1,4 +1,4 @@
-#![allow(warnings)]
+#![allow(warnings)] // TODO
 
 use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::Rc};
 
@@ -24,6 +24,7 @@ enum Drawable {
         font_size: u16,
     },
 }
+
 impl Drawable {
     fn dimensions(&self) -> Rect {
         match self {
@@ -36,7 +37,8 @@ impl Drawable {
                 font_size,
             } => {
                 let (w, h) = measure_text(&label, Some(*font), *font_size, 1.0);
-                Rect::new(0.0, 0.0, w, h)
+                // Rect::new(0.0, 0.0, w, h)
+                Rect::new(-w / 1.0, -h / 1.0, w / 1.0, h / 1.0)
             }
         }
     }
@@ -98,7 +100,7 @@ impl Sprite {
         }
     }
 
-    fn from_drawable(drawable: Drawable, height: f32) -> Result<Self> {
+    fn from_drawable(drawable: Drawable, height: f32) -> Self {
         let dimensions = drawable.dimensions();
         let scale = height / dimensions.h;
         let mut drawables = HashMap::new();
@@ -116,14 +118,15 @@ impl Sprite {
             facing: Facing::Right,
         };
         let data = Rc::new(RefCell::new(data));
-        Ok(Self { data })
+        Self { data }
     }
 
     pub fn from_image(image: Texture2D, height: f32) -> Self {
         Self::from_drawable(Drawable::Texture(image), height)
     }
 
-    pub fn from_text((label, font, font_size): (&str, Font, u16), height: f32) -> Result<Self> {
+    // TODO: Simplify the signature
+    pub fn from_text((label, font, font_size): (&str, Font, u16), height: f32) -> Self {
         Self::from_drawable(
             Drawable::Text {
                 label: label.to_string(),
@@ -134,7 +137,8 @@ impl Sprite {
         )
     }
 
-    pub async fn from_path(path: &str, height: f32) -> Result<Self> {
+    // TODO: deprecate?
+    pub async fn from_path(path: &str, height: f32) -> Self {
         let image = load_texture(path).await;
         Self::from_image(image, height)
     }
@@ -273,8 +277,9 @@ impl Sprite {
                     TextParams {
                         font_size: *font_size,
                         font: *font,
-                        // TODO: why 2?
-                        font_scale: data.scale.x() / 2.,
+                        // // TODO: why 2?
+                        // font_scale: data.scale.x() / 2.,
+                        font_scale: data.scale.x(),
                         color: data.color,
                         ..Default::default()
                     },
