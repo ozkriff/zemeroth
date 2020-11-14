@@ -17,7 +17,6 @@ enum Message {
 
 #[derive(Debug)]
 pub struct GeneralInfo {
-    font: Font,
     gui: Gui<Message>,
 }
 
@@ -50,7 +49,7 @@ impl GeneralInfo {
         let layout = utils::add_offsets_and_bg_big(layout)?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         gui.add(&ui::pack(layout), anchor);
-        Ok(Self { font, gui })
+        Ok(Self { gui })
     }
 }
 

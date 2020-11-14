@@ -739,7 +739,7 @@ impl<Message: Clone + Debug> Button<Message> {
         param: ButtonParam,
     ) -> Result<Self> {
         param.check()?;
-        let sprite = Sprite::new(drawable, height * param.drawable_k)?;
+        let mut sprite = Sprite::new(drawable, height * param.drawable_k)?;
         let outer = Self::outer_rect(&sprite, height, &param);
         let inner = Self::inner_rect(&param, outer);
         let border = Self::make_border(height, outer, inner)?;

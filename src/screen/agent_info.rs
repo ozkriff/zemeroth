@@ -181,11 +181,7 @@ fn info_panel(
     Ok(layout)
 }
 
-fn button_back(
-    // font: Font,
-    gui: &mut ui::Gui<Message>,
-    layout_width: f32,
-) -> ZResult<Box<dyn ui::Widget>> {
+fn button_back(gui: &mut ui::Gui<Message>, layout_width: f32) -> ZResult<Box<dyn ui::Widget>> {
     let font = assets::get().font;
     let h = utils::line_heights().normal;
     let text = ui::Drawable::text("back", font, utils::font_size());
@@ -198,7 +194,6 @@ fn button_back(
 
 #[derive(Debug)]
 pub struct AgentInfo {
-    // font: Font,
     gui: Gui<Message>,
 }
 

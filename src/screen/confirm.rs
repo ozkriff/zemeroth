@@ -25,7 +25,6 @@ pub fn try_receive_yes(opt_rx: &Option<Receiver<Message>>) -> bool {
 
 #[derive(Debug)]
 pub struct Confirm {
-    font: Font,
     gui: Gui<Message>,
     sender: Sender<Message>,
 }
@@ -76,7 +75,7 @@ impl Confirm {
         let layout = utils::add_offsets_and_bg_big(layout)?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         gui.add(&ui::pack(layout), anchor);
-        Ok(Self { font, gui, sender })
+        Ok(Self { gui, sender })
     }
 }
 

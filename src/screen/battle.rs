@@ -67,12 +67,12 @@ fn images() -> &'static assets::Images {
 
 fn line_with_info_button(
     view: &BattleView,
-    font: Font,
     gui: &mut Gui<Message>,
     text: &str,
     message: Message,
 ) -> ZResult<Box<dyn ui::Widget>> {
     let h = line_heights().normal;
+    let font = assets::get().font;
     let text = ui::Drawable::text(text, font, FONT_SIZE);
     let icon = images().icon_info;
     let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), message)?;
@@ -86,11 +86,11 @@ fn line_with_info_button(
 // TODO: consider moving ui `build_*` functions to a sub-module
 fn build_panel_agent_info(
     view: &BattleView,
-    font: Font,
     gui: &mut Gui<Message>,
     state: &State,
     id: Id,
 ) -> ZResult<ui::RcWidget> {
+    let font = assets::get().font;
     let parts = state.parts();
     let st = parts.strength.get(id);
     let meta = parts.meta.get(id);
@@ -188,7 +188,7 @@ fn build_panel_agent_info(
                 for &ability in &abilities.0 {
                     let text = ability.title();
                     let message = Message::PassiveAbilityInfo(ability);
-                    add(line_with_info_button(view, font, gui, &text, message)?);
+                    add(line_with_info_button(view, gui, &text, message)?);
                     add(Box::new(ui::Spacer::new_vertical(space_between_buttons)));
                 }
             }
@@ -240,13 +240,13 @@ fn build_panel_agent_info(
 }
 
 fn build_panel_agent_abilities(
-    _view: &BattleView, // TODO: use this for cloning stored icon images
-    font: Font,
+    _view: &BattleView, // TODO: use this for cloning stored icon images (no, get from assets.rs)
     gui: &mut Gui<Message>,
     state: &State,
     id: Id,
     mode: &SelectionMode,
 ) -> ZResult<Option<ui::RcWidget>> {
+    let font = assets::get().font;
     let parts = state.parts();
     let abilities = match parts.abilities.get_opt(id) {
         Some(abilities) => &abilities.0,
@@ -255,6 +255,10 @@ fn build_panel_agent_abilities(
     let mut layout = ui::VLayout::new().stretchable(true);
     let h = line_heights().large;
     for ability in abilities {
+        // TODO TODO TODO TODO TODO
+        // TODO TODO TODO TODO TODO
+        // TODO TODO TODO TODO TODO
+
         // TODO: yeah now todo below makes way more sense but nah
         // let image_path = match ability.ability {
         //     // TODO: load all the images only once. Store them in some struct and only clone them here.
@@ -330,12 +334,12 @@ fn build_panel_end_turn(view: &BattleView, gui: &mut Gui<Message>) -> ZResult<ui
 }
 
 fn build_panel_ability_description(
-    font: Font,
     gui: &mut Gui<Message>,
     state: &State,
     ability: &Ability,
     id: Id,
 ) -> ZResult<ui::RcWidget> {
+    let font = assets::get().font;
     let text = |s: &str| ui::Drawable::text(s, font, FONT_SIZE);
     let h = line_heights().normal;
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
@@ -398,7 +402,6 @@ enum CommandOrigin {
 
 #[derive(Debug)]
 pub struct Battle {
-    font: Font,
     gui: Gui<Message>,
     state: State,
     battle_type: scenario::BattleType,
@@ -438,7 +441,6 @@ impl Battle {
         let panel_end_turn = Some(build_panel_end_turn(&view, &mut gui)?);
         Ok(Self {
             gui,
-            font,
             view,
             mode: SelectionMode::Normal,
             state,
@@ -579,9 +581,8 @@ impl Battle {
         match mode {
             SelectionMode::Ability(ref ability) => {
                 utils::remove_widget(gui, &mut self.panel_end_turn)?;
-                self.panel_ability_description = Some(build_panel_ability_description(
-                    self.font, gui, state, ability, id,
-                )?);
+                self.panel_ability_description =
+                    Some(build_panel_ability_description(gui, state, ability, id)?);
             }
             SelectionMode::Normal => {
                 self.pathfinder.fill_map(state, id);
@@ -590,11 +591,8 @@ impl Battle {
                 }
             }
         }
-        self.panel_abilities =
-            build_panel_agent_abilities(&self.view, self.font, gui, state, id, &mode)?;
-        self.panel_info = Some(build_panel_agent_info(
-            &self.view, self.font, gui, state, id,
-        )?);
+        self.panel_abilities = build_panel_agent_abilities(&self.view, gui, state, id, &mode)?;
+        self.panel_info = Some(build_panel_agent_info(&self.view, gui, state, id)?);
         let map = self.pathfinder.map();
         self.view.set_mode(state, map, id, &mode)?;
         self.mode = mode;
