@@ -1,4 +1,4 @@
-use macroquad::prelude::{vec2, Vec2};
+use macroquad::prelude::Vec2;
 
 use crate::core::{
     map::{hex_round, PosHex},

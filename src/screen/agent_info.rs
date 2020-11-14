@@ -199,7 +199,6 @@ pub struct AgentInfo {
 
 impl AgentInfo {
     pub fn new_agent_info(prototypes: &Prototypes, typename: &ObjType) -> ZResult<Self> {
-        // let font = utils::default_font();
         let mut gui = ui::Gui::new();
         let mut layout = ui::VLayout::new();
         let h = utils::line_heights().big;
@@ -264,16 +263,14 @@ impl Screen for AgentInfo {
         match message {
             Some(Message::Back) => Ok(StackCommand::Pop),
             Some(Message::AbilityInfo(info)) => {
-                // let mut description = info.description();
-                // description.push(format!("Cooldown: {}t", info.base_cooldown()));
-                // let screen = screen::GeneralInfo::new(&info.title(), &description)?;
-                // Ok(StackCommand::PushPopup(Box::new(screen)))
-                unimplemented!()
+                let mut description = info.description();
+                description.push(format!("Cooldown: {}t", info.base_cooldown()));
+                let screen = screen::GeneralInfo::new(&info.title(), &description)?;
+                Ok(StackCommand::PushPopup(Box::new(screen)))
             }
             Some(Message::PassiveAbilityInfo(info)) => {
-                // let screen = screen::GeneralInfo::new(&info.title(), &info.description())?;
-                // Ok(StackCommand::PushPopup(Box::new(screen)))
-                unimplemented!()
+                let screen = screen::GeneralInfo::new(&info.title(), &info.description())?;
+                Ok(StackCommand::PushPopup(Box::new(screen)))
             }
             None => Ok(StackCommand::None),
         }

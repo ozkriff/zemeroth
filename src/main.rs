@@ -12,7 +12,7 @@ mod utils;
 
 use macroquad::prelude::{
     is_mouse_button_down, is_mouse_button_pressed, mouse_position, next_frame, screen_height,
-    screen_width, set_camera, vec2, Camera2D, MouseButton, Rect,
+    screen_width, set_camera, Camera2D, MouseButton, Rect, Vec2,
 };
 
 type ZResult<T = ()> = Result<T, error::ZError>;
@@ -132,7 +132,7 @@ async fn main() {
 
         if is_mouse_button_pressed(MouseButton::Left) {
             let window_pos = mouse_position();
-            let pos = camera.screen_to_world(vec2(window_pos.0, window_pos.1));
+            let pos = camera.screen_to_world(Vec2::new(window_pos.0, window_pos.1));
             state.screens.click(pos).expect("Can't handle click event");
         }
         next_frame().await;

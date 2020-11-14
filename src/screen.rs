@@ -2,10 +2,9 @@ use std::{fmt::Debug, sync::Mutex, time::Duration};
 
 use log::info;
 use macroquad::{
-    coroutines::Coroutine,
-    prelude::{clear_background, Color, Vec2},
+    prelude::{Color, Vec2},
+    window::clear_background,
 };
-// use once_cell::sync::Lazy;
 
 use crate::ZResult;
 
@@ -66,6 +65,7 @@ impl ScreenWithPopups {
     }
 }
 
+// TODO: fix and use or remove
 fn make_popup_bg_mesh() -> ZResult<ui::Drawable> {
     // let coords = graphics::screen_coordinates(context);
     // let mode = graphics::DrawMode::fill();
@@ -85,7 +85,6 @@ fn make_popup_bg_mesh() -> ZResult<ui::Drawable> {
 pub struct Screens {
     screens: Vec<ScreenWithPopups>,
     popup_bg_mesh: ui::Drawable,
-    // pending_coroutine: Option<macroquad::coroutines::Coroutine>,
 }
 
 impl Screens {
@@ -93,7 +92,6 @@ impl Screens {
         Ok(Self {
             screens: vec![ScreenWithPopups::new(start_screen)],
             popup_bg_mesh: make_popup_bg_mesh()?,
-            // pending_coroutine: None,
         })
     }
 
@@ -109,8 +107,14 @@ impl Screens {
         let screen = self.screen();
         screen.screen.draw()?;
         for popup in &screen.popups {
-            //graphics::draw(&self.popup_bg_mesh, graphics::DrawParam::default());
-            unimplemented!(); // TODO: !
+            // graphics::draw(&self.popup_bg_mesh, graphics::DrawParam::default()); // TODO: revive
+            // TODO: simplify and join with code from main()
+            {
+                let aspect_ratio =
+                    macroquad::window::screen_width() / macroquad::window::screen_height();
+                let r = macroquad::prelude::Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
+                macroquad::shapes::draw_rectangle(r.x, r.y, r.w, r.h, COLOR_POPUP_BG);
+            }
             popup.draw()?;
         }
 
@@ -142,7 +146,6 @@ impl Screens {
             StackCommand::None => {}
             StackCommand::PushScreen(screen) => {
                 info!("Screens::handle_command: PushScreen");
-                // self.pending_coroutine = Some(coroutine);
                 self.screens.push(ScreenWithPopups::new(screen));
             }
             StackCommand::Pop => {
@@ -158,7 +161,6 @@ impl Screens {
             }
             StackCommand::PushPopup(screen) => {
                 info!("Screens::handle_command: PushPopup");
-                // self.pending_coroutine = Some(coroutine);
                 self.screen_mut().popups.push(screen);
             }
         }

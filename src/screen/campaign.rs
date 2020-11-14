@@ -344,17 +344,14 @@ impl Screen for Campaign {
                 }
             }
             Some(Message::AgentInfo(typename)) => {
-                // let prototypes = &assets::get().prototypes;
-                // let prototypes = &assets::get().prototypes;
-                // let popup = screen::AgentInfo::new_agent_info(&prototypes, &typename)?;
-                // Ok(StackCommand::PushPopup(Box::new(popup)))
-                unimplemented!()
+                let prototypes = &assets::get().prototypes;
+                let popup = screen::AgentInfo::new_agent_info(prototypes, &typename)?;
+                Ok(StackCommand::PushPopup(Box::new(popup)))
             }
             Some(Message::UpgradeInfo { from, to }) => {
-                // let prototypes = &assets::get().prototypes;
-                // let popup = screen::AgentInfo::new_upgrade_info(prototypes, &from, &to)?;
-                // Ok(StackCommand::PushPopup(Box::new(popup)))
-                unimplemented!()
+                let prototypes = &assets::get().prototypes;
+                let popup = screen::AgentInfo::new_upgrade_info(prototypes, &from, &to)?;
+                Ok(StackCommand::PushPopup(Box::new(popup)))
             }
             None => Ok(StackCommand::None),
         }

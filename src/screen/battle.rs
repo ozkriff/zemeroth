@@ -744,18 +744,16 @@ impl Screen for Battle {
             }
             Some(Message::Ability(ability)) => self.use_ability(ability)?,
             Some(Message::PassiveAbilityInfo(ability)) => {
-                // let title = &ability.title();
-                // let description = &ability.description();
-                // let popup = screen::GeneralInfo::new(title, description)?;
-                // return Ok(StackCommand::PushPopup(Box::new(popup)));
-                unimplemented!() // TODO
+                let title = &ability.title();
+                let description = &ability.description();
+                let popup = screen::GeneralInfo::new(title, description)?;
+                return Ok(StackCommand::PushPopup(Box::new(popup)));
             }
             Some(Message::LastingEffectInfo(effect)) => {
-                // let title = &effect.title();
-                // let description = &effect.description();
-                // let popup = screen::GeneralInfo::new(title, description)?;
-                // return Ok(StackCommand::PushPopup(Box::new(popup)));
-                unimplemented!() // TODO
+                let title = &effect.title();
+                let description = &effect.description();
+                let popup = screen::GeneralInfo::new(title, description)?;
+                return Ok(StackCommand::PushPopup(Box::new(popup)));
             }
             None => self.handle_click(pos)?,
         }
