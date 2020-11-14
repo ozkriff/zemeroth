@@ -991,8 +991,7 @@ fn visualize_effect_create(
     let size = view.tile_size() * 2.0;
     let sprite_object = {
         let mut sprite = view.object_sprite(&effect.prototype);
-        // sprite.set_color(Color { a: 0.0, ..color }); // TODO: ???
-        // sprite.set_color(Color::new(1.0, 1.0, 1.0, 1.0));
+        sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
         sprite.set_pos(point);
         // Turn enemies left.
         for component in &effect.components {
@@ -1008,15 +1007,14 @@ fn visualize_effect_create(
         let image_shadow = images().shadow.clone();
         let mut sprite = Sprite::from_image(image_shadow, size * shadow_size_coefficient);
         sprite.set_centered(true);
-        // TODO
-        // sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
-        // sprite.set_color(Color::new(1.0, 1.0, 1.0, 0.0));
+        sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
         sprite.set_pos(point);
         sprite
     };
     view.add_object(target_id, &sprite_object, &sprite_shadow);
+    let time_appear = time_s(0.25);
     let action_change_shadow_color =
-        action::ChangeColorTo::new(&sprite_shadow, color, time_s(0.9)).boxed();
+        action::ChangeColorTo::new(&sprite_shadow, color, time_appear).boxed();
     let mut actions = Vec::new();
     if effect.is_teleported {
         let white = [1.0, 1.0, 1.0, 0.9].into();
@@ -1030,8 +1028,7 @@ fn visualize_effect_create(
     actions.push(action::Show::new(&view.layers().objects, &sprite_object).boxed());
     actions.push(action_set_z(&view.layers().objects, &sprite_object, z));
     actions.push(fork(action_change_shadow_color));
-    actions.push(action::ChangeColorTo::new(&sprite_object, color, time_s(0.25)).boxed());
-    actions.push(action::ChangeColorTo::new(&sprite_object, color, time_s(0.9)).boxed());
+    actions.push(action::ChangeColorTo::new(&sprite_object, color, time_appear).boxed());
     Ok(fork(seq(actions)))
 }
 
