@@ -58,7 +58,6 @@ fn basic_gui() -> ZResult<Gui<Message>> {
 }
 
 fn build_panel_agents(
-    // font: Font,
     gui: &mut ui::Gui<Message>,
     agents: &[ObjType],
 ) -> ZResult<Box<dyn ui::Widget>> {
@@ -113,11 +112,7 @@ fn build_panel_renown(state: &State) -> ZResult<Box<dyn ui::Widget>> {
     Ok(Box::new(layout))
 }
 
-fn build_panel_actions(
-    // font: Font,
-    gui: &mut ui::Gui<Message>,
-    state: &State,
-) -> ZResult<Box<dyn ui::Widget>> {
+fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box<dyn ui::Widget>> {
     let font = assets::get().font;
     let h = line_height();
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
@@ -325,7 +320,7 @@ impl Screen for Campaign {
         );
         match message {
             Some(Message::StartBattle) => {
-                let screen = unimplemented!();
+                let screen = self.start_battle()?;
                 Ok(StackCommand::PushScreen(screen))
             }
             Some(Message::Action(action)) => {
@@ -340,11 +335,10 @@ impl Screen for Campaign {
             Some(Message::Menu) => {
                 // Ask only if the player hasn't won or failed, otherwise just pop the screen.
                 if self.state.mode() == Mode::PreparingForBattle {
-                    // let (sender, receiver) = channel();
-                    // self.receiver_exit_confirmation = Some(receiver);
-                    // let screen = screen::Confirm::from_line("Abandon the campaign?", sender)?;
-                    // Ok(StackCommand::PushPopup(Box::new(screen)))
-                    unimplemented!()
+                    let (sender, receiver) = channel();
+                    self.receiver_exit_confirmation = Some(receiver);
+                    let screen = screen::Confirm::from_line("Abandon the campaign?", sender)?;
+                    Ok(StackCommand::PushPopup(Box::new(screen)))
                 } else {
                     Ok(StackCommand::Pop)
                 }

@@ -382,13 +382,11 @@ fn build_panel_ability_description(
 fn make_gui(view: &BattleView) -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new();
     let h = line_heights().large;
-    {
-        let icon = images().icon_main_menu;
-        let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), Message::Exit)?;
-        let layout = ui::VLayout::from_widget(Box::new(button));
-        let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
-        gui.add(&ui::pack(layout), anchor);
-    }
+    let icon = images().icon_main_menu;
+    let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), Message::Exit)?;
+    let layout = ui::VLayout::from_widget(Box::new(button));
+    let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
+    gui.add(&ui::pack(layout), anchor);
     Ok(gui)
 }
 
@@ -430,7 +428,6 @@ impl Battle {
         let mut view = BattleView::new(radius)?;
         let mut gui = make_gui(&view)?;
         let mut actions = Vec::new();
-        // actions.push(action::Sleep::new(time_s(1.0)).boxed());
         let state = State::new(prototypes, scenario, &mut |state, event, phase| {
             let action =
                 visualize(state, &mut view, event, phase).expect("Can't visualize the event");
@@ -509,7 +506,6 @@ impl Battle {
 
     fn do_command_inner(
         &mut self,
-
         command: &command::Command,
         origin: CommandOrigin,
     ) -> Box<dyn Action> {
@@ -743,9 +739,6 @@ impl Screen for Battle {
         match message {
             Some(Message::Exit) => {
                 return Ok(StackCommand::PushPopup(self.popup_confirm_exit()?));
-                // unimplemented!()
-                // let screen = self.popup_confirm_exit()?;
-                // return Ok(StackCommand::PushScreen(unsafe { start_coroutine(screen) }));
             }
             Some(Message::EndTurn) => {
                 assert!(self.block_timer.is_none());
@@ -757,14 +750,14 @@ impl Screen for Battle {
                 // let description = &ability.description();
                 // let popup = screen::GeneralInfo::new(title, description)?;
                 // return Ok(StackCommand::PushPopup(Box::new(popup)));
-                unimplemented!()
+                unimplemented!() // TODO
             }
             Some(Message::LastingEffectInfo(effect)) => {
                 // let title = &effect.title();
                 // let description = &effect.description();
                 // let popup = screen::GeneralInfo::new(title, description)?;
                 // return Ok(StackCommand::PushPopup(Box::new(popup)));
-                unimplemented!()
+                unimplemented!() // TODO
             }
             None => self.handle_click(pos)?,
         }

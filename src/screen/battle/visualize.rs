@@ -68,7 +68,7 @@ fn images() -> &'static assets::Images {
 
 pub fn message(view: &mut BattleView, pos: PosHex, text: &str) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
-    let mut invisible = Color::new(0.0, 0.0, 0.0, 0.0);
+    let invisible = Color::new(0.0, 0.0, 0.0, 0.0);
     let font_size = font_size();
     let font = assets::get().font;
     let mut sprite = Sprite::from_text((text, font, font_size), 0.1);

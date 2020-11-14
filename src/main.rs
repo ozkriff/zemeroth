@@ -1,12 +1,6 @@
 #![windows_subsystem = "windows"]
 // #![allow(warnings)] // TODO: remove
-#![allow(
-    unused_imports,
-    unreachable_code,
-    unused_variables,
-    unused_mut,
-    dead_code
-)] // TODO: remove!
+#![allow(unused_imports, unreachable_code, unused_variables, dead_code)] // TODO: remove!
 
 mod assets;
 mod core;
@@ -23,11 +17,16 @@ use macroquad::prelude::{
 
 type ZResult<T = ()> = Result<T, error::ZError>;
 
-// TODO: remove this?
+// TODO: remove this
 pub struct Image {}
 impl Image {
     pub fn new(_path: &str) -> Result<ui::Drawable, ()> {
-        unimplemented!()
+        // TODO: this is just a tmp hack. Use cloned images instead!
+        Ok(ui::Drawable::Text {
+            label: "#".to_string(),
+            font: assets::get().font,
+            font_size: 120,
+        })
     }
 }
 

@@ -94,9 +94,8 @@ impl Screen for MainMenu {
                 Ok(StackCommand::PushScreen(Box::new(screen)))
             }
             Some(Message::StartCampaign) => {
-                // let screen = screen::Campaign::new()?;
-                // Ok(StackCommand::PushScreen(Box::new(screen)))
-                unimplemented!()
+                let screen = screen::Campaign::new()?;
+                Ok(StackCommand::PushScreen(Box::new(screen)))
             }
             Some(Message::Exit) => Ok(StackCommand::Pop),
             None => Ok(StackCommand::None),
