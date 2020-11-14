@@ -154,7 +154,7 @@ impl Sprite {
                     *texture,
                     self.pos.x(),
                     self.pos.y(),
-                    WHITE,
+                    self.color,
                     DrawTextureParams {
                         dest_size: Some(
                             self.scale * vec2(texture.width() as f32, texture.height() as f32),
