@@ -240,21 +240,19 @@ fn show_dust_at_pos(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action
 
 fn show_dust(view: &mut BattleView, at: Vec2, count: i32) -> ZResult<Box<dyn Action>> {
     let mut actions = Vec::new();
-    for _ /*i*/ in 0..count { // TODO
+    for i in 0..count {
         let k = roll_dice(0.8, 1.2);
         let visible = [0.8 * k, 0.8 * k, 0.7 * k, 0.8 * k].into();
         let invisible = [0.8 * k, 0.8 * k, 0.7 * k, 0.0].into();
         let scale = roll_dice(0.2, 0.4);
         let size = view.tile_size() * 2.0 * scale;
         let vector = {
-            // let max = std::f32::consts::PI * 2.0;
-            // let rot = cgmath::Basis2::from_angle(Rad((max / count as f32) * i as f32));
-            // let n = roll_dice(0.4, 0.6);
-            // let mut vector = rot.rotate_vector(Vec2::new(view.tile_size() * n, 0.0));
-            // vector.y *= geom::FLATNESS_COEFFICIENT;
-            // vector
-            // unimplemented!() // TODO: reimplement!
-            Vec2::new(0.0, 0.0)
+            let max = std::f32::consts::PI * 2.0;
+            let rot = macroquad::prelude::Mat2::from_angle((max / count as f32) * i as f32);
+            let n = roll_dice(0.3, 0.6);
+            let mut vector = rot * Vec2::new(view.tile_size() * n, 0.0);
+            vector.set_y(vector.y() * geom::FLATNESS_COEFFICIENT);
+            vector
         };
         let point = at + vector;
         let sprite = {

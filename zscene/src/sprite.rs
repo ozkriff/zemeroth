@@ -2,6 +2,7 @@
 
 use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::Rc};
 
+// TODO: simplify imports
 use macroquad::prelude::{
     draw_text_ex, draw_texture_ex, load_texture, measure_text, vec2, Color, DrawTextureParams,
     Font, Rect, TextParams, Texture2D, Vec2, WHITE,
@@ -121,6 +122,7 @@ impl Sprite {
         Self { data }
     }
 
+    // TODO: rename to `from_texture`
     pub fn from_image(image: Texture2D, height: f32) -> Self {
         Self::from_drawable(Drawable::Texture(image), height)
     }
@@ -169,13 +171,14 @@ impl Sprite {
     }
 
     // TODO: try to simplify the signature
+    // TODO: rename to `from_frames` or `from_textures`
     pub fn from_images<S: Eq + Hash + std::borrow::Borrow<str>>(
-        paths: &HashMap<S, Texture2D>, // TODO: rename, it's not "paths" anymore
+        frames: &HashMap<S, Texture2D>,
         height: f32,
     ) -> Self {
-        let image = paths.get(&"").expect("missing default path").clone();
+        let image = frames.get(&"").expect("missing default path").clone();
         let mut this = Self::from_image(image, height);
-        for (frame_name, image) in paths.iter() {
+        for (frame_name, image) in frames.iter() {
             this.add_frame(
                 frame_name.borrow().to_string(),
                 Drawable::Texture(image.clone()),
