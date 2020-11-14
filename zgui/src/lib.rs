@@ -355,7 +355,8 @@ impl<Message: Clone> Gui<Message> {
     }
 
     pub fn draw(&self) {
-        use macroquad::prelude::{set_camera, Camera2D};
+        use macroquad::prelude::{set_camera, Camera2D}; // TODO: move up
+
         //let old_coordinates = graphics::screen_coordinates();
         let ui_coordinates = Rect::new(-self.aspect_ratio, -1.0, self.aspect_ratio * 2.0, 2.0);
         let camera = Camera2D::from_display_rect(ui_coordinates);

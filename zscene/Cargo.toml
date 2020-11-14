@@ -8,5 +8,5 @@ description = "Scene and Actions for gwg"
 keywords = ["gamedev", "2D"]
 
 [dependencies]
-#macroquad = "0.3.0-alpha"
-macroquad = { git = "https://github.com/not-fl3/macroquad" }
+macroquad = "0.3.0-alpha"
+# macroquad = { git = "https://github.com/not-fl3/macroquad" }
