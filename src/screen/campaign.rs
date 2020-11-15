@@ -6,7 +6,7 @@ use std::{
 use heck::TitleCase;
 use log::info;
 use macroquad::{prelude::Vec2, text::Font};
-use ui::{self, Gui, Widget};
+use ui::{self, Drawable, Gui, Widget};
 
 use crate::{
     assets,
@@ -47,7 +47,7 @@ fn basic_gui() -> ZResult<Gui<Message>> {
     let mut gui = Gui::new();
     let h = utils::line_heights().large;
     let button_menu = {
-        let icon = crate::Image::new("/img/icon_menu.png")?;
+        let icon = Drawable::Texture(assets::get().images.icon_main_menu);
         ui::Button::new(icon, h, gui.sender(), Message::Menu)?
     };
     let mut layout = ui::VLayout::new();
@@ -72,7 +72,7 @@ fn build_panel_agents(
         let spacer = ui::Spacer::new_horizontal(line_height_small()).stretchable(true);
         line.add(Box::new(spacer));
         {
-            let icon = crate::Image::new("/img/icon_info.png")?;
+            let icon = Drawable::Texture(assets::get().images.icon_info);
             let message = Message::AgentInfo(agent_type.clone());
             let button = ui::Button::new(icon, line_height(), gui.sender(), message)?;
             line.add(Box::new(button));
@@ -144,7 +144,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
         }
         line.add(Box::new(ui::Spacer::new_horizontal(line_height_small())));
         {
-            let icon = crate::Image::new("/img/icon_info.png")?;
+            let icon = Drawable::Texture(assets::get().images.icon_info);
             let message = match action.clone() {
                 Action::Recruit { agent_type, .. } => Message::AgentInfo(agent_type),
                 Action::Upgrade { from, to } => Message::UpgradeInfo { from, to },

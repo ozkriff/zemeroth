@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use heck::TitleCase;
 use macroquad::prelude::{Color, Vec2};
-use ui::{self, Gui, Widget};
+use ui::{self, Drawable, Gui, Widget};
 
 use crate::{
     assets,
@@ -55,10 +55,9 @@ impl StaticObjectInfo {
 
 fn agent_image(typename: &ObjType) -> ZResult<Box<dyn ui::Widget>> {
     let h = 0.3;
-    let sprite_info = assets::get().sprites_info[typename].clone();
+    let assets = &assets::get();
     let default_frame = "";
-    let default_frame_path = &sprite_info.paths[default_frame];
-    let image = crate::Image::new(default_frame_path).expect("Can't load agent's image");
+    let image = Drawable::Texture(assets.sprite_frames[typename][default_frame].clone());
     let label = ui::Label::new(image, h)?
         .with_color(Color::new(1.0, 1.0, 1.0, 1.0))
         .stretchable(true);
@@ -149,8 +148,7 @@ fn info_panel(
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(&text)?);
                     line_layout.add(spacer_s());
-                    // TODO: Don't reload images every time, preload them (like object frames)
-                    let icon = crate::Image::new("/img/icon_info.png")?;
+                    let icon = Drawable::Texture(assets::get().images.icon_info.clone());
                     let message = Message::AbilityInfo(r_ability.ability.clone());
                     let button = ui::Button::new(icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));
@@ -166,7 +164,7 @@ fn info_panel(
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(&ability.title())?);
                     line_layout.add(spacer_s());
-                    let icon = crate::Image::new("/img/icon_info.png")?;
+                    let icon = Drawable::Texture(assets::get().images.icon_info);
                     let message = Message::PassiveAbilityInfo(ability);
                     let button = ui::Button::new(icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));

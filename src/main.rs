@@ -19,20 +19,6 @@ use macroquad::{
 
 type ZResult<T = ()> = Result<T, error::ZError>;
 
-// TODO: remove this
-pub struct Image {}
-impl Image {
-    #[allow(clippy::new_ret_no_self)] // TODO
-    pub fn new(_path: &str) -> Result<ui::Drawable, ()> {
-        // TODO: this is just a tmp hack. Use cloned images instead!
-        Ok(ui::Drawable::Text {
-            label: "#".to_string(),
-            font: assets::get().font,
-            font_size: 120,
-        })
-    }
-}
-
 struct MainState {
     screens: screen::Screens,
 }
