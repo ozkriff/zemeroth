@@ -1,7 +1,6 @@
 use std::time::Duration;
 
-use macroquad::prelude::*;
-
+use macroquad::prelude::*; // TODO: expand
 use zscene::{self as zscene, action, Boxed, Layer, Scene, Sprite};
 
 #[derive(Debug, Clone, Default)]
@@ -24,7 +23,7 @@ struct State {
 
 impl State {
     async fn new() -> zscene::Result<Self> {
-        let font = load_ttf_font("./resources/Karla-Regular.ttf").await;
+        let font = load_ttf_font("assets/resources/Karla-Regular.ttf").await;
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
         let mut this = Self {
@@ -38,7 +37,8 @@ impl State {
     }
 
     async fn demo_move(&mut self) -> zscene::Result {
-        let mut sprite = Sprite::from_path("./resources/fire.png", 0.5).await?;
+        #[allow(deprecated)] // TODO: fix
+        let mut sprite = Sprite::from_path("./resources/fire.png", 0.5).await; // TODO: assets.rs
         sprite.set_pos(Vec2::new(0.0, -1.0));
         let delta = Vec2::new(0.0, 1.5);
         let move_duration = Duration::from_millis(2_000);
@@ -53,7 +53,7 @@ impl State {
     fn demo_show_hide(&mut self) -> zscene::Result {
         let mut sprite = {
             let font_size = 32;
-            let mut sprite = Sprite::from_text(("some text", self.font, font_size), 0.1)?;
+            let mut sprite = Sprite::from_text(("some text", self.font, font_size), 0.1);
             sprite.set_pos(Vec2::new(0.0, 0.0));
             sprite.set_scale(2.0); // just testing set_size method
             let scale = sprite.scale();

@@ -1,3 +1,4 @@
+/*
 use gwg::{
     conf, event,
     graphics::{self, Font, Image, Vec2, Text},
@@ -80,7 +81,7 @@ impl event::EventHandler for State {
 
     fn mouse_button_up_event(
         &mut self,
-        
+
         _: gwg::event::MouseButton,
         x: f32,
         y: f32,
@@ -108,3 +109,6 @@ fn main() -> gwg::GameResult {
         |mut context| Box::new(State::new(&mut context).expect("Can't create the state")),
     )
 }
+*/
+
+fn main() {} // TODO: un-comment and fix
