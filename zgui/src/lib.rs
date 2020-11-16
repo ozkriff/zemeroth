@@ -1,5 +1,4 @@
 //! Tiny and opinionated GUI.
-#![allow(warnings)] // TODO: remove
 
 use std::{
     cell::RefCell,
@@ -10,13 +9,15 @@ use std::{
 };
 
 use log::{info, trace};
-use macroquad::prelude::{
-    draw_rectangle, draw_rectangle_lines, draw_text_ex, draw_texture_ex, measure_text,
-    screen_height, screen_width, vec2, Color, DrawTextureParams, Font, Rect, TextParams, Texture2D,
-    Vec2, BLACK, WHITE,
+use macroquad::{
+    prelude::{Color, Rect, Vec2},
+    shapes,
+    text::{draw_text_ex, measure_text, Font, TextParams},
+    texture::{draw_texture_ex, DrawTextureParams, Texture2D},
+    window,
 };
 
-pub const SPRITE_COLOR: Color = BLACK;
+pub const SPRITE_COLOR: Color = Color::new_const(0, 0, 0, 255);
 pub const SPRITE_COLOR_INACTIVE: Color = Color::new_const(102, 102, 102, 127);
 pub const SPRITE_COLOR_BG: Color = Color::new_const(204, 204, 204, 127);
 pub const SPRITE_COLOR_BG_HIGHLIGHTED: Color = Color::new_const(229, 229, 229, 255);
@@ -58,9 +59,9 @@ impl StdError for Error {
     }
 }
 
-fn quad_to_tris<T: Copy>(v: [T; 4]) -> [T; 6] {
-    [v[0], v[1], v[2], v[0], v[2], v[3]]
-}
+// fn quad_to_tris<T: Copy>(v: [T; 4]) -> [T; 6] {
+//     [v[0], v[1], v[2], v[0], v[2], v[3]]
+// }
 
 pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
     Rc::new(RefCell::new(widget))
@@ -144,8 +145,8 @@ impl Sprite {
             dimensions,
             basic_scale,
 
-            pos: vec2(0.0, 0.0),
-            scale: vec2(basic_scale, basic_scale),
+            pos: Vec2::new(0.0, 0.0),
+            scale: Vec2::new(basic_scale, basic_scale),
             color: SPRITE_COLOR,
         })
     }
@@ -160,7 +161,7 @@ impl Sprite {
                     self.color,
                     DrawTextureParams {
                         dest_size: Some(
-                            self.scale * vec2(texture.width() as f32, texture.height() as f32),
+                            self.scale * Vec2::new(texture.width() as f32, texture.height() as f32),
                         ),
                         ..Default::default()
                     },
@@ -187,10 +188,10 @@ impl Sprite {
                 );
             }
             Drawable::SolidRect { rect } => {
-                draw_rectangle(self.pos.x(), self.pos.y(), rect.w, rect.h, self.color);
+                shapes::draw_rectangle(self.pos.x(), self.pos.y(), rect.w, rect.h, self.color);
             }
             Drawable::LinesRect { rect, thickness } => {
-                draw_rectangle_lines(
+                shapes::draw_rectangle_lines(
                     self.pos.x(),
                     self.pos.y(),
                     rect.w,
@@ -234,7 +235,7 @@ fn make_rect(rect: Rect, color: Color) -> Result<Sprite> {
     Ok(sprite)
 }
 
-pub fn window_to_screen(pos: Vec2) -> Vec2 {
+pub fn window_to_screen(_pos: Vec2) -> Vec2 {
     // let (w, h) = graphics::drawable_size();
     // let w = w as f32;
     // let h = h as f32;
@@ -322,8 +323,7 @@ pub struct Gui<Message: Clone> {
 
 impl<Message: Clone> Gui<Message> {
     pub fn new() -> Self {
-        let (w, h) = (screen_width(), screen_height());
-        let aspect_ratio = w / h;
+        let aspect_ratio = window::screen_width() / window::screen_height();
         trace!("Gui: aspect_ratio: {}", aspect_ratio);
         let (sender, receiver) = channel();
         Self {
@@ -512,7 +512,7 @@ impl Widget for Label {
     fn set_pos(&mut self, pos: Vec2) {
         let h = (1.0 - self.param.drawable_k) * self.height;
         let w = self.rect.w - self.sprite.rect().w;
-        self.sprite.set_pos(pos + vec2(w, h) * 0.5);
+        self.sprite.set_pos(pos + Vec2::new(w, h) * 0.5);
         if let Some(ref mut bg) = &mut self.bg {
             bg.set_pos(pos);
         }
@@ -528,7 +528,7 @@ impl Widget for Label {
         if let Some(status) = stretch_checks(self, width) {
             return Ok(status);
         }
-        let pos: Vec2 = vec2(self.rect().x, self.rect().y);
+        let pos: Vec2 = Vec2::new(self.rect().x, self.rect().y);
         let rect = Rect {
             w: width,
             h: self.rect.h,
@@ -719,11 +719,11 @@ pub struct Button<Message: Clone> {
     color: Color,
 }
 
-fn rect_to_vertices(r: Rect) -> [[f32; 2]; 4] {
-    let x = r.x;
-    let y = r.y;
-    [[x, y], [x, y + r.h], [x + r.w, y + r.h], [x + r.w, y]]
-}
+// fn rect_to_vertices(r: Rect) -> [[f32; 2]; 4] {
+//     let x = r.x;
+//     let y = r.y;
+//     [[x, y], [x, y + r.h], [x + r.w, y + r.h], [x + r.w, y]]
+// }
 
 impl<Message: Clone + Debug> Button<Message> {
     pub fn new(
@@ -744,7 +744,7 @@ impl<Message: Clone + Debug> Button<Message> {
         param: ButtonParam,
     ) -> Result<Self> {
         param.check()?;
-        let mut sprite = Sprite::new(drawable, height * param.drawable_k)?;
+        let sprite = Sprite::new(drawable, height * param.drawable_k)?;
         let outer = Self::outer_rect(&sprite, height, &param);
         let inner = Self::inner_rect(&param, outer);
         let border = Self::make_border(height, outer, inner)?;
