@@ -1,11 +1,17 @@
 use std::time::Duration;
 
-use macroquad::prelude::*; // TODO: expand
-use zscene::{self as zscene, action, Boxed, Layer, Scene, Sprite};
+use macroquad::{
+    camera::{set_camera, Camera2D},
+    prelude::{Color, Rect, Vec2, BLACK},
+    text,
+    texture::{self, Texture2D},
+    time, window,
+};
+use zscene::{self, action, Action, Boxed, Layer, Scene, Sprite};
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
-    pub bg: Layer, // TODO: show how to use layers
+    pub bg: Layer,
     pub fg: Layer,
 }
 
@@ -15,30 +21,38 @@ impl Layers {
     }
 }
 
+struct Assets {
+    font: text::Font,
+    texture: Texture2D,
+}
+
+impl Assets {
+    async fn load() -> Self {
+        let font = text::load_ttf_font("zscene/resources/Karla-Regular.ttf").await;
+        let texture = texture::load_texture("zscene/resources/fire.png").await;
+        Self { font, texture }
+    }
+}
+
 struct State {
-    font: Font,
+    assets: Assets,
     scene: Scene,
     layers: Layers,
 }
 
 impl State {
-    async fn new() -> zscene::Result<Self> {
-        let font = load_ttf_font("assets/resources/Karla-Regular.ttf").await;
+    fn new(assets: Assets) -> Self {
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
-        let mut this = Self {
-            font,
+        Self {
+            assets,
             scene,
             layers,
-        };
-        this.demo_move().await?;
-        this.demo_show_hide()?;
-        Ok(this)
+        }
     }
 
-    async fn demo_move(&mut self) -> zscene::Result {
-        #[allow(deprecated)] // TODO: fix
-        let mut sprite = Sprite::from_path("./resources/fire.png", 0.5).await; // TODO: assets.rs
+    fn action_demo_move(&self) -> Box<dyn Action> {
+        let mut sprite = Sprite::from_image(self.assets.texture, 0.5);
         sprite.set_pos(Vec2::new(0.0, -1.0));
         let delta = Vec2::new(0.0, 1.5);
         let move_duration = Duration::from_millis(2_000);
@@ -46,14 +60,13 @@ impl State {
             action::Show::new(&self.layers.fg, &sprite).boxed(),
             action::MoveBy::new(&sprite, delta, move_duration).boxed(),
         ]);
-        self.scene.add_action(action.boxed());
-        Ok(())
+        action.boxed()
     }
 
-    fn demo_show_hide(&mut self) -> zscene::Result {
+    fn action_demo_show_hide(&self) -> Box<dyn Action> {
         let mut sprite = {
             let font_size = 32;
-            let mut sprite = Sprite::from_text(("some text", self.font, font_size), 0.1);
+            let mut sprite = Sprite::from_text(("some text", self.assets.font, font_size), 0.1);
             sprite.set_pos(Vec2::new(0.0, 0.0));
             sprite.set_scale(2.0); // just testing set_size method
             let scale = sprite.scale();
@@ -71,33 +84,31 @@ impl State {
             action::ChangeColorTo::new(&sprite, invisible, t).boxed(),
             action::Hide::new(&self.layers.bg, &sprite).boxed(),
         ]);
-        self.scene.add_action(action.boxed());
-        Ok(())
+        action.boxed()
     }
 }
 
-#[macroquad::main("Text")]
+fn update_aspect_ratio() {
+    let aspect_ratio = window::screen_width() / window::screen_height();
+    let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
+    set_camera(Camera2D::from_display_rect(coordinates));
+}
+
+#[macroquad::main("ZScene: Actions Demo")]
 async fn main() {
-    let mut state = State::new().await.expect("Can't create the state");
+    let assets = Assets::load().await;
+    let mut state = State::new(assets);
+
+    // Run two demo demo actions in parallel.
+    state.scene.add_action(state.action_demo_move());
+    state.scene.add_action(state.action_demo_show_hide());
 
     loop {
-        clear_background(BLACK);
-
-        {
-            let w = screen_width();
-            let h = screen_height();
-            let aspect_ratio = w / h;
-            let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-            let camera = Camera2D::from_display_rect(coordinates);
-
-            set_camera(camera);
-        }
-
-        let dtime = get_frame_time();
-
+        window::clear_background(BLACK);
+        update_aspect_ratio();
+        let dtime = time::get_frame_time();
         state.scene.tick(Duration::from_secs_f32(dtime));
         state.scene.draw();
-
-        next_frame().await;
+        window::next_frame().await;
     }
 }

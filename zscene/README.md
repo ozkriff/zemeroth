@@ -28,4 +28,8 @@ let action = action::Sequence::new(vec![
 self.scene.add_action(action.boxed());
 ```
 
-See [examples/action.rs](./examples/action.rs) for a complete example.
+See [examples/action.rs](./examples/action.rs) for a complete example:
+
+```shell
+cargo run -p zscene --example action
+```
