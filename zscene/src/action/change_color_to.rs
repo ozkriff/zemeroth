@@ -7,8 +7,8 @@ use crate::{Action, Sprite};
 #[derive(Debug)]
 pub struct ChangeColorTo {
     sprite: Sprite,
-    from: [f32; 4], // TODO: use graphics::Color
-    to: [f32; 4],   // TODO: use graphics::Color
+    from: Color,
+    to: Color,
     duration: Duration,
     progress: Duration,
 }
@@ -17,8 +17,8 @@ impl ChangeColorTo {
     pub fn new(sprite: &Sprite, to: Color, duration: Duration) -> Self {
         Self {
             sprite: sprite.clone(),
-            from: sprite.color().into(),
-            to: to.into(),
+            from: sprite.color(),
+            to,
             duration,
             progress: Duration::new(0, 0),
         }
@@ -27,7 +27,7 @@ impl ChangeColorTo {
 
 impl Action for ChangeColorTo {
     fn begin(&mut self) {
-        self.from = self.sprite.color().into();
+        self.from = self.sprite.color();
     }
 
     fn update(&mut self, mut dtime: Duration) {
@@ -37,17 +37,12 @@ impl Action for ChangeColorTo {
         let progress_f = timer::duration_to_f64(self.progress) as f32;
         let duration_f = timer::duration_to_f64(self.duration) as f32;
         let k = progress_f / duration_f;
-        let mut color = [0.0; 4];
-        for (i, color_i) in color.iter_mut().enumerate().take(4) {
-            let diff = self.to[i] - self.from[i];
-            *color_i = self.from[i] + diff * k;
-        }
-        self.sprite.set_color(color.into());
+        self.sprite.set_color(interpolate(self.from, self.to, k));
         self.progress += dtime;
     }
 
     fn end(&mut self) {
-        self.sprite.set_color(self.to.into());
+        self.sprite.set_color(self.to);
     }
 
     fn duration(&self) -> Duration {
@@ -56,5 +51,15 @@ impl Action for ChangeColorTo {
 
     fn is_finished(&self) -> bool {
         self.progress >= self.duration
+    }
+}
+
+fn interpolate(from: Color, to: Color, k: f32) -> Color {
+    let calc = |a, b| a + (b - a) * k;
+    Color {
+        r: calc(from.r, to.r),
+        g: calc(from.g, to.g),
+        b: calc(from.b, to.b),
+        a: calc(from.a, to.a),
     }
 }
