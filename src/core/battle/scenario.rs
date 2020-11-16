@@ -26,16 +26,14 @@ pub struct ObjectsGroup {
     pub count: i32,
 }
 
-// TODO: rename to just `Object`
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExactObject {
+pub struct Object {
     pub owner: Option<PlayerId>,
     pub typename: ObjType,
     pub pos: PosHex,
 }
 
 // TODO: Split into `Scenario` (exact info) and `ScenarioTemplate`?
-//  Rename  `exact_*` fields to just `*`.
 #[serde(default)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scenario {
@@ -45,12 +43,11 @@ pub struct Scenario {
     // TODO: rename it to `randomized_tiles` later (not only `TileType::Rocks`)
     pub rocky_tiles_count: i32,
 
-    pub exact_tiles: HashMap<PosHex, TileType>,
+    pub tiles: HashMap<PosHex, TileType>,
 
-    // TODO: rename to `randomized_objects`
-    pub objects: Vec<ObjectsGroup>,
+    pub randomized_objects: Vec<ObjectsGroup>,
 
-    pub exact_objects: Vec<ExactObject>,
+    pub objects: Vec<Object>,
 }
 
 #[derive(Clone, Debug, derive_more::From)]
@@ -71,29 +68,29 @@ impl Scenario {
             return Err(Error::MapIsTooSmall);
         }
         let origin = PosHex { q: 0, r: 0 };
-        for obj in &self.exact_objects {
+        for obj in &self.objects {
             let dist = map::distance_hex(origin, obj.pos);
             if dist > self.map_radius {
                 return Err(Error::PosOutsideOfMap(obj.pos));
             }
         }
         let any_exact_player_agents = self
-            .exact_objects
+            .objects
             .iter()
             .any(|obj| obj.owner == Some(PlayerId(0)));
         let any_random_player_agents = self
-            .objects
+            .randomized_objects
             .iter()
             .any(|obj| obj.owner == Some(PlayerId(0)));
         if !any_exact_player_agents && !any_random_player_agents {
             return Err(Error::NoPlayerAgents);
         }
         let any_exact_enemy_agents = self
-            .exact_objects
+            .objects
             .iter()
             .any(|obj| obj.owner == Some(PlayerId(1)));
         let any_random_enemy_agents = self
-            .objects
+            .randomized_objects
             .iter()
             .any(|obj| obj.owner == Some(PlayerId(1)));
         if !any_exact_enemy_agents && !any_random_enemy_agents {
@@ -109,9 +106,9 @@ impl Default for Scenario {
             map_radius: map::Distance(5),
             players_count: 2,
             rocky_tiles_count: 0,
-            exact_tiles: HashMap::new(),
+            tiles: HashMap::new(),
+            randomized_objects: Vec::new(),
             objects: Vec::new(),
-            exact_objects: Vec::new(),
         }
     }
 }

@@ -69,11 +69,11 @@ impl State {
         }
     }
 
-    // TODO: Handle Scenario::exact_objects
+    // TODO: Handle Scenario::objects
     fn create_objects(&mut self, cb: execute::Cb) {
         let player_id_initial = self.player_id();
-        // TODO: Merge the cycles. Generate `exact_objects` based on `objects`.
-        for group in self.scenario.objects.clone() {
+        // TODO: Merge the cycles. Generate `objects` based on `randomized_objects`.
+        for group in self.scenario.randomized_objects.clone() {
             if let Some(player_id) = group.owner {
                 self.set_player_id(player_id);
             }
@@ -94,7 +94,7 @@ impl State {
                 execute::execute(self, &command, cb).expect("Can't create an object");
             }
         }
-        for group in self.scenario.exact_objects.clone() {
+        for group in self.scenario.objects.clone() {
             if let Some(player_id) = group.owner {
                 self.set_player_id(player_id);
             }

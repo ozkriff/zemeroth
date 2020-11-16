@@ -283,7 +283,7 @@ impl Campaign {
         let mut scenario = self.state.scenario().clone();
         // TODO: extract a function for this? add_player_agents_to_scenario?
         for typename in self.state.agents() {
-            scenario.objects.push(scenario::ObjectsGroup {
+            scenario.randomized_objects.push(scenario::ObjectsGroup {
                 owner: Some(PlayerId(0)),
                 typename: typename.clone(),
                 line: Some(scenario::Line::Middle),

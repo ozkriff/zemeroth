@@ -14,7 +14,7 @@ use crate::core::{
         event::{self, ActiveEvent, AttackMode, Event},
         execute::{execute, ApplyPhase},
         movement::Path,
-        scenario::{ExactObject, Scenario},
+        scenario::{Object, Scenario},
         state::BattleResult,
         Accuracy, Attacks, Dodge, Id, Jokers, MovePoints, Moves, Phase, PlayerId, PushStrength,
         State, Strength, Weight,
@@ -32,7 +32,7 @@ trait ScenarioConstructor {
 
 impl ScenarioConstructor for Scenario {
     fn object(mut self, owner: PlayerId, object_name: &str, pos: PosHex) -> Self {
-        self.exact_objects.push(ExactObject {
+        self.objects.push(Object {
             owner: Some(owner),
             typename: object_name.into(),
             pos,
@@ -41,7 +41,7 @@ impl ScenarioConstructor for Scenario {
     }
 
     fn object_without_owner(mut self, object_name: &str, pos: PosHex) -> Self {
-        self.exact_objects.push(ExactObject {
+        self.objects.push(Object {
             owner: None,
             typename: object_name.into(),
             pos,

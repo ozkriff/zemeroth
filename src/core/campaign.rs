@@ -318,7 +318,7 @@ mod tests {
             let id_0 = Some(PlayerId(0));
             let id_1 = Some(PlayerId(1));
             let scenario = Scenario {
-                objects: vec![
+                randomized_objects: vec![
                     (None, "boulder", None, 3).into(),
                     (id_0, "swordsman", Some(Line::Front), 1).into(),
                     (id_1, "imp", Some(Line::Front), 2).into(),
@@ -345,7 +345,7 @@ mod tests {
         let nodes = vec![
             CampaignNode {
                 scenario: Scenario {
-                    objects: vec![
+                    randomized_objects: vec![
                         (None, "boulder", None, 3).into(),
                         (id_0, "swordsman", Some(Line::Front), 1).into(),
                         (id_1, "imp", Some(Line::Front), 2).into(),
@@ -359,7 +359,7 @@ mod tests {
             },
             CampaignNode {
                 scenario: Scenario {
-                    objects: vec![
+                    randomized_objects: vec![
                         (None, "boulder", None, 3).into(),
                         (id_1, "imp", Some(Line::Front), 4).into(),
                     ],
