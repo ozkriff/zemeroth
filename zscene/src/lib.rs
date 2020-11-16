@@ -19,7 +19,7 @@ pub fn duration_to_f64(d: Duration) -> f64 {
 
 #[derive(Debug)]
 pub enum Error {
-    GwgError,
+    GwgError, // TODO: rename. maybe remove.
     NoDimensions,
 }
 

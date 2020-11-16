@@ -1,14 +1,10 @@
-#![allow(warnings)] // TODO
+use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, rc::Rc};
 
-use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, path::Path, rc::Rc};
-
-// TODO: simplify imports
-use macroquad::prelude::{
-    draw_text_ex, draw_texture_ex, load_texture, measure_text, vec2, Color, DrawTextureParams,
-    Font, Rect, TextParams, Texture2D, Vec2, WHITE,
+use macroquad::{
+    prelude::{Color, Rect, Vec2},
+    text::{self, Font},
+    texture::{self, DrawTextureParams, Texture2D},
 };
-
-use crate::{Error, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Facing {
@@ -38,8 +34,8 @@ impl Drawable {
                 font_size,
             } => {
                 // TODO: dirty hack to have a fixed height for text. Fix it somehow. (same in zgui)
-                let (w, _) = measure_text(&label, Some(*font), *font_size, 1.0);
-                let (_, h) = measure_text(&"|", Some(*font), *font_size, 1.0);
+                let (w, _) = text::measure_text(&label, Some(*font), *font_size, 1.0);
+                let (_, h) = text::measure_text(&"|", Some(*font), *font_size, 1.0);
                 let h = h * 1.4; // TODO: magic hack coefficient
                 Rect::new(-w / 1.0, -h / 1.0, w / 1.0, h / 1.0)
             }
@@ -114,10 +110,10 @@ impl Sprite {
             current_frame_name: "".into(),
             dimensions,
             basic_scale: scale,
-            scale: vec2(scale, scale),
-            offset: vec2(0.0, 0.0),
+            scale: Vec2::new(scale, scale),
+            offset: Vec2::new(0.0, 0.0),
             color: Color::new(1.0, 1.0, 1.0, 1.0),
-            pos: vec2(0.0, 0.0),
+            pos: Vec2::new(0.0, 0.0),
             facing: Facing::Right,
         };
         let data = Rc::new(RefCell::new(data));
@@ -129,7 +125,7 @@ impl Sprite {
         Self::from_drawable(Drawable::Texture(image), height)
     }
 
-    // TODO: Simplify the signature
+    // TODO: Simplify the signature. or remove?
     pub fn from_text((label, font, font_size): (&str, Font, u16), height: f32) -> Self {
         Self::from_drawable(
             Drawable::Text {
@@ -141,10 +137,10 @@ impl Sprite {
         )
     }
 
-    // TODO: remove?
+    // TODO: remove
     #[deprecated]
     pub async fn from_path(path: &str, height: f32) -> Self {
-        let image = load_texture(path).await;
+        let image = texture::load_texture(path).await;
         Self::from_image(image, height)
     }
 
@@ -153,24 +149,24 @@ impl Sprite {
         data.drawables.insert(frame_name, Some(drawable));
     }
 
-    // TODO: deprecate?
-    // TODO: try to simplify the signature
-    #[deprecated]
-    pub async fn from_paths<
-        S: Eq + Hash + std::borrow::Borrow<str>,
-        P: Eq + Hash + std::borrow::Borrow<str>,
-    >(
-        paths: &HashMap<S, P>,
-        height: f32,
-    ) -> Result<Self> {
-        let path = paths.get(&"").expect("missing default path");
-        let mut this = Self::from_path(path.borrow(), height).await;
-        for (frame_name, frame_path) in paths.iter() {
-            let image = load_texture(frame_path.borrow()).await;
-            this.add_frame(frame_name.borrow().to_string(), Drawable::Texture(image));
-        }
-        Ok(this)
-    }
+    // // TODO: deprecate?
+    // // TODO: try to simplify the signature
+    // #[deprecated]
+    // pub async fn from_paths<
+    //     S: Eq + Hash + std::borrow::Borrow<str>,
+    //     P: Eq + Hash + std::borrow::Borrow<str>,
+    // >(
+    //     paths: &HashMap<S, P>,
+    //     height: f32,
+    // ) -> Result<Self> {
+    //     let path = paths.get(&"").expect("missing default path");
+    //     let mut this = Self::from_path(path.borrow(), height).await;
+    //     for (frame_name, frame_path) in paths.iter() {
+    //         let image = load_texture(frame_path.borrow()).await;
+    //         this.add_frame(frame_name.borrow().to_string(), Drawable::Texture(image));
+    //     }
+    //     Ok(this)
+    // }
 
     // TODO: try to simplify the signature
     // TODO: rename to `from_frames` or `from_textures`
@@ -256,17 +252,16 @@ impl Sprite {
     pub fn draw(&self) {
         let data = self.data.borrow();
         let drawable = data.drawable.as_ref().expect("no active drawable");
-        // drawable.draw(context, data.param)
         match drawable {
             Drawable::Texture(texture) => {
-                draw_texture_ex(
+                texture::draw_texture_ex(
                     *texture,
                     data.pos.x(),
                     data.pos.y(),
                     data.color,
                     DrawTextureParams {
                         dest_size: Some(
-                            data.scale * vec2(texture.width() as f32, texture.height() as f32),
+                            data.scale * Vec2::new(texture.width() as f32, texture.height() as f32),
                         ),
                         ..Default::default()
                     },
@@ -277,15 +272,13 @@ impl Sprite {
                 font,
                 font_size,
             } => {
-                draw_text_ex(
+                text::draw_text_ex(
                     &label,
                     data.pos.x(),
                     data.pos.y(),
-                    TextParams {
+                    text::TextParams {
                         font_size: *font_size,
                         font: *font,
-                        // // TODO: why 2?
-                        // font_scale: data.scale.x() / 2.,
                         font_scale: data.scale.x(),
                         color: data.color,
                         ..Default::default()
@@ -335,7 +328,7 @@ impl Sprite {
     pub fn set_scale(&mut self, scale: f32) {
         let mut data = self.data.borrow_mut();
         let s = data.basic_scale * scale;
-        data.scale = vec2(s, s);
+        data.scale = Vec2::new(s, s);
     }
 
     // TODO: unittest this?
