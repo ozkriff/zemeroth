@@ -16,7 +16,7 @@ use crate::{
             effect::{self, Effect},
             event::{self, ActiveEvent, Event},
             execute::{hit_chance, ApplyPhase},
-            state, Id, PlayerId, State,
+            state, Id, PlayerId, State, Turns,
         },
         map::PosHex,
         utils::roll_dice,
@@ -39,7 +39,7 @@ pub mod color {
     pub const MOVES: Color = Color::new(0.2, 0.2, 1.0, 1.0);
 }
 
-const BLOOD_SPRITE_DURATION_TURNS: i32 = 6; // TODO: i32 -> Turns, Rounds, etc
+const BLOOD_SPRITE_DURATION_TURNS: Turns = Turns(6);
 const TIME_LUNGE_TO: f32 = 0.1;
 const TIME_LUNGE_FROM: f32 = 0.15;
 const TIME_DEFAULT_FLARE: f32 = 0.4;

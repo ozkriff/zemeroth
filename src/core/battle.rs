@@ -36,6 +36,46 @@ impl Phase {
     }
 }
 
+#[serde(transparent)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, derive_more::From)]
+pub struct Rounds(pub i32);
+
+impl Rounds {
+    pub fn decrease(&mut self) {
+        self.0 -= 1;
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.0 == 0
+    }
+}
+
+impl fmt::Display for Rounds {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[serde(transparent)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Turns(pub i32);
+
+impl Turns {
+    pub fn decrease(&mut self) {
+        self.0 -= 1;
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.0 == 0
+    }
+}
+
+impl fmt::Display for Turns {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 #[derive(
     Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd, Ord, Eq, Hash,
 )]

@@ -496,7 +496,7 @@ fn throw_bomb_no_harm() {
             scheduled_abilities: vec![(
                 Id(2),
                 vec![PlannedAbility {
-                    rounds: 1,
+                    rounds: 1.into(),
                     phase: Phase(0),
                     ability: Ability::ExplodeDamage,
                 }],
@@ -589,7 +589,7 @@ fn throw_bomb_damage() {
             scheduled_abilities: vec![(
                 Id(2),
                 vec![PlannedAbility {
-                    rounds: 1,
+                    rounds: 1.into(),
                     phase: Phase(0),
                     ability: Ability::ExplodeDamage,
                 }],
@@ -694,7 +694,7 @@ fn throw_bomb_poison() {
             scheduled_abilities: vec![(
                 Id(2),
                 vec![PlannedAbility {
-                    rounds: 1,
+                    rounds: 1.into(),
                     phase: Phase(0),
                     ability: Ability::ExplodePoison,
                 }],
@@ -721,7 +721,7 @@ fn throw_bomb_poison() {
     };
     let planned_ability_vanish = || -> PlannedAbility {
         PlannedAbility {
-            rounds: 2,
+            rounds: 2.into(),
             phase: Phase(0),
             ability: Ability::Vanish,
         }
@@ -753,7 +753,7 @@ fn throw_bomb_poison() {
                 timed_effects: vec![(
                     Id(1),
                     vec![effect::Timed {
-                        duration: effect::Duration::Rounds(2),
+                        duration: effect::Duration::Rounds(2.into()),
                         phase: Phase(1),
                         effect: effect::Lasting::Poison,
                     }],
@@ -788,7 +788,7 @@ fn throw_bomb_poison() {
                 timed_effects: vec![(
                     Id(1),
                     vec![effect::Timed {
-                        duration: effect::Duration::Rounds(2),
+                        duration: effect::Duration::Rounds(2.into()),
                         phase: Phase(1),
                         effect: effect::Lasting::Poison,
                     }],
@@ -929,7 +929,7 @@ fn throw_two_fire_bombs() {
             scheduled_abilities: vec![(
                 Id(3),
                 vec![PlannedAbility {
-                    rounds: 1,
+                    rounds: 1.into(),
                     phase: Phase(0),
                     ability: Ability::ExplodeFire,
                 }],
@@ -959,7 +959,7 @@ fn throw_two_fire_bombs() {
     };
     let planned_ability_vanish = || -> PlannedAbility {
         PlannedAbility {
-            rounds: 2,
+            rounds: 2.into(),
             phase: Phase(0),
             ability: Ability::Vanish,
         }
@@ -1040,7 +1040,7 @@ fn throw_two_fire_bombs() {
             scheduled_abilities: vec![(
                 Id(11),
                 vec![PlannedAbility {
-                    rounds: 1,
+                    rounds: 1.into(),
                     phase: Phase(0),
                     ability: Ability::ExplodeFire,
                 }],
@@ -1188,11 +1188,10 @@ fn stun() {
             timed_effects: vec![(
                 Id(1),
                 vec![effect::Timed {
-                    duration: effect::Duration::Rounds(1),
+                    duration: effect::Duration::Rounds(1.into()),
                     phase: Phase(1),
                     effect: effect::Lasting::Stun,
-                }
-                .into()],
+                }],
             )],
             scheduled_abilities: Vec::new(),
         }],
@@ -1294,7 +1293,7 @@ fn throw_bomb_push_normal() {
                 scheduled_abilities: vec![(
                     Id(2),
                     vec![PlannedAbility {
-                        rounds: 0,
+                        rounds: 0.into(),
                         phase: Phase(0),
                         ability: Ability::ExplodePush,
                     }],
@@ -1394,7 +1393,7 @@ fn throw_bomb_push_heavy() {
                 scheduled_abilities: vec![(
                     Id(2),
                     vec![PlannedAbility {
-                        rounds: 0,
+                        rounds: 0.into(),
                         phase: Phase(0),
                         ability: Ability::ExplodePush,
                     }],

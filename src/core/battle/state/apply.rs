@@ -102,7 +102,7 @@ fn apply_event_end_turn(state: &mut State, event: &event::EndTurn) {
             .schedule
             .get_mut(id)
             .planned
-            .retain(|p| p.rounds > 0);
+            .retain(|p| p.rounds.0 > 0);
     }
     // Remove outdated lasting effect
     for id in state.parts().effects.ids_collected() {
@@ -131,9 +131,9 @@ fn update_lasting_effects_duration(state: &mut State) {
     for id in state.parts().effects.ids_collected() {
         for effect in &mut state.parts_mut().effects.get_mut(id).0 {
             if effect.phase == phase {
-                if let Duration::Rounds(ref mut n) = effect.duration {
-                    assert!(*n > 0);
-                    *n -= 1;
+                if let Duration::Rounds(ref mut rounds) = effect.duration {
+                    assert!(rounds.0 > 0);
+                    rounds.decrease();
                 }
             }
         }
@@ -170,7 +170,7 @@ fn apply_event_use_ability(state: &mut State, event: &event::UseAbility) {
             if r_ability.ability == event.ability {
                 let cooldown = r_ability.ability.base_cooldown();
                 assert_eq!(r_ability.status, ability::Status::Ready);
-                if cooldown != 0 {
+                if !cooldown.is_zero() {
                     r_ability.status = ability::Status::Cooldown(cooldown);
                 }
             }
@@ -408,7 +408,7 @@ fn tick_planned_abilities(state: &mut State) {
         let schedule = state.parts_mut().schedule.get_mut(obj_id);
         for planned in &mut schedule.planned {
             if planned.phase == phase {
-                planned.rounds -= 1;
+                planned.rounds.decrease();
             }
         }
     }
