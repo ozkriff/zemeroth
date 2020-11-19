@@ -28,8 +28,8 @@ struct Assets {
 
 impl Assets {
     async fn load() -> Self {
-        let font = text::load_ttf_font("zscene/resources/Karla-Regular.ttf").await;
-        let texture = texture::load_texture("zscene/resources/fire.png").await;
+        let font = text::load_ttf_font("zscene/assets/Karla-Regular.ttf").await;
+        let texture = texture::load_texture("zscene/assets/fire.png").await;
         Self { font, texture }
     }
 }
