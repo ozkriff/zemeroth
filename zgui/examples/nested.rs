@@ -1,27 +1,7 @@
-use macroquad::{
-    self as mq,
-    camera::{set_camera, Camera2D},
-    prelude::{Rect, Vec2, WHITE},
-    text::{load_ttf_font, Font},
-    texture::{self, Texture2D},
-};
+use macroquad::{self as mq, prelude::WHITE};
 use zgui as ui;
 
-fn aspect_ratio() -> f32 {
-    mq::window::screen_width() / mq::window::screen_height()
-}
-
-fn make_and_set_camera(aspect_ratio: f32) -> Camera2D {
-    let display_rect = Rect {
-        x: -aspect_ratio,
-        y: -1.0,
-        w: aspect_ratio * 2.0,
-        h: 2.0,
-    };
-    let camera = Camera2D::from_display_rect(display_rect);
-    set_camera(camera);
-    camera
-}
+mod common;
 
 #[derive(Clone, Copy, Debug)]
 enum Message {
@@ -34,20 +14,7 @@ enum Message {
     Z,
 }
 
-struct Assets {
-    font: Font,
-    texture: Texture2D,
-}
-
-impl Assets {
-    async fn load() -> Self {
-        let font = load_ttf_font("zgui/assets/Karla-Regular.ttf").await;
-        let texture = texture::load_texture("zgui/assets/fire.png").await;
-        Self { font, texture }
-    }
-}
-
-fn make_gui(assets: Assets) -> ui::Result<ui::Gui<Message>> {
+fn make_gui(assets: common::Assets) -> ui::Result<ui::Gui<Message>> {
     let font_size = 64;
     let text = |s| ui::Drawable::text(s, assets.font, font_size);
     let image = || ui::Drawable::Texture(assets.texture);
@@ -102,21 +69,19 @@ fn make_gui(assets: Assets) -> ui::Result<ui::Gui<Message>> {
 
 #[macroquad::main("ZGui: Nested Layouts Demo")]
 async fn main() {
-    let assets = Assets::load().await;
+    let assets = common::Assets::load().await;
     let mut gui = make_gui(assets).expect("TODO: err msg");
     loop {
         // Update the camera and the GUI.
-        let aspect_ratio = aspect_ratio();
-        let camera = make_and_set_camera(aspect_ratio);
+        let aspect_ratio = common::aspect_ratio();
+        let camera = common::make_and_set_camera(aspect_ratio);
         gui.resize(aspect_ratio);
         // Handle cursor updates.
-        let (x, y) = mq::input::mouse_position();
-        let window_pos = Vec2::new(x, y);
-        let pos = camera.screen_to_world(window_pos);
+        let pos = common::get_world_mouse_pos(&camera);
         gui.move_mouse(pos);
         if mq::input::is_mouse_button_pressed(mq::input::MouseButton::Left) {
             let message = gui.click(pos);
-            println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);
+            println!("{:?}", message);
         }
         // Draw the GUI.
         mq::window::clear_background(WHITE);
