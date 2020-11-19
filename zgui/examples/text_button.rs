@@ -39,8 +39,7 @@ fn make_gui(font: Font) -> ui::Result<ui::Gui<Message>> {
 
 #[macroquad::main("ZGui: Text Button Demo")]
 async fn main() {
-    // TODO: rename "resources" directory to "assets" (for zgui and zscene)
-    let font = load_ttf_font("zgui/resources/Karla-Regular.ttf").await;
+    let font = load_ttf_font("zgui/assets/Karla-Regular.ttf").await;
     let mut gui = make_gui(font).expect("TODO: err msg");
     loop {
         // Update the camera and the GUI.
