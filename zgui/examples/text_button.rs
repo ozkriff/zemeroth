@@ -1,6 +1,26 @@
+use macroquad::{
+    self as mq,
+    camera::{set_camera, Camera2D},
+    prelude::{Rect, Vec2, WHITE},
+    text::{load_ttf_font, Font},
+};
 use zgui as ui;
 
-use macroquad::prelude::*; // TODO: expand
+fn aspect_ratio() -> f32 {
+    mq::window::screen_width() / mq::window::screen_height()
+}
+
+fn make_and_set_camera(aspect_ratio: f32) -> Camera2D {
+    let display_rect = Rect {
+        x: -aspect_ratio,
+        y: -1.0,
+        w: aspect_ratio * 2.0,
+        h: 2.0,
+    };
+    let camera = Camera2D::from_display_rect(display_rect);
+    set_camera(camera);
+    camera
+}
 
 #[derive(Clone, Copy, Debug)]
 enum Message {
@@ -8,7 +28,7 @@ enum Message {
 }
 
 fn make_gui(font: Font) -> ui::Result<ui::Gui<Message>> {
-    let font_size = 32;
+    let font_size = 64;
     let mut gui = ui::Gui::new();
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
     let text = ui::Drawable::text("Button", font, font_size);
@@ -17,42 +37,28 @@ fn make_gui(font: Font) -> ui::Result<ui::Gui<Message>> {
     Ok(gui)
 }
 
-struct State {
-    gui: ui::Gui<Message>,
-}
-
-impl State {
-    async fn new() -> ui::Result<State> {
-        let font = load_ttf_font("./resources/Karla-Regular.ttf").await;
-        let gui = make_gui(font)?;
-        Ok(Self { gui })
-    }
-
-    fn resize(&mut self, w: f32, h: f32) {
-        let aspect_ratio = w / h;
-        self.gui.resize(aspect_ratio);
-    }
-}
-
-#[macroquad::main("TextButton")]
+#[macroquad::main("ZGui: Text Button Demo")]
 async fn main() {
-    let mut state = State::new().await.expect("Can't create the state");
-
+    // TODO: rename "resources" directory to "assets" (for zgui and zscene)
+    let font = load_ttf_font("zgui/resources/Karla-Regular.ttf").await;
+    let mut gui = make_gui(font).expect("TODO: err msg");
     loop {
-        clear_background(WHITE);
-
-        state.resize(screen_width(), screen_height());
-
-        state.gui.draw();
-
-        if is_mouse_button_down(MouseButton::Left) {
-            let (x, y) = mouse_position();
-            let window_pos = vec2(x, y);
-            let pos = ui::window_to_screen(window_pos);
-            let message = state.gui.click(pos);
+        // Update the camera and the GUI.
+        let aspect_ratio = aspect_ratio();
+        let camera = make_and_set_camera(aspect_ratio);
+        gui.resize(aspect_ratio);
+        // Handle cursor updates.
+        let (x, y) = mq::input::mouse_position();
+        let window_pos = Vec2::new(x, y);
+        let pos = camera.screen_to_world(window_pos);
+        gui.move_mouse(pos);
+        if mq::input::is_mouse_button_pressed(mq::input::MouseButton::Left) {
+            let message = gui.click(pos);
             println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);
         }
-
-        next_frame().await;
+        // Draw the GUI.
+        mq::window::clear_background(WHITE);
+        gui.draw();
+        mq::window::next_frame().await;
     }
 }

@@ -19,6 +19,24 @@ use macroquad::{
 
 type ZResult<T = ()> = Result<T, error::ZError>;
 
+// TODO: Move to utils.rs
+fn aspect_ratio() -> f32 {
+    window::screen_width() / window::screen_height()
+}
+
+// TODO: Move to utils.rs
+fn make_and_set_camera(aspect_ratio: f32) -> Camera2D {
+    let camera = Camera2D::from_display_rect(Rect {
+        x: -aspect_ratio,
+        y: -1.0,
+        w: aspect_ratio * 2.0,
+        h: 2.0,
+    });
+    set_camera(camera);
+    camera
+}
+
+// TODO: Merge this with Screens?
 struct MainState {
     screens: screen::Screens,
 }
@@ -27,17 +45,32 @@ impl MainState {
     fn new() -> ZResult<Self> {
         let start_screen = Box::new(screen::MainMenu::new()?);
         let screens = screen::Screens::new(start_screen)?;
-        let this = Self { screens };
-        Ok(this)
+        Ok(Self { screens })
     }
 
-    #[allow(dead_code)] // TODO
-    fn resize(&mut self, _w: f32, _h: f32) {} // TODO: ??
+    // TODO: remove empty lines
+    fn tick(&mut self) -> ZResult {
+        let aspect_ratio = aspect_ratio();
+        let camera = make_and_set_camera(aspect_ratio);
+        self.screens.resize(aspect_ratio)?;
+
+        // TODO: extract helper func?
+        let window_pos = input::mouse_position();
+        let window_pos = Vec2::new(window_pos.0, window_pos.1);
+        let pos = camera.screen_to_world(window_pos);
+        self.screens.move_mouse(pos)?;
+        if input::is_mouse_button_pressed(input::MouseButton::Left) {
+            self.screens.click(pos)?;
+        }
+
+        self.screens.update()?;
+        self.screens.draw()?;
+
+        Ok(())
+    }
 }
 
-//     fn resize_event(&mut self, w: f32, h: f32) {
-//         self.resize(w, h);
-//     }
+// TODO: clean this all up.
 
 //     fn mouse_motion_event(&mut self, x: f32, y: f32, _dx: f32, _dy: f32) {
 //         let window_pos = Vec2::new(x, y);
@@ -98,33 +131,23 @@ impl MainState {
 //     })
 // }
 
+// TODO: remove empty lines
 #[macroquad::main("Zemeroth")]
 async fn main() {
     // TODO: init logger
+    env_logger::init();
+
     // TODO: init random!
+    // quad_rand::srand(gwg::timer::time() as _);
+
     assets::load_assets().await;
+
+    // TODO: Do I really need a state at this point? Merge with Screens?
     let mut state = MainState::new().expect("Can't create the main state");
 
+    // TODO: handle mouse motion (highlight tiles, buttons, etc)
     loop {
-        state.screens.update().expect("Update call failed");
-
-        state.screens.draw().expect("Draw call failed");
-
-        // TODO: extract helper function
-        let aspect_ratio = window::screen_width() / window::screen_height();
-        let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-        let camera = Camera2D::from_display_rect(coordinates);
-        set_camera(camera);
-        state
-            .screens
-            .resize(aspect_ratio)
-            .expect("Can't resize screens");
-
-        if input::is_mouse_button_pressed(input::MouseButton::Left) {
-            let window_pos = input::mouse_position();
-            let pos = camera.screen_to_world(Vec2::new(window_pos.0, window_pos.1));
-            state.screens.click(pos).expect("Can't handle click event");
-        }
+        state.tick().expect("Tick failed");
         window::next_frame().await;
     }
 }

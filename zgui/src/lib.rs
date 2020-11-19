@@ -1,5 +1,8 @@
 //! Tiny and opinionated GUI.
 
+#![allow(clippy::clone_on_copy)] // TODO
+#![allow(clippy::useless_conversion)] // TODO
+
 use std::{
     cell::RefCell,
     error::Error as StdError,
@@ -10,6 +13,7 @@ use std::{
 
 use log::{info, trace};
 use macroquad::{
+    camera::{set_camera, Camera2D},
     prelude::{Color, Rect, Vec2},
     shapes,
     text::{draw_text_ex, measure_text, Font, TextParams},
@@ -20,7 +24,7 @@ use macroquad::{
 pub const SPRITE_COLOR: Color = Color::new_const(0, 0, 0, 255);
 pub const SPRITE_COLOR_INACTIVE: Color = Color::new_const(102, 102, 102, 127);
 pub const SPRITE_COLOR_BG: Color = Color::new_const(204, 204, 204, 127);
-pub const SPRITE_COLOR_BG_HIGHLIGHTED: Color = Color::new_const(229, 229, 229, 255);
+pub const SPRITE_COLOR_BG_HIGHLIGHTED: Color = Color::new_const(230, 230, 230, 127);
 pub const SPRITE_COLOR_BUTTON_BORDER: Color = Color::new_const(0, 0, 0, 229);
 
 // TODO: What should we do if some widget changes its size?
@@ -115,6 +119,7 @@ impl Drawable {
     }
 }
 
+// TODO: remove empty lines
 struct Sprite {
     drawable: Drawable,
     dimensions: Rect,
@@ -183,7 +188,6 @@ impl Sprite {
                         font: *font,
                         font_scale: self.scale.x(),
                         color: self.color,
-                        ..Default::default()
                     },
                 );
             }
@@ -219,6 +223,11 @@ impl Sprite {
         self.color = color;
     }
 
+    fn color(mut self, color: Color) -> Self {
+        self.set_color(color);
+        self
+    }
+
     fn set_pos(&mut self, pos: Vec2) {
         self.pos = pos.into();
     }
@@ -230,11 +239,10 @@ fn make_bg(rect: Rect) -> Result<Sprite> {
 
 fn make_rect(rect: Rect, color: Color) -> Result<Sprite> {
     let mesh = Drawable::SolidRect { rect };
-    let mut sprite = Sprite::new(mesh, rect.h)?;
-    sprite.set_color(color);
-    Ok(sprite)
+    Ok(Sprite::new(mesh, rect.h)?.color(color))
 }
 
+#[deprecated] // TODO: remove?
 pub fn window_to_screen(_pos: Vec2) -> Vec2 {
     // let (w, h) = graphics::drawable_size();
     // let w = w as f32;
@@ -322,8 +330,9 @@ pub struct Gui<Message: Clone> {
 }
 
 impl<Message: Clone> Gui<Message> {
+    #[allow(clippy::new_without_default)] // TODO
     pub fn new() -> Self {
-        let aspect_ratio = window::screen_width() / window::screen_height();
+        let aspect_ratio = window::screen_width() / window::screen_height(); // TODO: can remove code duplication here?
         trace!("Gui: aspect_ratio: {}", aspect_ratio);
         let (sender, receiver) = channel();
         Self {
@@ -343,15 +352,14 @@ impl<Message: Clone> Gui<Message> {
         let widget = widget.clone();
         let anchored_widget = AnchoredWidget { widget, anchor };
         self.anchored_widgets.push(anchored_widget);
-        let ratio = self.aspect_ratio;
-        self.resize(ratio);
+        self.do_resize(self.aspect_ratio);
     }
 
     pub fn remove(&mut self, widget: &RcWidget) {
-        let len_before = self.anchored_widgets.len();
-        self.anchored_widgets
-            .retain(|w| !Rc::ptr_eq(&w.widget, widget));
-        let len_after = self.anchored_widgets.len();
+        let anchored_widgets = &mut self.anchored_widgets;
+        let len_before = anchored_widgets.len();
+        anchored_widgets.retain(|w| !Rc::ptr_eq(&w.widget, widget));
+        let len_after = anchored_widgets.len();
         info!("len_before={}, len_after={}", len_before, len_after);
         if len_after != len_before - 1 {
             panic!("Can't remove the widget");
@@ -359,8 +367,6 @@ impl<Message: Clone> Gui<Message> {
     }
 
     pub fn draw(&self) {
-        use macroquad::prelude::{set_camera, Camera2D}; // TODO: move up
-
         //let old_coordinates = graphics::screen_coordinates();
         let ui_coordinates = Rect::new(-self.aspect_ratio, -1.0, self.aspect_ratio * 2.0, 2.0);
         let camera = Camera2D::from_display_rect(ui_coordinates);
@@ -385,7 +391,7 @@ impl<Message: Clone> Gui<Message> {
         }
     }
 
-    pub fn resize(&mut self, ratio: f32) {
+    pub fn do_resize(&mut self, ratio: f32) {
         self.aspect_ratio = ratio;
         trace!("Gui::resize: {}", ratio);
         let offset = 0.02; // TODO: make configurable
@@ -405,6 +411,14 @@ impl<Message: Clone> Gui<Message> {
             }
             widget.set_pos(pos.into());
         }
+    }
+
+    // TODO: rename to `resize_if_needed`, `sync_with_???`, or something.
+    pub fn resize(&mut self, ratio: f32) {
+        if (self.aspect_ratio - ratio).abs() < f32::EPSILON {
+            return;
+        }
+        self.do_resize(ratio);
     }
 }
 
@@ -810,7 +824,7 @@ impl<Message: Clone + Debug> Button<Message> {
             rect: outer,
             thickness: (outer.w - inner.w),
             // thickness: (outer.w - inner.w) / 2.,
-            // thickness: (outer.w - inner.w) * 8.0,
+            // thickness: (outer.w - inner.w) * 8.0, // TODO
         };
         let mut bg = Sprite::new(bg_mesh, height)?;
         bg.set_color(SPRITE_COLOR_BUTTON_BORDER);
