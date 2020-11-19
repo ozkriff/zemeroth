@@ -56,7 +56,7 @@ fn make_gui(assets: Assets) -> ui::Result<ui::Gui<Message>> {
     Ok(gui)
 }
 
-#[macroquad::main("ZGui: Text Button Demo")]
+#[macroquad::main("ZGui: Layers Layout Demo")]
 async fn main() {
     let assets = Assets::load().await;
     let mut gui = make_gui(assets).expect("TODO: err msg");
