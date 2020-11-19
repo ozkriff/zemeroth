@@ -1,23 +1,53 @@
-/*
-use gwg::{
-    conf, event,
-    graphics::{self, Font, Image, Vec2, Text},
-    Context, GameResult,
+use macroquad::{
+    self as mq,
+    camera::{set_camera, Camera2D},
+    prelude::{Rect, Vec2, WHITE},
+    text::{load_ttf_font, Font},
+    texture::{self, Texture2D},
 };
 use zgui as ui;
 
-#[derive(Clone, Copy, Debug)]
-enum Message {
-    Command1,
+fn aspect_ratio() -> f32 {
+    mq::window::screen_width() / mq::window::screen_height()
 }
 
-fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
-    let font_size = 64.0;
-    let mut gui = ui::Gui::new(context);
-    let text = Box::new(Text::new(("text", font, font_size)));
-    let image = Box::new(Image::new(context, "/fire.png")?);
-    let button_1 = ui::Button::new(context, image, 0.2, gui.sender(), Message::Command1)?;
-    let button_2 = ui::Label::new(context, text, 0.1)?;
+fn make_and_set_camera(aspect_ratio: f32) -> Camera2D {
+    let display_rect = Rect {
+        x: -aspect_ratio,
+        y: -1.0,
+        w: aspect_ratio * 2.0,
+        h: 2.0,
+    };
+    let camera = Camera2D::from_display_rect(display_rect);
+    set_camera(camera);
+    camera
+}
+
+#[derive(Clone, Copy, Debug)]
+enum Message {
+    Command,
+}
+
+struct Assets {
+    font: Font,
+    texture: Texture2D,
+}
+
+impl Assets {
+    async fn load() -> Self {
+        let font = load_ttf_font("zgui/assets/Karla-Regular.ttf").await;
+        let texture = texture::load_texture("zgui/assets/fire.png").await;
+        Self { font, texture }
+    }
+}
+
+fn make_gui(assets: Assets) -> ui::Result<ui::Gui<Message>> {
+    let font_size = 64;
+    let mut gui = ui::Gui::new();
+    let text = ui::Drawable::text(" text", assets.font, font_size);
+    let texture = ui::Drawable::Texture(assets.texture);
+    let button_1 = ui::Button::new(texture, 0.2, gui.sender(), Message::Command)?;
+    let button_2 = ui::Label::new(text, 0.1)?;
     let mut layout = ui::LayersLayout::new();
     layout.add(Box::new(button_1));
     layout.add(Box::new(button_2));
@@ -26,62 +56,27 @@ fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
     Ok(gui)
 }
 
-struct State {
-    gui: ui::Gui<Message>,
-}
-
-impl State {
-    fn new(context: &mut Context) -> ui::Result<State> {
-        let font = Font::new(context, "/Karla-Regular.ttf")?;
-        let gui = make_gui(context, font)?;
-        Ok(Self { gui })
-    }
-
-    fn resize(&mut self, _: &mut Context, w: f32, h: f32) {
-        let aspect_ratio = w / h;
-        self.gui.resize(aspect_ratio);
-    }
-}
-
-impl event::EventHandler for State {
-    fn update(&mut self, _: &mut Context) -> GameResult {
-        Ok(())
-    }
-
-    fn draw(&mut self) -> GameResult {
-        let bg_color = [1.0, 1.0, 1.0, 1.0].into();
-        graphics::clear(context, bg_color);
-        self.gui.draw(context)?;
-        graphics::present(context)
-    }
-
-    fn resize_event(&mut self, w: f32, h: f32) {
-        self.resize(context, w, h);
-    }
-
-    fn mouse_button_up_event(
-        &mut self,
-
-        _: gwg::event::MouseButton,
-        x: f32,
-        y: f32,
-    ) {
+#[macroquad::main("ZGui: Text Button Demo")]
+async fn main() {
+    let assets = Assets::load().await;
+    let mut gui = make_gui(assets).expect("TODO: err msg");
+    loop {
+        // Update the camera and the GUI.
+        let aspect_ratio = aspect_ratio();
+        let camera = make_and_set_camera(aspect_ratio);
+        gui.resize(aspect_ratio);
+        // Handle cursor updates.
+        let (x, y) = mq::input::mouse_position();
         let window_pos = Vec2::new(x, y);
-        let pos = ui::window_to_screen(context, window_pos);
-        let message = self.gui.click(pos);
-        println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);
+        let pos = camera.screen_to_world(window_pos);
+        gui.move_mouse(pos);
+        if mq::input::is_mouse_button_pressed(mq::input::MouseButton::Left) {
+            let message = gui.click(pos);
+            println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);
+        }
+        // Draw the GUI.
+        mq::window::clear_background(WHITE);
+        gui.draw();
+        mq::window::next_frame().await;
     }
 }
-
-fn main() -> gwg::GameResult {
-    gwg::start(
-        conf::Conf {
-            physical_root_dir: Some("resources".into()),
-            ..Default::default()
-        },
-        |mut context| Box::new(State::new(&mut context).expect("Can't create the state")),
-    )
-}
-*/
-
-fn main() {} // TODO: un-comment and fix
