@@ -12,7 +12,7 @@ enum Message {
     Command,
 }
 
-pub fn make_and_set_camera(aspect_ratio: f32) -> Camera2D {
+pub fn make_and_set_camera(_aspect_ratio: f32) -> Camera2D {
     let display_rect = Rect {
         x: 0.0,
         y: 0.0,
