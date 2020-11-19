@@ -281,7 +281,6 @@ impl Sprite {
                         font: *font,
                         font_scale: data.scale.x(),
                         color: data.color,
-                        ..Default::default()
                     },
                 );
             }

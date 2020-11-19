@@ -1,3 +1,6 @@
+#![allow(clippy::clone_on_copy)] // TODO: fix/remove
+#![allow(clippy::useless_conversion)] // TODO: fix/remove
+
 use std::{cell::RefCell, fmt, rc::Rc, time::Duration};
 
 //use gwg::{Context, GameResult};
