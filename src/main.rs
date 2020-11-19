@@ -10,37 +10,9 @@ mod screen;
 mod sprite_info;
 mod utils;
 
-use macroquad::{
-    camera::{set_camera, Camera2D},
-    input,
-    prelude::{Rect, Vec2},
-    window,
-};
+use macroquad::{input, window};
 
 type ZResult<T = ()> = Result<T, error::ZError>;
-
-// TODO: Move to utils.rs
-fn aspect_ratio() -> f32 {
-    window::screen_width() / window::screen_height()
-}
-
-// TODO: Move to utils.rs
-fn make_and_set_camera(aspect_ratio: f32) -> Camera2D {
-    let camera = Camera2D::from_display_rect(Rect {
-        x: -aspect_ratio,
-        y: -1.0,
-        w: aspect_ratio * 2.0,
-        h: 2.0,
-    });
-    set_camera(camera);
-    camera
-}
-
-// TODO: Move to utils.rs
-pub fn get_world_mouse_pos(camera: &Camera2D) -> Vec2 {
-    let (x, y) = input::mouse_position();
-    camera.screen_to_world(Vec2::new(x, y))
-}
 
 // TODO: Do I really need a state at this point? Merge with Screens?
 // TODO: Merge this with Screens?
@@ -56,10 +28,10 @@ impl MainState {
     }
 
     fn tick(&mut self) -> ZResult {
-        let aspect_ratio = aspect_ratio();
-        let camera = make_and_set_camera(aspect_ratio);
+        let aspect_ratio = utils::aspect_ratio();
+        let camera = utils::make_and_set_camera(aspect_ratio);
         self.screens.resize(aspect_ratio)?;
-        let pos = get_world_mouse_pos(&camera);
+        let pos = utils::get_world_mouse_pos(&camera);
         self.screens.move_mouse(pos)?;
         if input::is_mouse_button_pressed(input::MouseButton::Left) {
             self.screens.click(pos)?;

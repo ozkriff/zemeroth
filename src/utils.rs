@@ -1,6 +1,11 @@
 use std::{sync::mpsc::Receiver, time::Duration};
 
-use macroquad::{file::load_file, prelude::Rect};
+use macroquad::{
+    self as mq,
+    camera::{set_camera, Camera2D},
+    file::load_file,
+    prelude::{Rect, Vec2},
+};
 use serde::de::DeserializeOwned;
 
 use crate::{error::ZError, ZResult};
@@ -89,6 +94,26 @@ pub fn remove_widget<M: Clone>(gui: &mut ui::Gui<M>, widget: &mut Option<ui::RcW
         gui.remove(&w);
     }
     Ok(())
+}
+
+pub fn aspect_ratio() -> f32 {
+    mq::window::screen_width() / mq::window::screen_height()
+}
+
+pub fn make_and_set_camera(aspect_ratio: f32) -> Camera2D {
+    let camera = Camera2D::from_display_rect(Rect {
+        x: -aspect_ratio,
+        y: -1.0,
+        w: aspect_ratio * 2.0,
+        h: 2.0,
+    });
+    set_camera(camera);
+    camera
+}
+
+pub fn get_world_mouse_pos(camera: &Camera2D) -> Vec2 {
+    let (x, y) = mq::input::mouse_position();
+    camera.screen_to_world(Vec2::new(x, y))
 }
 
 pub fn try_receive<Message>(opt_rx: &Option<Receiver<Message>>) -> Option<Message> {

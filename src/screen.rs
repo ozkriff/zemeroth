@@ -2,11 +2,11 @@ use std::{fmt::Debug, time::Duration};
 
 use log::info;
 use macroquad::{
-    prelude::{Color, Vec2},
-    window::clear_background,
+    self as mq,
+    prelude::{Color, Rect, Vec2},
 };
 
-use crate::ZResult;
+use crate::{utils, ZResult};
 
 mod agent_info;
 mod battle;
@@ -65,7 +65,7 @@ impl ScreenWithPopups {
     }
 }
 
-// TODO: fix and use or remove
+// TODO: fix and use. or remove
 fn make_popup_bg_mesh() -> ZResult<ui::Drawable> {
     // let coords = graphics::screen_coordinates(context);
     // let mode = graphics::DrawMode::fill();
@@ -78,7 +78,7 @@ fn make_popup_bg_mesh() -> ZResult<ui::Drawable> {
 
     // TODO
     Ok(ui::Drawable::SolidRect {
-        rect: macroquad::prelude::Rect::new(0.0, 0.0, 1.0, 1.0),
+        rect: Rect::new(0.0, 0.0, 1.0, 1.0),
     })
 }
 
@@ -96,28 +96,26 @@ impl Screens {
     }
 
     pub fn update(&mut self) -> ZResult {
-        let dtime = macroquad::time::get_frame_time();
+        let dtime = mq::time::get_frame_time();
         let dtime = std::time::Duration::from_secs_f32(dtime);
         let command = self.screen_mut().top_mut().update(dtime)?;
         self.handle_command(command)
     }
 
     pub fn draw(&self) -> ZResult {
-        clear_background(COLOR_SCREEN_BG);
+        mq::window::clear_background(COLOR_SCREEN_BG);
         let screen = self.screen();
         screen.screen.draw()?;
         for popup in &screen.popups {
             // graphics::draw(&self.popup_bg_mesh, graphics::DrawParam::default()); // TODO: revive
-            // TODO: simplify and join with code from main()
+            // TODO: simplify/cleanup
             {
-                let aspect_ratio =
-                    macroquad::window::screen_width() / macroquad::window::screen_height();
-                let r = macroquad::prelude::Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-                macroquad::shapes::draw_rectangle(r.x, r.y, r.w, r.h, COLOR_POPUP_BG);
+                let aspect_ratio = utils::aspect_ratio();
+                let r = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
+                mq::shapes::draw_rectangle(r.x, r.y, r.w, r.h, COLOR_POPUP_BG);
             }
             popup.draw()?;
         }
-
         Ok(())
     }
 
@@ -126,7 +124,6 @@ impl Screens {
         self.handle_command(command)
     }
 
-    #[allow(dead_code)] // TODO
     pub fn move_mouse(&mut self, pos: Vec2) -> ZResult {
         self.screen_mut().top_mut().move_mouse(pos)
     }
