@@ -162,9 +162,6 @@ pub struct BattleView {
     layers: Layers,
     scene: Scene,
     sprites: Sprites,
-
-    // TODO: Do I need this at all?
-    // object_sprites: HashMap<ObjType, Sprite>, // TODO: rename to "sprite_prototypes"?
     messages_map: MessagesMap,
 }
 
@@ -281,11 +278,12 @@ impl BattleView {
 
     pub fn update_disappearing_sprites(&mut self) -> Box<dyn Action> {
         let mut actions = Vec::new();
-        for s in &mut self.sprites.disappearing_sprites {
+        let sprites = &mut self.sprites;
+        for s in &mut sprites.disappearing_sprites {
             s.turns_left -= 1;
             let mut color = s.sprite.color();
-            color.0[3] =
-                ((s.initial_alpha / s.turns_total as f32) * s.turns_left as f32 * 255.0) as u8;
+            let alpha = (s.initial_alpha / s.turns_total as f32) * s.turns_left as f32;
+            color.0[3] = (alpha * 255.0) as u8;
             let mut sub_actions = Vec::new();
             sub_actions.push(action::ChangeColorTo::new(&s.sprite, color, time_s(2.0)).boxed());
             if s.turns_left == 0 {
@@ -293,9 +291,7 @@ impl BattleView {
             }
             actions.push(visualize::fork(visualize::seq(sub_actions)));
         }
-        self.sprites
-            .disappearing_sprites
-            .retain(|s| s.turns_left > 0);
+        sprites.disappearing_sprites.retain(|s| s.turns_left > 0);
         visualize::seq(actions)
     }
 
@@ -318,10 +314,6 @@ impl BattleView {
     pub fn agent_info_set(&mut self, id: Id, sprites: Vec<Sprite>) {
         self.sprites.agent_info.insert(id, sprites);
     }
-
-    // pub fn sprite_info(&self, obj_type: &ObjType) -> SpriteInfo {
-    //     assets::get().sprites_info[obj_type].clone() // TODO
-    // }
 
     pub fn set_mode(
         &mut self,

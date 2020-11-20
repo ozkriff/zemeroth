@@ -284,7 +284,6 @@ fn show_flare_scale_time(
     time: Duration,
 ) -> ZResult<Box<dyn Action>> {
     let visible = color;
-    //let invisible = Color { a: 0.0, ..visible };
     let mut invisible = color;
     invisible.0[3] = 0;
     let size = view.tile_size() * 2.0 * scale;
@@ -978,12 +977,8 @@ fn visualize_effect_create(
     target_id: Id,
     effect: &effect::Create,
 ) -> ZResult<Box<dyn Action>> {
-    let assets::SpriteInfo {
-        shadow_size_coefficient,
-        sub_tile_z,
-        ..
-    } = &assets::get().sprites_info[&effect.prototype];
-    let z = hex_pos_to_z(effect.pos) + sub_tile_z;
+    let info = &assets::get().sprites_info[&effect.prototype];
+    let z = hex_pos_to_z(effect.pos) + info.sub_tile_z;
     let point = view.hex_to_point(effect.pos);
     let color = Color::new(1.0, 1.0, 1.0, 1.0);
     let size = view.tile_size() * 2.0;
@@ -1002,14 +997,14 @@ fn visualize_effect_create(
         sprite
     };
     let sprite_shadow = {
-        let mut sprite = Sprite::from_image(images().shadow, size * shadow_size_coefficient);
+        let mut sprite = Sprite::from_image(images().shadow, size * info.shadow_size_coefficient);
         sprite.set_centered(true);
         sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
         sprite.set_pos(point);
         sprite
     };
     view.add_object(target_id, &sprite_object, &sprite_shadow);
-    let time_appear = time_s(0.25);
+    let time_appear = time_s(0.2);
     let action_change_shadow_color =
         action::ChangeColorTo::new(&sprite_shadow, color, time_appear).boxed();
     let mut actions = Vec::new();
@@ -1032,7 +1027,6 @@ fn visualize_effect_create(
 fn visualize_effect_kill(
     state: &State,
     view: &mut BattleView,
-
     target_id: Id,
     effect: &effect::Kill,
 ) -> ZResult<Box<dyn Action>> {
@@ -1061,7 +1055,6 @@ fn visualize_effect_stun(
 fn visualize_effect_heal(
     state: &State,
     view: &mut BattleView,
-
     target_id: Id,
     effect: &effect::Heal,
 ) -> ZResult<Box<dyn Action>> {
@@ -1093,7 +1086,6 @@ fn wound_msg(effect: &effect::Wound) -> String {
 fn visualize_effect_wound(
     state: &State,
     view: &mut BattleView,
-
     target_id: Id,
     effect: &effect::Wound,
 ) -> ZResult<Box<dyn Action>> {
@@ -1120,7 +1112,6 @@ fn visualize_effect_wound(
 fn visualize_effect_knockback(
     _: &State,
     view: &mut BattleView,
-
     target_id: Id,
     effect: &effect::Knockback,
 ) -> ZResult<Box<dyn Action>> {

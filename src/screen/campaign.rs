@@ -277,7 +277,7 @@ impl Campaign {
         }
         let (sender, receiver) = channel();
         self.receiver_battle_result = Some(receiver);
-        let prototypes = assets::get().prototypes.clone(); // TODO: Do I really need to clone here?
+        let prototypes = assets::get().prototypes.clone();
         let battle_type = BattleType::CampaignNode;
         let screen = screen::Battle::new(scenario, battle_type, prototypes, sender)?;
         Ok(Box::new(screen))
