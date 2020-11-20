@@ -23,7 +23,6 @@ use crate::{
     },
     geom,
     screen::battle::view::BattleView,
-    sprite_info::SpriteInfo,
     utils::{font_size, time_s},
     ZResult,
 };
@@ -979,7 +978,7 @@ fn visualize_effect_create(
     target_id: Id,
     effect: &effect::Create,
 ) -> ZResult<Box<dyn Action>> {
-    let SpriteInfo {
+    let assets::SpriteInfo {
         shadow_size_coefficient,
         sub_tile_z,
         ..

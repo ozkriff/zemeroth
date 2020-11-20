@@ -10,6 +10,7 @@ use macroquad::{
     texture::{load_texture, Texture2D},
 };
 use once_cell::sync::OnceCell;
+use serde::Deserialize;
 
 use crate::{
     core::{
@@ -20,7 +21,6 @@ use crate::{
         },
         campaign,
     },
-    sprite_info::SpriteInfo,
     utils::{self, deserialize_from_file},
     ZResult,
 };
@@ -34,6 +34,21 @@ pub async fn load_assets() {
 
 pub fn get() -> &'static Assets {
     INSTANCE.get().expect("TODO: err msg")
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct SpriteInfo {
+    pub paths: HashMap<String, String>,
+    pub offset_x: f32,
+    pub offset_y: f32,
+    pub shadow_size_coefficient: f32,
+
+    #[serde(default = "default_sub_tile_z")]
+    pub sub_tile_z: f32,
+}
+
+fn default_sub_tile_z() -> f32 {
+    0.0
 }
 
 type SpritesInfo = HashMap<ObjType, SpriteInfo>;

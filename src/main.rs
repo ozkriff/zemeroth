@@ -5,7 +5,6 @@ mod core;
 mod error;
 mod geom;
 mod screen;
-mod sprite_info;
 mod utils;
 
 use macroquad::{input, window};
