@@ -1,5 +1,8 @@
 //! TODO: Document the motivation behind this module.
 
+// TODO: https://github.com/rust-lang/rust-clippy/issues/4637
+#![allow(clippy::eval_order_dependence)]
+
 use std::collections::HashMap;
 
 use macroquad::{
@@ -53,8 +56,6 @@ pub struct Assets {
 
 impl Assets {
     pub async fn load() -> ZResult<Self> {
-        let images = Images::load().await;
-        let font = text::load_ttf_font("assets/OpenSans-Regular.ttf").await;
         let sprites_info: SpritesInfo = deserialize_from_file("assets/sprites.ron").await?;
         let sprite_frames = {
             let mut sprite_frames = HashMap::new();
@@ -67,19 +68,15 @@ impl Assets {
             }
             sprite_frames
         };
-        let prototypes = Prototypes::from_str(&utils::read_file("assets/objects.ron").await?);
-        let demo_scenario = deserialize_from_file("assets/scenario_01.ron").await?;
-        let campaign_plan = deserialize_from_file("assets/campaign_01.ron").await?;
-        let agent_campaign_info = deserialize_from_file("assets/agent_campaign_info.ron").await?;
         Ok(Self {
-            images,
-            font,
+            images: Images::load().await,
+            font: text::load_ttf_font("assets/OpenSans-Regular.ttf").await,
             sprites_info,
             sprite_frames,
-            prototypes,
-            demo_scenario,
-            campaign_plan,
-            agent_campaign_info,
+            prototypes: Prototypes::from_str(&utils::read_file("assets/objects.ron").await?),
+            demo_scenario: deserialize_from_file("assets/scenario_01.ron").await?,
+            campaign_plan: deserialize_from_file("assets/campaign_01.ron").await?,
+            agent_campaign_info: deserialize_from_file("assets/agent_campaign_info.ron").await?,
         })
     }
 }
@@ -116,10 +113,7 @@ pub struct Images {
 }
 
 impl Images {
-    // TODO: https://github.com/rust-lang/rust-clippy/issues/4637
-    #[allow(clippy::eval_order_dependence)]
     pub async fn load() -> Self {
-        let ability_icons = load_ability_icons().await;
         Self {
             selection: load_texture("assets/img/selection.png").await,
             white_hex: load_texture("assets/img/white_hex.png").await,
@@ -130,7 +124,8 @@ impl Images {
             blood: load_texture("assets/img/blood.png").await,
             explosion_ground_mark: load_texture("assets/img/explosion_ground_mark.png").await,
             shadow: load_texture("assets/img/shadow.png").await,
-            ability_icons,
+
+            ability_icons: load_ability_icons().await,
 
             attack_slash: load_texture("assets/img/slash.png").await,
             attack_smash: load_texture("assets/img/smash.png").await,
