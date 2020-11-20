@@ -116,6 +116,8 @@ pub struct Images {
 }
 
 impl Images {
+    // TODO: https://github.com/rust-lang/rust-clippy/issues/4637
+    #[allow(clippy::eval_order_dependence)]
     pub async fn load() -> Self {
         let ability_icons = load_ability_icons().await;
         Self {
