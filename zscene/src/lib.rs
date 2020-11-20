@@ -1,8 +1,4 @@
-#![allow(clippy::useless_conversion)] // TODO: fix/remove
-
 use std::{cell::RefCell, fmt, rc::Rc, time::Duration};
-
-//use gwg::{Context, GameResult};
 
 pub use crate::{
     action::{Action, Boxed},

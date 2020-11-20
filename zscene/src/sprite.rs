@@ -243,7 +243,7 @@ impl Sprite {
         *data.offset.y_mut() = -dimensions.h * data.scale.y() * offset.y();
         let mut new_dest: Vec2 = data.pos;
         new_dest += data.offset - old_offset;
-        data.pos = new_dest.into();
+        data.pos = new_dest;
     }
 
     pub fn draw(&self) {
@@ -314,7 +314,7 @@ impl Sprite {
 
     pub fn set_pos(&mut self, pos: Vec2) {
         let mut data = self.data.borrow_mut();
-        data.pos = (pos + data.offset).into();
+        data.pos = pos + data.offset;
     }
 
     pub fn set_color(&mut self, color: Color) {

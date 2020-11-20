@@ -1,7 +1,5 @@
 //! Tiny and opinionated GUI.
 
-#![allow(clippy::useless_conversion)] // TODO
-
 use std::{
     cell::RefCell,
     error::Error as StdError,
@@ -225,7 +223,7 @@ impl Sprite {
     }
 
     fn set_pos(&mut self, pos: Vec2) {
-        self.pos = pos.into();
+        self.pos = pos;
     }
 }
 
@@ -405,7 +403,7 @@ impl<Message: Clone> Gui<Message> {
                 VAnchor::Middle => *pos.y_mut() = -rect.h / 2.0,
                 VAnchor::Bottom => *pos.y_mut() = (1.0 - rect.h) - offset,
             }
-            widget.set_pos(pos.into());
+            widget.set_pos(pos);
         }
     }
 
@@ -601,7 +599,7 @@ impl Widget for ColoredRect {
         if let Some(status) = stretch_checks(self, width) {
             return Ok(status);
         }
-        let pos: Vec2 = self.rect().point().into();
+        let pos: Vec2 = self.rect().point();
         let rect = Rect {
             w: width,
             h: self.rect().h,
@@ -881,7 +879,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
         if let Some(status) = stretch_checks(self, width) {
             return Ok(status);
         }
-        let pos: Vec2 = self.rect().point().into();
+        let pos: Vec2 = self.rect().point();
         let height = self.bg.dimensions.h;
         let outer = Rect {
             w: width,
@@ -941,10 +939,10 @@ impl Widget for Layout {
     }
 
     fn set_pos(&mut self, pos: Vec2) {
-        let point: Vec2 = self.rect.point().into();
+        let point: Vec2 = self.rect.point();
         let diff = pos - point;
         for widget in &mut self.widgets {
-            let pos: Vec2 = widget.rect().point().into();
+            let pos: Vec2 = widget.rect().point();
             widget.set_pos(pos + diff);
         }
         self.rect.move_to(pos);
@@ -995,9 +993,9 @@ impl VLayout {
             let rect = last.rect();
             let mut pos = rect.point();
             *pos.y_mut() += rect.h;
-            widget.set_pos(pos.into());
+            widget.set_pos(pos);
         } else {
-            widget.set_pos(self.internal.rect.point().into());
+            widget.set_pos(self.internal.rect.point());
         }
         self.internal.widgets.push(widget);
         self.internal.rect.h += rect.h;
@@ -1058,11 +1056,11 @@ impl HLayout {
         let rect = widget.rect();
         if let Some(last) = self.internal.widgets.last() {
             let rect = last.rect();
-            let mut pos: Vec2 = rect.point().into();
+            let mut pos: Vec2 = rect.point();
             *pos.x_mut() += rect.w;
             widget.set_pos(pos);
         } else {
-            widget.set_pos(self.internal.rect.point().into());
+            widget.set_pos(self.internal.rect.point());
         }
         self.internal.rect.w += rect.w;
         if self.internal.rect.h < rect.h {
@@ -1108,7 +1106,7 @@ impl Widget for HLayout {
         let mut diff_w = 0.0;
         for widget in widgets {
             let r = widget.rect();
-            let mut pos: Vec2 = r.point().into();
+            let mut pos: Vec2 = r.point();
             *pos.x_mut() += diff_w;
             widget.set_pos(pos);
             if widget.can_stretch() {
@@ -1141,7 +1139,7 @@ impl LayersLayout {
 
     pub fn add(&mut self, mut widget: Box<dyn Widget>) {
         let rect = widget.rect();
-        widget.set_pos(self.internal.rect.point().into());
+        widget.set_pos(self.internal.rect.point());
         self.internal.widgets.push(widget);
         if self.internal.rect.h < rect.h {
             self.internal.rect.h = rect.h;
