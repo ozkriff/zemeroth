@@ -324,7 +324,6 @@ pub struct Gui<Message: Clone> {
 }
 
 impl<Message: Clone> Gui<Message> {
-    #[allow(clippy::new_without_default)] // TODO
     pub fn new() -> Self {
         let aspect_ratio = window::screen_width() / window::screen_height(); // TODO: can remove code duplication here?
         trace!("Gui: aspect_ratio: {}", aspect_ratio);
@@ -413,6 +412,12 @@ impl<Message: Clone> Gui<Message> {
             return;
         }
         self.do_resize(ratio);
+    }
+}
+
+impl<Message: Clone> Default for Gui<Message> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
