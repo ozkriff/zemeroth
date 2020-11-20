@@ -1,6 +1,5 @@
 //! Tiny and opinionated GUI.
 
-#![allow(clippy::clone_on_copy)] // TODO
 #![allow(clippy::useless_conversion)] // TODO
 
 use std::{
@@ -63,14 +62,11 @@ impl StdError for Error {
     }
 }
 
-// fn quad_to_tris<T: Copy>(v: [T; 4]) -> [T; 6] {
-//     [v[0], v[1], v[2], v[0], v[2], v[3]]
-// }
-
 pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
     Rc::new(RefCell::new(widget))
 }
 
+// TODO: Think HARD about this API.
 #[derive(Debug, Clone)]
 pub enum Drawable {
     Texture(Texture2D),
@@ -113,8 +109,8 @@ impl Drawable {
                 let h = h * 1.4; // TODO: magic hack coefficient
                 Rect::new(0.0, 0.0, w, h)
             }
-            Drawable::SolidRect { rect, .. } => rect.clone(),
-            Drawable::LinesRect { rect, .. } => rect.clone(),
+            Drawable::SolidRect { rect, .. } => *rect,
+            Drawable::LinesRect { rect, .. } => *rect,
         }
     }
 }
