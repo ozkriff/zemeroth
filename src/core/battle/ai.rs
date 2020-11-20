@@ -168,7 +168,6 @@ impl Ai {
                     continue;
                 }
                 let id = agent_id;
-                let ability = ability.clone();
                 let command = command::UseAbility { id, pos, ability }.into();
                 if check(state, &command).is_ok() {
                     return Some(command);

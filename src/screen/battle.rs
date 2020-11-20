@@ -101,17 +101,15 @@ fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZRes
         Ok(Box::new(line))
     };
     let line_i = |arg: &str, val: i32| -> ZResult<_> { line(arg, &val.to_string()) };
-    let image_dot = images().dot;
     let line_dot = |arg: &str, val: &str, color: Color| -> ZResult<_> {
         let mut line = ui::HLayout::new().stretchable(true);
-        let dot_img = image_dot.clone();
         let dot_color = Color::new(color.r(), color.g(), color.b(), 1.0);
         let param = ui::LabelParam {
             drawable_k: 0.3,
             ..Default::default()
         };
-        let label_dot =
-            ui::Label::from_params(ui::Drawable::Texture(dot_img), h, param)?.with_color(dot_color);
+        let label_dot = ui::Label::from_params(ui::Drawable::Texture(images().dot), h, param)?
+            .with_color(dot_color);
         line.add(Box::new(label_dot));
         line.add(Box::new(ui::Spacer::new_horizontal(h * 0.1)));
         line.add(label(arg)?);
@@ -245,9 +243,9 @@ fn build_panel_agent_abilities(
     let h = line_heights().large;
     for ability in abilities {
         let icons = &assets::get().images.ability_icons;
-        let texture = icons.get(&ability.ability).expect("No icon found");
-        let drawable = ui::Drawable::Texture(texture.clone());
-        let msg = Message::Ability(ability.ability.clone());
+        let texture = *icons.get(&ability.ability).expect("No icon found");
+        let drawable = ui::Drawable::Texture(texture);
+        let msg = Message::Ability(ability.ability);
         let mut button = ui::Button::new(drawable, h, gui.sender(), msg)?;
         if !state::can_agent_use_ability(state, id, &ability.ability) {
             button.set_active(false);
@@ -551,7 +549,7 @@ impl Battle {
         self.panel_abilities = build_panel_agent_abilities(gui, state, id, &mode)?;
         self.panel_info = Some(build_panel_agent_info(gui, state, id)?);
         let map = self.pathfinder.map();
-        self.view.set_mode(state, map, id, &mode)?;
+        self.view.set_mode(state, map, id, mode)?;
         self.mode = mode;
         Ok(())
     }
@@ -620,7 +618,7 @@ impl Battle {
         if self.block_timer.is_some() {
             return Ok(());
         }
-        if let SelectionMode::Ability(ability) = self.mode.clone() {
+        if let SelectionMode::Ability(ability) = self.mode {
             let id = self.selected_agent_id.unwrap();
             let command = command::UseAbility { id, pos, ability }.into();
             if check(&self.state, &command).is_ok() {

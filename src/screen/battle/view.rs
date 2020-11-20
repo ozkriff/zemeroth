@@ -20,7 +20,7 @@ use crate::{
     ZResult,
 };
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SelectionMode {
     Normal,
     Ability(Ability),
@@ -176,7 +176,7 @@ impl BattleView {
         let tile_size = tile_size(map_diameter);
         let make_marker_sprite = |color: Color| -> ZResult<Sprite> {
             let h = tile_size * 2.0 * geom::FLATNESS_COEFFICIENT;
-            let mut sprite = Sprite::from_image(images().selection.clone(), h);
+            let mut sprite = Sprite::from_image(images().selection, h);
             sprite.set_centered(true);
             sprite.set_color(color);
             Ok(sprite)
@@ -326,14 +326,13 @@ impl BattleView {
     pub fn set_mode(
         &mut self,
         state: &State,
-
         map: &HexMap<movement::Tile>,
         selected_id: Id,
-        mode: &SelectionMode,
+        mode: SelectionMode,
     ) -> ZResult {
         match mode {
             SelectionMode::Normal => self.select_normal(state, map, selected_id),
-            SelectionMode::Ability(ref ability) => self.select_ability(state, selected_id, ability),
+            SelectionMode::Ability(ability) => self.select_ability(state, selected_id, ability),
         }
     }
 
@@ -396,12 +395,11 @@ impl BattleView {
         self.show_attackable_tiles(state, id)
     }
 
-    fn select_ability(&mut self, state: &State, selected_id: Id, ability: &Ability) -> ZResult {
+    fn select_ability(&mut self, state: &State, selected_id: Id, ability: Ability) -> ZResult {
         self.remove_highlights();
         let positions = state.map().iter();
         for pos in positions {
             let id = selected_id;
-            let ability = ability.clone();
             let command = command::UseAbility { id, ability, pos }.into();
             if battle::check(state, &command).is_ok() {
                 self.highlight_tile(pos, TILE_COLOR_ABILITY.into())?;
@@ -510,8 +508,8 @@ impl BattleView {
 fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let image = match state.map().tile(at) {
-        TileType::Plain => images().tile.clone(),
-        TileType::Rocks => images().tile_rocks.clone(),
+        TileType::Plain => images().tile,
+        TileType::Rocks => images().tile_rocks,
     };
     let size = view.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
     let mut sprite = Sprite::from_image(image, size);

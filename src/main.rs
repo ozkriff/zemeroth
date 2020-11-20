@@ -1,6 +1,5 @@
 #![windows_subsystem = "windows"]
 #![allow(clippy::eval_order_dependence)] // TODO
-#![allow(clippy::clone_on_copy)] // TODO
 
 mod assets;
 mod core;

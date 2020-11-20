@@ -480,7 +480,7 @@ fn execute_planned_abilities(state: &mut State, cb: Cb) {
                 if planned.rounds <= 0 {
                     trace!("planned ability: ready!");
                     let c = command::UseAbility {
-                        ability: planned.ability.clone(),
+                        ability: planned.ability,
                         id: obj_id,
                         pos,
                     };
@@ -1168,7 +1168,7 @@ fn execute_use_ability(state: &mut State, cb: Cb, command: &command::UseAbility)
     let active_event = event::UseAbility {
         id: command.id,
         pos: command.pos,
-        ability: command.ability.clone(),
+        ability: command.ability,
     }
     .into();
     let event = Event {

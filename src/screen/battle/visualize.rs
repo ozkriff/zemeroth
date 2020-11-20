@@ -314,10 +314,10 @@ fn show_weapon_flash(
     let tile_size = view.tile_size();
     let sprite_size = tile_size * 2.0;
     let image = match weapon_type {
-        WeaponType::Slash => images.attack_slash.clone(),
-        WeaponType::Smash => images.attack_smash.clone(),
-        WeaponType::Pierce => images.attack_pierce.clone(),
-        WeaponType::Claw => images.attack_claws.clone(),
+        WeaponType::Slash => images.attack_slash,
+        WeaponType::Smash => images.attack_smash,
+        WeaponType::Pierce => images.attack_pierce,
+        WeaponType::Claw => images.attack_claws,
     };
     let mut sprite = Sprite::from_image(image, sprite_size);
     let point = view.hex_to_point(at) - Vec2::new(0.0, tile_size * 0.3);
@@ -445,7 +445,6 @@ fn generate_brief_obj_info(
     view: &mut BattleView,
     id: Id,
 ) -> ZResult<Box<dyn Action>> {
-    let dot_image = images().dot.clone();
     let mut actions = Vec::new();
     let parts = state.parts();
     let agent = parts.agent.get(id);
@@ -482,7 +481,7 @@ fn generate_brief_obj_info(
     }
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
-        let mut sprite = Sprite::from_image(dot_image, size);
+        let mut sprite = Sprite::from_image(images().dot, size);
         sprite.set_centered(true);
         sprite.set_pos(point);
         sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
@@ -1004,8 +1003,7 @@ fn visualize_effect_create(
         sprite
     };
     let sprite_shadow = {
-        let image_shadow = images().shadow.clone();
-        let mut sprite = Sprite::from_image(image_shadow, size * shadow_size_coefficient);
+        let mut sprite = Sprite::from_image(images().shadow, size * shadow_size_coefficient);
         sprite.set_centered(true);
         sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
         sprite.set_pos(point);
