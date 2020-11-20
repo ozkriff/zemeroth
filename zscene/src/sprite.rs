@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, fmt, hash::Hash, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, fmt, rc::Rc};
 
 use macroquad::{
     prelude::{Color, Rect, Vec2},
@@ -149,35 +149,12 @@ impl Sprite {
         data.drawables.insert(frame_name, Some(drawable));
     }
 
-    // // TODO: deprecate?
-    // // TODO: try to simplify the signature
-    // #[deprecated]
-    // pub async fn from_paths<
-    //     S: Eq + Hash + std::borrow::Borrow<str>,
-    //     P: Eq + Hash + std::borrow::Borrow<str>,
-    // >(
-    //     paths: &HashMap<S, P>,
-    //     height: f32,
-    // ) -> Result<Self> {
-    //     let path = paths.get(&"").expect("missing default path");
-    //     let mut this = Self::from_path(path.borrow(), height).await;
-    //     for (frame_name, frame_path) in paths.iter() {
-    //         let image = load_texture(frame_path.borrow()).await;
-    //         this.add_frame(frame_name.borrow().to_string(), Drawable::Texture(image));
-    //     }
-    //     Ok(this)
-    // }
-
-    // TODO: try to simplify the signature
     // TODO: rename to `from_frames` or `from_textures`
-    pub fn from_images<S: Eq + Hash + std::borrow::Borrow<str>>(
-        frames: &HashMap<S, Texture2D>,
-        height: f32,
-    ) -> Self {
-        let image = *frames.get(&"").expect("missing default path");
+    pub fn from_images(frames: &HashMap<String, Texture2D>, height: f32) -> Self {
+        let image = *frames.get("").expect("missing default path");
         let mut this = Self::from_image(image, height);
         for (frame_name, &image) in frames.iter() {
-            this.add_frame(frame_name.borrow().to_string(), Drawable::Texture(image));
+            this.add_frame(frame_name.clone(), Drawable::Texture(image));
         }
         this
     }
