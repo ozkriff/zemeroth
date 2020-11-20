@@ -1,5 +1,9 @@
 #![windows_subsystem = "windows"]
 
+use std::time::Duration;
+
+use macroquad::{self as mq, input, window};
+
 mod assets;
 mod core;
 mod error;
@@ -7,33 +11,35 @@ mod geom;
 mod screen;
 mod utils;
 
-use macroquad::{input, window};
-
 type ZResult<T = ()> = Result<T, error::ZError>;
 
-// TODO: Do I really need a state at this point? Merge with Screens?
-// TODO: Merge this with Screens?
 struct MainState {
-    screens: screen::Screens,
+    screens: screen::ScreenStack,
 }
 
 impl MainState {
     fn new() -> ZResult<Self> {
         let start_screen = Box::new(screen::MainMenu::new()?);
-        let screens = screen::Screens::new(start_screen)?;
+        let screens = screen::ScreenStack::new(start_screen)?;
         Ok(Self { screens })
     }
 
     fn tick(&mut self) -> ZResult {
+        // Handle possible window resize and create a camera.
         let aspect_ratio = utils::aspect_ratio();
         let camera = utils::make_and_set_camera(aspect_ratio);
         self.screens.resize(aspect_ratio)?;
+        // Handle user input events.
         let pos = utils::get_world_mouse_pos(&camera);
         self.screens.move_mouse(pos)?;
         if input::is_mouse_button_pressed(input::MouseButton::Left) {
             self.screens.click(pos)?;
         }
-        self.screens.update()?;
+        // Update the game state.
+        let dtime = Duration::from_secs_f32(mq::time::get_frame_time());
+        self.screens.update(dtime)?;
+        // Draw everything.
+        mq::window::clear_background(screen::COLOR_SCREEN_BG);
         self.screens.draw()?;
         Ok(())
     }

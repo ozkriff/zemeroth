@@ -20,8 +20,8 @@ pub use self::{
     general_info::GeneralInfo, main_menu::MainMenu,
 };
 
-const COLOR_SCREEN_BG: Color = Color::new_const(229, 229, 204, 255);
-const COLOR_POPUP_BG: Color = Color::new_const(229, 229, 204, 229);
+pub const COLOR_SCREEN_BG: Color = Color::new_const(229, 229, 204, 255);
+pub const COLOR_POPUP_BG: Color = Color::new_const(229, 229, 204, 229);
 
 #[derive(Debug)]
 pub enum StackCommand {
@@ -82,12 +82,12 @@ fn make_popup_bg_mesh() -> ZResult<ui::Drawable> {
     })
 }
 
-pub struct Screens {
+pub struct ScreenStack {
     screens: Vec<ScreenWithPopups>,
     popup_bg_mesh: ui::Drawable,
 }
 
-impl Screens {
+impl ScreenStack {
     pub fn new(start_screen: Box<dyn Screen>) -> ZResult<Self> {
         Ok(Self {
             screens: vec![ScreenWithPopups::new(start_screen)],
@@ -95,15 +95,12 @@ impl Screens {
         })
     }
 
-    pub fn update(&mut self) -> ZResult {
-        let dtime = mq::time::get_frame_time();
-        let dtime = std::time::Duration::from_secs_f32(dtime);
+    pub fn update(&mut self, dtime: Duration) -> ZResult {
         let command = self.screen_mut().top_mut().update(dtime)?;
         self.handle_command(command)
     }
 
     pub fn draw(&self) -> ZResult {
-        mq::window::clear_background(COLOR_SCREEN_BG);
         let screen = self.screen();
         screen.screen.draw()?;
         for popup in &screen.popups {
