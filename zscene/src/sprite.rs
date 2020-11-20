@@ -85,13 +85,13 @@ impl Sprite {
             drawable: data.drawable.clone(),
             drawables: data.drawables.clone(),
             current_frame_name: data.current_frame_name.clone(),
-            dimensions: data.dimensions.clone(),
-            basic_scale: data.basic_scale.clone(),
-            pos: data.pos.clone(),
-            scale: data.scale.clone(),
-            color: data.color.clone(),
-            offset: data.offset.clone(),
-            facing: data.facing.clone(),
+            dimensions: data.dimensions,
+            basic_scale: data.basic_scale,
+            pos: data.pos,
+            scale: data.scale,
+            color: data.color,
+            offset: data.offset,
+            facing: data.facing,
         };
 
         Sprite {
@@ -174,13 +174,10 @@ impl Sprite {
         frames: &HashMap<S, Texture2D>,
         height: f32,
     ) -> Self {
-        let image = frames.get(&"").expect("missing default path").clone();
+        let image = *frames.get(&"").expect("missing default path");
         let mut this = Self::from_image(image, height);
-        for (frame_name, image) in frames.iter() {
-            this.add_frame(
-                frame_name.borrow().to_string(),
-                Drawable::Texture(image.clone()),
-            );
+        for (frame_name, &image) in frames.iter() {
+            this.add_frame(frame_name.borrow().to_string(), Drawable::Texture(image));
         }
         this
     }
