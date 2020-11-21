@@ -120,9 +120,8 @@ impl Sprite {
         Self { data }
     }
 
-    // TODO: rename to `from_texture`
-    pub fn from_image(image: Texture2D, height: f32) -> Self {
-        Self::from_drawable(Drawable::Texture(image), height)
+    pub fn from_texture(texture: Texture2D, height: f32) -> Self {
+        Self::from_drawable(Drawable::Texture(texture), height)
     }
 
     // TODO: Simplify the signature. or remove?
@@ -137,24 +136,16 @@ impl Sprite {
         )
     }
 
-    // TODO: remove
-    #[deprecated]
-    pub async fn from_path(path: &str, height: f32) -> Self {
-        let image = texture::load_texture(path).await;
-        Self::from_image(image, height)
-    }
-
     fn add_frame(&mut self, frame_name: String, drawable: Drawable) {
         let mut data = self.data.borrow_mut();
         data.drawables.insert(frame_name, Some(drawable));
     }
 
-    // TODO: rename to `from_frames` or `from_textures`
-    pub fn from_images(frames: &HashMap<String, Texture2D>, height: f32) -> Self {
-        let image = *frames.get("").expect("missing default path");
-        let mut this = Self::from_image(image, height);
-        for (frame_name, &image) in frames.iter() {
-            this.add_frame(frame_name.clone(), Drawable::Texture(image));
+    pub fn from_textures(frames: &HashMap<String, Texture2D>, height: f32) -> Self {
+        let tex = *frames.get("").expect("missing default path");
+        let mut this = Self::from_texture(tex, height);
+        for (frame_name, &tex) in frames.iter() {
+            this.add_frame(frame_name.clone(), Drawable::Texture(tex));
         }
         this
     }

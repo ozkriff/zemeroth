@@ -80,7 +80,7 @@ type SpritesInfo = HashMap<ObjType, SpriteInfo>;
 
 #[derive(Debug)]
 pub struct Assets {
-    pub images: Images,
+    pub textures: Textures,
     pub font: Font,
     pub sprites_info: SpritesInfo,
     pub sprite_frames: HashMap<ObjType, HashMap<String, Texture2D>>,
@@ -105,7 +105,7 @@ impl Assets {
             sprite_frames
         };
         Ok(Self {
-            images: Images::load().await,
+            textures: Textures::load().await,
             font: text::load_ttf_font("assets/OpenSans-Regular.ttf").await,
             sprites_info,
             sprite_frames,
@@ -117,28 +117,27 @@ impl Assets {
     }
 }
 
-// TODO: rename to Textures (and do similar renames all over the project)
 #[derive(Debug)]
-pub struct Images {
-    pub map: MapObjectImages,
+pub struct Textures {
+    pub map: MapObjectTextures,
     pub weapon_flashes: HashMap<WeaponType, Texture2D>,
-    pub icons: IconImages,
+    pub icons: IconTextures,
     pub dot: Texture2D,
 }
 
-impl Images {
+impl Textures {
     async fn load() -> Self {
         Self {
-            map: MapObjectImages::load().await,
+            map: MapObjectTextures::load().await,
             weapon_flashes: load_weapon_flashes().await,
-            icons: IconImages::load().await,
+            icons: IconTextures::load().await,
             dot: load_texture("assets/img/dot.png").await,
         }
     }
 }
 
 #[derive(Debug)]
-pub struct MapObjectImages {
+pub struct MapObjectTextures {
     pub selection: Texture2D,
     pub white_hex: Texture2D,
     pub tile: Texture2D,
@@ -149,7 +148,7 @@ pub struct MapObjectImages {
     pub shadow: Texture2D,
 }
 
-impl MapObjectImages {
+impl MapObjectTextures {
     async fn load() -> Self {
         Self {
             selection: load_texture("assets/img/selection.png").await,
@@ -165,7 +164,7 @@ impl MapObjectImages {
 }
 
 #[derive(Debug)]
-pub struct IconImages {
+pub struct IconTextures {
     pub info: Texture2D,
     pub end_turn: Texture2D,
     pub main_menu: Texture2D,
@@ -173,7 +172,7 @@ pub struct IconImages {
     pub lasting_effects: HashMap<effect::Lasting, Texture2D>,
 }
 
-impl IconImages {
+impl IconTextures {
     async fn load() -> Self {
         Self {
             info: load_texture("assets/img/icon_info.png").await,

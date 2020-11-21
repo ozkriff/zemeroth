@@ -57,8 +57,8 @@ fn agent_image(typename: &ObjType) -> ZResult<Box<dyn ui::Widget>> {
     let h = 0.3;
     let assets = &assets::get();
     let default_frame = "";
-    let image = Drawable::Texture(assets.sprite_frames[typename][default_frame]);
-    let label = ui::Label::new(image, h)?
+    let texture = Drawable::Texture(assets.sprite_frames[typename][default_frame]);
+    let label = ui::Label::new(texture, h)?
         .with_color(Color::new(1.0, 1.0, 1.0, 1.0))
         .stretchable(true);
     Ok(Box::new(label))
@@ -148,7 +148,7 @@ fn info_panel(
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(&text)?);
                     line_layout.add(spacer_s());
-                    let icon = Drawable::Texture(assets::get().images.icons.info);
+                    let icon = Drawable::Texture(assets::get().textures.icons.info);
                     let message = Message::AbilityInfo(r_ability.ability);
                     let button = ui::Button::new(icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));
@@ -164,7 +164,7 @@ fn info_panel(
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(&ability.title())?);
                     line_layout.add(spacer_s());
-                    let icon = Drawable::Texture(assets::get().images.icons.info);
+                    let icon = Drawable::Texture(assets::get().textures.icons.info);
                     let message = Message::PassiveAbilityInfo(ability);
                     let button = ui::Button::new(icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));

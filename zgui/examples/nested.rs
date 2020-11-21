@@ -17,10 +17,10 @@ enum Message {
 fn make_gui(assets: common::Assets) -> ui::Result<ui::Gui<Message>> {
     let font_size = 64;
     let text = |s| ui::Drawable::text(s, assets.font, font_size);
-    let image = || ui::Drawable::Texture(assets.texture);
+    let texture = || ui::Drawable::Texture(assets.texture);
     let mut gui = ui::Gui::new();
     {
-        let button = ui::Button::new(image(), 0.1, gui.sender(), Message::Image)?;
+        let button = ui::Button::new(texture(), 0.1, gui.sender(), Message::Image)?;
         let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Top);
         gui.add(&ui::pack(button), anchor);
     }
@@ -40,7 +40,7 @@ fn make_gui(assets: common::Assets) -> ui::Result<ui::Gui<Message>> {
         layout
     };
     let v_layout_2 = {
-        let button_i = ui::Button::new(image(), 0.1, gui.sender(), Message::Image)?;
+        let button_i = ui::Button::new(texture(), 0.1, gui.sender(), Message::Image)?;
         let button_x = ui::Button::new(text("X"), 0.1, gui.sender(), Message::X)?;
         let button_y = ui::Button::new(text("Y"), 0.1, gui.sender(), Message::Y)?;
         let button_z = ui::Button::new(text("Z"), 0.1, gui.sender(), Message::Z)?;
@@ -54,7 +54,7 @@ fn make_gui(assets: common::Assets) -> ui::Result<ui::Gui<Message>> {
     {
         let button_a = ui::Button::new(text("A"), 0.1, gui.sender(), Message::A)?;
         let button_b = ui::Button::new(text("B"), 0.1, gui.sender(), Message::B)?;
-        let button_i = ui::Button::new(image(), 0.2, gui.sender(), Message::Image)?;
+        let button_i = ui::Button::new(texture(), 0.2, gui.sender(), Message::Image)?;
         let mut layout = ui::HLayout::new();
         layout.add(Box::new(button_a));
         layout.add(Box::new(button_i));

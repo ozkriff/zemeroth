@@ -40,9 +40,6 @@ use crate::{
     ZResult,
 };
 
-// TODO: Don't use graphics::Image::new in this file! Pre-load all images into View.
-// YEAH GOOD IDEA
-
 mod view;
 mod visualize;
 
@@ -57,8 +54,8 @@ enum Message {
     LastingEffectInfo(effect::Lasting),
 }
 
-fn images() -> &'static assets::Images {
-    &assets::get().images
+fn textures() -> &'static assets::Textures {
+    &assets::get().textures
 }
 
 fn line_with_info_button(
@@ -69,7 +66,7 @@ fn line_with_info_button(
     let h = line_heights().normal;
     let font = assets::get().font;
     let text = ui::Drawable::text(text, font, FONT_SIZE);
-    let icon = images().icons.info;
+    let icon = textures().icons.info;
     let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), message)?;
     let mut line = Box::new(ui::HLayout::new().stretchable(true));
     line.add(Box::new(ui::Label::new(text, h)?));
@@ -108,7 +105,7 @@ fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZRes
             drawable_k: 0.3,
             ..Default::default()
         };
-        let label_dot = ui::Label::from_params(ui::Drawable::Texture(images().dot), h, param)?
+        let label_dot = ui::Label::from_params(ui::Drawable::Texture(textures().dot), h, param)?
             .with_color(dot_color);
         line.add(Box::new(label_dot));
         line.add(Box::new(ui::Spacer::new_horizontal(h * 0.1)));
@@ -192,7 +189,7 @@ fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZRes
                     };
                     let message = Message::LastingEffectInfo(effect.effect);
                     let text = ui::Drawable::text(&text, font, FONT_SIZE);
-                    let icon_info = images().icons.info;
+                    let icon_info = textures().icons.info;
                     let button_info = ui::Button::new(
                         ui::Drawable::Texture(icon_info),
                         h,
@@ -242,7 +239,7 @@ fn build_panel_agent_abilities(
     let mut layout = ui::VLayout::new().stretchable(true);
     let h = line_heights().large;
     for ability in abilities {
-        let icons = &assets::get().images.icons.abilities;
+        let icons = &assets::get().textures.icons.abilities;
         let texture = *icons.get(&ability.ability).expect("No such icon found");
         let drawable = ui::Drawable::Texture(texture);
         let msg = Message::Ability(ability.ability);
@@ -275,7 +272,7 @@ fn build_panel_agent_abilities(
 
 fn build_panel_end_turn(gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
     let h = line_heights().large;
-    let icon = images().icons.end_turn;
+    let icon = textures().icons.end_turn;
     let button = ui::Button::new(
         ui::Drawable::Texture(icon),
         h,
@@ -342,7 +339,7 @@ fn build_panel_ability_description(
 fn make_gui() -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new();
     let h = line_heights().large;
-    let icon = images().icons.main_menu;
+    let icon = textures().icons.main_menu;
     let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), Message::Exit)?;
     let layout = ui::VLayout::from_widget(Box::new(button));
     let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);

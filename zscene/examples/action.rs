@@ -52,7 +52,7 @@ impl State {
     }
 
     fn action_demo_move(&self) -> Box<dyn Action> {
-        let mut sprite = Sprite::from_image(self.assets.texture, 0.5);
+        let mut sprite = Sprite::from_texture(self.assets.texture, 0.5);
         sprite.set_pos(Vec2::new(0.0, -1.0));
         let delta = Vec2::new(0.0, 1.5);
         let move_duration = Duration::from_millis(2_000);
