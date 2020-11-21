@@ -24,8 +24,6 @@ pub const SPRITE_COLOR_BG: Color = Color::new_const(204, 204, 204, 127);
 pub const SPRITE_COLOR_BG_HIGHLIGHTED: Color = Color::new_const(230, 230, 230, 127);
 pub const SPRITE_COLOR_BUTTON_BORDER: Color = Color::new_const(0, 0, 0, 229);
 
-// TODO: What should we do if some widget changes its size?
-
 // TODO: Add ScrollArea widget
 
 pub type Result<T = ()> = std::result::Result<T, Error>;
@@ -221,19 +219,6 @@ fn make_rect(rect: Rect, color: Color) -> Result<Sprite> {
     Ok(Sprite::new(mesh, rect.h)?.color(color))
 }
 
-#[deprecated] // TODO: remove?
-pub fn window_to_screen(_pos: Vec2) -> Vec2 {
-    // let (w, h) = graphics::drawable_size();
-    // let w = w as f32;
-    // let h = h as f32;
-    // let aspect_ratio = w / h;
-    // Vec2::new(
-    //     (2.0 * pos.x / w - 1.0) * aspect_ratio,
-    //     2.0 * pos.y / h - 1.0,
-    // )
-    unimplemented!()
-}
-
 #[derive(Clone, Copy, Debug)]
 pub enum VAnchor {
     Top,
@@ -395,7 +380,6 @@ impl<Message: Clone> Gui<Message> {
         if (self.aspect_ratio - aspect_ratio).abs() > f32::EPSILON {
             self.do_resize(aspect_ratio);
         }
-        self.do_resize(ratio);
     }
 }
 
