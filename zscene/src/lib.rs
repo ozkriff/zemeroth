@@ -17,14 +17,12 @@ pub fn duration_to_f64(d: Duration) -> f64 {
 
 #[derive(Debug)]
 pub enum Error {
-    GwgError, // TODO: rename. maybe remove.
     NoDimensions,
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Error::GwgError => write!(f, "gwg Error"),
             Error::NoDimensions => write!(f, "The drawable has no dimensions"),
         }
     }
@@ -33,17 +31,10 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::GwgError => None,
             Error::NoDimensions => None,
         }
     }
 }
-
-// impl From<gwg::GameError> for Error {
-//     fn from(e: gwg::GameError) -> Self {
-//         Error::GwgError(e)
-//     }
-// }
 
 #[derive(Debug)]
 struct SpriteWithZ {

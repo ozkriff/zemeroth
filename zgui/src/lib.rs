@@ -32,7 +32,6 @@ pub type Result<T = ()> = std::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    GwgError,
     BadBorderCoefficient,
     BadContentCoefficient,
     NoDimensions,
@@ -41,7 +40,6 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Error::GwgError => write!(f, "gwg Error"),
             Error::BadBorderCoefficient => write!(f, "Border size is too large"),
             Error::BadContentCoefficient => write!(f, "Content size is too large"),
             Error::NoDimensions => write!(f, "The drawable has no dimensions"),
@@ -52,7 +50,6 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match *self {
-            Error::GwgError => None,
             Error::BadBorderCoefficient | Error::BadContentCoefficient | Error::NoDimensions => {
                 None
             }
