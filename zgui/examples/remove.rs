@@ -73,7 +73,7 @@ async fn main() {
         // Update the camera and the GUI.
         let aspect_ratio = common::aspect_ratio();
         let camera = common::make_and_set_camera(aspect_ratio);
-        state.gui.resize(aspect_ratio);
+        state.gui.resize_if_needed(aspect_ratio);
         // Handle cursor updates.
         let pos = common::get_world_mouse_pos(&camera);
         state.gui.move_mouse(pos);

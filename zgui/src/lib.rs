@@ -391,10 +391,9 @@ impl<Message: Clone> Gui<Message> {
         }
     }
 
-    // TODO: rename to `resize_if_needed`, `sync_with_???`, or something.
-    pub fn resize(&mut self, ratio: f32) {
-        if (self.aspect_ratio - ratio).abs() < f32::EPSILON {
-            return;
+    pub fn resize_if_needed(&mut self, aspect_ratio: f32) {
+        if (self.aspect_ratio - aspect_ratio).abs() > f32::EPSILON {
+            self.do_resize(aspect_ratio);
         }
         self.do_resize(ratio);
     }

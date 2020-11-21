@@ -80,7 +80,7 @@ impl Screen for MainMenu {
         trace!("MainMenu: click: pos={:?}, message={:?}", pos, message);
         match message {
             Some(Message::StartInstant) => {
-                let prototypes = assets::get().prototypes.clone(); // TODO: Do I really need to clone here?
+                let prototypes = assets::get().prototypes.clone();
                 let scenario = assets::get().demo_scenario.clone();
                 let (sender, receiver) = channel();
                 self.receiver_battle_result = Some(receiver);
@@ -98,7 +98,7 @@ impl Screen for MainMenu {
     }
 
     fn resize(&mut self, aspect_ratio: f32) {
-        self.gui.resize(aspect_ratio);
+        self.gui.resize_if_needed(aspect_ratio);
     }
 
     fn move_mouse(&mut self, pos: Vec2) -> ZResult {

@@ -713,7 +713,7 @@ impl Screen for Battle {
     }
 
     fn resize(&mut self, aspect_ratio: f32) {
-        self.gui.resize(aspect_ratio);
+        self.gui.resize_if_needed(aspect_ratio);
     }
 
     fn move_mouse(&mut self, point: Vec2) -> ZResult {
