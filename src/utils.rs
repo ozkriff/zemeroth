@@ -3,31 +3,14 @@ use std::{sync::mpsc::Receiver, time::Duration};
 use macroquad::{
     self as mq,
     camera::{set_camera, Camera2D},
-    file::load_file,
     prelude::{Rect, Vec2},
 };
-use serde::de::DeserializeOwned;
 
-use crate::{error::ZError, ZResult};
+use crate::ZResult;
 
 pub fn time_s(s: f32) -> Duration {
     let ms = s * 1000.0;
     Duration::from_millis(ms as u64)
-}
-
-// TODO: move to assets.rs and make private?
-/// Read a file to a string.
-pub async fn read_file(path: &str) -> ZResult<String> {
-    // TODO: impl from for zerror
-    let data = load_file(path).await.unwrap();
-    let string = String::from_utf8_lossy(&data[..]).to_owned().to_string();
-    Ok(string)
-}
-
-// TODO: move to assets.rs and make private?
-pub async fn deserialize_from_file<D: DeserializeOwned>(path: &str) -> ZResult<D> {
-    let s = read_file(path).await?;
-    ron::de::from_str(&s).map_err(|e| ZError::from_ron_de_error(e, path.into()))
 }
 
 // TODO: Move to some config (https://github.com/ozkriff/zemeroth/issues/424)

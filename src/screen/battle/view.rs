@@ -173,7 +173,7 @@ impl BattleView {
         let tile_size = tile_size(map_diameter);
         let make_marker_sprite = |color: Color| -> ZResult<Sprite> {
             let h = tile_size * 2.0 * geom::FLATNESS_COEFFICIENT;
-            let mut sprite = Sprite::from_image(images().selection, h);
+            let mut sprite = Sprite::from_image(images().map.selection, h);
             sprite.set_centered(true);
             sprite.set_color(color);
             Ok(sprite)
@@ -464,7 +464,7 @@ impl BattleView {
 
     fn highlight_tile(&mut self, pos: PosHex, color: Color) -> ZResult {
         let size = self.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
-        let mut sprite = Sprite::from_image(images().white_hex, size);
+        let mut sprite = Sprite::from_image(images().map.white_hex, size);
         let color_from = Color::new(color.r(), color.g(), color.b(), 0.0);
         sprite.set_centered(true);
         sprite.set_color(color_from);
@@ -500,8 +500,8 @@ impl BattleView {
 fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let image = match state.map().tile(at) {
-        TileType::Plain => images().tile,
-        TileType::Rocks => images().tile_rocks,
+        TileType::Plain => images().map.tile,
+        TileType::Rocks => images().map.tile_rocks,
     };
     let size = view.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
     let mut sprite = Sprite::from_image(image, size);
@@ -512,7 +512,7 @@ fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResul
 
 fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
-    let mut sprite = Sprite::from_image(images().grass, view.tile_size() * 2.0);
+    let mut sprite = Sprite::from_image(images().map.grass, view.tile_size() * 2.0);
     let v_offset = view.tile_size() * 0.5; // depends on the image
     let mut screen_pos_grass = screen_pos + geom::rand_tile_offset(view.tile_size(), 0.5);
     *screen_pos_grass.y_mut() -= v_offset;

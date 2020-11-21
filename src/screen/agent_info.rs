@@ -148,7 +148,7 @@ fn info_panel(
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(&text)?);
                     line_layout.add(spacer_s());
-                    let icon = Drawable::Texture(assets::get().images.icon_info);
+                    let icon = Drawable::Texture(assets::get().images.icons.info);
                     let message = Message::AbilityInfo(r_ability.ability);
                     let button = ui::Button::new(icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));
@@ -164,7 +164,7 @@ fn info_panel(
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(&ability.title())?);
                     line_layout.add(spacer_s());
-                    let icon = Drawable::Texture(assets::get().images.icon_info);
+                    let icon = Drawable::Texture(assets::get().images.icons.info);
                     let message = Message::PassiveAbilityInfo(ability);
                     let button = ui::Button::new(icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));

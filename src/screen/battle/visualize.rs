@@ -126,7 +126,7 @@ fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dy
     };
     let actions_bg = {
         let color = [1.0, 1.0, 1.0, 0.5].into();
-        let image = images().white_hex;
+        let image = images().map.white_hex;
         let mut sprite = Sprite::from_image(image, height_bg);
         sprite.set_centered(true);
         action_show_and_hide(sprite, color)
@@ -180,7 +180,7 @@ fn show_blood_particles(
         let invisible = [0.7, 0.0, 0.0, 0.0].into();
         let scale = roll_dice(0.05, 0.15);
         let size = view.tile_size() * 2.0 * scale;
-        let mut sprite = Sprite::from_image(images().white_hex, size);
+        let mut sprite = Sprite::from_image(images().map.white_hex, size);
         sprite.set_centered(true);
         sprite.set_pos(point_origin);
         sprite.set_color(invisible);
@@ -199,7 +199,7 @@ fn show_blood_particles(
 }
 
 fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
-    let mut sprite = Sprite::from_image(images().blood, view.tile_size() * 2.0);
+    let mut sprite = Sprite::from_image(images().map.blood, view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
     let mut point = view.hex_to_point(at);
@@ -221,7 +221,7 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
 }
 
 fn show_explosion_ground_mark(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
-    let mut sprite = Sprite::from_image(images().explosion_ground_mark, view.tile_size() * 2.0);
+    let mut sprite = Sprite::from_image(images().map.explosion_ground_mark, view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 1.0].into());
     sprite.set_pos(view.hex_to_point(at));
@@ -255,7 +255,7 @@ fn show_dust(view: &mut BattleView, at: Vec2, count: i32) -> ZResult<Box<dyn Act
         };
         let point = at + vector;
         let sprite = {
-            let mut sprite = Sprite::from_image(images().white_hex, size);
+            let mut sprite = Sprite::from_image(images().map.white_hex, size);
             sprite.set_centered(true);
             sprite.set_pos(point);
             sprite.set_color(invisible);
@@ -287,7 +287,7 @@ fn show_flare_scale_time(
     let mut invisible = color;
     invisible.0[3] = 0;
     let size = view.tile_size() * 2.0 * scale;
-    let mut sprite = Sprite::from_image(images().white_hex, size);
+    let mut sprite = Sprite::from_image(images().map.white_hex, size);
     let point = view.hex_to_point(at);
     sprite.set_centered(true);
     sprite.set_pos(point);
@@ -306,18 +306,13 @@ fn show_weapon_flash(
     weapon_type: WeaponType,
     facing_opt: Option<geom::Facing>,
 ) -> ZResult<Box<dyn Action>> {
-    let images = &assets::get().images;
+    let images = &assets::get().images.weapon_flashes;
     let visible = [1.0, 1.0, 1.0, 0.8].into();
     let invisible = [1.0, 1.0, 1.0, 0.1].into();
     let tile_size = view.tile_size();
     let sprite_size = tile_size * 2.0;
-    let image = match weapon_type {
-        WeaponType::Slash => images.attack_slash,
-        WeaponType::Smash => images.attack_smash,
-        WeaponType::Pierce => images.attack_pierce,
-        WeaponType::Claw => images.attack_claws,
-    };
-    let mut sprite = Sprite::from_image(image, sprite_size);
+    let image = images.get(&weapon_type).expect("No such attack flash");
+    let mut sprite = Sprite::from_image(*image, sprite_size);
     let point = view.hex_to_point(at) - Vec2::new(0.0, tile_size * 0.3);
     sprite.set_centered(true);
     sprite.set_pos(point);
@@ -430,12 +425,8 @@ fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Act
 }
 
 pub fn get_effect_icon(effect: &effect::Lasting) -> Texture2D {
-    let images = &assets::get().images;
-    match effect {
-        effect::Lasting::Poison => images.effect_poison,
-        effect::Lasting::Stun => images.effect_stun,
-        effect::Lasting::Bloodlust => images.effect_bloodlust,
-    }
+    let effects = &assets::get().images.icons.lasting_effects;
+    *effects.get(&effect).expect("No such effect found")
 }
 
 fn generate_brief_obj_info(
@@ -997,7 +988,8 @@ fn visualize_effect_create(
         sprite
     };
     let sprite_shadow = {
-        let mut sprite = Sprite::from_image(images().shadow, size * info.shadow_size_coefficient);
+        let mut sprite =
+            Sprite::from_image(images().map.shadow, size * info.shadow_size_coefficient);
         sprite.set_centered(true);
         sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
         sprite.set_pos(point);

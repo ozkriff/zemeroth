@@ -1,39 +1,64 @@
-//! TODO: Document the motivation behind this module.
+//! This module groups all the async loading stuff.
 
 // TODO: https://github.com/rust-lang/rust-clippy/issues/4637
 #![allow(clippy::eval_order_dependence)]
 
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hash};
 
 use macroquad::{
+    file::load_file,
     text::{self, Font},
     texture::{load_texture, Texture2D},
 };
 use once_cell::sync::OnceCell;
-use serde::Deserialize;
+use serde::{de::DeserializeOwned, Deserialize};
 
 use crate::{
     core::{
         battle::{
             ability::Ability,
-            component::{ObjType, Prototypes},
+            component::{ObjType, Prototypes, WeaponType},
+            effect,
             scenario::Scenario,
         },
         campaign,
     },
-    utils::{self, deserialize_from_file},
+    error::ZError,
     ZResult,
 };
 
 static INSTANCE: OnceCell<Assets> = OnceCell::new();
 
 pub async fn load_assets() {
-    let assets = Assets::load().await.expect("TODO: err msg (important)");
-    INSTANCE.set(assets).expect("TODO: err msg");
+    assert!(INSTANCE.get().is_none());
+    let assets = Assets::load().await.expect("Can't load assets");
+    INSTANCE.set(assets).expect("Can't set assets instance");
 }
 
 pub fn get() -> &'static Assets {
-    INSTANCE.get().expect("TODO: err msg")
+    INSTANCE.get().expect("Assets weren't loaded")
+}
+
+/// Read a file to a string.
+async fn read_file(path: &str) -> ZResult<String> {
+    let data = load_file(path).await.unwrap(); // TODO: impl from for ZError
+    Ok(String::from_utf8_lossy(&data[..]).to_string())
+}
+
+async fn deserialize_from_file<D: DeserializeOwned>(path: &str) -> ZResult<D> {
+    let s = read_file(path).await?;
+    ron::de::from_str(&s).map_err(|e| ZError::from_ron_de_error(e, path.into()))
+}
+
+async fn load_map<Key: Hash + Eq + Copy>(
+    table: &[(Key, &str)],
+    expand_path: fn(&str) -> String,
+) -> HashMap<Key, Texture2D> {
+    let mut map = HashMap::new();
+    for &(key, path) in table {
+        map.insert(key, load_texture(&expand_path(path)).await);
+    }
+    map
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -57,12 +82,8 @@ type SpritesInfo = HashMap<ObjType, SpriteInfo>;
 pub struct Assets {
     pub images: Images,
     pub font: Font,
-
     pub sprites_info: SpritesInfo,
     pub sprite_frames: HashMap<ObjType, HashMap<String, Texture2D>>,
-
-    // TODO: core configs
-    // TODO: visual configs
     pub prototypes: Prototypes,
     pub demo_scenario: Scenario,
     pub campaign_plan: campaign::Plan,
@@ -88,7 +109,7 @@ impl Assets {
             font: text::load_ttf_font("assets/OpenSans-Regular.ttf").await,
             sprites_info,
             sprite_frames,
-            prototypes: Prototypes::from_str(&utils::read_file("assets/objects.ron").await?),
+            prototypes: Prototypes::from_str(&read_file("assets/objects.ron").await?),
             demo_scenario: deserialize_from_file("assets/scenario_01.ron").await?,
             campaign_plan: deserialize_from_file("assets/campaign_01.ron").await?,
             agent_campaign_info: deserialize_from_file("assets/agent_campaign_info.ron").await?,
@@ -96,71 +117,86 @@ impl Assets {
     }
 }
 
-// TODO: rename to Textures?
+// TODO: rename to Textures (and do similar renames all over the project)
 #[derive(Debug)]
 pub struct Images {
+    pub map: MapObjectImages,
+    pub weapon_flashes: HashMap<WeaponType, Texture2D>,
+    pub icons: IconImages,
+    pub dot: Texture2D,
+}
+
+impl Images {
+    async fn load() -> Self {
+        Self {
+            map: MapObjectImages::load().await,
+            weapon_flashes: load_weapon_flashes().await,
+            icons: IconImages::load().await,
+            dot: load_texture("assets/img/dot.png").await,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct MapObjectImages {
     pub selection: Texture2D,
     pub white_hex: Texture2D,
     pub tile: Texture2D,
     pub tile_rocks: Texture2D,
     pub grass: Texture2D,
-    pub dot: Texture2D,
     pub blood: Texture2D,
     pub explosion_ground_mark: Texture2D,
     pub shadow: Texture2D,
-
-    pub ability_icons: HashMap<Ability, Texture2D>,
-
-    pub attack_slash: Texture2D,
-    pub attack_smash: Texture2D,
-    pub attack_pierce: Texture2D,
-    pub attack_claws: Texture2D,
-
-    // TODO: HashMap<Effect, Texture2D>
-    pub effect_stun: Texture2D,
-    pub effect_poison: Texture2D,
-    pub effect_bloodlust: Texture2D,
-
-    // TODO: Extract to Icons struct
-    pub icon_info: Texture2D,
-    pub icon_end_turn: Texture2D,
-    pub icon_main_menu: Texture2D,
 }
 
-impl Images {
-    pub async fn load() -> Self {
+impl MapObjectImages {
+    async fn load() -> Self {
         Self {
             selection: load_texture("assets/img/selection.png").await,
             white_hex: load_texture("assets/img/white_hex.png").await,
             tile: load_texture("assets/img/tile.png").await,
             tile_rocks: load_texture("assets/img/tile_rocks.png").await,
             grass: load_texture("assets/img/grass.png").await,
-            dot: load_texture("assets/img/dot.png").await,
             blood: load_texture("assets/img/blood.png").await,
             explosion_ground_mark: load_texture("assets/img/explosion_ground_mark.png").await,
             shadow: load_texture("assets/img/shadow.png").await,
-
-            ability_icons: load_ability_icons().await,
-
-            attack_slash: load_texture("assets/img/slash.png").await,
-            attack_smash: load_texture("assets/img/smash.png").await,
-            attack_pierce: load_texture("assets/img/pierce.png").await,
-            attack_claws: load_texture("assets/img/claw.png").await,
-
-            effect_stun: load_texture("assets/img/effect_stun.png").await,
-            effect_poison: load_texture("assets/img/effect_poison.png").await,
-            effect_bloodlust: load_texture("assets/img/effect_bloodlust.png").await,
-
-            icon_info: load_texture("assets/img/icon_info.png").await,
-            icon_end_turn: load_texture("assets/img/icon_end_turn.png").await,
-            icon_main_menu: load_texture("assets/img/icon_menu.png").await,
         }
     }
 }
 
-pub async fn load_ability_icons() -> HashMap<Ability, Texture2D> {
-    let mut map = HashMap::new();
-    for (ref ability, name) in &[
+#[derive(Debug)]
+pub struct IconImages {
+    pub info: Texture2D,
+    pub end_turn: Texture2D,
+    pub main_menu: Texture2D,
+    pub abilities: HashMap<Ability, Texture2D>,
+    pub lasting_effects: HashMap<effect::Lasting, Texture2D>,
+}
+
+impl IconImages {
+    async fn load() -> Self {
+        Self {
+            info: load_texture("assets/img/icon_info.png").await,
+            end_turn: load_texture("assets/img/icon_end_turn.png").await,
+            main_menu: load_texture("assets/img/icon_menu.png").await,
+            abilities: load_ability_icons().await,
+            lasting_effects: load_lasting_effects().await,
+        }
+    }
+}
+
+async fn load_weapon_flashes() -> HashMap<WeaponType, Texture2D> {
+    let map = &[
+        (WeaponType::Slash, "slash"),
+        (WeaponType::Smash, "smash"),
+        (WeaponType::Pierce, "pierce"),
+        (WeaponType::Claw, "claw"),
+    ];
+    load_map(map, |s| format!("assets/img/{}.png", s)).await
+}
+
+async fn load_ability_icons() -> HashMap<Ability, Texture2D> {
+    let map = &[
         (Ability::Knockback, "knockback"),
         (Ability::Club, "club"),
         (Ability::Jump, "jump"),
@@ -176,9 +212,15 @@ pub async fn load_ability_icons() -> HashMap<Ability, Texture2D> {
         (Ability::Heal, "heal"),
         (Ability::GreatHeal, "great_heal"),
         (Ability::Bloodlust, "bloodlust"),
-    ] {
-        let texture = load_texture(&format!("assets/img/icon_ability_{}.png", name)).await;
-        map.insert(*ability, texture);
-    }
-    map
+    ];
+    load_map(map, |s| format!("assets/img/icon_ability_{}.png", s)).await
+}
+
+async fn load_lasting_effects() -> HashMap<effect::Lasting, Texture2D> {
+    let map = &[
+        (effect::Lasting::Stun, "stun"),
+        (effect::Lasting::Poison, "poison"),
+        (effect::Lasting::Bloodlust, "bloodlust"),
+    ];
+    load_map(map, |s| format!("assets/img/effect_{}.png", s)).await
 }

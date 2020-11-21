@@ -530,7 +530,7 @@ fn execute_effects(state: &mut State, cb: Cb) {
             {
                 let active_event = event::EffectTick {
                     id,
-                    effect: effect.effect.clone(),
+                    effect: effect.effect,
                 };
                 let mut target_effects = Vec::new();
                 match effect.effect {
@@ -562,7 +562,7 @@ fn execute_effects(state: &mut State, cb: Cb) {
             if state::is_lasting_effect_over(state, id, effect) {
                 let active_event = event::EffectEnd {
                     id,
-                    effect: effect.effect.clone(),
+                    effect: effect.effect,
                 };
                 let event = Event {
                     active_event: ActiveEvent::EffectEnd(active_event),

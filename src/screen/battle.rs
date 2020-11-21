@@ -69,7 +69,7 @@ fn line_with_info_button(
     let h = line_heights().normal;
     let font = assets::get().font;
     let text = ui::Drawable::text(text, font, FONT_SIZE);
-    let icon = images().icon_info;
+    let icon = images().icons.info;
     let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), message)?;
     let mut line = Box::new(ui::HLayout::new().stretchable(true));
     line.add(Box::new(ui::Label::new(text, h)?));
@@ -190,9 +190,9 @@ fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZRes
                         effect::Duration::Forever => s.into(),
                         effect::Duration::Rounds(n) => format!("{} ({}t)", s, n),
                     };
-                    let message = Message::LastingEffectInfo(effect.effect.clone());
+                    let message = Message::LastingEffectInfo(effect.effect);
                     let text = ui::Drawable::text(&text, font, FONT_SIZE);
-                    let icon_info = images().icon_info;
+                    let icon_info = images().icons.info;
                     let button_info = ui::Button::new(
                         ui::Drawable::Texture(icon_info),
                         h,
@@ -242,8 +242,8 @@ fn build_panel_agent_abilities(
     let mut layout = ui::VLayout::new().stretchable(true);
     let h = line_heights().large;
     for ability in abilities {
-        let icons = &assets::get().images.ability_icons;
-        let texture = *icons.get(&ability.ability).expect("No icon found");
+        let icons = &assets::get().images.icons.abilities;
+        let texture = *icons.get(&ability.ability).expect("No such icon found");
         let drawable = ui::Drawable::Texture(texture);
         let msg = Message::Ability(ability.ability);
         let mut button = ui::Button::new(drawable, h, gui.sender(), msg)?;
@@ -275,7 +275,7 @@ fn build_panel_agent_abilities(
 
 fn build_panel_end_turn(gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
     let h = line_heights().large;
-    let icon = images().icon_end_turn;
+    let icon = images().icons.end_turn;
     let button = ui::Button::new(
         ui::Drawable::Texture(icon),
         h,
@@ -342,7 +342,7 @@ fn build_panel_ability_description(
 fn make_gui() -> ZResult<ui::Gui<Message>> {
     let mut gui = ui::Gui::new();
     let h = line_heights().large;
-    let icon = images().icon_main_menu;
+    let icon = images().icons.main_menu;
     let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), Message::Exit)?;
     let layout = ui::VLayout::from_widget(Box::new(button));
     let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
