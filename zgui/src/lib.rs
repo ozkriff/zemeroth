@@ -110,26 +110,14 @@ impl Drawable {
     }
 }
 
-// TODO: remove empty lines
+#[derive(Debug)]
 struct Sprite {
     drawable: Drawable,
     dimensions: Rect,
     basic_scale: f32,
-
     pos: Vec2,
     scale: Vec2,
     color: Color,
-}
-
-impl Debug for Sprite {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("SpriteData")
-            .field("drawable", &format_args!("{:?}", self.drawable))
-            .field("dimensions", &self.dimensions)
-            .field("basic_scale", &self.basic_scale)
-            //.field("param", &self.param)
-            .finish()
-    }
 }
 
 impl Sprite {
