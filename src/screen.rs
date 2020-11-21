@@ -65,33 +65,14 @@ impl ScreenWithPopups {
     }
 }
 
-// TODO: fix and use. or remove
-fn make_popup_bg_mesh() -> ZResult<ui::Drawable> {
-    // let coords = graphics::screen_coordinates(context);
-    // let mode = graphics::DrawMode::fill();
-    // Ok(graphics::Mesh::new_rectangle(
-    //     context,
-    //     mode,
-    //     coords,
-    //     COLOR_POPUP_BG,
-    // )?)
-
-    // TODO
-    Ok(ui::Drawable::SolidRect {
-        rect: Rect::new(0.0, 0.0, 1.0, 1.0),
-    })
-}
-
 pub struct ScreenStack {
     screens: Vec<ScreenWithPopups>,
-    popup_bg_mesh: ui::Drawable,
 }
 
 impl ScreenStack {
     pub fn new(start_screen: Box<dyn Screen>) -> ZResult<Self> {
         Ok(Self {
             screens: vec![ScreenWithPopups::new(start_screen)],
-            popup_bg_mesh: make_popup_bg_mesh()?,
         })
     }
 
@@ -104,13 +85,7 @@ impl ScreenStack {
         let screen = self.screen();
         screen.screen.draw()?;
         for popup in &screen.popups {
-            // graphics::draw(&self.popup_bg_mesh, graphics::DrawParam::default()); // TODO: revive
-            // TODO: simplify/cleanup
-            {
-                let aspect_ratio = utils::aspect_ratio();
-                let r = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-                mq::shapes::draw_rectangle(r.x, r.y, r.w, r.h, COLOR_POPUP_BG);
-            }
+            self.draw_popup_bg();
             popup.draw()?;
         }
         Ok(())
@@ -126,7 +101,6 @@ impl ScreenStack {
     }
 
     pub fn resize(&mut self, aspect_ratio: f32) -> ZResult {
-        self.popup_bg_mesh = make_popup_bg_mesh()?;
         for screen in &mut self.screens {
             screen.screen.resize(aspect_ratio);
             for popup in &mut screen.popups {
@@ -170,5 +144,11 @@ impl ScreenStack {
     /// Returns a reference to the top screen.
     fn screen(&self) -> &ScreenWithPopups {
         self.screens.last().expect(ERR_MSG_STACK_EMPTY)
+    }
+
+    fn draw_popup_bg(&self) {
+        let aspect_ratio = utils::aspect_ratio();
+        let r = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
+        mq::shapes::draw_rectangle(r.x, r.y, r.w, r.h, COLOR_POPUP_BG);
     }
 }
