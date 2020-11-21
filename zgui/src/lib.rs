@@ -717,12 +717,6 @@ pub struct Button<Message: Clone> {
     color: Color,
 }
 
-// fn rect_to_vertices(r: Rect) -> [[f32; 2]; 4] {
-//     let x = r.x;
-//     let y = r.y;
-//     [[x, y], [x, y + r.h], [x + r.w, y + r.h], [x + r.w, y]]
-// }
-
 impl<Message: Clone + Debug> Button<Message> {
     pub fn new(
         drawable: Drawable,
