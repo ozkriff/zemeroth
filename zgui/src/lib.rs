@@ -310,7 +310,7 @@ impl<Message: Clone> Gui<Message> {
         let widget = widget.clone();
         let anchored_widget = AnchoredWidget { widget, anchor };
         self.anchored_widgets.push(anchored_widget);
-        self.do_resize(self.aspect_ratio);
+        self.resize(self.aspect_ratio);
     }
 
     pub fn remove(&mut self, widget: &RcWidget) {
@@ -345,7 +345,7 @@ impl<Message: Clone> Gui<Message> {
         }
     }
 
-    pub fn do_resize(&mut self, ratio: f32) {
+    pub fn resize(&mut self, ratio: f32) {
         self.aspect_ratio = ratio;
         trace!("Gui::resize: {}", ratio);
         let offset = 0.02; // TODO: make configurable
@@ -369,7 +369,7 @@ impl<Message: Clone> Gui<Message> {
 
     pub fn resize_if_needed(&mut self, aspect_ratio: f32) {
         if (self.aspect_ratio - aspect_ratio).abs() > f32::EPSILON {
-            self.do_resize(aspect_ratio);
+            self.resize(aspect_ratio);
         }
     }
 }
