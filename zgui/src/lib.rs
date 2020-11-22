@@ -498,7 +498,7 @@ impl Widget for Label {
         if let Some(status) = stretch_checks(self, width) {
             return status;
         }
-        let pos: Vec2 = Vec2::new(self.rect().x, self.rect().y);
+        let pos = self.rect().point();
         let rect = Rect {
             w: width,
             h: self.rect.h,
@@ -561,7 +561,7 @@ impl Widget for ColoredRect {
         if let Some(status) = stretch_checks(self, width) {
             return status;
         }
-        let pos: Vec2 = self.rect().point();
+        let pos = self.rect().point();
         let rect = Rect {
             w: width,
             h: self.rect().h,
@@ -821,7 +821,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
         if let Some(status) = stretch_checks(self, width) {
             return status;
         }
-        let pos: Vec2 = self.rect().point();
+        let pos = self.rect().point();
         let height = self.bg.dimensions.h;
         let outer = Rect {
             w: width,
@@ -880,10 +880,9 @@ impl Widget for Layout {
     }
 
     fn set_pos(&mut self, pos: Vec2) {
-        let point: Vec2 = self.rect.point();
-        let diff = pos - point;
+        let diff = pos - self.rect.point();
         for widget in &mut self.widgets {
-            let pos: Vec2 = widget.rect().point();
+            let pos = widget.rect().point();
             widget.set_pos(pos + diff);
         }
         self.rect.move_to(pos);
@@ -997,9 +996,7 @@ impl HLayout {
         let rect = widget.rect();
         if let Some(last) = self.internal.widgets.last() {
             let rect = last.rect();
-            let mut pos: Vec2 = rect.point();
-            *pos.x_mut() += rect.w;
-            widget.set_pos(pos);
+            widget.set_pos(rect.point() + Vec2::new(rect.w, 0.0));
         } else {
             widget.set_pos(self.internal.rect.point());
         }
@@ -1047,9 +1044,7 @@ impl Widget for HLayout {
         let mut diff_w = 0.0;
         for widget in widgets {
             let r = widget.rect();
-            let mut pos: Vec2 = r.point();
-            *pos.x_mut() += diff_w;
-            widget.set_pos(pos);
+            widget.set_pos(r.point() + Vec2::new(diff_w, 0.0));
             if widget.can_stretch() {
                 let new_w = r.w + additional_w_per_stretchable;
                 widget.stretch(new_w);
