@@ -105,7 +105,6 @@ impl Sprite {
         Self::from_drawable(Drawable::Texture(texture), height)
     }
 
-    // TODO: Simplify the signature. or remove?
     pub fn from_text((label, font, font_size): (&str, Font, u16), height: f32) -> Self {
         Self::from_drawable(
             Drawable::Text {
