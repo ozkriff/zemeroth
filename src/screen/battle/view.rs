@@ -445,7 +445,6 @@ impl BattleView {
     fn show_walkable_tiles(
         &mut self,
         state: &State,
-
         map: &HexMap<movement::Tile>,
         id: Id,
     ) -> ZResult {

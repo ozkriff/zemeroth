@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use log::{info, trace};
 use macroquad::{
-    prelude::{Color, Vec2},
+    prelude::{Color, Mat2, Vec2},
     texture::Texture2D,
 };
 use zscene::{action, Action, Boxed, Facing, Sprite};
@@ -202,18 +202,12 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
     let mut sprite = Sprite::from_texture(textures().map.blood, view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
-    let mut point = view.hex_to_point(at);
-    *point.y_mut() += view.tile_size() * 0.1;
-    sprite.set_pos(point);
+    sprite.set_pos(view.hex_to_point(at) + Vec2::new(0.0, view.tile_size() * 0.1));
     let color_final: Color = [1.0, 1.0, 1.0, 1.0].into();
     let time = time_s(0.6);
     let layer = view.layers().blood.clone();
-    view.add_disappearing_sprite(
-        &layer,
-        &sprite,
-        BLOOD_SPRITE_DURATION_TURNS,
-        color_final.a(),
-    );
+    let duration = BLOOD_SPRITE_DURATION_TURNS;
+    view.add_disappearing_sprite(&layer, &sprite, duration, color_final.a());
     Ok(seq([
         action::Show::new(&layer, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite, color_final, time).boxed(),
@@ -221,8 +215,8 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
 }
 
 fn show_explosion_ground_mark(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
-    let mut sprite =
-        Sprite::from_texture(textures().map.explosion_ground_mark, view.tile_size() * 2.0);
+    let tex = textures().map.explosion_ground_mark;
+    let mut sprite = Sprite::from_texture(tex, view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 1.0].into());
     sprite.set_pos(view.hex_to_point(at));
@@ -248,7 +242,7 @@ fn show_dust(view: &mut BattleView, at: Vec2, count: i32) -> ZResult<Box<dyn Act
         let size = view.tile_size() * 2.0 * scale;
         let vector = {
             let max = std::f32::consts::PI * 2.0;
-            let rot = macroquad::prelude::Mat2::from_angle((max / count as f32) * i as f32);
+            let rot = Mat2::from_angle((max / count as f32) * i as f32);
             let n = roll_dice(0.3, 0.6);
             let mut vector = rot * Vec2::new(view.tile_size() * n, 0.0);
             vector.set_y(vector.y() * geom::FLATNESS_COEFFICIENT);
@@ -444,8 +438,7 @@ fn generate_brief_obj_info(
     let armor = state::get_armor(state, id);
     let size = 0.25 * view.tile_size();
     let mut point = view.hex_to_point(obj_pos);
-    *point.x_mut() += view.tile_size() * 0.8;
-    *point.y_mut() -= view.tile_size() * 1.6;
+    point += Vec2::new(view.tile_size() * 0.8, -view.tile_size() * 1.6);
     let mut dots = Vec::new();
     let base = point;
     let rows: &[&[_]] = &[
@@ -487,9 +480,7 @@ fn generate_brief_obj_info(
         let health_bar_width = health_points as f32 * size * actual_dot_size_k;
         if let Some(effects) = parts.effects.get_opt(id) {
             let icon_size = size * 1.6;
-            let mut icon_point = base;
-            *icon_point.y_mut() -= icon_size;
-            *icon_point.x_mut() -= health_bar_width + icon_size * 0.4;
+            let mut icon_point = base - Vec2::new(icon_size, health_bar_width + icon_size * 0.4);
             for timed_effect in &effects.0 {
                 *icon_point.y_mut() += icon_size;
                 let effect = &timed_effect.effect;
@@ -922,7 +913,6 @@ fn visualize_event_effect_end(
 fn visualize_lasting_effect(
     state: &State,
     view: &mut BattleView,
-
     target_id: Id,
     timed_effect: &effect::Timed,
 ) -> ZResult<Box<dyn Action>> {
@@ -942,7 +932,6 @@ fn visualize_lasting_effect(
 fn visualize_instant_effect(
     state: &State,
     view: &mut BattleView,
-
     target_id: Id,
     effect: &Effect,
 ) -> ZResult<Box<dyn Action>> {
@@ -989,8 +978,8 @@ fn visualize_effect_create(
         sprite
     };
     let sprite_shadow = {
-        let mut sprite =
-            Sprite::from_texture(textures().map.shadow, size * info.shadow_size_coefficient);
+        let tex = textures().map.shadow;
+        let mut sprite = Sprite::from_texture(tex, size * info.shadow_size_coefficient);
         sprite.set_centered(true);
         sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
         sprite.set_pos(point);
@@ -1127,7 +1116,6 @@ fn visualize_effect_knockback(
 fn visualize_effect_fly_off(
     _: &State,
     view: &mut BattleView,
-
     target_id: Id,
     effect: &effect::FlyOff,
 ) -> ZResult<Box<dyn Action>> {
@@ -1156,7 +1144,6 @@ fn visualize_effect_fly_off(
 fn visualize_effect_throw(
     _: &State,
     view: &mut BattleView,
-
     target_id: Id,
     effect: &effect::Throw,
 ) -> ZResult<Box<dyn Action>> {
@@ -1179,7 +1166,6 @@ fn visualize_effect_throw(
 fn visualize_effect_dodge(
     state: &State,
     view: &mut BattleView,
-
     target_id: Id,
     effect: &effect::Dodge,
 ) -> ZResult<Box<dyn Action>> {

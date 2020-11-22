@@ -189,13 +189,8 @@ fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZRes
                     };
                     let message = Message::LastingEffectInfo(effect.effect);
                     let text = ui::Drawable::text(text, font, FONT_SIZE);
-                    let icon_info = textures().icons.info;
-                    let button_info = ui::Button::new(
-                        ui::Drawable::Texture(icon_info),
-                        h,
-                        gui.sender(),
-                        message,
-                    )?;
+                    let tex_info = ui::Drawable::Texture(textures().icons.info);
+                    let button_info = ui::Button::new(tex_info, h, gui.sender(), message)?;
                     let icon_effect = visualize::get_effect_icon(&effect.effect);
                     let param = ui::LabelParam {
                         drawable_k: 0.6,
@@ -272,13 +267,8 @@ fn build_panel_agent_abilities(
 
 fn build_panel_end_turn(gui: &mut Gui<Message>) -> ZResult<ui::RcWidget> {
     let h = line_heights().large;
-    let icon = textures().icons.end_turn;
-    let button = ui::Button::new(
-        ui::Drawable::Texture(icon),
-        h,
-        gui.sender(),
-        Message::EndTurn,
-    )?;
+    let tex = ui::Drawable::Texture(textures().icons.end_turn);
+    let button = ui::Button::new(tex, h, gui.sender(), Message::EndTurn)?;
     let layout = ui::VLayout::from_widget(Box::new(button));
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
     let packed_layout = ui::pack(layout);
