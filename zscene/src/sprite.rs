@@ -218,7 +218,7 @@ impl Sprite {
                 font_size,
             } => {
                 text::draw_text_ex(
-                    &label,
+                    label,
                     data.pos.x(),
                     data.pos.y(),
                     text::TextParams {
