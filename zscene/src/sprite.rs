@@ -186,12 +186,10 @@ impl Sprite {
     pub fn set_offset(&mut self, offset: Vec2) {
         let mut data = self.data.borrow_mut();
         let old_offset = data.offset;
-        let dimensions = data.dimensions;
-        *data.offset.x_mut() = -dimensions.w * data.scale.x() * offset.x();
-        *data.offset.y_mut() = -dimensions.h * data.scale.y() * offset.y();
-        let mut new_dest: Vec2 = data.pos;
-        new_dest += data.offset - old_offset;
-        data.pos = new_dest;
+        let off_x = -data.dimensions.w * data.scale.x() * offset.x();
+        let off_y = -data.dimensions.h * data.scale.y() * offset.y();
+        data.offset = Vec2::new(off_x, off_y);
+        data.pos = data.pos + data.offset - old_offset;
     }
 
     pub fn draw(&self) {
