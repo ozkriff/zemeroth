@@ -132,10 +132,10 @@ impl Sprite {
     }
 
     fn draw(&self) {
-        match &self.drawable {
+        match self.drawable {
             Drawable::Texture(texture) => {
                 draw_texture_ex(
-                    *texture,
+                    texture,
                     self.pos.x(),
                     self.pos.y(),
                     self.color,
@@ -148,17 +148,17 @@ impl Sprite {
                 );
             }
             Drawable::Text {
-                label,
+                ref label,
                 font,
                 font_size,
             } => {
                 draw_text_ex(
-                    &label,
+                    label,
                     self.pos.x(),
                     self.pos.y(),
                     TextParams {
-                        font_size: *font_size,
-                        font: *font,
+                        font_size,
+                        font,
                         font_scale: self.scale.x(),
                         color: self.color,
                     },
@@ -173,7 +173,7 @@ impl Sprite {
                     self.pos.y(),
                     rect.w,
                     rect.h,
-                    *thickness,
+                    thickness,
                     self.color,
                 );
             }
@@ -712,8 +712,7 @@ impl<Message: Clone + Debug> Button<Message> {
         param.check()?;
         let sprite = Sprite::new(drawable, height * param.drawable_k);
         let outer = Self::outer_rect(&sprite, height, &param);
-        let inner = Self::inner_rect(&param, outer);
-        let border = Self::make_border(height, outer, inner);
+        let border = Self::make_border(height, outer, param.border_k);
         let bg = Self::make_bg_mesh(height, outer);
         Ok(Self {
             is_active: true,
@@ -766,16 +765,9 @@ impl<Message: Clone + Debug> Button<Message> {
         }
     }
 
-    fn inner_rect(param: &ButtonParam, rect: Rect) -> Rect {
-        let border = rect.h * param.border_k;
-        Rect::new(border, border, rect.w - border * 2.0, rect.h - border * 2.0)
-    }
-
-    fn make_border(height: f32, outer: Rect, inner: Rect) -> Sprite {
-        let bg_mesh = Drawable::LinesRect {
-            rect: outer,
-            thickness: outer.w - inner.w,
-        };
+    fn make_border(height: f32, rect: Rect, thickness: f32) -> Sprite {
+        let thickness = height * thickness * 2.0; // TODO: why do we need this 2.0 here?
+        let bg_mesh = Drawable::LinesRect { rect, thickness };
         Sprite::new(bg_mesh, height).color(SPRITE_COLOR_BUTTON_BORDER)
     }
 
@@ -838,8 +830,7 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
             h: self.rect().h,
             ..Default::default()
         };
-        let inner = Self::inner_rect(&self.param, outer);
-        self.border = Self::make_border(height, outer, inner);
+        self.border = Self::make_border(height, outer, self.param.border_k);
         self.bg = Self::make_bg_mesh(height, outer);
         self.set_pos(pos);
         StretchStatus::Stretched
