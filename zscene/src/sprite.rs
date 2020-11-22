@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, fmt, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use macroquad::{
     prelude::{Color, Rect, Vec2},
@@ -41,6 +41,7 @@ impl Drawable {
     }
 }
 
+#[derive(Debug)]
 struct SpriteData {
     drawable: Option<Drawable>,
     drawables: HashMap<String, Option<Drawable>>,
@@ -52,22 +53,6 @@ struct SpriteData {
     color: Color,
     offset: Vec2,
     facing: Facing,
-}
-
-impl fmt::Debug for SpriteData {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("SpriteData")
-            .field("drawable", &self.drawable.as_ref().map(|d| d as *const _))
-            .field("drawables", &format_args!("{:?}", self.drawables.keys()))
-            .field("current_frame_name", &self.current_frame_name)
-            .field("dimensions", &self.dimensions)
-            .field("basic_scale", &self.basic_scale)
-            .field("pos", &self.pos)
-            .field("scale", &self.scale)
-            .field("offset", &self.offset)
-            .field("facing", &self.facing)
-            .finish()
-    }
 }
 
 #[derive(Debug, Clone)]
