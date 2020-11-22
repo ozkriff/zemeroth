@@ -42,14 +42,12 @@ impl Action for ChangeColorTo {
             let diff = self.to[i] - self.from[i];
             *color_i = self.from[i] + diff * k;
         }
-        self.sprite
-            .set_color(Color::new(color[0], color[1], color[2], color[3]));
+        self.sprite.set_color(color.into());
         self.progress += dtime;
     }
 
     fn end(&mut self) {
-        self.sprite
-            .set_color(Color::new(self.to[0], self.to[1], self.to[2], self.to[3]));
+        self.sprite.set_color(self.to.into());
     }
 
     fn duration(&self) -> Duration {
