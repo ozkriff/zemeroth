@@ -133,7 +133,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
             }
         };
         {
-            let text = ui::Drawable::text(text.as_str(), font, FONT_SIZE);
+            let text = ui::Drawable::text(text, font, FONT_SIZE);
             let sender = gui.sender();
             let message = Message::Action(action.clone());
             let mut button = ui::Button::new(text, h, sender, message)?.stretchable(true);
@@ -162,7 +162,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
             state.current_scenario_index() + 1,
             state.scenarios_count()
         );
-        let text = ui::Drawable::text(text.as_str(), font, FONT_SIZE);
+        let text = ui::Drawable::text(text, font, FONT_SIZE);
         let command = Message::StartBattle;
         let button = ui::Button::new(text, h, gui.sender(), command)?.stretchable(true);
         layout.add(Box::new(button));

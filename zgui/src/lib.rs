@@ -78,9 +78,9 @@ pub enum Drawable {
 }
 
 impl Drawable {
-    pub fn text(label: &str, font: Font, font_size: u16) -> Drawable {
+    pub fn text(label: impl Into<String>, font: Font, font_size: u16) -> Drawable {
         Drawable::Text {
-            label: label.to_string(),
+            label: label.into(),
             font,
             font_size,
         }

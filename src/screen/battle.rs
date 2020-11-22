@@ -188,7 +188,7 @@ fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZRes
                         effect::Duration::Rounds(n) => format!("{} ({}t)", s, n),
                     };
                     let message = Message::LastingEffectInfo(effect.effect);
-                    let text = ui::Drawable::text(&text, font, FONT_SIZE);
+                    let text = ui::Drawable::text(text, font, FONT_SIZE);
                     let icon_info = textures().icons.info;
                     let button_info = ui::Button::new(
                         ui::Drawable::Texture(icon_info),
