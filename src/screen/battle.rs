@@ -216,7 +216,7 @@ fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZRes
             }
         }
     }
-    layout.stretch_to_self()?;
+    layout.stretch_to_self();
     let layout = utils::add_offsets_and_bg(layout, utils::OFFSET_SMALL)?;
     let layout = ui::pack(layout);
     let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Bottom);
@@ -328,7 +328,7 @@ fn build_panel_ability_description(
     let color_cancel = Color::new(0.4, 0.4, 0.4, 1.0);
     let label_cancel_text = ui::Label::new(text_cancel, h)?.with_color(color_cancel);
     layout.add(Box::new(label_cancel_text));
-    layout.stretch_to_self()?;
+    layout.stretch_to_self();
     let layout = utils::add_offsets_and_bg(layout, utils::OFFSET_SMALL)?;
     let layout = ui::pack(layout);
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);

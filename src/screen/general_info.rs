@@ -40,11 +40,11 @@ impl GeneralInfo {
         {
             let mut button =
                 ui::Button::new(text_("back"), h, gui.sender(), Message::Back)?.stretchable(true);
-            button.stretch(layout.rect().w / 3.0)?;
+            button.stretch(layout.rect().w / 3.0);
             button.set_stretchable(false);
             layout.add(Box::new(button));
         }
-        layout.stretch_to_self()?;
+        layout.stretch_to_self();
         let layout = utils::add_offsets_and_bg_big(layout)?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         gui.add(&ui::pack(layout), anchor);

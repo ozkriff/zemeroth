@@ -80,7 +80,7 @@ fn build_panel_agents(
         layout.add(Box::new(line));
         layout.add(Box::new(ui::Spacer::new_vertical(line_height_small())));
     }
-    layout.stretch_to_self()?;
+    layout.stretch_to_self();
     let layout = utils::add_offsets_and_bg_big(layout)?.stretchable(true);
     Ok(Box::new(layout))
 }
@@ -167,7 +167,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
         let button = ui::Button::new(text, h, gui.sender(), command)?.stretchable(true);
         layout.add(Box::new(button));
     }
-    layout.stretch_to_self()?;
+    layout.stretch_to_self();
     let layout = utils::add_offsets_and_bg_big(layout)?.stretchable(true);
     Ok(Box::new(layout))
 }
@@ -231,7 +231,7 @@ impl Campaign {
         layout.add(Box::new(line));
         layout.add(Box::new(ui::Spacer::new_vertical(line_height())));
         layout.add(build_panel_actions(gui, state)?);
-        layout.stretch_to_self()?;
+        layout.stretch_to_self();
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         let layout = ui::pack(layout);
         self.gui.add(&layout, anchor);

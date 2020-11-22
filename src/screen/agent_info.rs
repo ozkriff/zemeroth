@@ -174,7 +174,7 @@ fn info_panel(
             }
         }
     }
-    layout.stretch_to_self()?;
+    layout.stretch_to_self();
     Ok(layout)
 }
 
@@ -184,7 +184,7 @@ fn button_back(gui: &mut ui::Gui<Message>, layout_width: f32) -> ZResult<Box<dyn
     let text = ui::Drawable::text("back", font, utils::font_size());
     let msg = Message::Back;
     let mut button = ui::Button::new(text, h, gui.sender(), msg)?.stretchable(true);
-    button.stretch(layout_width / 3.0)?;
+    button.stretch(layout_width / 3.0);
     button.set_stretchable(false);
     Ok(Box::new(button))
 }

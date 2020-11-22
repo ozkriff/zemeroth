@@ -38,7 +38,7 @@ pub const OFFSET_SMALL: f32 = 0.02;
 pub const OFFSET_BIG: f32 = 0.04;
 
 pub fn add_bg(w: Box<dyn ui::Widget>) -> ZResult<ui::LayersLayout> {
-    let bg = ui::ColoredRect::new(ui::SPRITE_COLOR_BG, w.rect())?.stretchable(true);
+    let bg = ui::ColoredRect::new(ui::SPRITE_COLOR_BG, w.rect()).stretchable(true);
     let mut layers = ui::LayersLayout::new();
     layers.add(Box::new(bg));
     layers.add(w);

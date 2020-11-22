@@ -61,9 +61,9 @@ impl Confirm {
         };
         let button_width = widget.rect().w / 3.0;
         let mut yes = button("yes", Message::Yes)?;
-        yes.stretch(button_width)?;
+        yes.stretch(button_width);
         let mut no = button("no", Message::No)?;
-        no.stretch(button_width)?;
+        no.stretch(button_width);
         let spacer_width = widget.rect().w - yes.rect().w - no.rect().w;
         let mut line_layout = ui::HLayout::new();
         line_layout.add(Box::new(yes));

@@ -41,7 +41,7 @@ fn make_gui() -> ZResult<ui::Gui<Message>> {
         layout.add(space());
         layout.add(button("exit", Message::Exit)?);
     }
-    layout.stretch_to_self()?;
+    layout.stretch_to_self();
     let layout = utils::add_offsets_and_bg_big(layout)?;
     let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
     gui.add(&ui::pack(layout), anchor);
