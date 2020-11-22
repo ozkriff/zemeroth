@@ -201,7 +201,7 @@ impl BattleView {
 
     pub fn object_sprite(&self, obj_type: &ObjType) -> Sprite {
         let assets = assets::get();
-        let info = assets.sprites_info.get(obj_type).expect("TODO: err msg");
+        let info = assets.sprites_info.get(obj_type).expect("No such object");
         let frames = &assets.sprite_frames[obj_type];
         let mut sprite = Sprite::from_textures(frames, self.tile_size() * 2.0);
         sprite.set_offset(Vec2::new(0.5 - info.offset_x, 1.0 - info.offset_y));

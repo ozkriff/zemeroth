@@ -68,7 +68,7 @@ impl State {
 #[macroquad::main("ZGui: Remove Widget Demo")]
 async fn main() {
     let assets = common::Assets::load().await;
-    let mut state = State::new(assets).expect("TODO: err msg");
+    let mut state = State::new(assets).expect("Can't create the game state");
     loop {
         // Update the camera and the GUI.
         let aspect_ratio = common::aspect_ratio();

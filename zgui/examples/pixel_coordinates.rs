@@ -45,7 +45,7 @@ fn draw_scene() {
 #[macroquad::main("ZGui: Pixel Coordinates Demo")]
 async fn main() {
     let assets = common::Assets::load().await;
-    let mut gui = make_gui(assets.font).expect("TODO: err msg");
+    let mut gui = make_gui(assets.font).expect("Can't create the gui");
     loop {
         // Update the camera and the GUI.
         let aspect_ratio = common::aspect_ratio();
