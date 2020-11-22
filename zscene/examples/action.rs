@@ -98,11 +98,11 @@ fn update_aspect_ratio() {
 async fn main() {
     let assets = Assets::load().await;
     let mut state = State::new(assets);
-
-    // Run two demo demo actions in parallel.
-    state.scene.add_action(state.action_demo_move());
-    state.scene.add_action(state.action_demo_show_hide());
-
+    {
+        // Run two demo demo actions in parallel.
+        state.scene.add_action(state.action_demo_move());
+        state.scene.add_action(state.action_demo_show_hide());
+    }
     loop {
         window::clear_background(BLACK);
         update_aspect_ratio();
