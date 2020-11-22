@@ -25,18 +25,16 @@ enum Drawable {
 impl Drawable {
     fn dimensions(&self) -> Rect {
         match self {
-            Drawable::Texture(texture) => {
-                Rect::new(0.0, 0.0, texture.width() as _, texture.height() as _)
-            }
+            Drawable::Texture(texture) => Rect::new(0.0, 0.0, texture.width(), texture.height()),
             Drawable::Text {
                 label,
                 font,
                 font_size,
             } => {
-                // TODO: dirty hack to have a fixed height for text. Fix it somehow. (same in zgui)
                 let (w, _) = text::measure_text(&label, Some(*font), *font_size, 1.0);
-                let (_, h) = text::measure_text(&"|", Some(*font), *font_size, 1.0);
-                let h = h * 1.4; // TODO: magic hack coefficient
+                // TODO: A dirty hack to have a fixed height for text.
+                // TODO: Keep this in sync with the same hack in zscene until fixed.
+                let h = text::measure_text(&"|", Some(*font), *font_size, 1.0).1 * 1.4;
                 Rect::new(-w / 1.0, -h / 1.0, w / 1.0, h / 1.0)
             }
         }
@@ -80,7 +78,6 @@ pub struct Sprite {
 impl Sprite {
     pub fn deep_clone(&self) -> Self {
         let data = self.data.borrow();
-
         let cloned_data = SpriteData {
             drawable: data.drawable.clone(),
             drawables: data.drawables.clone(),
@@ -93,7 +90,6 @@ impl Sprite {
             offset: data.offset,
             facing: data.facing,
         };
-
         Sprite {
             data: Rc::new(RefCell::new(cloned_data)),
         }

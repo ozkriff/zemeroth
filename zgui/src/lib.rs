@@ -95,10 +95,10 @@ impl Drawable {
                 font,
                 font_size,
             } => {
-                // TODO: dirty hack to have a fixed height for text. Fix it somehow. (same in zgui)
                 let (w, _) = measure_text(&label, Some(*font), *font_size, 1.0);
-                let (_, h) = measure_text(&"|", Some(*font), *font_size, 1.0);
-                let h = h * 1.4; // TODO: magic hack coefficient
+                // TODO: A dirty hack to have a fixed height for text.
+                // TODO: Keep this in sync with the same hack in zgui until fixed.
+                let h = measure_text(&"|", Some(*font), *font_size, 1.0).1 * 1.4;
                 Rect::new(0.0, 0.0, w, h)
             }
             Drawable::SolidRect { rect, .. } => *rect,
