@@ -59,7 +59,6 @@ pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
     Rc::new(RefCell::new(widget))
 }
 
-// TODO: Think HARD about this API.
 #[derive(Debug, Clone)]
 pub enum Drawable {
     Texture(Texture2D),
@@ -126,7 +125,6 @@ impl Sprite {
             drawable,
             dimensions,
             basic_scale,
-
             pos: Vec2::new(0.0, 0.0),
             scale: Vec2::new(basic_scale, basic_scale),
             color: SPRITE_COLOR,
@@ -157,8 +155,6 @@ impl Sprite {
                 draw_text_ex(
                     &label,
                     self.pos.x(),
-                    // TODO: this actually looks like macroquad bug in text positioning :/
-                    // self.pos.y() - *font_size as f32 * self.scale.x() * 0.35,
                     self.pos.y(),
                     TextParams {
                         font_size: *font_size,
@@ -187,7 +183,6 @@ impl Sprite {
     fn rect(&self) -> Rect {
         let w = self.dimensions.w;
         let h = self.dimensions.h;
-        // TODO: Transform Drawable's dimensions
         Rect {
             x: self.pos.x(),
             y: self.pos.y(),
@@ -295,7 +290,7 @@ pub struct Gui<Message: Clone> {
 
 impl<Message: Clone> Gui<Message> {
     pub fn new() -> Self {
-        let aspect_ratio = window::screen_width() / window::screen_height(); // TODO: can remove code duplication here?
+        let aspect_ratio = window::screen_width() / window::screen_height();
         trace!("Gui: aspect_ratio: {}", aspect_ratio);
         let (sender, receiver) = channel();
         Self {
