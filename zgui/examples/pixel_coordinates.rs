@@ -1,5 +1,5 @@
-use macroquad::{
-    self as mq,
+use mq::{
+    self as macroquad,
     camera::{set_camera, Camera2D},
     prelude::{Rect, RED, WHITE},
 };
@@ -42,7 +42,7 @@ fn draw_scene() {
     mq::shapes::draw_circle(x, y, r, color);
 }
 
-#[macroquad::main("ZGui: Pixel Coordinates Demo")]
+#[mq::main("ZGui: Pixel Coordinates Demo")]
 async fn main() {
     let assets = common::Assets::load().await;
     let mut gui = make_gui(assets.font).expect("Can't create the gui");

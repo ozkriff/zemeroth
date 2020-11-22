@@ -1,7 +1,6 @@
 use std::{sync::mpsc::Receiver, time::Duration};
 
-use macroquad::{
-    self as mq,
+use mq::{
     camera::{set_camera, Camera2D},
     prelude::{Rect, Vec2},
 };

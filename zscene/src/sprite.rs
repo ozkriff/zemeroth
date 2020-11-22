@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use macroquad::{
+use mq::{
     prelude::{Color, Rect, Vec2},
     text::{self, Font},
     texture::{self, DrawTextureParams, Texture2D},

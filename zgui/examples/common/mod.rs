@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
-use macroquad::{
-    self as mq,
+use mq::{
     camera::{set_camera, Camera2D},
     prelude::{Rect, Vec2},
     text::{load_ttf_font, Font},

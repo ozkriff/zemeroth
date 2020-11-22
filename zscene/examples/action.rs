@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use macroquad::{
+use mq::{
+    self as macroquad,
     camera::{set_camera, Camera2D},
     prelude::{Color, Rect, Vec2, BLACK},
     text,
@@ -94,7 +95,7 @@ fn update_aspect_ratio() {
     set_camera(Camera2D::from_display_rect(coordinates));
 }
 
-#[macroquad::main("ZScene: Actions Demo")]
+#[mq::main("ZScene: Actions Demo")]
 async fn main() {
     let assets = Assets::load().await;
     let mut state = State::new(assets);

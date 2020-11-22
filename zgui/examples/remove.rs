@@ -1,4 +1,4 @@
-use macroquad::{self as mq, prelude::WHITE};
+use mq::{self as macroquad, prelude::WHITE};
 use zgui as ui;
 
 mod common;
@@ -65,7 +65,7 @@ impl State {
     }
 }
 
-#[macroquad::main("ZGui: Remove Widget Demo")]
+#[mq::main("ZGui: Remove Widget Demo")]
 async fn main() {
     let assets = common::Assets::load().await;
     let mut state = State::new(assets).expect("Can't create the game state");

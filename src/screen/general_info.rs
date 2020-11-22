@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use macroquad::prelude::Vec2;
+use mq::prelude::Vec2;
 use ui::{self, Gui, Widget};
 
 use crate::{

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use macroquad::prelude::Color;
+use mq::prelude::Color;
 
 use crate::{duration_to_f32, Action, Sprite};
 

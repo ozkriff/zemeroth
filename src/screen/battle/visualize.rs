@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use log::{info, trace};
-use macroquad::{
+use mq::{
     prelude::{Color, Mat2, Vec2},
     texture::Texture2D,
 };
@@ -28,7 +28,7 @@ use crate::{
 };
 
 pub mod color {
-    use macroquad::prelude::Color;
+    use mq::prelude::Color;
 
     pub const STRENGTH: Color = Color::new_const(0, 178, 0, 255);
     pub const DAMAGE: Color = Color::new_const(76, 127, 76, 127);

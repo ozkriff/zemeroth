@@ -1,4 +1,4 @@
-use macroquad::{self as mq, prelude::WHITE};
+use mq::{self as macroquad, prelude::WHITE};
 use zgui as ui;
 
 mod common;
@@ -18,7 +18,7 @@ fn make_gui(font: mq::text::Font) -> ui::Result<ui::Gui<Message>> {
     Ok(gui)
 }
 
-#[macroquad::main("ZGui: Text Button Demo")]
+#[mq::main("ZGui: Text Button Demo")]
 async fn main() {
     let assets = common::Assets::load().await;
     let mut gui = make_gui(assets.font).expect("Can't create the gui");

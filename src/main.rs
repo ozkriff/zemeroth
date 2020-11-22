@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use macroquad::{self as mq, input, window};
+use mq::{self as macroquad, input, window};
 
 mod assets;
 mod core;
@@ -45,7 +45,7 @@ impl MainState {
     }
 }
 
-#[macroquad::main("Zemeroth")]
+#[mq::main("Zemeroth")]
 async fn main() {
     // std::env isn't supported on WASM.
     #[cfg(not(target_arch = "wasm32"))]
@@ -53,7 +53,7 @@ async fn main() {
         std::env::set_var("RUST_BACKTRACE", "1");
     }
     env_logger::init();
-    quad_rand::srand(macroquad::prelude::miniquad::date::now() as _);
+    quad_rand::srand(mq::prelude::miniquad::date::now() as _);
     assets::load_assets().await;
     let mut state = MainState::new().expect("Can't create the main state");
     loop {

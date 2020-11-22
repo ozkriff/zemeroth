@@ -5,7 +5,7 @@
 
 use std::{collections::HashMap, hash::Hash};
 
-use macroquad::{
+use mq::{
     file::load_file,
     text::{self, Font},
     texture::{load_texture, Texture2D},

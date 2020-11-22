@@ -1,4 +1,4 @@
-use macroquad::prelude::Color;
+use mq::prelude::Color;
 
 use crate::{Action, Sprite};
 

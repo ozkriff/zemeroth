@@ -9,7 +9,7 @@ use std::{
 };
 
 use log::{info, trace};
-use macroquad::{
+use mq::{
     camera::{set_camera, Camera2D},
     prelude::{Color, Rect, Vec2},
     shapes,
