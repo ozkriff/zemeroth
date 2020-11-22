@@ -140,9 +140,7 @@ impl Sprite {
                     self.pos.y(),
                     self.color,
                     DrawTextureParams {
-                        dest_size: Some(
-                            self.scale * Vec2::new(texture.width() as f32, texture.height() as f32),
-                        ),
+                        dest_size: Some(self.scale * Vec2::new(texture.width(), texture.height())),
                         ..Default::default()
                     },
                 );
