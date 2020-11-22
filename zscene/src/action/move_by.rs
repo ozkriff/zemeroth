@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use macroquad::prelude::Vec2;
 
-use crate::{duration_to_f64, Action, Sprite};
+use crate::{duration_to_f32, Action, Sprite};
 
 #[derive(Debug)]
 pub struct MoveBy {
@@ -29,8 +29,8 @@ impl Action for MoveBy {
         if dtime + self.progress > self.duration {
             dtime = self.duration - self.progress;
         }
-        let dtime_f = duration_to_f64(dtime) as f32;
-        let duration_f = duration_to_f64(self.duration) as f32;
+        let dtime_f = duration_to_f32(dtime);
+        let duration_f = duration_to_f32(self.duration);
         let new_pos = old_pos + self.delta * (dtime_f / duration_f);
         self.sprite.set_pos(new_pos);
         self.progress += dtime;

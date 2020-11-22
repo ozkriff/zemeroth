@@ -11,8 +11,8 @@ mod sprite;
 
 pub type Result<T = ()> = std::result::Result<T, Error>;
 
-fn duration_to_f64(d: Duration) -> f64 {
-    d.as_secs() as f64 + d.subsec_nanos() as f64 * 1e-9
+fn duration_to_f32(d: Duration) -> f32 {
+    d.as_secs() as f32 + d.subsec_nanos() as f32 * 1e-9
 }
 
 #[derive(Debug)]

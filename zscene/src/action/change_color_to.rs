@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use macroquad::prelude::Color;
 
-use crate::{duration_to_f64, Action, Sprite};
+use crate::{duration_to_f32, Action, Sprite};
 
 #[derive(Debug)]
 pub struct ChangeColorTo {
@@ -34,8 +34,8 @@ impl Action for ChangeColorTo {
         if dtime + self.progress > self.duration {
             dtime = self.duration - self.progress;
         }
-        let progress_f = duration_to_f64(self.progress) as f32;
-        let duration_f = duration_to_f64(self.duration) as f32;
+        let progress_f = duration_to_f32(self.progress);
+        let duration_f = duration_to_f32(self.duration);
         let k = progress_f / duration_f;
         let mut color = [0.0; 4];
         for (i, color_i) in color.iter_mut().enumerate().take(4) {
