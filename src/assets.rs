@@ -29,7 +29,7 @@ use crate::{
 
 static INSTANCE: OnceCell<Assets> = OnceCell::new();
 
-pub async fn load_assets() {
+pub async fn load() {
     assert!(INSTANCE.get().is_none());
     let assets = Assets::load().await.expect("Can't load assets");
     INSTANCE.set(assets).expect("Can't set assets instance");
