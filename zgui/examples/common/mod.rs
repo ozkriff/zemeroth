@@ -24,8 +24,7 @@ pub fn make_and_set_camera(aspect_ratio: f32) -> Camera2D {
 }
 
 pub fn get_world_mouse_pos(camera: &Camera2D) -> Vec2 {
-    let (x, y) = mq::input::mouse_position();
-    camera.screen_to_world(Vec2::new(x, y))
+    camera.screen_to_world(mq::input::mouse_position().into())
 }
 
 pub struct Assets {
