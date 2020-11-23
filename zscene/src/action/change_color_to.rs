@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use mq::prelude::Color;
 
-use crate::{duration_to_f32, Action, Sprite};
+use crate::{Action, Sprite};
 
 #[derive(Debug)]
 pub struct ChangeColorTo {
@@ -34,8 +34,8 @@ impl Action for ChangeColorTo {
         if dtime + self.progress > self.duration {
             dtime = self.duration - self.progress;
         }
-        let progress_f = duration_to_f32(self.progress);
-        let duration_f = duration_to_f32(self.duration);
+        let progress_f = self.progress.as_secs_f32();
+        let duration_f = self.duration.as_secs_f32();
         let k = progress_f / duration_f;
         let mut color = [0.0; 4];
         for (i, color_i) in color.iter_mut().enumerate().take(4) {
