@@ -6,7 +6,7 @@ use crate::core::{
         self,
         ability::{Ability, PassiveAbility, RechargeableAbility},
         effect::Timed,
-        Attacks, Id, Jokers, MovePoints, Moves, Phase, PlayerId,
+        Attacks, Id, Jokers, MovePoints, Moves, Phase, PlayerId, Rounds,
     },
     map,
 };
@@ -104,9 +104,7 @@ pub struct Effects(pub Vec<Timed>);
 // TODO: Move to `ability` mod?
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PlannedAbility {
-    // TODO: use real types + take effect::Duration into consideration
-    // (not Rounds, because it has `Forever` variant)
-    pub rounds: i32,
+    pub rounds: Rounds,
     pub phase: Phase,
     pub ability: Ability,
 }

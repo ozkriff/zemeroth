@@ -10,7 +10,7 @@ use crate::{
     core::{
         battle::{
             self, ability::Ability, command, component::ObjType, execute::hit_chance, movement,
-            state, Id, Jokers, Moves, State, TileType,
+            state, Id, Jokers, Moves, State, TileType, Turns,
         },
         map::{self, Dir, Distance, HexMap, PosHex},
         utils::roll_dice,
@@ -28,9 +28,9 @@ pub enum SelectionMode {
     Ability(Ability),
 }
 
-const TILE_COLOR_WALKABLE: [f32; 4] = [0.1, 0.6, 0.1, 0.3];
-const TILE_COLOR_ATTACKABLE: [f32; 4] = [0.8, 0.0, 0.0, 0.3];
-const TILE_COLOR_ABILITY: [f32; 4] = [0.0, 0.0, 0.9, 0.3];
+const TILE_COLOR_WALKABLE: Color = Color::new(0.1, 0.6, 0.1, 0.3);
+const TILE_COLOR_ATTACKABLE: Color = Color::new(0.8, 0.0, 0.0, 0.3);
+const TILE_COLOR_ABILITY: Color = Color::new(0.0, 0.0, 0.9, 0.3);
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
@@ -75,9 +75,8 @@ pub fn tile_size(map_height: Distance) -> f32 {
 struct DisappearingSprite {
     sprite: Sprite,
     layer: Layer,
-    // TODO: use a special type instead of i32!
-    turns_total: i32,
-    turns_left: i32,
+    turns_total: Turns,
+    turns_left: Turns,
     initial_alpha: f32,
 }
 
@@ -313,7 +312,7 @@ impl BattleView {
         &mut self,
         layer: &Layer,
         sprite: &Sprite,
-        turns: i32,
+        turns: Turns,
         initial_alpha: f32,
     ) {
         self.sprites.disappearing_sprites.push(DisappearingSprite {
@@ -328,19 +327,19 @@ impl BattleView {
     pub fn update_disappearing_sprites(&mut self) -> Box<dyn Action> {
         let mut actions = Vec::new();
         for s in &mut self.sprites.disappearing_sprites {
-            s.turns_left -= 1;
+            s.turns_left.decrease();
             let mut color = s.sprite.color();
-            color.a = (s.initial_alpha / s.turns_total as f32) * s.turns_left as f32;
+            color.a = (s.initial_alpha / s.turns_total.0 as f32) * s.turns_left.0 as f32;
             let mut sub_actions = Vec::new();
             sub_actions.push(action::ChangeColorTo::new(&s.sprite, color, time_s(2.0)).boxed());
-            if s.turns_left == 0 {
+            if s.turns_left.is_zero() {
                 sub_actions.push(action::Hide::new(&s.layer, &s.sprite).boxed());
             }
             actions.push(visualize::fork(visualize::seq(sub_actions)));
         }
         self.sprites
             .disappearing_sprites
-            .retain(|s| s.turns_left > 0);
+            .retain(|s| !s.turns_left.is_zero());
         visualize::seq(actions)
     }
 
@@ -465,7 +464,7 @@ impl BattleView {
             let ability = ability.clone();
             let command = command::UseAbility { id, ability, pos }.into();
             if battle::check(state, &command).is_ok() {
-                self.highlight_tile(context, pos, TILE_COLOR_ABILITY.into())?;
+                self.highlight_tile(context, pos, TILE_COLOR_ABILITY)?;
             }
         }
         Ok(())
@@ -508,7 +507,7 @@ impl BattleView {
                 continue;
             }
             self.show_hit_chance_label(state, context, id, target_id)?;
-            self.highlight_tile(context, target_pos, TILE_COLOR_ATTACKABLE.into())?;
+            self.highlight_tile(context, target_pos, TILE_COLOR_ATTACKABLE)?;
         }
         Ok(())
     }
@@ -528,7 +527,7 @@ impl BattleView {
             if map.tile(pos).cost() > agent.move_points {
                 continue;
             }
-            self.highlight_tile(context, pos, TILE_COLOR_WALKABLE.into())?
+            self.highlight_tile(context, pos, TILE_COLOR_WALKABLE)?
         }
         Ok(())
     }

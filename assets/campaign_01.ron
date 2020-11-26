@@ -7,7 +7,7 @@ Plan(
         (
             scenario: (
                 rocky_tiles_count: 0,
-                objects: [
+                randomized_objects: [
                     (owner: Some((1)), typename: "imp", line: Some(Front), count: 3),
                 ],
             ),
@@ -19,7 +19,7 @@ Plan(
         (
             scenario: (
                 rocky_tiles_count: 5,
-                objects: [
+                randomized_objects: [
                     (owner: None, typename: "boulder", line: None, count: 1),
                     (owner: Some((1)), typename: "imp", line: Some(Front), count: 3),
                     (owner: Some((1)), typename: "imp_bomber", line: Some(Middle), count: 2),
@@ -33,7 +33,7 @@ Plan(
         (
             scenario: (
                 rocky_tiles_count: 5,
-                objects: [
+                randomized_objects: [
                     (owner: None, typename: "boulder", line: None, count: 2),
                     (owner: None, typename: "spike_trap", line: None, count: 1),
                     (owner: Some((1)), typename: "imp", line: Some(Front), count: 3),
@@ -50,7 +50,7 @@ Plan(
         (
             scenario: (
                 rocky_tiles_count: 5,
-                objects: [
+                randomized_objects: [
                     (owner: None, typename: "boulder", line: None, count: 2),
                     (owner: None, typename: "spike_trap", line: None, count: 2),
                     (owner: Some((1)), typename: "imp", line: Some(Front), count: 4),
@@ -68,7 +68,7 @@ Plan(
         (
             scenario: (
                 rocky_tiles_count: 5,
-                objects: [
+                randomzed_objects: [
                     (owner: None, typename: "boulder", line: None, count: 2),
                     (owner: None, typename: "spike_trap", line: None, count: 2),
                     (owner: Some((1)), typename: "imp", line: Some(Front), count: 5),
@@ -86,7 +86,7 @@ Plan(
         (
             scenario: (
                 rocky_tiles_count: 5,
-                objects: [
+                randomied_objects: [
                     (owner: None, typename: "boulder", line: None, count: 2),
                     (owner: None, typename: "spike_trap", line: None, count: 2),
                     (owner: Some((1)), typename: "imp", line: Some(Front), count: 6),

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::core::battle::Weight;
+use crate::core::battle::{Rounds, Weight};
 
 /// Active ability.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, derive_more::From)]
@@ -31,16 +31,16 @@ pub enum Ability {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Status {
     Ready,
-    Cooldown(i32), // TODO: i32 -> Rounds
+    Cooldown(Rounds),
 }
 
 impl Status {
     pub fn update(&mut self) {
         if let Status::Cooldown(ref mut rounds) = *self {
-            *rounds -= 1;
-        }
-        if *self == Status::Cooldown(0) {
-            *self = Status::Ready;
+            rounds.decrease();
+            if rounds.is_zero() {
+                *self = Status::Ready;
+            }
         }
     }
 }
@@ -88,9 +88,8 @@ impl Ability {
         }
     }
 
-    // TODO: i32 -> Rounds
-    pub fn base_cooldown(&self) -> i32 {
-        match self {
+    pub fn base_cooldown(&self) -> Rounds {
+        let n = match self {
             Ability::Knockback => 1,
             Ability::Club => 2,
             Ability::Jump => 2,
@@ -112,7 +111,8 @@ impl Ability {
             Ability::Heal => 3,
             Ability::GreatHeal => 2,
             Ability::Bloodlust => 3,
-        }
+        };
+        Rounds(n)
     }
 
     pub fn description(&self) -> Vec<String> {

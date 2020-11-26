@@ -13,7 +13,7 @@ use crate::core::{
         event::{self, ActiveEvent, Event},
         movement::Path,
         state::{self, BattleResult, State},
-        Id, Moves, Phase, PlayerId, PushStrength, Strength, Weight,
+        Id, Moves, Phase, PlayerId, PushStrength, Rounds, Strength, Weight,
     },
     map::{self, Dir, PosHex},
     utils::{self, roll_dice},
@@ -206,7 +206,7 @@ fn try_execute_passive_ability_poison(state: &State, target_id: Id) -> ExecuteCo
     }
     let owner = state.parts().belongs_to.get(target_id).0;
     let effect = effect::Timed {
-        duration: effect::Duration::Rounds(2),
+        duration: effect::Duration::Rounds(2.into()),
         phase: Phase::from_player_id(owner),
         effect: effect::Lasting::Poison,
     };
@@ -375,7 +375,7 @@ fn try_execute_passive_abilities_on_attack(
                 PassiveAbility::PoisonAttack => {
                     let owner = parts.belongs_to.get(target_id).0;
                     let effect = effect::Timed {
-                        duration: effect::Duration::Rounds(2),
+                        duration: effect::Duration::Rounds(2.into()),
                         phase: Phase::from_player_id(owner),
                         effect: effect::Lasting::Poison,
                     };
@@ -477,7 +477,7 @@ fn execute_planned_abilities(state: &mut State, cb: Cb) {
         {
             let schedule = state.parts().schedule.get(obj_id);
             for planned in &schedule.planned {
-                if planned.rounds <= 0 {
+                if planned.rounds.0 <= 0 {
                     trace!("planned ability: ready!");
                     let c = command::UseAbility {
                         ability: planned.ability.clone(),
@@ -590,7 +590,7 @@ fn execute_end_turn(state: &mut State, cb: Cb, _: &command::EndTurn) {
 
 fn start_fire(state: &mut State, pos: PosHex) -> ExecuteContext {
     let vanish = component::PlannedAbility {
-        rounds: 2, // TODO: Replace this magic number
+        rounds: 2.into(), // TODO: Replace this magic number
         phase: Phase::from_player_id(state.player_id()),
         ability: Ability::Vanish,
     };
@@ -611,7 +611,7 @@ fn start_fire(state: &mut State, pos: PosHex) -> ExecuteContext {
 
 fn create_poison_cloud(state: &mut State, pos: PosHex) -> ExecuteContext {
     let vanish = component::PlannedAbility {
-        rounds: 2, // TODO: Replace this magic number
+        rounds: 2.into(), // TODO: Replace this magic number
         phase: Phase::from_player_id(state.player_id()),
         ability: Ability::Vanish,
     };
@@ -701,7 +701,7 @@ fn execute_use_ability_club(state: &mut State, command: &command::UseAbility) ->
         let owner = state.parts().belongs_to.get(id).0;
         let phase = Phase::from_player_id(owner);
         let effect = effect::Timed {
-            duration: effect::Duration::Rounds(1),
+            duration: effect::Duration::Rounds(1.into()),
             phase,
             effect: effect::Lasting::Stun,
         };
@@ -975,7 +975,7 @@ fn execute_use_ability_poison(state: &mut State, command: &command::UseAbility) 
     let owner = state.parts().belongs_to.get(id).0;
     let phase = Phase::from_player_id(owner);
     let effect = effect::Timed {
-        duration: effect::Duration::Rounds(2),
+        duration: effect::Duration::Rounds(2.into()),
         phase,
         effect: effect::Lasting::Poison,
     };
@@ -1023,7 +1023,7 @@ fn throw_bomb(
     state: &mut State,
     command: &command::UseAbility,
     prototype: &ObjType,
-    rounds: i32,
+    rounds: Rounds,
     ability: Ability,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
@@ -1052,53 +1052,45 @@ fn execute_use_ability_bomb_push(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, &"bomb_push".into(), 0, Ability::ExplodePush)
+    let rounds = 0.into();
+    let ability = Ability::ExplodePush;
+    throw_bomb(state, command, &"bomb_push".into(), rounds, ability)
 }
 
 fn execute_use_ability_bomb_damage(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(
-        state,
-        command,
-        &"bomb_damage".into(),
-        1,
-        Ability::ExplodeDamage,
-    )
+    let ability = Ability::ExplodeDamage;
+    let rounds = 1.into();
+    throw_bomb(state, command, &"bomb_damage".into(), rounds, ability)
 }
 
 fn execute_use_ability_bomb_fire(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(state, command, &"bomb_fire".into(), 1, Ability::ExplodeFire)
+    let ability = Ability::ExplodeFire;
+    let rounds = 1.into();
+    throw_bomb(state, command, &"bomb_fire".into(), rounds, ability)
 }
 
 fn execute_use_ability_bomb_poison(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(
-        state,
-        command,
-        &"bomb_poison".into(),
-        1,
-        Ability::ExplodePoison,
-    )
+    let ability = Ability::ExplodePoison;
+    let rounds = 1.into();
+    throw_bomb(state, command, &"bomb_poison".into(), rounds, ability)
 }
 
 fn execute_use_ability_bomb_demonic(
     state: &mut State,
     command: &command::UseAbility,
 ) -> ExecuteContext {
-    throw_bomb(
-        state,
-        command,
-        &"bomb_demonic".into(),
-        1,
-        Ability::ExplodeDamage,
-    )
+    let ability = Ability::ExplodeDamage;
+    let rounds = 1.into();
+    throw_bomb(state, command, &"bomb_demonic".into(), rounds, ability)
 }
 
 fn execute_use_ability_summon(state: &mut State, command: &command::UseAbility) -> ExecuteContext {
@@ -1130,7 +1122,7 @@ fn execute_use_ability_bloodlust(
         let owner = state.parts().belongs_to.get(id).0;
         let phase = Phase::from_player_id(owner);
         let effect = effect::Timed {
-            duration: effect::Duration::Rounds(3),
+            duration: effect::Duration::Rounds(3.into()),
             phase,
             effect: effect::Lasting::Bloodlust,
         };

@@ -1,6 +1,6 @@
 (
     rocky_tiles_count: 10,
-    objects: [
+    randomized_objects: [
         (owner: None, typename: "boulder", line: None, count: 3),
         (owner: None, typename: "spike_trap", line: None, count: 3),
         (owner: Some((0)), typename: "swordsman", line: Some(Front), count: 1),

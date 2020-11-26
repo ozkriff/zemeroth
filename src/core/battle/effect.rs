@@ -2,19 +2,19 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::battle::{
     component::{Component, ObjType},
-    Phase, PosHex, PushStrength, Strength,
+    Phase, PosHex, PushStrength, Rounds, Strength,
 };
 
 #[derive(Clone, Debug, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Duration {
     Forever,
-    Rounds(i32),
+    Rounds(Rounds),
 }
 
 impl Duration {
     pub fn is_over(self) -> bool {
         match self {
-            Duration::Rounds(n) => n <= 0,
+            Duration::Rounds(n) => n.is_zero(),
             Duration::Forever => false,
         }
     }
