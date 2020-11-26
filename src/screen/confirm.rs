@@ -3,13 +3,11 @@ use std::{
     time::Duration,
 };
 
-use gwg::{
-    graphics::{self, Point2, Text},
-    Context,
-};
+use mq::prelude::Vec2;
 use ui::{self, Gui, Widget};
 
 use crate::{
+    assets,
     screen::{Screen, StackCommand},
     utils, ZResult,
 };
@@ -27,54 +25,45 @@ pub fn try_receive_yes(opt_rx: &Option<Receiver<Message>>) -> bool {
 
 #[derive(Debug)]
 pub struct Confirm {
-    font: graphics::Font,
     gui: Gui<Message>,
     sender: Sender<Message>,
 }
 
 impl Confirm {
-    pub fn from_lines(
-        context: &mut Context,
-        lines: &[impl AsRef<str>],
-        sender: Sender<Message>,
-    ) -> ZResult<Self> {
-        let font = utils::default_font(context);
+    pub fn from_lines(lines: &[impl AsRef<str>], sender: Sender<Message>) -> ZResult<Self> {
+        let font = assets::get().font;
         let h = utils::line_heights().big;
         let font_size = utils::font_size();
         let mut layout = ui::VLayout::new();
         for line in lines {
-            let text = Box::new(Text::new((line.as_ref(), font, font_size)));
-            let label = Box::new(ui::Label::new(context, text, h)?);
+            let text = ui::Drawable::text(line.as_ref(), font, font_size);
+            let label = Box::new(ui::Label::new(text, h)?);
             layout.add(label);
         }
-        Self::from_widget(context, Box::new(layout), sender)
+        Self::from_widget(Box::new(layout), sender)
     }
 
-    pub fn from_line(context: &mut Context, line: &str, sender: Sender<Message>) -> ZResult<Self> {
-        Self::from_lines(context, &[line], sender)
+    pub fn from_line(line: &str, sender: Sender<Message>) -> ZResult<Self> {
+        Self::from_lines(&[line], sender)
     }
 
-    pub fn from_widget(
-        context: &mut Context,
-        widget: Box<dyn ui::Widget>,
-        sender: Sender<Message>,
-    ) -> ZResult<Self> {
-        let font = utils::default_font(context);
-        let mut gui = ui::Gui::new(context);
+    pub fn from_widget(widget: Box<dyn ui::Widget>, sender: Sender<Message>) -> ZResult<Self> {
+        let font = assets::get().font;
+        let mut gui = ui::Gui::new();
         let h = utils::line_heights().big;
         let font_size = utils::font_size();
         let mut layout = Box::new(ui::VLayout::new());
         let spacer = || Box::new(ui::Spacer::new_vertical(h * 0.5));
-        let button = |context: &mut Context, line, message| -> ZResult<_> {
-            let text = Box::new(Text::new((line, font, font_size)));
-            let b = ui::Button::new(context, text, h, gui.sender(), message)?.stretchable(true);
+        let button = |line, message| -> ZResult<_> {
+            let text = ui::Drawable::text(line, font, font_size);
+            let b = ui::Button::new(text, h, gui.sender(), message)?.stretchable(true);
             Ok(b)
         };
         let button_width = widget.rect().w / 3.0;
-        let mut yes = button(context, "yes", Message::Yes)?;
-        yes.stretch(context, button_width)?;
-        let mut no = button(context, "no", Message::No)?;
-        no.stretch(context, button_width)?;
+        let mut yes = button("yes", Message::Yes)?;
+        yes.stretch(button_width);
+        let mut no = button("no", Message::No)?;
+        no.stretch(button_width);
         let spacer_width = widget.rect().w - yes.rect().w - no.rect().w;
         let mut line_layout = ui::HLayout::new();
         line_layout.add(Box::new(yes));
@@ -83,25 +72,25 @@ impl Confirm {
         layout.add(widget);
         layout.add(spacer());
         layout.add(Box::new(line_layout));
-        let layout = utils::add_offsets_and_bg_big(context, layout)?;
+        let layout = utils::add_offsets_and_bg_big(layout)?;
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         gui.add(&ui::pack(layout), anchor);
-        Ok(Self { font, gui, sender })
+        Ok(Self { gui, sender })
     }
 }
 
 // TODO: handle Enter/ESC keys
 impl Screen for Confirm {
-    fn update(&mut self, _context: &mut Context, _dtime: Duration) -> ZResult<StackCommand> {
+    fn update(&mut self, _dtime: Duration) -> ZResult<StackCommand> {
         Ok(StackCommand::None)
     }
 
-    fn draw(&self, context: &mut Context) -> ZResult {
-        self.gui.draw(context)?;
+    fn draw(&self) -> ZResult {
+        self.gui.draw();
         Ok(())
     }
 
-    fn click(&mut self, _: &mut Context, pos: Point2) -> ZResult<StackCommand> {
+    fn click(&mut self, pos: Vec2) -> ZResult<StackCommand> {
         let message = self.gui.click(pos);
         match message {
             Some(message) => {
@@ -115,10 +104,10 @@ impl Screen for Confirm {
     }
 
     fn resize(&mut self, aspect_ratio: f32) {
-        self.gui.resize(aspect_ratio);
+        self.gui.resize_if_needed(aspect_ratio);
     }
 
-    fn move_mouse(&mut self, _context: &mut Context, pos: Point2) -> ZResult {
+    fn move_mouse(&mut self, pos: Vec2) -> ZResult {
         self.gui.move_mouse(pos);
         Ok(())
     }

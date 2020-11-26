@@ -1,15 +1,17 @@
 use std::time::Duration;
 
-use gwg::{
-    conf, event,
-    graphics::{self, Font, Point2, Rect, Text, Vector2},
-    Context, GameResult,
+use mq::{
+    camera::{set_camera, Camera2D},
+    prelude::{Color, Rect, Vec2, BLACK},
+    text,
+    texture::{self, Texture2D},
+    time, window,
 };
-use zscene::{self as zscene, action, Boxed, Layer, Scene, Sprite};
+use zscene::{self, action, Action, Boxed, Layer, Scene, Sprite};
 
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
-    pub bg: Layer, // TODO: show how to use layers
+    pub bg: Layer,
     pub fg: Layer,
 }
 
@@ -19,57 +21,60 @@ impl Layers {
     }
 }
 
+struct Assets {
+    font: text::Font,
+    texture: Texture2D,
+}
+
+impl Assets {
+    async fn load() -> Self {
+        let font = text::load_ttf_font("zscene/assets/Karla-Regular.ttf").await;
+        let texture = texture::load_texture("zscene/assets/fire.png").await;
+        Self { font, texture }
+    }
+}
+
 struct State {
-    font: Font,
+    assets: Assets,
     scene: Scene,
     layers: Layers,
 }
 
 impl State {
-    fn new(context: &mut Context) -> zscene::Result<Self> {
-        let font = graphics::Font::new(context, "/Karla-Regular.ttf")?;
+    fn new(assets: Assets) -> Self {
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
-        let mut this = Self {
-            font,
+        Self {
+            assets,
             scene,
             layers,
-        };
-        this.demo_move(context)?;
-        this.demo_show_hide(context)?;
-        {
-            let (w, h) = graphics::drawable_size(context);
-            this.resize(context, w as _, h as _)?;
         }
-        Ok(this)
     }
 
-    fn demo_move(&mut self, context: &mut Context) -> zscene::Result {
-        let mut sprite = Sprite::from_path(context, "/fire.png", 0.5)?;
-        sprite.set_pos(Point2::new(0.0, -1.0));
-        let delta = Vector2::new(0.0, 1.5);
+    fn action_demo_move(&self) -> Box<dyn Action> {
+        let mut sprite = Sprite::from_texture(self.assets.texture, 0.5);
+        sprite.set_pos(Vec2::new(0.0, -1.0));
+        let delta = Vec2::new(0.0, 1.5);
         let move_duration = Duration::from_millis(2_000);
         let action = action::Sequence::new(vec![
             action::Show::new(&self.layers.fg, &sprite).boxed(),
             action::MoveBy::new(&sprite, delta, move_duration).boxed(),
         ]);
-        self.scene.add_action(action.boxed());
-        Ok(())
+        action.boxed()
     }
 
-    fn demo_show_hide(&mut self, context: &mut Context) -> zscene::Result {
+    fn action_demo_show_hide(&self) -> Box<dyn Action> {
         let mut sprite = {
-            let font_size = 32.0;
-            let text = Box::new(Text::new(("some text", self.font, font_size)));
-            let mut sprite = Sprite::from_drawable(context, text, 0.1)?;
-            sprite.set_pos(Point2::new(0.0, 0.0));
+            let font_size = 32;
+            let mut sprite = Sprite::from_text(("some text", self.assets.font, font_size), 0.1);
+            sprite.set_pos(Vec2::new(0.0, 0.0));
             sprite.set_scale(2.0); // just testing set_size method
             let scale = sprite.scale();
             assert!((scale - 2.0).abs() < 0.001);
             sprite
         };
-        let visible = [0.0, 1.0, 0.0, 1.0].into();
-        let invisible = graphics::Color { a: 0.0, ..visible };
+        let visible = Color::new(0.0, 1.0, 0.0, 1.0);
+        let invisible = Color::new(0.0, 1.0, 0.0, 0.0);
         sprite.set_color(invisible);
         let t = Duration::from_millis(1_000);
         let action = action::Sequence::new(vec![
@@ -79,42 +84,32 @@ impl State {
             action::ChangeColorTo::new(&sprite, invisible, t).boxed(),
             action::Hide::new(&self.layers.bg, &sprite).boxed(),
         ]);
-        self.scene.add_action(action.boxed());
-        Ok(())
-    }
-
-    fn resize(&mut self, context: &mut Context, w: f32, h: f32) -> zscene::Result {
-        let aspect_ratio = w / h;
-        let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-        graphics::set_screen_coordinates(context, coordinates)?;
-        Ok(())
+        action.boxed()
     }
 }
 
-impl event::EventHandler for State {
-    fn update(&mut self, context: &mut Context) -> GameResult {
-        let dtime = gwg::timer::delta(context);
-        self.scene.tick(dtime);
-        Ok(())
-    }
-
-    fn draw(&mut self, context: &mut Context) -> GameResult {
-        graphics::clear(context, [0.0, 0.0, 0.0, 1.0].into());
-        self.scene.draw(context)?;
-        graphics::present(context)
-    }
-
-    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
-        self.resize(context, w, h).expect("Can't resize the window");
-    }
+fn update_aspect_ratio() {
+    let aspect_ratio = window::screen_width() / window::screen_height();
+    let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
+    set_camera(Camera2D::from_display_rect(coordinates));
 }
 
-fn main() -> gwg::GameResult {
-    gwg::start(
-        conf::Conf {
-            physical_root_dir: Some("resources".into()),
-            ..Default::default()
-        },
-        |mut context| Box::new(State::new(&mut context).expect("Can't create the state")),
-    )
+#[mq::main("ZScene: Actions Demo")]
+#[macroquad(crate_rename = "mq")]
+async fn main() {
+    let assets = Assets::load().await;
+    let mut state = State::new(assets);
+    {
+        // Run two demo demo actions in parallel.
+        state.scene.add_action(state.action_demo_move());
+        state.scene.add_action(state.action_demo_show_hide());
+    }
+    loop {
+        window::clear_background(BLACK);
+        update_aspect_ratio();
+        let dtime = time::get_frame_time();
+        state.scene.tick(Duration::from_secs_f32(dtime));
+        state.scene.draw();
+        window::next_frame().await;
+    }
 }

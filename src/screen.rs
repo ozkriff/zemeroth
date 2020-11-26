@@ -1,13 +1,9 @@
-use log::info;
 use std::{fmt::Debug, time::Duration};
 
-use gwg::{
-    self,
-    graphics::{self, Color, Point2},
-    Context,
-};
+use log::info;
+use mq::prelude::{Color, Rect, Vec2};
 
-use crate::ZResult;
+use crate::{utils, ZResult};
 
 mod agent_info;
 mod battle;
@@ -21,8 +17,8 @@ pub use self::{
     general_info::GeneralInfo, main_menu::MainMenu,
 };
 
-const COLOR_SCREEN_BG: Color = Color::new(0.9, 0.9, 0.8, 1.0);
-const COLOR_POPUP_BG: Color = Color::new(0.9, 0.9, 0.8, 0.9);
+pub const COLOR_SCREEN_BG: Color = Color::new(0.9, 0.9, 0.8, 1.0);
+pub const COLOR_POPUP_BG: Color = Color::new(0.9, 0.9, 0.8, 0.9);
 
 #[derive(Debug)]
 pub enum StackCommand {
@@ -33,12 +29,12 @@ pub enum StackCommand {
 }
 
 pub trait Screen: Debug {
-    fn update(&mut self, context: &mut Context, dtime: Duration) -> ZResult<StackCommand>;
-    fn draw(&self, context: &mut Context) -> ZResult;
-    fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult<StackCommand>;
+    fn update(&mut self, dtime: Duration) -> ZResult<StackCommand>;
+    fn draw(&self) -> ZResult;
+    fn click(&mut self, pos: Vec2) -> ZResult<StackCommand>;
     fn resize(&mut self, aspect_ratio: f32);
 
-    fn move_mouse(&mut self, _context: &mut Context, _pos: Point2) -> ZResult {
+    fn move_mouse(&mut self, _pos: Vec2) -> ZResult {
         Ok(())
     }
 }
@@ -66,59 +62,42 @@ impl ScreenWithPopups {
     }
 }
 
-fn make_popup_bg_mesh(context: &mut Context) -> ZResult<graphics::Mesh> {
-    let coords = graphics::screen_coordinates(context);
-    let mode = graphics::DrawMode::fill();
-    Ok(graphics::Mesh::new_rectangle(
-        context,
-        mode,
-        coords,
-        COLOR_POPUP_BG,
-    )?)
-}
-
-pub struct Screens {
+pub struct ScreenStack {
     screens: Vec<ScreenWithPopups>,
-    popup_bg_mesh: graphics::Mesh,
 }
 
-impl Screens {
-    pub fn new(context: &mut Context, start_screen: Box<dyn Screen>) -> ZResult<Self> {
+impl ScreenStack {
+    pub fn new(start_screen: Box<dyn Screen>) -> ZResult<Self> {
         Ok(Self {
             screens: vec![ScreenWithPopups::new(start_screen)],
-            popup_bg_mesh: make_popup_bg_mesh(context)?,
         })
     }
 
-    pub fn update(&mut self, context: &mut Context) -> ZResult {
-        let dtime = gwg::timer::delta(context);
-        let command = self.screen_mut().top_mut().update(context, dtime)?;
-        self.handle_command(context, command)
+    pub fn update(&mut self, dtime: Duration) -> ZResult {
+        let command = self.screen_mut().top_mut().update(dtime)?;
+        self.handle_command(command)
     }
 
-    pub fn draw(&self, context: &mut Context) -> ZResult {
-        graphics::clear(context, COLOR_SCREEN_BG);
+    pub fn draw(&self) -> ZResult {
         let screen = self.screen();
-        screen.screen.draw(context)?;
+        screen.screen.draw()?;
         for popup in &screen.popups {
-            graphics::draw(context, &self.popup_bg_mesh, graphics::DrawParam::default())?;
-            popup.draw(context)?;
+            self.draw_popup_bg();
+            popup.draw()?;
         }
-        graphics::present(context)?;
         Ok(())
     }
 
-    pub fn click(&mut self, context: &mut Context, pos: Point2) -> ZResult {
-        let command = self.screen_mut().top_mut().click(context, pos)?;
-        self.handle_command(context, command)
+    pub fn click(&mut self, pos: Vec2) -> ZResult {
+        let command = self.screen_mut().top_mut().click(pos)?;
+        self.handle_command(command)
     }
 
-    pub fn move_mouse(&mut self, context: &mut Context, pos: Point2) -> ZResult {
-        self.screen_mut().top_mut().move_mouse(context, pos)
+    pub fn move_mouse(&mut self, pos: Vec2) -> ZResult {
+        self.screen_mut().top_mut().move_mouse(pos)
     }
 
-    pub fn resize(&mut self, context: &mut Context, aspect_ratio: f32) -> ZResult {
-        self.popup_bg_mesh = make_popup_bg_mesh(context)?;
+    pub fn resize(&mut self, aspect_ratio: f32) -> ZResult {
         for screen in &mut self.screens {
             screen.screen.resize(aspect_ratio);
             for popup in &mut screen.popups {
@@ -128,7 +107,7 @@ impl Screens {
         Ok(())
     }
 
-    pub fn handle_command(&mut self, _context: &mut Context, command: StackCommand) -> ZResult {
+    pub fn handle_command(&mut self, command: StackCommand) -> ZResult {
         match command {
             StackCommand::None => {}
             StackCommand::PushScreen(screen) => {
@@ -162,5 +141,11 @@ impl Screens {
     /// Returns a reference to the top screen.
     fn screen(&self) -> &ScreenWithPopups {
         self.screens.last().expect(ERR_MSG_STACK_EMPTY)
+    }
+
+    fn draw_popup_bg(&self) {
+        let aspect_ratio = utils::aspect_ratio();
+        let r = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
+        mq::shapes::draw_rectangle(r.x, r.y, r.w, r.h, COLOR_POPUP_BG);
     }
 }

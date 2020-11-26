@@ -16,7 +16,6 @@ Limitations:
 From simple to complicated:
 
 - [text_button.rs](./examples/text_button.rs)
-- [vertical_layout.rs](examples/vertical_layout.rs)
 - [layers_layout.rs](examples/layers_layout.rs)
 - [nested.rs](./examples/nested.rs)
 - [remove.rs](./examples/remove.rs)

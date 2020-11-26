@@ -1,3 +1,5 @@
+<!doctype html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <title>Zemeroth</title>
@@ -5,8 +7,8 @@
         html,
         body,
         canvas {
-            margin: 0px;
-            padding: 0px;
+            margin: 0;
+            padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
@@ -16,14 +18,10 @@
         }
     </style>
 </head>
-
 <body>
     <canvas id="glcanvas" tabindex='1'></canvas>
-    <!-- TODO: see https://github.com/not-fl3/miniquad/pull/97 -->
     <!-- Minified and statically hosted version of https://github.com/not-fl3/miniquad/blob/master/native/sapp-wasm/js/gl.js -->
-    <!-- <script src="https://not-fl3.github.io/miniquad-samples/gl.js"></script> -->
-    <script src="https://not-fl3.github.io/miniquad-samples/gl-0.2.54.js"></script>
-    <script>load("zemeroth.wasm");</script> <!-- Your compiled wasm file -->
+    <script src="https://not-fl3.github.io/miniquad-samples/gl.js"></script>
+    <script>load("zemeroth.wasm");</script>
 </body>
-
 </html>

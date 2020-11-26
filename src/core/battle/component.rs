@@ -52,7 +52,7 @@ pub struct Meta {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct BelongsTo(pub PlayerId);
 
-#[derive(Serialize, Deserialize, PartialEq, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Clone, Copy, Debug, Eq, Hash)]
 pub enum WeaponType {
     Slash,
     Smash,

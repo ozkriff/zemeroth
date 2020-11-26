@@ -8,5 +8,4 @@ description = "Scene and Actions for gwg"
 keywords = ["gamedev", "2D"]
 
 [dependencies]
-cgmath = { version = "0.17", features = ["mint"] }
-gwg = { git = "https://github.com/not-fl3/good-web-game", package = "good-web-game" }
+mq = { package = "macroquad", version = "0.3.0-alpha" }

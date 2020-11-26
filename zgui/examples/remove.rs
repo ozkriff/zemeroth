@@ -1,110 +1,91 @@
-use gwg::{
-    conf, event,
-    graphics::{self, Font, Image, Point2, Text},
-    Context, GameResult,
-};
+use mq::prelude::WHITE;
 use zgui as ui;
+
+mod common;
 
 #[derive(Clone, Copy, Debug)]
 enum Message {
     AddOrRemove,
 }
 
-fn make_label(context: &mut Context) -> ui::Result<ui::RcWidget> {
-    let image = Image::new(context, "/fire.png").expect("Can't load test image");
-    let label = ui::Label::new_with_bg(context, Box::new(image), 0.5)?;
-    Ok(ui::pack(label))
-}
-
-fn make_gui(context: &mut Context, font: Font) -> ui::Result<ui::Gui<Message>> {
-    let font_size = 32.0;
-    let mut gui = ui::Gui::new(context);
+fn make_gui(font: mq::text::Font) -> ui::Result<ui::Gui<Message>> {
+    let font_size = 64;
+    let mut gui = ui::Gui::new();
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
-    let text = Box::new(Text::new(("Add/Remove", font, font_size)));
-    let button = ui::Button::new(context, text, 0.2, gui.sender(), Message::AddOrRemove)?;
+    let text = ui::Drawable::text("Button", font, font_size);
+    let button = ui::Button::new(text, 0.2, gui.sender(), Message::AddOrRemove)?;
     gui.add(&ui::pack(button), anchor);
     Ok(gui)
 }
 
+fn make_label(assets: &common::Assets) -> ui::Result<ui::RcWidget> {
+    let texture = ui::Drawable::Texture(assets.texture);
+    let label = ui::Label::new(texture, 0.3)?;
+    Ok(ui::pack(label))
+}
+
 struct State {
+    assets: common::Assets,
     gui: ui::Gui<Message>,
     label: Option<ui::RcWidget>,
 }
 
 impl State {
-    fn new(context: &mut Context) -> ui::Result<State> {
-        let font = Font::new(context, "/Karla-Regular.ttf")?;
-        let gui = make_gui(context, font)?;
-        Ok(Self { gui, label: None })
-    }
-
-    fn resize(&mut self, _: &mut Context, w: f32, h: f32) {
-        let aspect_ratio = w / h;
-        self.gui.resize(aspect_ratio);
+    fn new(assets: common::Assets) -> ui::Result<Self> {
+        let gui = make_gui(assets.font)?;
+        let label = None;
+        Ok(Self { assets, gui, label })
     }
 
     fn remove_label(&mut self) {
         println!("Removing...");
-        if let Some(ref label) = self.label {
-            self.gui.remove(label).expect("Can't remove the label");
+        if let Some(ref label) = self.label.take() {
+            self.gui.remove(label);
         }
-        self.label = None;
         println!("Removed.");
     }
 
-    fn add_label(&mut self, context: &mut Context) {
+    fn add_label(&mut self) {
         println!("Adding...");
-        let label = make_label(context).expect("Can't make a label");
+        let label = make_label(&self.assets).expect("Can't make a label");
         let anchor = ui::Anchor(ui::HAnchor::Left, ui::VAnchor::Top);
         self.gui.add(&label, anchor);
         self.label = Some(label);
         println!("Added.");
     }
-}
 
-impl event::EventHandler for State {
-    fn update(&mut self, _: &mut Context) -> GameResult<()> {
-        Ok(())
-    }
-
-    fn draw(&mut self, context: &mut Context) -> GameResult<()> {
-        let bg_color = [1.0, 1.0, 1.0, 1.0].into();
-        graphics::clear(context, bg_color);
-        self.gui.draw(context)?;
-        graphics::present(context)
-    }
-
-    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
-        self.resize(context, w, h);
-    }
-
-    fn mouse_button_up_event(
-        &mut self,
-        context: &mut Context,
-        _: gwg::event::MouseButton,
-        x: f32,
-        y: f32,
-    ) {
-        let window_pos = Point2::new(x, y);
-        let pos = ui::window_to_screen(context, window_pos);
-        let message = self.gui.click(pos);
-        println!("[{},{}] -> {:?}: {:?}", x, y, pos, message);
+    fn handle_message(&mut self, message: Option<Message>) {
         if let Some(Message::AddOrRemove) = message {
             if self.label.is_some() {
                 self.remove_label();
             } else {
-                self.add_label(context);
+                self.add_label();
             }
         }
     }
 }
 
-fn main() -> gwg::GameResult {
-    gwg::start(
-        conf::Conf {
-            physical_root_dir: Some("resources".into()),
-            ..Default::default()
-        },
-        |mut context| Box::new(State::new(&mut context).expect("Can't create the state")),
-    )
+#[mq::main("ZGui: Remove Widget Demo")]
+#[macroquad(crate_rename = "mq")]
+async fn main() {
+    let assets = common::Assets::load().await;
+    let mut state = State::new(assets).expect("Can't create the game state");
+    loop {
+        // Update the camera and the GUI.
+        let aspect_ratio = common::aspect_ratio();
+        let camera = common::make_and_set_camera(aspect_ratio);
+        state.gui.resize_if_needed(aspect_ratio);
+        // Handle cursor updates.
+        let pos = common::get_world_mouse_pos(&camera);
+        state.gui.move_mouse(pos);
+        if mq::input::is_mouse_button_pressed(mq::input::MouseButton::Left) {
+            let message = state.gui.click(pos);
+            println!("{:?}", message);
+            state.handle_message(message);
+        }
+        // Draw the GUI.
+        mq::window::clear_background(WHITE);
+        state.gui.draw();
+        mq::window::next_frame().await;
+    }
 }

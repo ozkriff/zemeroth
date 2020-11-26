@@ -1,126 +1,64 @@
 #![windows_subsystem = "windows"]
 
-use gwg::{
-    conf::Conf,
-    event,
-    graphics::{self, Point2, Rect},
-    Context, GameResult,
-};
+use std::time::Duration;
 
+use mq::{input, window};
+
+mod assets;
 mod core;
 mod error;
 mod geom;
 mod screen;
-mod sprite_info;
 mod utils;
 
 type ZResult<T = ()> = Result<T, error::ZError>;
 
 struct MainState {
-    screens: screen::Screens,
+    screens: screen::ScreenStack,
 }
 
 impl MainState {
-    fn new(context: &mut Context) -> ZResult<Self> {
-        let start_screen = Box::new(screen::MainMenu::new(context)?);
-        let screens = screen::Screens::new(context, start_screen)?;
-        let mut this = Self { screens };
-        {
-            let (w, h) = graphics::drawable_size(context);
-            this.resize(context, w as _, h as _);
+    fn new() -> ZResult<Self> {
+        let start_screen = Box::new(screen::MainMenu::new()?);
+        let screens = screen::ScreenStack::new(start_screen)?;
+        Ok(Self { screens })
+    }
+
+    fn tick(&mut self) -> ZResult {
+        // Handle possible window resize and create a camera.
+        let aspect_ratio = utils::aspect_ratio();
+        let camera = utils::make_and_set_camera(aspect_ratio);
+        self.screens.resize(aspect_ratio)?;
+        // Handle user input events.
+        let pos = utils::get_world_mouse_pos(&camera);
+        self.screens.move_mouse(pos)?;
+        if input::is_mouse_button_pressed(input::MouseButton::Left) {
+            self.screens.click(pos)?;
         }
-        Ok(this)
-    }
-
-    fn resize(&mut self, context: &mut Context, w: f32, h: f32) {
-        let aspect_ratio = w / h;
-        let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-        graphics::set_screen_coordinates(context, coordinates).expect("Can't resize the window");
-        self.screens
-            .resize(context, aspect_ratio)
-            .expect("Can't resize screens");
-    }
-}
-
-impl event::EventHandler for MainState {
-    fn update(&mut self, context: &mut Context) -> GameResult {
-        self.screens.update(context).expect("Update call failed");
+        // Update the game state.
+        let dtime = Duration::from_secs_f32(mq::time::get_frame_time());
+        self.screens.update(dtime)?;
+        // Draw everything.
+        mq::window::clear_background(screen::COLOR_SCREEN_BG);
+        self.screens.draw()?;
         Ok(())
     }
-
-    fn draw(&mut self, context: &mut Context) -> GameResult {
-        self.screens.draw(context).expect("Draw call failed");
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            std::thread::yield_now();
-        }
-        Ok(())
-    }
-
-    fn resize_event(&mut self, context: &mut Context, w: f32, h: f32) {
-        self.resize(context, w, h);
-    }
-
-    fn mouse_motion_event(&mut self, context: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
-        let window_pos = Point2::new(x, y);
-        let pos = ui::window_to_screen(context, window_pos);
-        self.screens
-            .move_mouse(context, pos)
-            .expect("Can't move the mouse");
-    }
-
-    fn mouse_button_up_event(
-        &mut self,
-        context: &mut Context,
-        _: gwg::event::MouseButton,
-        x: f32,
-        y: f32,
-    ) {
-        let window_pos = Point2::new(x, y);
-        let pos = ui::window_to_screen(context, window_pos);
-        self.screens
-            .click(context, pos)
-            .expect("Can't handle click event");
-    }
-
-    // This functions just overrides the default implementation,
-    // because we don't want to quit from the game on `Esc`.
-    fn key_down_event(&mut self, _: &mut Context, _: event::KeyCode, _: event::KeyMods, _: bool) {}
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-fn conf() -> Conf {
-    Conf {
-        physical_root_dir: Some("assets".into()),
-        ..Default::default()
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-fn conf() -> Conf {
-    Conf {
-        cache: gwg::conf::Cache::Tar(include_bytes!("../assets.tar").to_vec()),
-        loading: gwg::conf::Loading::Embedded,
-        ..Default::default()
-    }
-}
-
-fn main() -> gwg::GameResult {
+#[mq::main("Zemeroth")]
+#[macroquad(crate_rename = "mq")]
+async fn main() {
+    // std::env isn't supported on WASM.
     #[cfg(not(target_arch = "wasm32"))]
-    {
-        // std::env isn't supported on WASM.
-        if std::env::var("RUST_BACKTRACE").is_err() {
-            std::env::set_var("RUST_BACKTRACE", "1");
-        }
+    if std::env::var("RUST_BACKTRACE").is_err() {
+        std::env::set_var("RUST_BACKTRACE", "1");
     }
     env_logger::init();
-    quad_rand::srand(gwg::timer::time() as _);
-    gwg::start(conf(), |context| {
-        log::info!("Increasing the default font size...");
-        gwg::graphics::set_font_size(context, 120);
-        log::info!("Creating MainState...");
-        let state = MainState::new(context).expect("Can't create the main state");
-        log::info!("Starting the main loop...");
-        Box::new(state)
-    })
+    quad_rand::srand(mq::prelude::miniquad::date::now() as _);
+    assets::load().await;
+    let mut state = MainState::new().expect("Can't create the main state");
+    loop {
+        state.tick().expect("Tick failed");
+        window::next_frame().await;
+    }
 }

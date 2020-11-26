@@ -142,7 +142,7 @@ cargo install resvg
 cargo run
 ```
 
-[mq_sys_deps]: https://github.com/not-fl3/miniquad/tree/faabb54d3#building-examples
+[mq_sys_deps]: https://github.com/not-fl3/miniquad/tree/b8c347b1bbuilding-examples
 
 ## WebAssembly
 
@@ -159,8 +159,7 @@ Then open `http://localhost:4000` in your browser.
 
 ## Dependencies
 
-The key external dependency of Zemeroth is [good-web-game]/[miniquad]
-(see [#564 "Migrate to miniquad"]).
+The key external dependency of Zemeroth is [macroquad]/[miniquad].
 
 This repo contains a bunch of helper crates:
 
@@ -170,9 +169,8 @@ This repo contains a bunch of helper crates:
 
 Also, [resvg] is used for exporting sprites from svg.
 
-[good-web-game]: https://github.com/not-fl3/good-web-game
+[macroquad]: https://github.com/not-fl3/macroquad
 [miniquad]: https://github.com/not-fl3/miniquad
-[#564 "Migrate to miniquad"]: https://github.com/ozkriff/zemeroth/issues/564
 [zcomponents]: ./zcomponents
 [zscene]: zscene
 [zgui]: zgui

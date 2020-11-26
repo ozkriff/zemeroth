@@ -1,4 +1,4 @@
-use gwg::graphics::Color;
+use mq::prelude::Color;
 
 use crate::{Action, Sprite};
 
