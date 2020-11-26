@@ -1,7 +1,4 @@
-use mq::{
-    self as macroquad,
-    prelude::{RED, WHITE},
-};
+use mq::prelude::{RED, WHITE};
 use zgui as ui;
 
 mod common;
@@ -30,6 +27,7 @@ fn draw_scene() {
 }
 
 #[mq::main("ZGui: Absolute Coordinates Demo")]
+#[macroquad(crate_rename = "mq")]
 async fn main() {
     let assets = common::Assets::load().await;
     let mut gui = make_gui(assets.font).expect("Can't create the gui");

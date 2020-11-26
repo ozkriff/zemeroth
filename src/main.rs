@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use mq::{self as macroquad, input, window};
+use mq::{input, window};
 
 mod assets;
 mod core;
@@ -46,6 +46,7 @@ impl MainState {
 }
 
 #[mq::main("Zemeroth")]
+#[macroquad(crate_rename = "mq")]
 async fn main() {
     // std::env isn't supported on WASM.
     #[cfg(not(target_arch = "wasm32"))]
