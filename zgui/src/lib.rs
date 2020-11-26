@@ -18,11 +18,11 @@ use mq::{
     window,
 };
 
-pub const SPRITE_COLOR: Color = Color::new_const(0, 0, 0, 255);
-pub const SPRITE_COLOR_INACTIVE: Color = Color::new_const(102, 102, 102, 127);
-pub const SPRITE_COLOR_BG: Color = Color::new_const(204, 204, 204, 127);
-pub const SPRITE_COLOR_BG_HIGHLIGHTED: Color = Color::new_const(230, 230, 230, 127);
-pub const SPRITE_COLOR_BUTTON_BORDER: Color = Color::new_const(0, 0, 0, 229);
+pub const SPRITE_COLOR: Color = Color::new(0.0, 0.0, 0.0, 1.0);
+pub const SPRITE_COLOR_INACTIVE: Color = Color::new(0.4, 0.4, 0.4, 0.5);
+pub const SPRITE_COLOR_BG: Color = Color::new(0.8, 0.8, 0.8, 0.5);
+pub const SPRITE_COLOR_BG_HIGHLIGHTED: Color = Color::new(0.9, 0.9, 0.9, 1.0);
+pub const SPRITE_COLOR_BUTTON_BORDER: Color = Color::new(0.0, 0.0, 0.0, 0.9);
 
 // TODO: Add ScrollArea widget
 

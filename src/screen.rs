@@ -17,8 +17,8 @@ pub use self::{
     general_info::GeneralInfo, main_menu::MainMenu,
 };
 
-pub const COLOR_SCREEN_BG: Color = Color::new_const(229, 229, 204, 255);
-pub const COLOR_POPUP_BG: Color = Color::new_const(229, 229, 204, 229);
+pub const COLOR_SCREEN_BG: Color = Color::new(0.9, 0.9, 0.8, 1.0);
+pub const COLOR_POPUP_BG: Color = Color::new(0.9, 0.9, 0.8, 0.9);
 
 #[derive(Debug)]
 pub enum StackCommand {

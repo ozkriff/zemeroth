@@ -100,7 +100,7 @@ fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZRes
     let line_i = |arg: &str, val: i32| -> ZResult<_> { line(arg, &val.to_string()) };
     let line_dot = |arg: &str, val: &str, color: Color| -> ZResult<_> {
         let mut line = ui::HLayout::new().stretchable(true);
-        let dot_color = Color::new(color.r(), color.g(), color.b(), 1.0);
+        let dot_color = Color { a: 1.0, ..color };
         let param = ui::LabelParam {
             drawable_k: 0.3,
             ..Default::default()

@@ -30,12 +30,12 @@ use crate::{
 pub mod color {
     use mq::prelude::Color;
 
-    pub const STRENGTH: Color = Color::new_const(0, 178, 0, 255);
-    pub const DAMAGE: Color = Color::new_const(76, 127, 76, 127);
-    pub const ARMOR: Color = Color::new_const(255, 255, 127, 255);
-    pub const JOKERS: Color = Color::new_const(255, 255, 255, 255);
-    pub const ATTACKS: Color = Color::new_const(255, 0, 0, 255);
-    pub const MOVES: Color = Color::new_const(51, 51, 255, 255);
+    pub const STRENGTH: Color = Color::new(0.0, 0.7, 0.0, 1.0);
+    pub const DAMAGE: Color = Color::new(0.3, 0.5, 0.3, 0.5);
+    pub const ARMOR: Color = Color::new(1.0, 1.0, 0.5, 1.0);
+    pub const JOKERS: Color = Color::new(1.0, 1.0, 1.0, 1.0);
+    pub const ATTACKS: Color = Color::new(1.0, 0.0, 0.0, 1.0);
+    pub const MOVES: Color = Color::new(0.2, 0.2, 1.0, 1.0);
 }
 
 const BLOOD_SPRITE_DURATION_TURNS: i32 = 6; // TODO: i32 -> Turns, Rounds, etc
@@ -107,7 +107,7 @@ fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dy
     let time_wait = time.mul_f32(0.5);
     let time_disappear = time.mul_f32(0.35);
     let action_show_and_hide = |sprite, color: Color| {
-        let color_invisible = Color::new(color.r(), color.g(), color.b(), 0.0);
+        let color_invisible = Color { a: 0.0, ..color };
         seq([
             action::SetColor::new(&sprite, color_invisible).boxed(),
             action::Show::new(&view.layers().text, &sprite).boxed(),
@@ -175,9 +175,8 @@ fn show_blood_particles(
             geom::rand_tile_offset(view.tile_size(), 1.7)
         };
         let point = point_origin + offset;
-        let color = [0.7, 0.0, 0.0, 0.6].into();
-        let visible = color;
-        let invisible = [0.7, 0.0, 0.0, 0.0].into();
+        let visible = [0.7, 0.0, 0.0, 0.6].into();
+        let invisible = Color { a: 0.0, ..visible };
         let scale = roll_dice(0.05, 0.15);
         let size = view.tile_size() * 2.0 * scale;
         let mut sprite = Sprite::from_texture(textures().map.white_hex, size);
@@ -193,7 +192,7 @@ fn show_blood_particles(
             action::Hide::new(&view.layers().flares, &sprite).boxed(),
             action::Show::new(&layer, &sprite).boxed(),
         ])));
-        view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION_TURNS, visible.a());
+        view.add_disappearing_sprite(&layer, &sprite, BLOOD_SPRITE_DURATION_TURNS, visible.a);
     }
     Ok(fork(seq(actions)))
 }
@@ -207,7 +206,7 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
     let time = time_s(0.6);
     let layer = view.layers().blood.clone();
     let duration = BLOOD_SPRITE_DURATION_TURNS;
-    view.add_disappearing_sprite(&layer, &sprite, duration, color_final.a());
+    view.add_disappearing_sprite(&layer, &sprite, duration, color_final.a);
     Ok(seq([
         action::Show::new(&layer, &sprite).boxed(),
         action::ChangeColorTo::new(&sprite, color_final, time).boxed(),
@@ -222,7 +221,7 @@ fn show_explosion_ground_mark(view: &mut BattleView, at: PosHex) -> ZResult<Box<
     sprite.set_pos(view.hex_to_point(at));
     let layer = view.layers().blood.clone();
     let duration = BLOOD_SPRITE_DURATION_TURNS;
-    view.add_disappearing_sprite(&layer, &sprite, duration, sprite.color().a());
+    view.add_disappearing_sprite(&layer, &sprite, duration, sprite.color().a);
     Ok(action::Show::new(&layer, &sprite).boxed())
 }
 
@@ -279,8 +278,7 @@ fn show_flare_scale_time(
     time: Duration,
 ) -> ZResult<Box<dyn Action>> {
     let visible = color;
-    let mut invisible = color;
-    invisible.0[3] = 0;
+    let invisible = Color { a: 0.0, ..visible };
     let size = view.tile_size() * 2.0 * scale;
     let mut sprite = Sprite::from_texture(textures().map.white_hex, size);
     let point = view.hex_to_point(at);
@@ -409,8 +407,8 @@ fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Act
     let mut actions = Vec::new();
     let sprites = view.agent_info_get(id);
     for sprite in sprites {
-        let mut color = sprite.color();
-        color.0[3] = 0;
+        let color = sprite.color();
+        let color = Color { a: 0.0, ..color };
         actions.push(fork(seq([
             action::ChangeColorTo::new(&sprite, color, time_s(0.4)).boxed(),
             action::Hide::new(&view.layers().dots, &sprite).boxed(),
@@ -467,7 +465,7 @@ fn generate_brief_obj_info(
         let mut sprite = Sprite::from_texture(textures().dot, size);
         sprite.set_centered(true);
         sprite.set_pos(point);
-        sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
+        sprite.set_color(Color { a: 0.0, ..color });
         let action = fork(seq([
             action::Show::new(&view.layers().dots, &sprite).boxed(),
             action::ChangeColorTo::new(&sprite, color, time_s(0.1)).boxed(),
@@ -965,7 +963,7 @@ fn visualize_effect_create(
     let size = view.tile_size() * 2.0;
     let sprite_object = {
         let mut sprite = view.object_sprite(&effect.prototype);
-        sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
+        sprite.set_color(Color { a: 0.0, ..color });
         sprite.set_pos(point);
         // Turn enemies left.
         for component in &effect.components {
@@ -981,7 +979,7 @@ fn visualize_effect_create(
         let tex = textures().map.shadow;
         let mut sprite = Sprite::from_texture(tex, size * info.shadow_size_coefficient);
         sprite.set_centered(true);
-        sprite.set_color(Color::new(color.r(), color.g(), color.b(), 0.0));
+        sprite.set_color(Color { a: 0.0, ..color });
         sprite.set_pos(point);
         sprite
     };

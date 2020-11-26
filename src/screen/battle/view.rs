@@ -282,8 +282,7 @@ impl BattleView {
         for s in &mut sprites.disappearing_sprites {
             s.turns_left -= 1;
             let mut color = s.sprite.color();
-            let alpha = (s.initial_alpha / s.turns_total as f32) * s.turns_left as f32;
-            color.0[3] = (alpha * 255.0) as u8;
+            color.a = (s.initial_alpha / s.turns_total as f32) * s.turns_left as f32;
             let mut sub_actions = Vec::new();
             sub_actions.push(action::ChangeColorTo::new(&s.sprite, color, time_s(2.0)).boxed());
             if s.turns_left == 0 {
@@ -335,8 +334,8 @@ impl BattleView {
 
     fn clean_highlighted_tiles(&mut self) {
         for sprite in self.sprites.highlighted_tiles.split_off(0) {
-            let mut color = sprite.color();
-            color.0[3] = 0;
+            let color = sprite.color();
+            let color = Color { a: 0.0, ..color };
             let action = {
                 let layer = &self.layers().highlighted_tiles;
                 let time = time_s(0.3);
@@ -464,7 +463,7 @@ impl BattleView {
     fn highlight_tile(&mut self, pos: PosHex, color: Color) -> ZResult {
         let size = self.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
         let mut sprite = Sprite::from_texture(textures().map.white_hex, size);
-        let color_from = Color::new(color.r(), color.g(), color.b(), 0.0);
+        let color_from = Color { a: 0.0, ..color };
         sprite.set_centered(true);
         sprite.set_color(color_from);
         sprite.set_pos(hex_to_point(self.tile_size(), pos));
