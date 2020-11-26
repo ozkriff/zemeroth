@@ -5,9 +5,10 @@
 
 use std::{collections::HashMap, hash::Hash};
 
+use macroquad::experimental as mq;
 use mq::{
     file::load_file,
-    text::{self, Font},
+    graphics,
     texture::{load_texture, Texture2D},
 };
 use once_cell::sync::OnceCell;
@@ -81,7 +82,7 @@ type SpritesInfo = HashMap<ObjType, SpriteInfo>;
 #[derive(Debug)]
 pub struct Assets {
     pub textures: Textures,
-    pub font: Font,
+    pub font: graphics::Font,
     pub sprites_info: SpritesInfo,
     pub sprite_frames: HashMap<ObjType, HashMap<String, Texture2D>>,
     pub prototypes: Prototypes,
@@ -106,7 +107,7 @@ impl Assets {
         };
         Ok(Self {
             textures: Textures::load().await,
-            font: text::load_ttf_font("assets/OpenSans-Regular.ttf").await,
+            font: graphics::Font::load("assets/OpenSans-Regular.ttf").await,
             sprites_info,
             sprite_frames,
             prototypes: Prototypes::from_str(&read_file("assets/objects.ron").await?),

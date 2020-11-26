@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use mq::prelude::Vec2;
+use mq::experimental::math::Vec2;
 
 use crate::{Action, Sprite};
 

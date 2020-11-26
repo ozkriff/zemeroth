@@ -1,4 +1,5 @@
-use mq::{self as macroquad, prelude::WHITE};
+use mq as macroquad;
+use mq::experimental::graphics;
 use zgui as ui;
 
 mod common;
@@ -40,7 +41,7 @@ async fn main() {
             println!("{:?}", message);
         }
         // Draw the GUI.
-        mq::window::clear_background(WHITE);
+        mq::window::clear_background(graphics::colors::WHITE);
         gui.draw();
         mq::window::next_frame().await;
     }

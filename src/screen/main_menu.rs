@@ -4,7 +4,8 @@ use std::{
 };
 
 use log::trace;
-use mq::prelude::Vec2;
+use macroquad::experimental as mq;
+use mq::math::Vec2;
 use ui::{self, Gui, Widget};
 
 use crate::{

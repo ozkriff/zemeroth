@@ -1,4 +1,5 @@
-use mq::{self as macroquad, prelude::WHITE};
+use mq as macroquad;
+use mq::experimental::graphics;
 use zgui as ui;
 
 mod common;
@@ -8,7 +9,7 @@ enum Message {
     AddOrRemove,
 }
 
-fn make_gui(font: mq::text::Font) -> ui::Result<ui::Gui<Message>> {
+fn make_gui(font: graphics::Font) -> ui::Result<ui::Gui<Message>> {
     let font_size = 64;
     let mut gui = ui::Gui::new();
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
@@ -83,7 +84,7 @@ async fn main() {
             state.handle_message(message);
         }
         // Draw the GUI.
-        mq::window::clear_background(WHITE);
+        mq::window::clear_background(graphics::colors::WHITE);
         state.gui.draw();
         mq::window::next_frame().await;
     }

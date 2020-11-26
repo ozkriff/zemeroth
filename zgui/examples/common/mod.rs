@@ -1,10 +1,11 @@
 #![allow(dead_code)]
 
-use mq::{
+use mq::experimental::{
     camera::{set_camera, Camera2D},
-    prelude::{Rect, Vec2},
-    text::{load_ttf_font, Font},
+    graphics,
+    math::Vec2,
     texture::{self, Texture2D},
+    Rect,
 };
 
 pub fn aspect_ratio() -> f32 {
@@ -28,13 +29,13 @@ pub fn get_world_mouse_pos(camera: &Camera2D) -> Vec2 {
 }
 
 pub struct Assets {
-    pub font: Font,
+    pub font: graphics::Font,
     pub texture: Texture2D,
 }
 
 impl Assets {
     pub async fn load() -> Self {
-        let font = load_ttf_font("zgui/assets/Karla-Regular.ttf").await;
+        let font = graphics::Font::load("zgui/assets/Karla-Regular.ttf").await;
         let texture = texture::load_texture("zgui/assets/fire.png").await;
         Self { font, texture }
     }

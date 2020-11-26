@@ -1,7 +1,8 @@
 use std::time::Duration;
 
 use heck::TitleCase;
-use mq::prelude::{Color, Vec2};
+use macroquad::experimental as mq;
+use mq::{graphics::Color, math::Vec2};
 use ui::{self, Drawable, Gui, Widget};
 
 use crate::{

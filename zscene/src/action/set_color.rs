@@ -1,4 +1,4 @@
-use mq::prelude::Color;
+use mq::experimental::graphics::Color;
 
 use crate::{Action, Sprite};
 

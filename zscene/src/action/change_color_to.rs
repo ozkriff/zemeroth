@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use mq::prelude::Color;
+use mq::experimental::graphics::Color;
 
 use crate::{Action, Sprite};
 

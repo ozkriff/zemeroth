@@ -5,7 +5,8 @@ use std::{
 
 use heck::TitleCase;
 use log::info;
-use mq::{prelude::Vec2, text::Font};
+use macroquad::experimental as mq;
+use mq::{graphics, math::Vec2};
 use ui::{self, Drawable, Gui, Widget};
 
 use crate::{
@@ -172,7 +173,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
     Ok(Box::new(layout))
 }
 
-fn label(font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
+fn label(font: graphics::Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
     let text = ui::Drawable::text(text, font, FONT_SIZE);
     Ok(Box::new(ui::Label::new(text, line_height())?))
 }

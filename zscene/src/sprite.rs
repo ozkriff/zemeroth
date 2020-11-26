@@ -1,9 +1,10 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use mq::{
-    prelude::{Color, Rect, Vec2},
-    text::{self, Font},
+use mq::experimental::{
+    graphics,
+    math::Vec2,
     texture::{self, DrawTextureParams, Texture2D},
+    Rect,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -15,26 +16,23 @@ pub enum Facing {
 #[derive(Clone, Debug)]
 enum Drawable {
     Texture(Texture2D),
-    Text {
-        label: String,
-        font: Font,
-        font_size: u16,
-    },
+    Text(graphics::Text<'static>),
 }
 
 impl Drawable {
     fn dimensions(&self) -> Rect {
         match self {
             Drawable::Texture(texture) => Rect::new(0.0, 0.0, texture.width(), texture.height()),
-            Drawable::Text {
-                label,
-                font,
-                font_size,
-            } => {
-                let (w, _) = text::measure_text(&label, Some(*font), *font_size, 1.0);
+            Drawable::Text(text) => {
+                let (w, _) = text.measure_text();
                 // TODO: A dirty hack to have a fixed height for text.
-                // TODO: Keep this in sync with the same hack in zscene until fixed.
-                let h = text::measure_text(&"|", Some(*font), *font_size, 1.0).1 * 1.4;
+                // TODO: Keep this in sync with the same hack in zgui until fixed.
+                let h = graphics::Text::new("|")
+                    .with_font(text.font)
+                    .with_font_size(text.font_size)
+                    .measure_text()
+                    .1
+                    * 1.4;
                 Rect::new(-w / 1.0, -h / 1.0, w / 1.0, h / 1.0)
             }
         }
@@ -50,7 +48,7 @@ struct SpriteData {
     basic_scale: f32,
     pos: Vec2,
     scale: Vec2,
-    color: Color,
+    color: graphics::Color,
     offset: Vec2,
     facing: Facing,
 }
@@ -93,7 +91,7 @@ impl Sprite {
             basic_scale: scale,
             scale: Vec2::new(scale, scale),
             offset: Vec2::new(0.0, 0.0),
-            color: Color::new(1.0, 1.0, 1.0, 1.0),
+            color: graphics::Color::new(1.0, 1.0, 1.0, 1.0),
             pos: Vec2::new(0.0, 0.0),
             facing: Facing::Right,
         };
@@ -105,15 +103,8 @@ impl Sprite {
         Self::from_drawable(Drawable::Texture(texture), height)
     }
 
-    pub fn from_text((label, font, font_size): (&str, Font, u16), height: f32) -> Self {
-        Self::from_drawable(
-            Drawable::Text {
-                label: label.to_string(),
-                font,
-                font_size,
-            },
-            height,
-        )
+    pub fn from_text(text: graphics::Text<'static>, height: f32) -> Self {
+        Self::from_drawable(Drawable::Text(text), height)
     }
 
     fn add_frame(&mut self, frame_name: String, drawable: Drawable) {
@@ -208,22 +199,12 @@ impl Sprite {
                     },
                 );
             }
-            Drawable::Text {
-                label,
-                font,
-                font_size,
-            } => {
-                text::draw_text_ex(
-                    label,
-                    data.pos.x(),
-                    data.pos.y(),
-                    text::TextParams {
-                        font_size: *font_size,
-                        font: *font,
-                        font_scale: data.scale.x(),
-                        color: data.color,
-                    },
-                );
+            Drawable::Text(text) => {
+                // TODO: Is it possible to remove "clone" here?
+                text.clone()
+                    .with_color(data.color)
+                    .with_font_scale(data.scale.x())
+                    .draw_at(data.pos.x(), data.pos.y())
             }
         }
     }
@@ -247,7 +228,7 @@ impl Sprite {
         }
     }
 
-    pub fn color(&self) -> Color {
+    pub fn color(&self) -> graphics::Color {
         self.data.borrow().color
     }
 
@@ -261,7 +242,7 @@ impl Sprite {
         data.pos = pos + data.offset;
     }
 
-    pub fn set_color(&mut self, color: Color) {
+    pub fn set_color(&mut self, color: graphics::Color) {
         self.data.borrow_mut().color = color;
     }
 

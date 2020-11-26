@@ -3,7 +3,8 @@ use std::{
     time::Duration,
 };
 
-use mq::prelude::Vec2;
+use macroquad::experimental as mq;
+use mq::math::Vec2;
 use ui::{self, Gui, Widget};
 
 use crate::{

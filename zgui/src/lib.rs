@@ -9,13 +9,15 @@ use std::{
 };
 
 use log::{info, trace};
-use mq::{
+use mq::experimental::{
     camera::{set_camera, Camera2D},
-    prelude::{Color, Rect, Vec2},
+    graphics::{self, Color},
+    math::Vec2,
     shapes,
-    text::{draw_text_ex, measure_text, Font, TextParams},
+    // text::{draw_text_ex, measure_text, Font, TextParams},
     texture::{draw_texture_ex, DrawTextureParams, Texture2D},
     window,
+    Rect,
 };
 
 pub const SPRITE_COLOR: Color = Color::new_const(0, 0, 0, 255);
@@ -61,28 +63,24 @@ pub fn pack<W: Widget + 'static>(widget: W) -> RcWidget {
 
 #[derive(Debug, Clone)]
 pub enum Drawable {
-    Texture(Texture2D),
-    Text {
-        label: String,
-        font: Font,
-        font_size: u16,
-    },
-    SolidRect {
-        rect: Rect,
-    },
-    LinesRect {
-        rect: Rect,
-        thickness: f32,
-    },
+    Texture(Texture2D), // TODO: TexturedRect
+    Text(graphics::Text<'static>),
+    SolidRect { rect: Rect },
+    LinesRect { rect: Rect, thickness: f32 },
 }
 
 impl Drawable {
-    pub fn text(label: impl Into<String>, font: Font, font_size: u16) -> Drawable {
-        Drawable::Text {
-            label: label.into(),
-            font,
-            font_size,
-        }
+    pub fn text(label: impl Into<String>, font: graphics::Font, font_size: u16) -> Drawable {
+        // Drawable::Text {
+        //     label: label.into(),
+        //     font,
+        //     font_size,
+        // }
+        Drawable::Text(
+            graphics::Text::new(label.into())
+                .with_font(font)
+                .with_font_size(font_size),
+        )
     }
 
     fn dimensions(&self) -> Rect {
@@ -90,15 +88,17 @@ impl Drawable {
             Drawable::Texture(texture) => {
                 Rect::new(0.0, 0.0, texture.width() as _, texture.height() as _)
             }
-            Drawable::Text {
-                label,
-                font,
-                font_size,
-            } => {
-                let (w, _) = measure_text(&label, Some(*font), *font_size, 1.0);
-                // TODO: A dirty hack to have a fixed height for text.
-                // TODO: Keep this in sync with the same hack in zgui until fixed.
-                let h = measure_text(&"|", Some(*font), *font_size, 1.0).1 * 1.4;
+            Drawable::Text(text) => {
+                let (w, _) = text.measure_text();
+                // // TODO: A dirty hack to have a fixed height for text.
+                // // TODO: Keep this in sync with the same hack in zgui until fixed.
+                // let h = graphics::Text::new("|")
+                //     .with_font(text.font)
+                //     .with_font_size(text.font_size)
+                //     .measure_text()
+                //     .1
+                //     * 1.4;
+                let h = text.font_size as _;
                 Rect::new(0.0, 0.0, w, h)
             }
             Drawable::SolidRect { rect, .. } => *rect,
@@ -132,10 +132,10 @@ impl Sprite {
     }
 
     fn draw(&self) {
-        match self.drawable {
+        match &self.drawable {
             Drawable::Texture(texture) => {
                 draw_texture_ex(
-                    texture,
+                    *texture,
                     self.pos.x(),
                     self.pos.y(),
                     self.color,
@@ -145,22 +145,12 @@ impl Sprite {
                     },
                 );
             }
-            Drawable::Text {
-                ref label,
-                font,
-                font_size,
-            } => {
-                draw_text_ex(
-                    label,
-                    self.pos.x(),
-                    self.pos.y(),
-                    TextParams {
-                        font_size,
-                        font,
-                        font_scale: self.scale.x(),
-                        color: self.color,
-                    },
-                );
+            Drawable::Text(text) => {
+                // TODO: Is it possible to remove "clone" here?
+                text.clone()
+                    .with_color(self.color)
+                    .with_font_scale(self.scale.x())
+                    .draw_at(self.pos.x(), self.pos.y())
             }
             Drawable::SolidRect { rect } => {
                 shapes::draw_rectangle(self.pos.x(), self.pos.y(), rect.w, rect.h, self.color);
@@ -171,7 +161,7 @@ impl Sprite {
                     self.pos.y(),
                     rect.w,
                     rect.h,
-                    thickness,
+                    *thickness,
                     self.color,
                 );
             }

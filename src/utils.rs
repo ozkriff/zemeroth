@@ -1,15 +1,16 @@
 use std::{sync::mpsc::Receiver, time::Duration};
 
+use macroquad::experimental as mq;
 use mq::{
     camera::{set_camera, Camera2D},
-    prelude::{Rect, Vec2},
+    math::Vec2,
+    Rect,
 };
 
 use crate::ZResult;
 
 pub fn time_s(s: f32) -> Duration {
-    let ms = s * 1000.0;
-    Duration::from_millis(ms as u64)
+    Duration::from_secs_f32(s)
 }
 
 // TODO: Move to some config (https://github.com/ozkriff/zemeroth/issues/424)

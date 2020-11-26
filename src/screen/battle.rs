@@ -5,7 +5,8 @@ use std::{
 
 use heck::TitleCase;
 use log::{info, trace};
-use mq::prelude::{Color, Vec2};
+use macroquad::experimental as mq;
+use mq::{graphics::Color, math::Vec2};
 
 use ui::{self, Gui, Widget};
 use zscene::{action, Action, Boxed};

@@ -1,6 +1,10 @@
 use std::{collections::HashMap, default::Default, time::Duration};
 
-use mq::prelude::{Color, Vec2};
+use macroquad::experimental as mq;
+use mq::{
+    graphics::{self, Color},
+    math::Vec2,
+};
 
 use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
 
@@ -483,9 +487,10 @@ impl BattleView {
         let target_pos = state.parts().pos.get(target_id).0;
         let chances = hit_chance(state, attacker_id, target_id);
         let pos = hex_to_point(self.tile_size(), target_pos);
-        let text = format!("{}%", chances.1 * 10);
-        let font = assets::get().font;
-        let mut sprite = Sprite::from_text((text.as_str(), font, font_size()), 0.1);
+        let text = graphics::Text::new(format!("{}%", chances.1 * 10))
+            .with_font(assets::get().font)
+            .with_font_size(font_size());
+        let mut sprite = Sprite::from_text(text, 0.1);
         sprite.set_pos(pos);
         sprite.set_centered(true);
         sprite.set_color([0.0, 0.0, 0.0, 1.0].into());

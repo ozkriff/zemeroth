@@ -1,7 +1,5 @@
-use mq::{
-    self as macroquad,
-    prelude::{RED, WHITE},
-};
+use mq as macroquad;
+use mq::experimental::graphics;
 use zgui as ui;
 
 mod common;
@@ -11,7 +9,7 @@ enum Message {
     Command,
 }
 
-fn make_gui(font: mq::text::Font) -> ui::Result<ui::Gui<Message>> {
+fn make_gui(font: graphics::Font) -> ui::Result<ui::Gui<Message>> {
     let font_size = 64;
     let mut gui = ui::Gui::new();
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
@@ -25,7 +23,7 @@ fn draw_scene() {
     let x = 0.0;
     let y = 0.0;
     let r = 0.4;
-    let color = RED;
+    let color = graphics::colors::RED;
     mq::shapes::draw_circle(x, y, r, color);
 }
 
@@ -46,7 +44,7 @@ async fn main() {
             println!("{:?}", message);
         }
         // Draw the GUI.
-        mq::window::clear_background(WHITE);
+        mq::window::clear_background(graphics::colors::WHITE);
         draw_scene();
         gui.draw();
         mq::window::next_frame().await;

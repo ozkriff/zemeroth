@@ -1,7 +1,7 @@
-use mq::{
-    self as macroquad,
+use mq as macroquad;
+use mq::experimental::{
     camera::{set_camera, Camera2D},
-    prelude::{Rect, RED, WHITE},
+    graphics, Rect,
 };
 use zgui as ui;
 
@@ -24,7 +24,7 @@ pub fn make_and_set_camera(_aspect_ratio: f32) -> Camera2D {
     camera
 }
 
-fn make_gui(font: mq::text::Font) -> ui::Result<ui::Gui<Message>> {
+fn make_gui(font: graphics::Font) -> ui::Result<ui::Gui<Message>> {
     let font_size = 64;
     let mut gui = ui::Gui::new();
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
@@ -38,7 +38,7 @@ fn draw_scene() {
     let x = 150.0;
     let y = 150.0;
     let r = 100.0;
-    let color = RED;
+    let color = graphics::colors::RED;
     mq::shapes::draw_circle(x, y, r, color);
 }
 
@@ -59,7 +59,7 @@ async fn main() {
             println!("{:?}", message);
         }
         // Draw the GUI.
-        mq::window::clear_background(WHITE);
+        mq::window::clear_background(graphics::colors::WHITE);
         draw_scene();
         gui.draw();
         mq::window::next_frame().await;

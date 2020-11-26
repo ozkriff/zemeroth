@@ -1,7 +1,8 @@
 use std::{fmt::Debug, time::Duration};
 
 use log::info;
-use mq::prelude::{Color, Rect, Vec2};
+use macroquad::experimental as mq;
+use mq::{graphics::Color, math::Vec2, Rect};
 
 use crate::{utils, ZResult};
 

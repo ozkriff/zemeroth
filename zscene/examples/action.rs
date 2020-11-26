@@ -1,12 +1,12 @@
 use std::time::Duration;
 
-use mq::{
-    self as macroquad,
+use mq as macroquad;
+use mq::experimental::{
     camera::{set_camera, Camera2D},
-    prelude::{Color, Rect, Vec2, BLACK},
-    text,
+    graphics,
+    math::Vec2,
     texture::{self, Texture2D},
-    time, window,
+    time, window, Rect,
 };
 use zscene::{self, action, Action, Boxed, Layer, Scene, Sprite};
 
@@ -23,13 +23,13 @@ impl Layers {
 }
 
 struct Assets {
-    font: text::Font,
+    font: graphics::Font,
     texture: Texture2D,
 }
 
 impl Assets {
     async fn load() -> Self {
-        let font = text::load_ttf_font("zscene/assets/Karla-Regular.ttf").await;
+        let font = graphics::Font::load("zscene/assets/Karla-Regular.ttf").await;
         let texture = texture::load_texture("zscene/assets/fire.png").await;
         Self { font, texture }
     }
@@ -67,15 +67,18 @@ impl State {
     fn action_demo_show_hide(&self) -> Box<dyn Action> {
         let mut sprite = {
             let font_size = 32;
-            let mut sprite = Sprite::from_text(("some text", self.assets.font, font_size), 0.1);
+            let text = graphics::Text::new("some text")
+                .with_font(self.assets.font)
+                .with_font_size(font_size);
+            let mut sprite = Sprite::from_text(text, 0.1);
             sprite.set_pos(Vec2::new(0.0, 0.0));
             sprite.set_scale(2.0); // just testing set_size method
             let scale = sprite.scale();
             assert!((scale - 2.0).abs() < 0.001);
             sprite
         };
-        let visible = Color::new(0.0, 1.0, 0.0, 1.0);
-        let invisible = Color::new(0.0, 1.0, 0.0, 0.0);
+        let visible = graphics::Color::new(0.0, 1.0, 0.0, 1.0);
+        let invisible = graphics::Color::new(0.0, 1.0, 0.0, 0.0);
         sprite.set_color(invisible);
         let t = Duration::from_millis(1_000);
         let action = action::Sequence::new(vec![
@@ -105,7 +108,7 @@ async fn main() {
         state.scene.add_action(state.action_demo_show_hide());
     }
     loop {
-        window::clear_background(BLACK);
+        window::clear_background(graphics::colors::BLACK);
         update_aspect_ratio();
         let dtime = time::get_frame_time();
         state.scene.tick(Duration::from_secs_f32(dtime));
