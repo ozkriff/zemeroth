@@ -9,5 +9,4 @@ keywords = ["gamedev", "gui"]
 
 [dependencies]
 log = "0.4"
-# mq = { package = "macroquad", version = "0.3.0-alpha" }
-mq = { package = "macroquad", git = "https://github.com/not-fl3/macroquad" }
+mq = { package = "macroquad", version = "0.3.0-alpha" }

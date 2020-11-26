@@ -248,8 +248,9 @@ dependencies = [
 
 [[package]]
 name = "macroquad"
-version = "0.3.0-alpha.11"
-source = "git+https://github.com/not-fl3/macroquad#b78062db16a74622d3d6b703aa5963e640aea770"
+version = "0.3.0-alpha.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3440a1a8f6ac7433d4affd39ba0844e99698935662c32438e3ee817217963c05"
 dependencies = [
  "fontdue",
  "glam",
@@ -262,8 +263,9 @@ dependencies = [
 
 [[package]]
 name = "macroquad_macro"
-version = "0.1.0"
-source = "git+https://github.com/not-fl3/macroquad#b78062db16a74622d3d6b703aa5963e640aea770"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88dc77cec2b364f6e0cba5701b20482ef5c7c87f5587ee9e9296240936eaaf8a"
 
 [[package]]
 name = "memchr"
@@ -416,8 +418,9 @@ dependencies = [
 
 [[package]]
 name = "quad-gl"
-version = "0.2.11"
-source = "git+https://github.com/not-fl3/macroquad#b78062db16a74622d3d6b703aa5963e640aea770"
+version = "0.2.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "514e06833532fcfb4d62a4824dd809594dfd7e20f5067a2cf2f260485d35b8ec"
 dependencies = [
  "glam",
  "image",

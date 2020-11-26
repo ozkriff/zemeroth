@@ -24,8 +24,7 @@ zscene = { path = "zscene" }
 zcomponents = { path = "zcomponents" }
 rand = { version = "0.7", features = [] }
 quad-rand = { version = "0.1.1", features = ["rand"] }
-# mq = { package = "macroquad", version = "0.3.0-alpha" } # TODO
-mq = { package = "macroquad", git = "https://github.com/not-fl3/macroquad" }
+mq = { package = "macroquad", version = "0.3.0-alpha" }
 heck = "0.3"
 once_cell = "1.5"
 
