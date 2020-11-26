@@ -24,17 +24,17 @@ enum Drawable {
 
 impl Drawable {
     fn dimensions(&self) -> Rect {
-        match self {
+        match *self {
             Drawable::Texture(texture) => Rect::new(0.0, 0.0, texture.width(), texture.height()),
             Drawable::Text {
-                label,
+                ref label,
                 font,
                 font_size,
             } => {
-                let (w, _) = text::measure_text(&label, Some(*font), *font_size, 1.0);
-                // TODO: A dirty hack to have a fixed height for text.
+                let (w, _) = text::measure_text(&label, Some(font), font_size, 1.0);
+                // TODO: A hack to have a fixed height for text.
                 // TODO: Keep this in sync with the same hack in zscene until fixed.
-                let h = text::measure_text(&"|", Some(*font), *font_size, 1.0).1 * 1.4;
+                let h = font_size as f32 * 1.4;
                 Rect::new(-w / 1.0, -h / 1.0, w / 1.0, h / 1.0)
             }
         }

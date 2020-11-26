@@ -86,23 +86,23 @@ impl Drawable {
     }
 
     fn dimensions(&self) -> Rect {
-        match self {
+        match *self {
             Drawable::Texture(texture) => {
                 Rect::new(0.0, 0.0, texture.width() as _, texture.height() as _)
             }
             Drawable::Text {
-                label,
+                ref label,
                 font,
                 font_size,
             } => {
-                let (w, _) = measure_text(&label, Some(*font), *font_size, 1.0);
-                // TODO: A dirty hack to have a fixed height for text.
+                let (w, _) = measure_text(label, Some(font), font_size, 1.0);
+                // TODO: A hack to have a fixed height for text.
                 // TODO: Keep this in sync with the same hack in zgui until fixed.
-                let h = measure_text(&"|", Some(*font), *font_size, 1.0).1 * 1.4;
+                let h = font_size as f32 * 1.4;
                 Rect::new(0.0, 0.0, w, h)
             }
-            Drawable::SolidRect { rect, .. } => *rect,
-            Drawable::LinesRect { rect, .. } => *rect,
+            Drawable::SolidRect { rect, .. } => rect,
+            Drawable::LinesRect { rect, .. } => rect,
         }
     }
 }
