@@ -2,7 +2,8 @@ use std::time::Duration;
 
 use log::{info, trace};
 use mq::{
-    prelude::{Color, Mat2, Vec2},
+    color::Color,
+    math::glam::{Mat2, Vec2},
     texture::Texture2D,
 };
 use zscene::{action, Action, Boxed, Facing, Sprite};
@@ -28,7 +29,7 @@ use crate::{
 };
 
 pub mod color {
-    use mq::prelude::Color;
+    use mq::color::Color;
 
     pub const STRENGTH: Color = Color::new(0.0, 0.7, 0.0, 1.0);
     pub const DAMAGE: Color = Color::new(0.3, 0.5, 0.3, 0.5);

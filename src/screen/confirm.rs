@@ -3,7 +3,7 @@ use std::{
     time::Duration,
 };
 
-use mq::prelude::Vec2;
+use mq::math::glam::Vec2;
 use ui::{self, Gui, Widget};
 
 use crate::{

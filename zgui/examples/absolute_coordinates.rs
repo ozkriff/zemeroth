@@ -1,4 +1,4 @@
-use mq::prelude::{RED, WHITE};
+use mq::color::{RED, WHITE};
 use zgui as ui;
 
 mod common;

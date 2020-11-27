@@ -1,4 +1,4 @@
-use mq::prelude::Vec2;
+use mq::math::glam::Vec2;
 
 use crate::core::{
     map::{hex_round, PosHex},

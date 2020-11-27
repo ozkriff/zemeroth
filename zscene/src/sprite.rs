@@ -1,7 +1,8 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use mq::{
-    prelude::{Color, Rect, Vec2},
+    color::Color,
+    math::{glam::Vec2, Rect},
     text::{self, Font},
     texture::{self, DrawTextureParams, Texture2D},
 };

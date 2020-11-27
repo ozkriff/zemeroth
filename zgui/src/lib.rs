@@ -11,7 +11,8 @@ use std::{
 use log::{info, trace};
 use mq::{
     camera::{set_camera, Camera2D},
-    prelude::{Color, Rect, Vec2},
+    color::Color,
+    math::{glam::Vec2, Rect},
     shapes,
     text::{draw_text_ex, measure_text, Font, TextParams},
     texture::{draw_texture_ex, DrawTextureParams, Texture2D},
