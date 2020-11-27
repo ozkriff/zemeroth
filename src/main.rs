@@ -54,7 +54,7 @@ async fn main() {
         std::env::set_var("RUST_BACKTRACE", "1");
     }
     env_logger::init();
-    quad_rand::srand(mq::prelude::miniquad::date::now() as _);
+    quad_rand::srand(mq::miniquad::date::now() as _);
     assets::load().await;
     let mut state = MainState::new().expect("Can't create the main state");
     loop {

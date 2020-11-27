@@ -1,6 +1,6 @@
 use std::{collections::HashMap, default::Default, time::Duration};
 
-use mq::prelude::{Color, Vec2};
+use mq::{color::Color, math::glam::Vec2};
 
 use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
 

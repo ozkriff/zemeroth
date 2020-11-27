@@ -2,7 +2,7 @@ use std::{sync::mpsc::Receiver, time::Duration};
 
 use mq::{
     camera::{set_camera, Camera2D},
-    prelude::{Rect, Vec2},
+    math::{glam::Vec2, Rect},
 };
 
 use crate::ZResult;

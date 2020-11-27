@@ -1,7 +1,10 @@
 use std::{fmt::Debug, time::Duration};
 
 use log::info;
-use mq::prelude::{Color, Rect, Vec2};
+use mq::{
+    color::Color,
+    math::{glam::Vec2, Rect},
+};
 
 use crate::{utils, ZResult};
 

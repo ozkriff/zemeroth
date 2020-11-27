@@ -1,6 +1,7 @@
 use mq::{
     camera::{set_camera, Camera2D},
-    prelude::{Rect, RED, WHITE},
+    color::{RED, WHITE},
+    math::Rect,
 };
 use zgui as ui;
 
