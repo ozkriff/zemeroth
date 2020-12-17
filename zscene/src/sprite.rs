@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use mq::{
     color::Color,
-    math::{glam::Vec2, Rect},
+    math::{Rect, Vec2},
     text::{self, Font},
     texture::{self, DrawTextureParams, Texture2D},
 };
@@ -164,11 +164,11 @@ impl Sprite {
         {
             let mut data = self.data.borrow_mut();
             data.facing = facing;
-            *data.scale.x_mut() *= -1.0;
+            data.scale.x *= -1.0;
             let mut dimensions = data.dimensions;
-            dimensions.scale(data.scale.x(), data.scale.y());
-            let off_x = -data.offset.x() / dimensions.w;
-            let off_y = -data.offset.y() / dimensions.h;
+            dimensions.scale(data.scale.x, data.scale.y);
+            let off_x = -data.offset.x / dimensions.w;
+            let off_y = -data.offset.y / dimensions.h;
             offset = Vec2::new(-off_x, off_y);
         }
         self.set_offset(offset);
@@ -187,8 +187,8 @@ impl Sprite {
     pub fn set_offset(&mut self, offset: Vec2) {
         let mut data = self.data.borrow_mut();
         let old_offset = data.offset;
-        let off_x = -data.dimensions.w * data.scale.x() * offset.x();
-        let off_y = -data.dimensions.h * data.scale.y() * offset.y();
+        let off_x = -data.dimensions.w * data.scale.x * offset.x;
+        let off_y = -data.dimensions.h * data.scale.y * offset.y;
         data.offset = Vec2::new(off_x, off_y);
         data.pos = data.pos + data.offset - old_offset;
     }
@@ -200,8 +200,8 @@ impl Sprite {
             Drawable::Texture(texture) => {
                 texture::draw_texture_ex(
                     *texture,
-                    data.pos.x(),
-                    data.pos.y(),
+                    data.pos.x,
+                    data.pos.y,
                     data.color,
                     DrawTextureParams {
                         dest_size: Some(data.scale * Vec2::new(texture.width(), texture.height())),
@@ -216,12 +216,12 @@ impl Sprite {
             } => {
                 text::draw_text_ex(
                     label,
-                    data.pos.x(),
-                    data.pos.y(),
+                    data.pos.x,
+                    data.pos.y,
                     text::TextParams {
                         font_size: *font_size,
                         font: *font,
-                        font_scale: data.scale.x(),
+                        font_scale: data.scale.x,
                         color: data.color,
                     },
                 );
@@ -241,10 +241,10 @@ impl Sprite {
         let r = data.dimensions;
         // TODO: angle?
         Rect {
-            x: pos.x(),
-            y: pos.y(),
-            w: r.w * data.scale.x(),
-            h: r.h * data.scale.y(),
+            x: pos.x,
+            y: pos.y,
+            w: r.w * data.scale.x,
+            h: r.h * data.scale.y,
         }
     }
 
@@ -254,7 +254,7 @@ impl Sprite {
 
     pub fn scale(&self) -> f32 {
         let data = self.data.borrow();
-        data.scale.x() / data.basic_scale
+        data.scale.x / data.basic_scale
     }
 
     pub fn set_pos(&mut self, pos: Vec2) {

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, default::Default, time::Duration};
 
-use mq::{color::Color, math::glam::Vec2};
+use mq::{color::Color, math::Vec2};
 
 use zscene::{action, Action, Boxed, Layer, Scene, Sprite};
 
@@ -512,7 +512,7 @@ fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> 
     let mut sprite = Sprite::from_texture(textures().map.grass, view.tile_size() * 2.0);
     let v_offset = view.tile_size() * 0.5; // depends on the image
     let mut screen_pos_grass = screen_pos + geom::rand_tile_offset(view.tile_size(), 0.5);
-    *screen_pos_grass.y_mut() -= v_offset;
+    screen_pos_grass.y -= v_offset;
     sprite.set_centered(true);
     sprite.set_pos(screen_pos_grass);
     Ok(action::Show::new(&view.layers().grass, &sprite).boxed())

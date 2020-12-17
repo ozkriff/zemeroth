@@ -3,7 +3,7 @@ use std::time::Duration;
 use log::{info, trace};
 use mq::{
     color::Color,
-    math::glam::{Mat2, Vec2},
+    math::{Mat2, Vec2},
     texture::Texture2D,
 };
 use zscene::{action, Action, Boxed, Facing, Sprite};
@@ -245,7 +245,7 @@ fn show_dust(view: &mut BattleView, at: Vec2, count: i32) -> ZResult<Box<dyn Act
             let rot = Mat2::from_angle((max / count as f32) * i as f32);
             let n = roll_dice(0.3, 0.6);
             let mut vector = rot * Vec2::new(view.tile_size() * n, 0.0);
-            vector.set_y(vector.y() * geom::FLATNESS_COEFFICIENT);
+            vector.y *= geom::FLATNESS_COEFFICIENT;
             vector
         };
         let point = at + vector;
@@ -455,11 +455,11 @@ fn generate_brief_obj_info(
         for &(color, n) in row {
             for _ in 0..n {
                 dots.push((color, point));
-                *point.x_mut() -= size * actual_dot_size_k;
+                point.x -= size * actual_dot_size_k;
             }
         }
-        *point.x_mut() = base.x();
-        *point.y_mut() += size * actual_dot_size_k;
+        point.x = base.x;
+        point.y += size * actual_dot_size_k;
     }
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
@@ -481,7 +481,7 @@ fn generate_brief_obj_info(
             let icon_size = size * 1.6;
             let mut icon_point = base - Vec2::new(icon_size, health_bar_width + icon_size * 0.4);
             for timed_effect in &effects.0 {
-                *icon_point.y_mut() += icon_size;
+                icon_point.y += icon_size;
                 let effect = &timed_effect.effect;
                 let texture = get_effect_icon(effect);
                 let mut sprite = Sprite::from_texture(texture, icon_size);

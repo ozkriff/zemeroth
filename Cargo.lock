@@ -67,9 +67,9 @@ checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "cc"
-version = "1.0.65"
+version = "1.0.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95752358c8f7552394baf48cd82695b345628ad3f170d607de3ca03b8dacca15"
+checksum = "4c0496836a84f8d0495758516b8621a622beb77c0fed418570e50764093ced48"
 
 [[package]]
 name = "cfg-if"
@@ -165,9 +165,12 @@ dependencies = [
 
 [[package]]
 name = "glam"
-version = "0.9.5"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8637c7ec4fd0776c51eeab3e0d5d1aa7e440ece3fc2ee7d674e13c957287bfc1"
+checksum = "579160312273c954cc51bd440f059dde741029ac8daf8c84fece76cb77f62c15"
+dependencies = [
+ "version_check",
+]
 
 [[package]]
 name = "hashbrown"
@@ -233,9 +236,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.80"
+version = "0.2.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d58d1b70b004888f764dfbf6a26a3b0342a1632d33968e4a179d8011c760614"
+checksum = "1482821306169ec4d07f6aca392a4681f66c75c9918aa49641a2595db64053cb"
 
 [[package]]
 name = "log"
@@ -248,9 +251,9 @@ dependencies = [
 
 [[package]]
 name = "macroquad"
-version = "0.3.0-alpha.12"
+version = "0.3.0-alpha.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3440a1a8f6ac7433d4affd39ba0844e99698935662c32438e3ee817217963c05"
+checksum = "205d79f3b2ac6592e577ac952dbef2d42c765885a500696799ec24bb2ebf2efb"
 dependencies = [
  "fontdue",
  "glam",
@@ -275,9 +278,9 @@ checksum = "0ee1c47aaa256ecabcaea351eae4a9b01ef39ed810004e298d2511ed284b1525"
 
 [[package]]
 name = "miniquad"
-version = "0.3.0-alpha.22"
+version = "0.3.0-alpha.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d68c937440d197e0dcef5883223a311322f26fb75e66461c073284f152d4d0c"
+checksum = "8d01141de09407f60d58d9436c3fb1803cba167aa4e9e2c93203c11489fe9526"
 dependencies = [
  "sapp-android",
  "sapp-darwin",
@@ -418,9 +421,9 @@ dependencies = [
 
 [[package]]
 name = "quad-gl"
-version = "0.2.12"
+version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "514e06833532fcfb4d62a4824dd809594dfd7e20f5067a2cf2f260485d35b8ec"
+checksum = "4adcc7a4917587a75fe9ccbc31a3be8fc0feeb0ec75fbfac46078159d96ae8b5"
 dependencies = [
  "glam",
  "image",
@@ -553,9 +556,9 @@ dependencies = [
 
 [[package]]
 name = "sapp-linux"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae4803aaf4c6dc041cfe6dbc3e029b675e15b503204fca741661f0369f7548d4"
+checksum = "63af805bb4e755390e3b75615d6529cbbc81ab7376f6e62f5400df19c9e3f1c9"
 dependencies = [
  "libc",
 ]
@@ -577,18 +580,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.117"
+version = "1.0.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b88fa983de7720629c9387e9f517353ed404164b1e482c970a90c1a4aaf7dc1a"
+checksum = "06c64263859d87aa2eb554587e2d23183398d617427327cf2b3d0ed8c69e4800"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.117"
+version = "1.0.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cbd1ae72adb44aab48f325a02444a5fc079349a8d804c1fc922aed3f7454c74e"
+checksum = "c84d3526699cd55261af4b941e4e725444df67aa4f9e6a3564f18030d12672df"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -597,9 +600,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.51"
+version = "1.0.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b4f34193997d92804d359ed09953e25d5138df6bcc055a71bf68ee89fdf9223"
+checksum = "9a2af957a63d6bd42255c359c93d9bfdb97076bd3b820897ce55ffbfbf107f44"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -641,6 +644,12 @@ name = "unicode-xid"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7fe0bb3479651439c9112f72b6c505038574c9fbb575ed1bf3b797fa39dd564"
+
+[[package]]
+name = "version_check"
+version = "0.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5a972e5669d67ba988ce3dc826706fb0a8b01471c088cb0b6110b805cc36aed"
 
 [[package]]
 name = "wasi"

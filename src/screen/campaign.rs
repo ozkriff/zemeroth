@@ -5,7 +5,7 @@ use std::{
 
 use heck::TitleCase;
 use log::info;
-use mq::{math::glam::Vec2, text::Font};
+use mq::{math::Vec2, text::Font};
 use ui::{self, Drawable, Gui, Widget};
 
 use crate::{

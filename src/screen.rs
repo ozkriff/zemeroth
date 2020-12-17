@@ -3,7 +3,7 @@ use std::{fmt::Debug, time::Duration};
 use log::info;
 use mq::{
     color::Color,
-    math::{glam::Vec2, Rect},
+    math::{Rect, Vec2},
 };
 
 use crate::{utils, ZResult};

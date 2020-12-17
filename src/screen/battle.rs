@@ -5,7 +5,7 @@ use std::{
 
 use heck::TitleCase;
 use log::{info, trace};
-use mq::{color::Color, math::glam::Vec2};
+use mq::{color::Color, math::Vec2};
 
 use ui::{self, Gui, Widget};
 use zscene::{action, Action, Boxed};
