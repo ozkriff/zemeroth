@@ -41,7 +41,7 @@ pub fn get() -> &'static Assets {
 
 /// Read a file to a string.
 async fn read_file(path: &str) -> ZResult<String> {
-    let data = load_file(path).await.expect("Can't load the file"); // TODO: replace expect with ?
+    let data = load_file(path).await?;
     Ok(String::from_utf8_lossy(&data[..]).to_string())
 }
 

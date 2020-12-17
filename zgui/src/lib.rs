@@ -12,7 +12,7 @@ use log::{info, trace};
 use mq::{
     camera::{set_camera, Camera2D},
     color::Color,
-    math::{glam::Vec2, Rect},
+    math::{Rect, Vec2},
     shapes,
     text::{draw_text_ex, measure_text, Font, TextParams},
     texture::{draw_texture_ex, DrawTextureParams, Texture2D},
@@ -137,8 +137,8 @@ impl Sprite {
             Drawable::Texture(texture) => {
                 draw_texture_ex(
                     texture,
-                    self.pos.x(),
-                    self.pos.y(),
+                    self.pos.x,
+                    self.pos.y,
                     self.color,
                     DrawTextureParams {
                         dest_size: Some(self.scale * Vec2::new(texture.width(), texture.height())),
@@ -153,27 +153,22 @@ impl Sprite {
             } => {
                 draw_text_ex(
                     label,
-                    self.pos.x(),
-                    self.pos.y(),
+                    self.pos.x,
+                    self.pos.y,
                     TextParams {
                         font_size,
                         font,
-                        font_scale: self.scale.x(),
+                        font_scale: self.scale.x,
                         color: self.color,
                     },
                 );
             }
             Drawable::SolidRect { rect } => {
-                shapes::draw_rectangle(self.pos.x(), self.pos.y(), rect.w, rect.h, self.color);
+                shapes::draw_rectangle(self.pos.x, self.pos.y, rect.w, rect.h, self.color);
             }
             Drawable::LinesRect { rect, thickness } => {
                 shapes::draw_rectangle_lines(
-                    self.pos.x(),
-                    self.pos.y(),
-                    rect.w,
-                    rect.h,
-                    thickness,
-                    self.color,
+                    self.pos.x, self.pos.y, rect.w, rect.h, thickness, self.color,
                 );
             }
         }
@@ -183,10 +178,10 @@ impl Sprite {
         let w = self.dimensions.w;
         let h = self.dimensions.h;
         Rect {
-            x: self.pos.x(),
-            y: self.pos.y(),
-            w: w * self.scale.x(),
-            h: h * self.scale.y(),
+            x: self.pos.x,
+            y: self.pos.y,
+            w: w * self.scale.x,
+            h: h * self.scale.y,
         }
     }
 
@@ -353,14 +348,14 @@ impl<Message: Clone> Gui<Message> {
             let rect = widget.rect();
             let mut pos = rect.point();
             match anchor.0 {
-                HAnchor::Left => *pos.x_mut() = (-ratio) + offset,
-                HAnchor::Middle => *pos.x_mut() = -rect.w / 2.0,
-                HAnchor::Right => *pos.x_mut() = (ratio - rect.w) - offset,
+                HAnchor::Left => pos.x = (-ratio) + offset,
+                HAnchor::Middle => pos.x = -rect.w / 2.0,
+                HAnchor::Right => pos.x = (ratio - rect.w) - offset,
             }
             match anchor.1 {
-                VAnchor::Top => *pos.y_mut() = (-1.0) + offset,
-                VAnchor::Middle => *pos.y_mut() = -rect.h / 2.0,
-                VAnchor::Bottom => *pos.y_mut() = (1.0 - rect.h) - offset,
+                VAnchor::Top => pos.y = (-1.0) + offset,
+                VAnchor::Middle => pos.y = -rect.h / 2.0,
+                VAnchor::Bottom => pos.y = (1.0 - rect.h) - offset,
             }
             widget.set_pos(pos);
         }
@@ -487,8 +482,8 @@ impl Widget for Label {
         if let Some(ref mut bg) = &mut self.bg {
             bg.set_pos(pos);
         }
-        self.rect.x = pos.x();
-        self.rect.y = pos.y();
+        self.rect.x = pos.x;
+        self.rect.y = pos.y;
     }
 
     fn can_stretch(&self) -> bool {
@@ -933,7 +928,7 @@ impl VLayout {
         if let Some(last) = self.internal.widgets.last() {
             let rect = last.rect();
             let mut pos = rect.point();
-            *pos.y_mut() += rect.h;
+            pos.y += rect.h;
             widget.set_pos(pos);
         } else {
             widget.set_pos(self.internal.rect.point());

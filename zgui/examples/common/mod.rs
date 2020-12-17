@@ -2,7 +2,7 @@
 
 use mq::{
     camera::{set_camera, Camera2D},
-    math::{glam::Vec2, Rect},
+    math::{Rect, Vec2},
     text::{load_ttf_font, Font},
     texture::{self, Texture2D},
 };

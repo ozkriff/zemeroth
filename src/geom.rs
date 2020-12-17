@@ -1,4 +1,4 @@
-use mq::math::glam::Vec2;
+use mq::math::Vec2;
 
 use crate::core::{
     map::{hex_round, PosHex},
@@ -18,9 +18,9 @@ pub fn hex_to_point(size: f32, hex: PosHex) -> Vec2 {
 
 /// <http://www.redblobgames.com/grids/hexagons/#pixel-to-hex>
 pub fn point_to_hex(size: f32, mut point: Vec2) -> PosHex {
-    *point.y_mut() /= FLATNESS_COEFFICIENT;
-    let q = (point.x() * SQRT_OF_3 / 3.0 - point.y() / 3.0) / size;
-    let r = point.y() * 2.0 / 3.0 / size;
+    point.y /= FLATNESS_COEFFICIENT;
+    let q = (point.x * SQRT_OF_3 / 3.0 - point.y / 3.0) / size;
+    let r = point.y * 2.0 / 3.0 / size;
     hex_round(PosHex { q, r })
 }
 
@@ -43,7 +43,7 @@ impl Facing {
         }
         let from = hex_to_point(tile_size, from);
         let to = hex_to_point(tile_size, to);
-        Some(if to.x() > from.x() {
+        Some(if to.x > from.x {
             Facing::Right
         } else {
             Facing::Left

@@ -3,7 +3,7 @@ use std::time::Duration;
 use mq::{
     camera::{set_camera, Camera2D},
     color::{Color, BLACK},
-    math::{glam::Vec2, Rect},
+    math::{Rect, Vec2},
     text,
     texture::{self, Texture2D},
     time, window,
