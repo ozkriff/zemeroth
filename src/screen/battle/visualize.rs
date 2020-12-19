@@ -475,11 +475,11 @@ fn generate_brief_obj_info(
         actions.push(action);
     }
     {
-        let health_points = strength.strength.0 + damage + armor.0;
+        let health_points = strength.base_strength.0 + armor.0;
         let health_bar_width = health_points as f32 * size * actual_dot_size_k;
         if let Some(effects) = parts.effects.get_opt(id) {
             let icon_size = size * 1.6;
-            let mut icon_point = base - Vec2::new(icon_size, health_bar_width + icon_size * 0.4);
+            let mut icon_point = base - Vec2::new(health_bar_width + icon_size * 0.4, icon_size);
             for timed_effect in &effects.0 {
                 icon_point.y += icon_size;
                 let effect = &timed_effect.effect;
