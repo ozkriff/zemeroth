@@ -1,3 +1,4 @@
+#![allow(clippy::unnecessary_wraps)]
 #![windows_subsystem = "windows"]
 
 use std::time::Duration;

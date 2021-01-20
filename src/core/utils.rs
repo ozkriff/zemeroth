@@ -1,18 +1,14 @@
 use std::fmt::Debug;
 
 use quad_rand::compat::QuadRand;
-use rand::{
-    distributions::uniform::{SampleBorrow, SampleUniform},
-    seq::SliceRandom,
-    Rng,
-};
+use rand::{distributions::uniform::SampleUniform, seq::SliceRandom, Rng};
 
 pub fn zrng() -> impl rand::Rng {
     QuadRand
 }
 
-pub fn roll_dice<T: SampleUniform, B: SampleBorrow<T>>(low: B, high: B) -> T {
-    zrng().gen_range(low, high)
+pub fn roll_dice<T: SampleUniform + PartialOrd>(low: T, high: T) -> T {
+    zrng().gen_range(low..high)
 }
 
 pub fn shuffle_vec<T>(mut vec: Vec<T>) -> Vec<T> {
