@@ -244,7 +244,7 @@ const DIR_TO_POS_DIFF: [[i32; 2]; 6] = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 
 
 impl Dir {
     pub fn from_int(n: i32) -> Self {
-        assert!(n >= 0 && n < 6);
+        assert!((0..6).contains(&n));
         let dirs = [
             Dir::SouthEast,
             Dir::East,

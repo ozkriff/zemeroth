@@ -32,11 +32,12 @@ impl Drawable {
                 font,
                 font_size,
             } => {
-                let (w, _) = text::measure_text(&label, Some(font), font_size, 1.0);
+                let dimensions = text::measure_text(&label, Some(font), font_size, 1.0);
                 // TODO: A hack to have a fixed height for text.
                 // TODO: Keep this in sync with the same hack in zscene until fixed.
+                let w = dimensions.width;
                 let h = font_size as f32 * 1.4;
-                Rect::new(-w / 1.0, -h / 1.0, w / 1.0, h / 1.0)
+                Rect::new(-w / 1.0, (h / 1.0) * 0.5, w / 1.0, h / 1.0)
             }
         }
     }
@@ -217,7 +218,7 @@ impl Sprite {
                 text::draw_text_ex(
                     label,
                     data.pos.x,
-                    data.pos.y,
+                    data.pos.y + (data.dimensions.y + data.dimensions.h) * data.scale.y * 0.5,
                     text::TextParams {
                         font_size: *font_size,
                         font: *font,

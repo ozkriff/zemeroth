@@ -96,11 +96,12 @@ impl Drawable {
                 font,
                 font_size,
             } => {
-                let (w, _) = measure_text(label, Some(font), font_size, 1.0);
+                let dimensions = measure_text(label, Some(font), font_size, 1.0);
                 // TODO: A hack to have a fixed height for text.
-                // TODO: Keep this in sync with the same hack in zgui until fixed.
+                // TODO: Keep this in sync with the same hack in zscene until fixed.
+                let w = dimensions.width;
                 let h = font_size as f32 * 1.4;
-                Rect::new(0.0, 0.0, w, h)
+                Rect::new(0.0, dimensions.offset_y, w, h)
             }
             Drawable::SolidRect { rect, .. } => rect,
             Drawable::LinesRect { rect, .. } => rect,
@@ -154,7 +155,7 @@ impl Sprite {
                 draw_text_ex(
                     label,
                     self.pos.x,
-                    self.pos.y,
+                    self.pos.y + (self.dimensions.y + self.dimensions.h) * self.scale.y * 0.5,
                     TextParams {
                         font_size,
                         font,
@@ -431,7 +432,7 @@ impl Label {
         let sprite = Sprite::new(drawable, height * param.drawable_k);
         let rect = Rect {
             w: sprite.rect().w,
-            h: sprite.rect().h / param.drawable_k,
+            h: sprite.rect().bottom() / param.drawable_k,
             ..Default::default()
         };
         let bg = if param.bg { Some(make_bg(rect)) } else { None };
