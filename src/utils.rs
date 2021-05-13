@@ -89,7 +89,7 @@ pub fn make_and_set_camera(aspect_ratio: f32) -> Camera2D {
         w: aspect_ratio * 2.0,
         h: 2.0,
     });
-    set_camera(camera);
+    set_camera(&camera);
     camera
 }
 

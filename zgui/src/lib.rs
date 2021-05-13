@@ -161,6 +161,7 @@ impl Sprite {
                         font,
                         font_scale: self.scale.x,
                         color: self.color,
+                        ..Default::default()
                     },
                 );
             }
@@ -321,7 +322,7 @@ impl<Message: Clone> Gui<Message> {
 
     pub fn draw(&self) {
         let ui_coordinates = Rect::new(-self.aspect_ratio, -1.0, self.aspect_ratio * 2.0, 2.0);
-        set_camera(Camera2D::from_display_rect(ui_coordinates));
+        set_camera(&Camera2D::from_display_rect(ui_coordinates));
         for AnchoredWidget { widget, .. } in &self.anchored_widgets {
             widget.borrow().draw();
         }

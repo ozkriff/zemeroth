@@ -48,7 +48,7 @@ impl MainState {
 
 #[mq::main("Zemeroth")]
 #[macroquad(crate_rename = "mq")]
-async fn main() {
+async fn main() -> ZResult<()> {
     // std::env isn't supported on WASM.
     #[cfg(not(target_arch = "wasm32"))]
     if std::env::var("RUST_BACKTRACE").is_err() {
@@ -56,7 +56,7 @@ async fn main() {
     }
     env_logger::init();
     quad_rand::srand(mq::miniquad::date::now() as _);
-    assets::load().await;
+    assets::load().await?;
     let mut state = MainState::new().expect("Can't create the main state");
     loop {
         state.tick().expect("Tick failed");

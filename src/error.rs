@@ -10,6 +10,7 @@ pub enum ZError {
     },
     IOError(io::Error),
     MqFileError(mq::file::FileError),
+    MqFontError(mq::text::FontError),
 }
 
 impl ZError {
@@ -29,6 +30,7 @@ impl fmt::Display for ZError {
             }
             ZError::IOError(ref e) => write!(f, "IO Error: {}", e),
             ZError::MqFileError(ref e) => write!(f, "Macroquad File error: {}", e),
+            ZError::MqFontError(ref e) => write!(f, "Macroquad Font error: {}", e),
         }
     }
 }
@@ -41,6 +43,7 @@ impl error::Error for ZError {
             ZError::RonDeserializeError { error, .. } => Some(error),
             ZError::IOError(ref e) => Some(e),
             ZError::MqFileError(ref e) => Some(e),
+            ZError::MqFontError(ref e) => Some(e),
         }
     }
 }
