@@ -34,8 +34,8 @@ pub struct Object {
 }
 
 // TODO: Split into `Scenario` (exact info) and `ScenarioTemplate`?
-#[serde(default)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Scenario {
     pub map_radius: map::Distance,
     pub players_count: i32,

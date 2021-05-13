@@ -34,8 +34,8 @@ pub struct Armor {
     pub armor: battle::Strength,
 }
 
-#[serde(transparent)]
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[serde(transparent)]
 pub struct ObjType(pub String);
 
 impl From<&str> for ObjType {

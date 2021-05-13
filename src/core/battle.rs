@@ -36,8 +36,8 @@ impl Phase {
     }
 }
 
-#[serde(transparent)]
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, derive_more::From)]
+#[serde(transparent)]
 pub struct Rounds(pub i32);
 
 impl Rounds {
@@ -56,8 +56,8 @@ impl fmt::Display for Rounds {
     }
 }
 
-#[serde(transparent)]
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct Turns(pub i32);
 
 impl Turns {
