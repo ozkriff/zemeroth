@@ -14,7 +14,7 @@ pub fn time_s(s: f32) -> Duration {
 
 // TODO: Move to some config (https://github.com/ozkriff/zemeroth/issues/424)
 pub const fn font_size() -> u16 {
-    128
+    20
 }
 
 pub struct LineHeights {

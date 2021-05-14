@@ -14,7 +14,7 @@ use mq::{
     color::Color,
     math::{Rect, Vec2},
     shapes,
-    text::{draw_text_ex, measure_text, Font, TextParams},
+    text::{camera_font_scale, draw_text_ex, measure_text, Font, TextParams},
     texture::{draw_texture_ex, DrawTextureParams, Texture2D},
     window,
 };
@@ -152,6 +152,12 @@ impl Sprite {
                 font,
                 font_size,
             } => {
+                // desired font size in camera space
+                let font_world_size = font_size as f32 * self.scale.x;
+
+                // let macroquad figure appropriate TextParams for currently active camera
+                let (font_size, font_scale, font_scale_aspect) = camera_font_scale(font_world_size);
+
                 draw_text_ex(
                     label,
                     self.pos.x,
@@ -159,7 +165,8 @@ impl Sprite {
                     TextParams {
                         font_size,
                         font,
-                        font_scale: self.scale.x,
+                        font_scale,
+                        font_scale_aspect,
                         color: self.color,
                         ..Default::default()
                     },
