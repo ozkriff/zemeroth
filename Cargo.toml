@@ -12,6 +12,9 @@ opt-level = 3
 [workspace]
 members = ["zcomponents", "zgui", "zscene"]
 
+[package.metadata.android]
+assets = "assets/"
+
 [dependencies]
 ron = "0.6"
 log = "0.4"

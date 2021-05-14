@@ -6,7 +6,7 @@
 use std::{collections::HashMap, hash::Hash};
 
 use mq::{
-    file::load_file,
+    file::{self, load_file},
     text::{self, Font},
     texture::{load_texture, Texture2D},
 };
@@ -93,7 +93,9 @@ pub struct Assets {
 
 impl Assets {
     pub async fn load() -> ZResult<Self> {
-        let sprites_info: SpritesInfo = deserialize_from_file("assets/sprites.ron").await?;
+        file::set_pc_assets_folder("assets");
+
+        let sprites_info: SpritesInfo = deserialize_from_file("sprites.ron").await?;
         let sprite_frames = {
             let mut sprite_frames = HashMap::new();
             for (obj_type, SpriteInfo { paths, .. }) in sprites_info.iter() {
@@ -107,13 +109,13 @@ impl Assets {
         };
         Ok(Self {
             textures: Textures::load().await?,
-            font: text::load_ttf_font("assets/OpenSans-Regular.ttf").await?,
+            font: text::load_ttf_font("OpenSans-Regular.ttf").await?,
             sprites_info,
             sprite_frames,
-            prototypes: Prototypes::from_str(&read_file("assets/objects.ron").await?),
-            demo_scenario: deserialize_from_file("assets/scenario_01.ron").await?,
-            campaign_plan: deserialize_from_file("assets/campaign_01.ron").await?,
-            agent_campaign_info: deserialize_from_file("assets/agent_campaign_info.ron").await?,
+            prototypes: Prototypes::from_str(&read_file("objects.ron").await?),
+            demo_scenario: deserialize_from_file("scenario_01.ron").await?,
+            campaign_plan: deserialize_from_file("campaign_01.ron").await?,
+            agent_campaign_info: deserialize_from_file("agent_campaign_info.ron").await?,
         })
     }
 }
@@ -132,7 +134,7 @@ impl Textures {
             map: MapObjectTextures::load().await?,
             weapon_flashes: load_weapon_flashes().await?,
             icons: IconTextures::load().await?,
-            dot: load_texture("assets/img/dot.png").await?,
+            dot: load_texture("img/dot.png").await?,
         })
     }
 }
@@ -152,14 +154,14 @@ pub struct MapObjectTextures {
 impl MapObjectTextures {
     async fn load() -> ZResult<Self> {
         Ok(Self {
-            selection: load_texture("assets/img/selection.png").await?,
-            white_hex: load_texture("assets/img/white_hex.png").await?,
-            tile: load_texture("assets/img/tile.png").await?,
-            tile_rocks: load_texture("assets/img/tile_rocks.png").await?,
-            grass: load_texture("assets/img/grass.png").await?,
-            blood: load_texture("assets/img/blood.png").await?,
-            explosion_ground_mark: load_texture("assets/img/explosion_ground_mark.png").await?,
-            shadow: load_texture("assets/img/shadow.png").await?,
+            selection: load_texture("img/selection.png").await?,
+            white_hex: load_texture("img/white_hex.png").await?,
+            tile: load_texture("img/tile.png").await?,
+            tile_rocks: load_texture("img/tile_rocks.png").await?,
+            grass: load_texture("img/grass.png").await?,
+            blood: load_texture("img/blood.png").await?,
+            explosion_ground_mark: load_texture("img/explosion_ground_mark.png").await?,
+            shadow: load_texture("img/shadow.png").await?,
         })
     }
 }
@@ -176,9 +178,9 @@ pub struct IconTextures {
 impl IconTextures {
     async fn load() -> ZResult<Self> {
         Ok(Self {
-            info: load_texture("assets/img/icon_info.png").await?,
-            end_turn: load_texture("assets/img/icon_end_turn.png").await?,
-            main_menu: load_texture("assets/img/icon_menu.png").await?,
+            info: load_texture("img/icon_info.png").await?,
+            end_turn: load_texture("img/icon_end_turn.png").await?,
+            main_menu: load_texture("img/icon_menu.png").await?,
             abilities: load_ability_icons().await?,
             lasting_effects: load_lasting_effects().await?,
         })
@@ -192,7 +194,7 @@ async fn load_weapon_flashes() -> ZResult<HashMap<WeaponType, Texture2D>> {
         (WeaponType::Pierce, "pierce"),
         (WeaponType::Claw, "claw"),
     ];
-    load_map(map, |s| format!("assets/img/{}.png", s)).await
+    load_map(map, |s| format!("img/{}.png", s)).await
 }
 
 async fn load_ability_icons() -> ZResult<HashMap<Ability, Texture2D>> {
@@ -213,7 +215,7 @@ async fn load_ability_icons() -> ZResult<HashMap<Ability, Texture2D>> {
         (Ability::GreatHeal, "great_heal"),
         (Ability::Bloodlust, "bloodlust"),
     ];
-    load_map(map, |s| format!("assets/img/icon_ability_{}.png", s)).await
+    load_map(map, |s| format!("img/icon_ability_{}.png", s)).await
 }
 
 async fn load_lasting_effects() -> ZResult<HashMap<effect::Lasting, Texture2D>> {
@@ -222,5 +224,5 @@ async fn load_lasting_effects() -> ZResult<HashMap<effect::Lasting, Texture2D>> 
         (effect::Lasting::Poison, "poison"),
         (effect::Lasting::Bloodlust, "bloodlust"),
     ];
-    load_map(map, |s| format!("assets/img/effect_{}.png", s)).await
+    load_map(map, |s| format!("img/effect_{}.png", s)).await
 }
