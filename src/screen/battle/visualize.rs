@@ -311,8 +311,7 @@ fn show_weapon_flash(
     sprite.set_centered(true);
     sprite.set_pos(point);
     sprite.set_color(invisible);
-    let mut actions = Vec::new();
-    actions.push(action::Show::new(&view.layers().flares, &sprite).boxed());
+    let mut actions = vec![action::Show::new(&view.layers().flares, &sprite).boxed()];
     if let Some(facing) = facing_opt {
         actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
     }
@@ -525,8 +524,7 @@ pub fn visualize(
 }
 
 fn visualize_pre(state: &State, view: &mut BattleView, event: &Event) -> ZResult<Box<dyn Action>> {
-    let mut actions = Vec::new();
-    actions.push(visualize_event(state, view, &event.active_event)?);
+    let mut actions = vec![visualize_event(state, view, &event.active_event)?];
     for &(id, ref effects) in &event.instant_effects {
         for effect in effects {
             actions.push(visualize_instant_effect(state, view, id, &effect)?);
@@ -719,8 +717,7 @@ fn visualize_event_use_ability_jump(
     let z = hex_pos_to_z(event.pos);
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
     let action_dust = show_dust_at_pos(view, event.pos)?;
-    let mut actions = Vec::new();
-    actions.push(action_set_z(&view.layers().objects, &sprite_object, 200.0));
+    let mut actions = vec![action_set_z(&view.layers().objects, &sprite_object, 200.0)];
     if sprite_object.has_frame("jump") {
         actions.push(action::SetFrame::new(&sprite_object, "jump").boxed());
     }
@@ -1171,8 +1168,7 @@ fn visualize_effect_dodge(
     let pos = state.parts().pos.get(target_id).0;
     let time_to = time_s(0.05);
     let time_from = time_s(0.3);
-    let mut actions = Vec::new();
-    actions.push(message(view, pos, "dodged")?);
+    let mut actions = vec![message(view, pos, "dodged")?];
     let point_a = view.hex_to_point(pos);
     let point_b = view.hex_to_point(effect.attacker_pos);
     let diff = (point_a - point_b).normalize() * view.tile_size() * 0.5;

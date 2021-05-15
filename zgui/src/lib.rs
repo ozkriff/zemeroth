@@ -168,7 +168,6 @@ impl Sprite {
                         font_scale,
                         font_scale_aspect,
                         color: self.color,
-                        ..Default::default()
                     },
                 );
             }
@@ -448,8 +447,8 @@ impl Label {
             sprite,
             bg,
             param,
-            height,
             rect,
+            height,
         })
     }
 
@@ -792,7 +791,6 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
         if self.border.rect().contains(pos) {
             let message = self.message.clone();
             self.sender.send(message).unwrap();
-            return;
         }
     }
 

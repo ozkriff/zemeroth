@@ -85,7 +85,7 @@ fn execute_move_to(state: &mut State, cb: Cb, command: &command::MoveTo) {
 
 fn do_move(state: &mut State, cb: Cb, id: Id, cost: Option<Moves>, path: Path) {
     let cost = cost.unwrap_or(Moves(0));
-    let active_event = event::MoveTo { id, path, cost }.into();
+    let active_event = event::MoveTo { path, cost, id }.into();
     let event = Event {
         active_event,
         actor_ids: vec![id],
@@ -322,7 +322,7 @@ fn try_execute_passive_abilities_on_begin_turn(state: &mut State, cb: Cb) {
                         continue;
                     }
                     let pos = state.parts().pos.get(id).0;
-                    let active_event = event::UsePassiveAbility { pos, id, ability }.into();
+                    let active_event = event::UsePassiveAbility { id, pos, ability }.into();
                     let mut target_effects = Vec::new();
                     let strength = Strength(1);
                     target_effects.push(effect::Heal { strength }.into());
