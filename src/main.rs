@@ -46,7 +46,15 @@ impl MainState {
     }
 }
 
-#[mq::main("Zemeroth")]
+fn window_conf() -> window::Conf {
+    window::Conf {
+        window_title: "Zemeroth".to_owned(),
+        high_dpi: true,
+        ..Default::default()
+    }
+}
+
+#[mq::main(window_conf)]
 #[macroquad(crate_rename = "mq")]
 async fn main() -> ZResult<()> {
     // std::env isn't supported on WASM.
