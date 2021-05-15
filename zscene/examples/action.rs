@@ -29,8 +29,12 @@ struct Assets {
 
 impl Assets {
     async fn load() -> Self {
-        let font = text::load_ttf_font("zscene/assets/Karla-Regular.ttf").await;
-        let texture = texture::load_texture("zscene/assets/fire.png").await;
+        let font = text::load_ttf_font("zscene/assets/Karla-Regular.ttf")
+            .await
+            .unwrap();
+        let texture = texture::load_texture("zscene/assets/fire.png")
+            .await
+            .unwrap();
         Self { font, texture }
     }
 }
@@ -92,7 +96,7 @@ impl State {
 fn update_aspect_ratio() {
     let aspect_ratio = window::screen_width() / window::screen_height();
     let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-    set_camera(Camera2D::from_display_rect(coordinates));
+    set_camera(&Camera2D::from_display_rect(coordinates));
 }
 
 #[mq::main("ZScene: Actions Demo")]

@@ -546,7 +546,9 @@ dependencies = [
 
 [[package]]
 name = "macroquad"
-version = "0.3.3"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d252c1d0c6ccbc9e44b0fdd8fe0b53d316f02811716104daf7b804a1f04a8360"
 dependencies = [
  "bumpalo",
  "fontdue",
@@ -561,6 +563,8 @@ dependencies = [
 [[package]]
 name = "macroquad_macro"
 version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ecb8935bc6a74b8374439c0bd8d2857ae1499fde9fbba76bb00722f7213b42d"
 
 [[package]]
 name = "memchr"
@@ -570,9 +574,9 @@ checksum = "b16bd47d9e329435e309c58469fe0791c2d0d1ba96ec0954152a5ae2b04387dc"
 
 [[package]]
 name = "miniquad"
-version = "0.3.0-alpha.30"
+version = "0.3.0-alpha.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "544f4f479ba6084845f4908abbeb40abb5fe01b171928dca2901852231f3f838"
+checksum = "7e26b0198031cdbd234dca807a06294bb2423bee1b5d914a780c649118da0b9d"
 dependencies = [
  "sapp-android",
  "sapp-darwin",
@@ -979,9 +983,9 @@ dependencies = [
 
 [[package]]
 name = "sapp-android"
-version = "0.1.5"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cfc3238f9450dba929931ea554552355ff65c4ab2ffd5d291ca5dfcb7cd3193"
+checksum = "cb57c363bd1f1afeb1f16207bc425bc5672db23920c1adf1545000fc4d4f84f9"
 dependencies = [
  "cc",
 ]
@@ -1015,18 +1019,18 @@ dependencies = [
 
 [[package]]
 name = "sapp-linux"
-version = "0.1.12"
+version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22b66fa7effb2823d80997912186494d4a19aa74d3ac1ff5aa1cfb648537be92"
+checksum = "bbdb2f8011955c62544d9e626a58333e788810d00bd7411d52b81611b92af142"
 dependencies = [
  "libc",
 ]
 
 [[package]]
 name = "sapp-wasm"
-version = "0.1.24"
+version = "0.1.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46dc18c2e8b9b9d1a50a8d83944d1e7c309581c99186b52d0530420d108ce37c"
+checksum = "00e859e8645a3bcb85aecd40bab883438e4105f21b21bccbeac2348760f508bb"
 
 [[package]]
 name = "sapp-windows"

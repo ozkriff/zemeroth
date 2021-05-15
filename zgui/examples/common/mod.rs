@@ -19,7 +19,7 @@ pub fn make_and_set_camera(aspect_ratio: f32) -> Camera2D {
         h: 2.0,
     };
     let camera = Camera2D::from_display_rect(display_rect);
-    set_camera(camera);
+    set_camera(&camera);
     camera
 }
 
@@ -34,8 +34,10 @@ pub struct Assets {
 
 impl Assets {
     pub async fn load() -> Self {
-        let font = load_ttf_font("zgui/assets/Karla-Regular.ttf").await;
-        let texture = texture::load_texture("zgui/assets/fire.png").await;
+        let font = load_ttf_font("zgui/assets/Karla-Regular.ttf")
+            .await
+            .unwrap();
+        let texture = texture::load_texture("zgui/assets/fire.png").await.unwrap();
         Self { font, texture }
     }
 }

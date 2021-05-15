@@ -20,7 +20,7 @@ pub fn make_and_set_camera(_aspect_ratio: f32) -> Camera2D {
         h: mq::window::screen_height(),
     };
     let camera = Camera2D::from_display_rect(display_rect);
-    set_camera(camera);
+    set_camera(&camera);
     camera
 }
 
