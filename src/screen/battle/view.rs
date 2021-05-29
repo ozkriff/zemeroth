@@ -16,7 +16,7 @@ use crate::{
     },
     geom::{self, hex_to_point},
     screen::battle::visualize,
-    utils::{font_size, time_s},
+    utils::time_s,
     ZResult,
 };
 
@@ -483,7 +483,7 @@ impl BattleView {
         let pos = hex_to_point(self.tile_size(), target_pos);
         let text = format!("{}%", chances.1 * 10);
         let font = assets::get().font;
-        let mut sprite = Sprite::from_text((text.as_str(), font, font_size()), 0.1);
+        let mut sprite = Sprite::from_text((text.as_str(), font), 0.1);
         sprite.set_pos(pos);
         sprite.set_centered(true);
         sprite.set_color([0.0, 0.0, 0.0, 1.0].into());

@@ -24,7 +24,7 @@ use crate::{
     },
     geom,
     screen::battle::view::BattleView,
-    utils::{font_size, time_s},
+    utils::time_s,
     ZResult,
 };
 
@@ -72,9 +72,8 @@ fn textures() -> &'static assets::Textures {
 pub fn message(view: &mut BattleView, pos: PosHex, text: &str) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = Color::new(0.0, 0.0, 0.0, 0.0);
-    let font_size = font_size();
     let font = assets::get().font;
-    let mut sprite = Sprite::from_text((text, font, font_size), 0.1);
+    let mut sprite = Sprite::from_text((text, font), 0.1);
     sprite.set_centered(true);
     let point = view.hex_to_point(pos);
     let point = point - Vec2::new(0.0, view.tile_size() * 1.5);
@@ -121,7 +120,9 @@ fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dy
     let actions_text = {
         let color = [0.0, 0.0, 0.0, 1.0].into();
         let font = assets::get().font;
-        let mut sprite = Sprite::from_text((text, font, font_size()), height_text);
+
+        let mut sprite = Sprite::from_text((text, font), height_text);
+
         sprite.set_centered(true);
         action_show_and_hide(sprite, color)
     };
@@ -142,9 +143,8 @@ fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dy
 fn attack_message(view: &mut BattleView, pos: Vec2, text: &str) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = [0.0, 0.0, 0.0, 0.0].into();
-    let font_size = font_size();
     let font = assets::get().font;
-    let mut sprite = Sprite::from_text((text, font, font_size), 0.1);
+    let mut sprite = Sprite::from_text((text, font), 0.1);
     sprite.set_centered(true);
     let point = pos + Vec2::new(0.0, view.tile_size() * 0.5);
     sprite.set_pos(point);

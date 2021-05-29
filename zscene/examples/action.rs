@@ -70,8 +70,7 @@ impl State {
 
     fn action_demo_show_hide(&self) -> Box<dyn Action> {
         let mut sprite = {
-            let font_size = 32;
-            let mut sprite = Sprite::from_text(("some text", self.assets.font, font_size), 0.1);
+            let mut sprite = Sprite::from_text(("some text", self.assets.font), 0.1);
             sprite.set_pos(Vec2::new(0.0, 0.0));
             sprite.set_scale(2.0); // just testing set_size method
             let scale = sprite.scale();
