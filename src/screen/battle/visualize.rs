@@ -120,9 +120,7 @@ fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dy
     let actions_text = {
         let color = [0.0, 0.0, 0.0, 1.0].into();
         let font = assets::get().font;
-
         let mut sprite = Sprite::from_text((text, font), height_text);
-
         sprite.set_centered(true);
         action_show_and_hide(sprite, color)
     };

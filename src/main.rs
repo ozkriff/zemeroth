@@ -56,7 +56,7 @@ fn window_conf() -> window::Conf {
 
 #[mq::main(window_conf)]
 #[macroquad(crate_rename = "mq")]
-async fn main() -> ZResult<()> {
+async fn main() -> ZResult {
     // std::env isn't supported on WASM.
     #[cfg(not(target_arch = "wasm32"))]
     if std::env::var("RUST_BACKTRACE").is_err() {

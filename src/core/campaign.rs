@@ -333,8 +333,8 @@ mod tests {
             vec![node]
         };
         Plan {
-            nodes,
             initial_agents,
+            nodes,
         }
     }
 
@@ -372,8 +372,8 @@ mod tests {
             },
         ];
         Plan {
-            nodes,
             initial_agents,
+            nodes,
         }
     }
 

@@ -282,8 +282,8 @@ impl BattleView {
             s.turns_left.decrease();
             let mut color = s.sprite.color();
             color.a = (s.initial_alpha / s.turns_total.0 as f32) * s.turns_left.0 as f32;
-            let mut sub_actions =
-                vec![action::ChangeColorTo::new(&s.sprite, color, time_s(2.0)).boxed()];
+            let change_color = action::ChangeColorTo::new(&s.sprite, color, time_s(2.0)).boxed();
+            let mut sub_actions = vec![change_color];
             if s.turns_left.is_zero() {
                 sub_actions.push(action::Hide::new(&s.layer, &s.sprite).boxed());
             }

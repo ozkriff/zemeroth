@@ -404,8 +404,10 @@ impl Battle {
         utils::remove_widget(&mut self.gui, &mut self.panel_end_turn)?;
         self.deselect()?;
         let command = command::EndTurn.into();
-        let mut actions = vec![self.do_command_inner(&command, CommandOrigin::Internal)];
-        actions.push(self.do_ai());
+        let actions = vec![
+            self.do_command_inner(&command, CommandOrigin::Internal),
+            self.do_ai(),
+        ];
         self.add_actions(actions);
         Ok(())
     }

@@ -154,10 +154,8 @@ impl Sprite {
             } => {
                 // desired font size in camera space
                 let font_world_size = font_size as f32 * self.scale.x;
-
                 // let macroquad figure appropriate TextParams for currently active camera
                 let (font_size, font_scale, font_scale_aspect) = camera_font_scale(font_world_size);
-
                 draw_text_ex(
                     label,
                     self.pos.x,
