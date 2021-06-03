@@ -49,6 +49,7 @@ impl State {
     fn new(assets: Assets) -> Self {
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
+        update_aspect_ratio();
         Self {
             assets,
             scene,
