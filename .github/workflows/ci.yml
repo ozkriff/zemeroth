@@ -24,7 +24,7 @@ jobs:
 
       - run: cargo fmt --all -- --check
 
-      - run: cargo clippy -- -D warnings
+      - run: cargo clippy --all --tests -- -D warnings
 
   build:
     name: ${{ matrix.build }}
