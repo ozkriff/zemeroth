@@ -6,7 +6,7 @@
 use std::{collections::HashMap, hash::Hash};
 
 use mq::{
-    file::{self, load_file},
+    file::load_file,
     text::{self, Font},
     texture::{load_texture, Texture2D},
 };
