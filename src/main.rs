@@ -64,6 +64,7 @@ async fn main() -> ZResult {
     }
     env_logger::init();
     quad_rand::srand(mq::miniquad::date::now() as _);
+    mq::file::set_pc_assets_folder("assets");
     assets::load().await.expect("Can't load assets");
     let mut state = MainState::new().expect("Can't create the main state");
     loop {

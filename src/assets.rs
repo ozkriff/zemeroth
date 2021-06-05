@@ -93,8 +93,6 @@ pub struct Assets {
 
 impl Assets {
     pub async fn load() -> ZResult<Self> {
-        file::set_pc_assets_folder("assets");
-
         let sprites_info: SpritesInfo = deserialize_from_file("sprites.ron").await?;
         let sprite_frames = {
             let mut sprite_frames = HashMap::new();
