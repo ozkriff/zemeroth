@@ -78,11 +78,14 @@ pub enum Drawable {
 }
 
 impl Drawable {
-    pub fn text(label: impl Into<String>, font: Font, font_size: u16) -> Drawable {
+    pub fn text(label: impl Into<String>, font: Font) -> Drawable {
         Drawable::Text {
             label: label.into(),
             font,
-            font_size,
+            // TODO: this field doesn't mean much with new macroquad since
+            //   we're using camera_font_scale vefore rendering it anyway.
+            //   But it's somewhat tricky to remove this so I'm putting this constant here for now.
+            font_size: 128,
         }
     }
 

@@ -33,10 +33,9 @@ impl Confirm {
     pub fn from_lines(lines: &[impl AsRef<str>], sender: Sender<Message>) -> ZResult<Self> {
         let font = assets::get().font;
         let h = utils::line_heights().big;
-        let font_size = utils::font_size();
         let mut layout = ui::VLayout::new();
         for line in lines {
-            let text = ui::Drawable::text(line.as_ref(), font, font_size);
+            let text = ui::Drawable::text(line.as_ref(), font);
             let label = Box::new(ui::Label::new(text, h)?);
             layout.add(label);
         }
@@ -51,11 +50,10 @@ impl Confirm {
         let font = assets::get().font;
         let mut gui = ui::Gui::new();
         let h = utils::line_heights().big;
-        let font_size = utils::font_size();
         let mut layout = Box::new(ui::VLayout::new());
         let spacer = || Box::new(ui::Spacer::new_vertical(h * 0.5));
         let button = |line, message| -> ZResult<_> {
-            let text = ui::Drawable::text(line, font, font_size);
+            let text = ui::Drawable::text(line, font);
             let b = ui::Button::new(text, h, gui.sender(), message)?.stretchable(true);
             Ok(b)
         };

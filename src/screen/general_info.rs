@@ -24,9 +24,8 @@ impl GeneralInfo {
         let font = assets::get().font;
         let mut gui = ui::Gui::new();
         let h = utils::line_heights().normal;
-        let font_size = utils::font_size();
         let mut layout = Box::new(ui::VLayout::new().stretchable(true));
-        let text_ = |s: &str| ui::Drawable::text(s, font, font_size);
+        let text_ = |s: &str| ui::Drawable::text(s, font);
         let label_ = |text: &str| -> ZResult<_> { Ok(ui::Label::new(text_(text), h)?) };
         let label = |text: &str| -> ZResult<_> { Ok(Box::new(label_(text)?)) };
         let label_s = |text: &str| -> ZResult<_> { Ok(Box::new(label_(text)?.stretchable(true))) };

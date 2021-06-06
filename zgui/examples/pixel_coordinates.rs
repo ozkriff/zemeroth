@@ -25,10 +25,9 @@ pub fn make_and_set_camera(_aspect_ratio: f32) -> Camera2D {
 }
 
 fn make_gui(font: mq::text::Font) -> ui::Result<ui::Gui<Message>> {
-    let font_size = 64;
     let mut gui = ui::Gui::new();
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
-    let text = ui::Drawable::text("Button", font, font_size);
+    let text = ui::Drawable::text("Button", font);
     let button = ui::Button::new(text, 0.2, gui.sender(), Message::Command)?;
     gui.add(&ui::pack(button), anchor);
     Ok(gui)

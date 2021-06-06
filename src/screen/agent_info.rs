@@ -84,7 +84,7 @@ fn info_panel(
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     layout.add(agent_image(typename)?);
     let mut add = |w| layout.add(w);
-    let text_ = |s: &str| ui::Drawable::text(s, font, utils::font_size());
+    let text_ = |s: &str| ui::Drawable::text(s, font);
     let label_ = |text: &str| -> ZResult<_> { Ok(ui::Label::new(text_(text), h)?) };
     let label = |text: &str| -> ZResult<Box<_>> { Ok(Box::new(label_(text)?)) };
     let label_s = |text: &str| -> ZResult<_> { Ok(Box::new(label_(text)?.stretchable(true))) };
@@ -181,7 +181,7 @@ fn info_panel(
 fn button_back(gui: &mut ui::Gui<Message>, layout_width: f32) -> ZResult<Box<dyn ui::Widget>> {
     let font = assets::get().font;
     let h = utils::line_heights().normal;
-    let text = ui::Drawable::text("back", font, utils::font_size());
+    let text = ui::Drawable::text("back", font);
     let msg = Message::Back;
     let mut button = ui::Button::new(text, h, gui.sender(), msg)?.stretchable(true);
     button.stretch(layout_width / 3.0);
@@ -226,7 +226,7 @@ impl AgentInfo {
             let col = {
                 let mut col = Box::new(ui::VLayout::new());
                 col.add(Box::new(ui::Spacer::new_vertical(panel_from_height * 0.5)));
-                let text = ui::Drawable::text("=>", font, utils::font_size());
+                let text = ui::Drawable::text("=>", font);
                 col.add(Box::new(ui::Label::new(text, h)?));
                 col
             };

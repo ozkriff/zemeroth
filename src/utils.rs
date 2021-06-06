@@ -12,11 +12,6 @@ pub fn time_s(s: f32) -> Duration {
     Duration::from_millis(ms as u64)
 }
 
-// TODO: Move to some config (https://github.com/ozkriff/zemeroth/issues/424)
-pub const fn font_size() -> u16 {
-    20
-}
-
 pub struct LineHeights {
     pub small: f32,
     pub normal: f32,

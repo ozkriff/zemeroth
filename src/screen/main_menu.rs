@@ -25,10 +25,9 @@ fn make_gui() -> ZResult<ui::Gui<Message>> {
     let font = assets::get().font;
     let mut gui = ui::Gui::new();
     let h = utils::line_heights().large;
-    let font_size = utils::font_size();
     let space = || Box::new(ui::Spacer::new_vertical(h / 8.0));
     let button = &mut |text, message| -> ZResult<_> {
-        let text = ui::Drawable::text(text, font, font_size);
+        let text = ui::Drawable::text(text, font);
         let b = ui::Button::new(text, h, gui.sender(), message)?.stretchable(true);
         Ok(Box::new(b))
     };

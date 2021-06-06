@@ -108,6 +108,7 @@ impl Sprite {
     }
 
     pub fn from_text((label, font): (&str, Font), height: f32) -> Self {
+        // TODO: it'd be cool to move this to the drawing method (same as in zgui)
         let (font_size, _, _) = mq::text::camera_font_scale(height);
         Self::from_drawable(
             Drawable::Text {

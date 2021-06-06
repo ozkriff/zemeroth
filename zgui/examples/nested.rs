@@ -15,8 +15,7 @@ enum Message {
 }
 
 fn make_gui(assets: common::Assets) -> ui::Result<ui::Gui<Message>> {
-    let font_size = 64;
-    let text = |s| ui::Drawable::text(s, assets.font, font_size);
+    let text = |s| ui::Drawable::text(s, assets.font);
     let texture = || ui::Drawable::Texture(assets.texture);
     let mut gui = ui::Gui::new();
     {
