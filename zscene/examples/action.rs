@@ -10,6 +10,24 @@ use mq::{
 };
 use zscene::{self, action, Action, Boxed, Layer, Scene, Sprite};
 
+#[derive(Debug)]
+pub enum Err {
+    File(mq::file::FileError),
+    Font(mq::text::FontError),
+}
+
+impl From<mq::file::FileError> for Err {
+    fn from(err: mq::file::FileError) -> Self {
+        Err::File(err)
+    }
+}
+
+impl From<mq::text::FontError> for Err {
+    fn from(err: mq::text::FontError) -> Self {
+        Err::Font(err)
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
     pub bg: Layer,
@@ -28,14 +46,10 @@ struct Assets {
 }
 
 impl Assets {
-    async fn load() -> Self {
-        let font = text::load_ttf_font("zscene/assets/Karla-Regular.ttf")
-            .await
-            .unwrap();
-        let texture = texture::load_texture("zscene/assets/fire.png")
-            .await
-            .unwrap();
-        Self { font, texture }
+    async fn load() -> Result<Self, Err> {
+        let font = text::load_ttf_font("zscene/assets/Karla-Regular.ttf").await?;
+        let texture = texture::load_texture("zscene/assets/fire.png").await?;
+        Ok(Self { font, texture })
     }
 }
 
@@ -102,7 +116,7 @@ fn update_aspect_ratio() {
 #[mq::main("ZScene: Actions Demo")]
 #[macroquad(crate_rename = "mq")]
 async fn main() {
-    let assets = Assets::load().await;
+    let assets = Assets::load().await.expect("Can't load assets");
     let mut state = State::new(assets);
     {
         // Run two demo demo actions in parallel.
