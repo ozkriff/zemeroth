@@ -1260,14 +1260,12 @@ mod tests {
             ..Default::default()
         };
         let effect_dodge = effect::Dodge { attacker_pos };
-        let mut instant_effects2 = Vec::new();
-        instant_effects2.push((Id(0), vec![Effect::Vanish, effect_dodge.clone().into()]));
+        let instant_effects2 = vec![(Id(0), vec![Effect::Vanish, effect_dodge.clone().into()])];
         let context2 = ExecuteContext {
             instant_effects: instant_effects2,
             ..Default::default()
         };
-        let mut instant_effects_expected = Vec::new();
-        instant_effects_expected.push((
+        let instant_effects_expected = vec![(
             Id(0),
             vec![
                 effect_kill,
@@ -1275,7 +1273,7 @@ mod tests {
                 Effect::Vanish,
                 effect_dodge.into(),
             ],
-        ));
+        )];
         let context_expected = ExecuteContext {
             instant_effects: instant_effects_expected,
             ..Default::default()
