@@ -68,7 +68,7 @@ impl State {
 #[mq::main("ZGui: Remove Widget Demo")]
 #[macroquad(crate_rename = "mq")]
 async fn main() {
-    let assets = common::Assets::load().await;
+    let assets = common::Assets::load().await.expect("Can't load assets");
     let mut state = State::new(assets).expect("Can't create the game state");
     loop {
         // Update the camera and the GUI.

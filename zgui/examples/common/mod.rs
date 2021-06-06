@@ -7,6 +7,24 @@ use mq::{
     texture::{self, Texture2D},
 };
 
+#[derive(Debug)]
+pub enum Err {
+    File(mq::file::FileError),
+    Font(mq::text::FontError),
+}
+
+impl From<mq::file::FileError> for Err {
+    fn from(err: mq::file::FileError) -> Self {
+        Err::File(err)
+    }
+}
+
+impl From<mq::text::FontError> for Err {
+    fn from(err: mq::text::FontError) -> Self {
+        Err::Font(err)
+    }
+}
+
 pub fn aspect_ratio() -> f32 {
     mq::window::screen_width() / mq::window::screen_height()
 }
@@ -33,11 +51,9 @@ pub struct Assets {
 }
 
 impl Assets {
-    pub async fn load() -> Self {
-        let font = load_ttf_font("zgui/assets/Karla-Regular.ttf")
-            .await
-            .unwrap();
-        let texture = texture::load_texture("zgui/assets/fire.png").await.unwrap();
-        Self { font, texture }
+    pub async fn load() -> Result<Self, Err> {
+        let font = load_ttf_font("zgui/assets/Karla-Regular.ttf").await?;
+        let texture = texture::load_texture("zgui/assets/fire.png").await?;
+        Ok(Self { font, texture })
     }
 }
