@@ -5,7 +5,7 @@ use crate::core::{
         self,
         ability::{self, Ability},
         command::{self, Command},
-        state, Attacks, Id, Jokers, Moves, State,
+        state, Attacks, Id, Jokers, Moves, PushStrength, State, Weight,
     },
     map::{self, Distance, PosHex},
 };
@@ -24,9 +24,10 @@ pub fn check(state: &State, command: &Command) -> Result<(), Error> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Error {
     NotEnoughMovePoints,
+    NotEnoughStrength,
     BadActorId,
     BadTargetId,
     BadTargetType,
@@ -125,11 +126,17 @@ fn check_command_use_ability(state: &State, command: &command::UseAbility) -> Re
 }
 
 fn check_ability_knockback(state: &State, id: Id, pos: PosHex) -> Result<(), Error> {
+    let strength = PushStrength(Weight::Normal);
     let selected_pos = state.parts().pos.get(id).0;
     check_min_distance(selected_pos, pos, Distance(1))?;
     check_max_distance(selected_pos, pos, Distance(1))?;
-    if state::blocker_id_at_opt(state, pos).is_none() {
-        return Err(Error::NoTarget);
+    let target_id = match state::agent_id_at_opt(state, pos) {
+        Some(id) => id,
+        None => return Err(Error::NoTarget),
+    };
+    let target_weight = state.parts().blocker.get(target_id).weight;
+    if !strength.can_push(target_weight) {
+        return Err(Error::NotEnoughStrength);
     }
     Ok(())
 }

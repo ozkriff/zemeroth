@@ -1509,34 +1509,15 @@ fn knockback_normal_vs_heavy() {
         .object(P0, "knockbacker", PosHex { q: 0, r: 0 })
         .object(P1, "heavy_target", initial_heavy_position);
     let mut state = debug_state(prototypes, scenario);
-    exec_and_check(
+    let knockback_result = try_exec(
         &mut state,
         command::UseAbility {
             id: Id(0),
             pos: initial_heavy_position,
             ability: Ability::Knockback,
         },
-        &[Event {
-            active_event: event::UseAbility {
-                id: Id(0),
-                pos: initial_heavy_position,
-                ability: Ability::Knockback,
-            }
-            .into(),
-            actor_ids: vec![Id(1), Id(0)],
-            instant_effects: vec![(
-                Id(1),
-                vec![effect::Knockback {
-                    from: initial_heavy_position,
-                    to: initial_heavy_position,
-                    strength: PushStrength(Weight::Normal),
-                }
-                .into()],
-            )],
-            timed_effects: Vec::new(),
-            scheduled_abilities: Vec::new(),
-        }],
     );
+    assert_eq!(knockback_result, Err(check::Error::NotEnoughStrength));
     assert_eq!(state.parts().pos.get(Id(1)).0, initial_heavy_position);
 }
 
