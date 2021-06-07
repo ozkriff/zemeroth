@@ -9,9 +9,8 @@ enum Message {
 }
 
 fn make_gui(assets: common::Assets) -> ui::Result<ui::Gui<Message>> {
-    let font_size = 64;
     let mut gui = ui::Gui::new();
-    let text = ui::Drawable::text(" text", assets.font, font_size);
+    let text = ui::Drawable::text(" text", assets.font);
     let texture = ui::Drawable::Texture(assets.texture);
     let button = ui::Button::new(texture, 0.2, gui.sender(), Message::Command)?;
     let label = ui::Label::new(text, 0.1)?;
@@ -26,7 +25,7 @@ fn make_gui(assets: common::Assets) -> ui::Result<ui::Gui<Message>> {
 #[mq::main("ZGui: Layers Layout Demo")]
 #[macroquad(crate_rename = "mq")]
 async fn main() {
-    let assets = common::Assets::load().await;
+    let assets = common::Assets::load().await.expect("Can't load assets");
     let mut gui = make_gui(assets).expect("Can't create the gui");
     loop {
         // Update the camera and the GUI.

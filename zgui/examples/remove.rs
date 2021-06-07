@@ -9,10 +9,9 @@ enum Message {
 }
 
 fn make_gui(font: mq::text::Font) -> ui::Result<ui::Gui<Message>> {
-    let font_size = 64;
     let mut gui = ui::Gui::new();
     let anchor = ui::Anchor(ui::HAnchor::Right, ui::VAnchor::Bottom);
-    let text = ui::Drawable::text("Button", font, font_size);
+    let text = ui::Drawable::text("Button", font);
     let button = ui::Button::new(text, 0.2, gui.sender(), Message::AddOrRemove)?;
     gui.add(&ui::pack(button), anchor);
     Ok(gui)
@@ -68,7 +67,7 @@ impl State {
 #[mq::main("ZGui: Remove Widget Demo")]
 #[macroquad(crate_rename = "mq")]
 async fn main() {
-    let assets = common::Assets::load().await;
+    let assets = common::Assets::load().await.expect("Can't load assets");
     let mut state = State::new(assets).expect("Can't create the game state");
     loop {
         // Update the camera and the GUI.

@@ -24,7 +24,7 @@ use crate::{
     },
     geom,
     screen::battle::view::BattleView,
-    utils::{font_size, time_s},
+    utils::time_s,
     ZResult,
 };
 
@@ -72,9 +72,8 @@ fn textures() -> &'static assets::Textures {
 pub fn message(view: &mut BattleView, pos: PosHex, text: &str) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = Color::new(0.0, 0.0, 0.0, 0.0);
-    let font_size = font_size();
     let font = assets::get().font;
-    let mut sprite = Sprite::from_text((text, font, font_size), 0.1);
+    let mut sprite = Sprite::from_text((text, font), 0.1);
     sprite.set_centered(true);
     let point = view.hex_to_point(pos);
     let point = point - Vec2::new(0.0, view.tile_size() * 1.5);
@@ -121,7 +120,7 @@ fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dy
     let actions_text = {
         let color = [0.0, 0.0, 0.0, 1.0].into();
         let font = assets::get().font;
-        let mut sprite = Sprite::from_text((text, font, font_size()), height_text);
+        let mut sprite = Sprite::from_text((text, font), height_text);
         sprite.set_centered(true);
         action_show_and_hide(sprite, color)
     };
@@ -142,9 +141,8 @@ fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dy
 fn attack_message(view: &mut BattleView, pos: Vec2, text: &str) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = [0.0, 0.0, 0.0, 0.0].into();
-    let font_size = font_size();
     let font = assets::get().font;
-    let mut sprite = Sprite::from_text((text, font, font_size), 0.1);
+    let mut sprite = Sprite::from_text((text, font), 0.1);
     sprite.set_centered(true);
     let point = pos + Vec2::new(0.0, view.tile_size() * 0.5);
     sprite.set_pos(point);
@@ -311,8 +309,7 @@ fn show_weapon_flash(
     sprite.set_centered(true);
     sprite.set_pos(point);
     sprite.set_color(invisible);
-    let mut actions = Vec::new();
-    actions.push(action::Show::new(&view.layers().flares, &sprite).boxed());
+    let mut actions = vec![action::Show::new(&view.layers().flares, &sprite).boxed()];
     if let Some(facing) = facing_opt {
         actions.push(action::SetFacing::new(&sprite, facing.to_scene_facing()).boxed());
     }
@@ -525,8 +522,7 @@ pub fn visualize(
 }
 
 fn visualize_pre(state: &State, view: &mut BattleView, event: &Event) -> ZResult<Box<dyn Action>> {
-    let mut actions = Vec::new();
-    actions.push(visualize_event(state, view, &event.active_event)?);
+    let mut actions = vec![visualize_event(state, view, &event.active_event)?];
     for &(id, ref effects) in &event.instant_effects {
         for effect in effects {
             actions.push(visualize_instant_effect(state, view, id, &effect)?);
@@ -719,8 +715,7 @@ fn visualize_event_use_ability_jump(
     let z = hex_pos_to_z(event.pos);
     let action_move_shadow = action::MoveBy::new(&sprite_shadow, diff, time).boxed();
     let action_dust = show_dust_at_pos(view, event.pos)?;
-    let mut actions = Vec::new();
-    actions.push(action_set_z(&view.layers().objects, &sprite_object, 200.0));
+    let mut actions = vec![action_set_z(&view.layers().objects, &sprite_object, 200.0)];
     if sprite_object.has_frame("jump") {
         actions.push(action::SetFrame::new(&sprite_object, "jump").boxed());
     }
@@ -1171,8 +1166,7 @@ fn visualize_effect_dodge(
     let pos = state.parts().pos.get(target_id).0;
     let time_to = time_s(0.05);
     let time_from = time_s(0.3);
-    let mut actions = Vec::new();
-    actions.push(message(view, pos, "dodged")?);
+    let mut actions = vec![message(view, pos, "dodged")?];
     let point_a = view.hex_to_point(pos);
     let point_b = view.hex_to_point(effect.attacker_pos);
     let diff = (point_a - point_b).normalize() * view.tile_size() * 0.5;

@@ -32,8 +32,6 @@ enum Message {
     Action(Action),
 }
 
-const FONT_SIZE: u16 = utils::font_size();
-
 // The main line height of this screen.
 fn line_height() -> f32 {
     utils::line_heights().normal
@@ -133,7 +131,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
             }
         };
         {
-            let text = ui::Drawable::text(text, font, FONT_SIZE);
+            let text = ui::Drawable::text(text, font);
             let sender = gui.sender();
             let message = Message::Action(action.clone());
             let mut button = ui::Button::new(text, h, sender, message)?.stretchable(true);
@@ -162,7 +160,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
             state.current_scenario_index() + 1,
             state.scenarios_count()
         );
-        let text = ui::Drawable::text(text, font, FONT_SIZE);
+        let text = ui::Drawable::text(text, font);
         let command = Message::StartBattle;
         let button = ui::Button::new(text, h, gui.sender(), command)?.stretchable(true);
         layout.add(Box::new(button));
@@ -173,7 +171,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
 }
 
 fn label(font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
-    let text = ui::Drawable::text(text, font, FONT_SIZE);
+    let text = ui::Drawable::text(text, font);
     Ok(Box::new(ui::Label::new(text, line_height())?))
 }
 
@@ -256,7 +254,7 @@ impl Campaign {
     fn add_label_central_message(&mut self, text: &str) -> ZResult {
         let font = assets::get().font;
         let h = utils::line_heights().large;
-        let text = ui::Drawable::text(text, font, FONT_SIZE);
+        let text = ui::Drawable::text(text, font);
         let label = ui::pack(ui::Label::new_with_bg(text, h)?);
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         self.gui.add(&label, anchor);

@@ -43,8 +43,6 @@ use crate::{
 mod view;
 mod visualize;
 
-const FONT_SIZE: u16 = utils::font_size();
-
 #[derive(Clone, Debug)]
 enum Message {
     Exit,
@@ -65,11 +63,10 @@ fn line_with_info_button(
 ) -> ZResult<Box<dyn ui::Widget>> {
     let h = line_heights().normal;
     let font = assets::get().font;
-    let text = ui::Drawable::text(text, font, FONT_SIZE);
     let icon = textures().icons.info;
     let button = ui::Button::new(ui::Drawable::Texture(icon), h, gui.sender(), message)?;
     let mut line = Box::new(ui::HLayout::new().stretchable(true));
-    line.add(Box::new(ui::Label::new(text, h)?));
+    line.add(Box::new(ui::Label::new(ui::Drawable::text(text, font), h)?));
     line.add(Box::new(ui::Spacer::new_horizontal(0.0).stretchable(true)));
     line.add(Box::new(button));
     Ok(line)
@@ -86,7 +83,7 @@ fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZRes
     let h = line_heights().normal;
     let space_between_buttons = h / 8.0;
     let mut add = |w| layout.add(w);
-    let text_ = |s: &str| ui::Drawable::text(s, font, FONT_SIZE);
+    let text_ = |s: &str| ui::Drawable::text(s, font);
     let label_ = |text: &str| -> ZResult<_> { Ok(ui::Label::new(text_(text), h)?) };
     let label = |text: &str| -> ZResult<Box<dyn Widget>> { Ok(Box::new(label_(text)?)) };
     let label_s = |text: &str| -> ZResult<_> { Ok(Box::new(label_(text)?.stretchable(true))) };
@@ -188,7 +185,7 @@ fn build_panel_agent_info(gui: &mut Gui<Message>, state: &State, id: Id) -> ZRes
                         effect::Duration::Rounds(n) => format!("{} ({}t)", s, n),
                     };
                     let message = Message::LastingEffectInfo(effect.effect);
-                    let text = ui::Drawable::text(text, font, FONT_SIZE);
+                    let text = ui::Drawable::text(text, font);
                     let tex_info = ui::Drawable::Texture(textures().icons.info);
                     let button_info = ui::Button::new(tex_info, h, gui.sender(), message)?;
                     let icon_effect = visualize::get_effect_icon(&effect.effect);
@@ -250,7 +247,7 @@ fn build_panel_agent_abilities(
         if let ability::Status::Cooldown(n) = ability.status {
             let mut layers = ui::LayersLayout::new();
             layers.add(Box::new(button));
-            let text = ui::Drawable::text(format!(" ({})", n).as_str(), font, FONT_SIZE);
+            let text = ui::Drawable::text(format!(" ({})", n).as_str(), font);
             let label = ui::Label::new(text, h / 2.0)?;
             layers.add(Box::new(label));
             layout.add(Box::new(layers));
@@ -283,7 +280,7 @@ fn build_panel_ability_description(
     id: Id,
 ) -> ZResult<ui::RcWidget> {
     let font = assets::get().font;
-    let text = |s: &str| ui::Drawable::text(s, font, FONT_SIZE);
+    let text = |s: &str| ui::Drawable::text(s, font);
     let h = line_heights().normal;
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     let text_title = text(&format!("~~~ {} ~~~", ability.title()));
@@ -404,9 +401,10 @@ impl Battle {
         utils::remove_widget(&mut self.gui, &mut self.panel_end_turn)?;
         self.deselect()?;
         let command = command::EndTurn.into();
-        let mut actions = Vec::new();
-        actions.push(self.do_command_inner(&command, CommandOrigin::Internal));
-        actions.push(self.do_ai());
+        let actions = vec![
+            self.do_command_inner(&command, CommandOrigin::Internal),
+            self.do_ai(),
+        ];
         self.add_actions(actions);
         Ok(())
     }

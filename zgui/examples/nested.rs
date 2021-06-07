@@ -15,8 +15,7 @@ enum Message {
 }
 
 fn make_gui(assets: common::Assets) -> ui::Result<ui::Gui<Message>> {
-    let font_size = 64;
-    let text = |s| ui::Drawable::text(s, assets.font, font_size);
+    let text = |s| ui::Drawable::text(s, assets.font);
     let texture = || ui::Drawable::Texture(assets.texture);
     let mut gui = ui::Gui::new();
     {
@@ -70,7 +69,7 @@ fn make_gui(assets: common::Assets) -> ui::Result<ui::Gui<Message>> {
 #[mq::main("ZGui: Nested Layouts Demo")]
 #[macroquad(crate_rename = "mq")]
 async fn main() {
-    let assets = common::Assets::load().await;
+    let assets = common::Assets::load().await.expect("Can't load assets");
     let mut gui = make_gui(assets).expect("Can't create the gui");
     loop {
         // Update the camera and the GUI.

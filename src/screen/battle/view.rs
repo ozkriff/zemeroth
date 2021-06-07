@@ -16,7 +16,7 @@ use crate::{
     },
     geom::{self, hex_to_point},
     screen::battle::visualize,
-    utils::{font_size, time_s},
+    utils::time_s,
     ZResult,
 };
 
@@ -282,8 +282,8 @@ impl BattleView {
             s.turns_left.decrease();
             let mut color = s.sprite.color();
             color.a = (s.initial_alpha / s.turns_total.0 as f32) * s.turns_left.0 as f32;
-            let mut sub_actions = Vec::new();
-            sub_actions.push(action::ChangeColorTo::new(&s.sprite, color, time_s(2.0)).boxed());
+            let change_color = action::ChangeColorTo::new(&s.sprite, color, time_s(2.0)).boxed();
+            let mut sub_actions = vec![change_color];
             if s.turns_left.is_zero() {
                 sub_actions.push(action::Hide::new(&s.layer, &s.sprite).boxed());
             }
@@ -390,7 +390,7 @@ impl BattleView {
         let positions = state.map().iter();
         for pos in positions {
             let id = selected_id;
-            let command = command::UseAbility { id, ability, pos }.into();
+            let command = command::UseAbility { id, pos, ability }.into();
             if battle::check(state, &command).is_ok() {
                 self.highlight_tile(pos, TILE_COLOR_ABILITY)?;
             }
@@ -483,7 +483,7 @@ impl BattleView {
         let pos = hex_to_point(self.tile_size(), target_pos);
         let text = format!("{}%", chances.1 * 10);
         let font = assets::get().font;
-        let mut sprite = Sprite::from_text((text.as_str(), font, font_size()), 0.1);
+        let mut sprite = Sprite::from_text((text.as_str(), font), 0.1);
         sprite.set_pos(pos);
         sprite.set_centered(true);
         sprite.set_color([0.0, 0.0, 0.0, 1.0].into());

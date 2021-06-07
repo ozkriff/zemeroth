@@ -20,8 +20,8 @@ pub enum Mode {
     Failed,
 }
 
-#[serde(transparent)]
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, derive_more::From)]
+#[serde(transparent)]
 pub struct Renown(pub i32);
 
 // TODO: impl `Add` and `Sub` traits for `Renown`.
@@ -333,8 +333,8 @@ mod tests {
             vec![node]
         };
         Plan {
-            nodes,
             initial_agents,
+            nodes,
         }
     }
 
@@ -372,8 +372,8 @@ mod tests {
             },
         ];
         Plan {
-            nodes,
             initial_agents,
+            nodes,
         }
     }
 

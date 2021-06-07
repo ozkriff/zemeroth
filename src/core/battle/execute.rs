@@ -85,7 +85,7 @@ fn execute_move_to(state: &mut State, cb: Cb, command: &command::MoveTo) {
 
 fn do_move(state: &mut State, cb: Cb, id: Id, cost: Option<Moves>, path: Path) {
     let cost = cost.unwrap_or(Moves(0));
-    let active_event = event::MoveTo { id, path, cost }.into();
+    let active_event = event::MoveTo { path, cost, id }.into();
     let event = Event {
         active_event,
         actor_ids: vec![id],
@@ -322,7 +322,7 @@ fn try_execute_passive_abilities_on_begin_turn(state: &mut State, cb: Cb) {
                         continue;
                     }
                     let pos = state.parts().pos.get(id).0;
-                    let active_event = event::UsePassiveAbility { pos, id, ability }.into();
+                    let active_event = event::UsePassiveAbility { id, pos, ability }.into();
                     let mut target_effects = Vec::new();
                     let strength = Strength(1);
                     target_effects.push(effect::Heal { strength }.into());
@@ -1260,14 +1260,12 @@ mod tests {
             ..Default::default()
         };
         let effect_dodge = effect::Dodge { attacker_pos };
-        let mut instant_effects2 = Vec::new();
-        instant_effects2.push((Id(0), vec![Effect::Vanish, effect_dodge.clone().into()]));
+        let instant_effects2 = vec![(Id(0), vec![Effect::Vanish, effect_dodge.clone().into()])];
         let context2 = ExecuteContext {
             instant_effects: instant_effects2,
             ..Default::default()
         };
-        let mut instant_effects_expected = Vec::new();
-        instant_effects_expected.push((
+        let instant_effects_expected = vec![(
             Id(0),
             vec![
                 effect_kill,
@@ -1275,7 +1273,7 @@ mod tests {
                 Effect::Vanish,
                 effect_dodge.into(),
             ],
-        ));
+        )];
         let context_expected = ExecuteContext {
             instant_effects: instant_effects_expected,
             ..Default::default()

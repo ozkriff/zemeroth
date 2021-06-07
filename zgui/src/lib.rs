@@ -14,7 +14,7 @@ use mq::{
     color::Color,
     math::{Rect, Vec2},
     shapes,
-    text::{draw_text_ex, measure_text, Font, TextParams},
+    text::{camera_font_scale, draw_text_ex, measure_text, Font, TextParams},
     texture::{draw_texture_ex, DrawTextureParams, Texture2D},
     window,
 };
@@ -78,11 +78,14 @@ pub enum Drawable {
 }
 
 impl Drawable {
-    pub fn text(label: impl Into<String>, font: Font, font_size: u16) -> Drawable {
+    pub fn text(label: impl Into<String>, font: Font) -> Drawable {
         Drawable::Text {
             label: label.into(),
             font,
-            font_size,
+            // TODO: this field doesn't mean much with new macroquad since
+            //   we're using camera_font_scale vefore rendering it anyway.
+            //   But it's somewhat tricky to remove this so I'm putting this constant here for now.
+            font_size: 128,
         }
     }
 
@@ -152,6 +155,10 @@ impl Sprite {
                 font,
                 font_size,
             } => {
+                // desired font size in camera space
+                let font_world_size = font_size as f32 * self.scale.x;
+                // let macroquad figure appropriate TextParams for currently active camera
+                let (font_size, font_scale, font_scale_aspect) = camera_font_scale(font_world_size);
                 draw_text_ex(
                     label,
                     self.pos.x,
@@ -159,7 +166,8 @@ impl Sprite {
                     TextParams {
                         font_size,
                         font,
-                        font_scale: self.scale.x,
+                        font_scale,
+                        font_scale_aspect,
                         color: self.color,
                     },
                 );
@@ -321,7 +329,7 @@ impl<Message: Clone> Gui<Message> {
 
     pub fn draw(&self) {
         let ui_coordinates = Rect::new(-self.aspect_ratio, -1.0, self.aspect_ratio * 2.0, 2.0);
-        set_camera(Camera2D::from_display_rect(ui_coordinates));
+        set_camera(&Camera2D::from_display_rect(ui_coordinates));
         for AnchoredWidget { widget, .. } in &self.anchored_widgets {
             widget.borrow().draw();
         }
@@ -440,8 +448,8 @@ impl Label {
             sprite,
             bg,
             param,
-            height,
             rect,
+            height,
         })
     }
 
@@ -784,7 +792,6 @@ impl<Message: Clone + Debug> Widget for Button<Message> {
         if self.border.rect().contains(pos) {
             let message = self.message.clone();
             self.sender.send(message).unwrap();
-            return;
         }
     }
 

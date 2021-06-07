@@ -10,6 +10,24 @@ use mq::{
 };
 use zscene::{self, action, Action, Boxed, Layer, Scene, Sprite};
 
+#[derive(Debug)]
+pub enum Err {
+    File(mq::file::FileError),
+    Font(mq::text::FontError),
+}
+
+impl From<mq::file::FileError> for Err {
+    fn from(err: mq::file::FileError) -> Self {
+        Err::File(err)
+    }
+}
+
+impl From<mq::text::FontError> for Err {
+    fn from(err: mq::text::FontError) -> Self {
+        Err::Font(err)
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct Layers {
     pub bg: Layer,
@@ -28,10 +46,10 @@ struct Assets {
 }
 
 impl Assets {
-    async fn load() -> Self {
-        let font = text::load_ttf_font("zscene/assets/Karla-Regular.ttf").await;
-        let texture = texture::load_texture("zscene/assets/fire.png").await;
-        Self { font, texture }
+    async fn load() -> Result<Self, Err> {
+        let font = text::load_ttf_font("zscene/assets/Karla-Regular.ttf").await?;
+        let texture = texture::load_texture("zscene/assets/fire.png").await?;
+        Ok(Self { font, texture })
     }
 }
 
@@ -45,6 +63,7 @@ impl State {
     fn new(assets: Assets) -> Self {
         let layers = Layers::default();
         let scene = Scene::new(layers.clone().sorted());
+        update_aspect_ratio();
         Self {
             assets,
             scene,
@@ -66,8 +85,7 @@ impl State {
 
     fn action_demo_show_hide(&self) -> Box<dyn Action> {
         let mut sprite = {
-            let font_size = 32;
-            let mut sprite = Sprite::from_text(("some text", self.assets.font, font_size), 0.1);
+            let mut sprite = Sprite::from_text(("some text", self.assets.font), 0.1);
             sprite.set_pos(Vec2::new(0.0, 0.0));
             sprite.set_scale(2.0); // just testing set_size method
             let scale = sprite.scale();
@@ -92,13 +110,13 @@ impl State {
 fn update_aspect_ratio() {
     let aspect_ratio = window::screen_width() / window::screen_height();
     let coordinates = Rect::new(-aspect_ratio, -1.0, aspect_ratio * 2.0, 2.0);
-    set_camera(Camera2D::from_display_rect(coordinates));
+    set_camera(&Camera2D::from_display_rect(coordinates));
 }
 
 #[mq::main("ZScene: Actions Demo")]
 #[macroquad(crate_rename = "mq")]
 async fn main() {
-    let assets = Assets::load().await;
+    let assets = Assets::load().await.expect("Can't load assets");
     let mut state = State::new(assets);
     {
         // Run two demo demo actions in parallel.

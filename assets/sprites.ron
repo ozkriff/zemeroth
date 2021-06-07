@@ -1,7 +1,7 @@
 {
     "swordsman": (
         paths: {
-            "": "assets/img/swordsman.png",
+            "": "img/swordsman.png",
         },
         offset_x: 0.15,
         offset_y: 0.1,
@@ -9,8 +9,8 @@
     ),
     "elite_swordsman": (
         paths: {
-            "": "assets/img/elite_swordsman.png",
-            "rage": "assets/img/elite_swordsman_rage.png",
+            "": "img/elite_swordsman.png",
+            "rage": "img/elite_swordsman_rage.png",
         },
         offset_x: 0.15,
         offset_y: 0.1,
@@ -18,7 +18,7 @@
     ),
     "heavy_swordsman": (
         paths: {
-            "": "assets/img/heavy_swordsman.png",
+            "": "img/heavy_swordsman.png",
         },
         offset_x: 0.15,
         offset_y: 0.1,
@@ -26,7 +26,7 @@
     ),
     "spearman": (
         paths: {
-            "": "assets/img/spearman.png",
+            "": "img/spearman.png",
         },
         offset_x: 0.2,
         offset_y: 0.05,
@@ -34,7 +34,7 @@
     ),
     "elite_spearman": (
         paths: {
-            "": "assets/img/elite_spearman.png",
+            "": "img/elite_spearman.png",
         },
         offset_x: 0.2,
         offset_y: 0.05,
@@ -42,7 +42,7 @@
     ),
     "heavy_spearman": (
         paths: {
-            "": "assets/img/heavy_spearman.png",
+            "": "img/heavy_spearman.png",
         },
         offset_x: 0.2,
         offset_y: 0.05,
@@ -50,7 +50,7 @@
     ),
     "hammerman": (
         paths: {
-            "": "assets/img/hammerman.png",
+            "": "img/hammerman.png",
         },
         offset_x: 0.05,   
         offset_y: 0.1,
@@ -58,7 +58,7 @@
     ),
     "heavy_hammerman": (
         paths: {
-            "": "assets/img/heavy_hammerman.png",
+            "": "img/heavy_hammerman.png",
         },
         offset_x: 0.05,
         offset_y: 0.1,
@@ -66,9 +66,9 @@
     ),
     "alchemist": (
         paths: {
-            "": "assets/img/alchemist.png",
-            "throw": "assets/img/alchemist_throw.png",
-            "heal": "assets/img/alchemist_heal.png",
+            "": "img/alchemist.png",
+            "throw": "img/alchemist_throw.png",
+            "heal": "img/alchemist_heal.png",
         },
         offset_x: 0.05,
         offset_y: 0.1,
@@ -76,9 +76,9 @@
     ),
     "healer": (
         paths: {
-            "": "assets/img/healer.png",
-            "throw": "assets/img/healer_throw.png",
-            "heal": "assets/img/healer_heal.png",
+            "": "img/healer.png",
+            "throw": "img/healer_throw.png",
+            "heal": "img/healer_heal.png",
         },
         offset_x: 0.05,
         offset_y: 0.1,
@@ -86,8 +86,8 @@
     ),
     "firer": (
         paths: {
-            "": "assets/img/firer.png",
-            "throw": "assets/img/firer_throw.png",
+            "": "img/firer.png",
+            "throw": "img/firer_throw.png",
         },
         offset_x: 0.05,
         offset_y: 0.1,
@@ -95,7 +95,7 @@
     ),
     "imp": (
         paths: {
-            "": "assets/img/imp.png",
+            "": "img/imp.png",
         },
         offset_x: 0.0,
         offset_y: 0.15,
@@ -103,7 +103,7 @@
     ),
     "toxic_imp": (
         paths: {
-            "": "assets/img/toxic_imp.png",
+            "": "img/toxic_imp.png",
         },
         offset_x: 0.0,
         offset_y: 0.15,
@@ -111,8 +111,8 @@
     ),
     "imp_bomber": (
         paths: {
-            "": "assets/img/imp_bomber.png",
-            "throw": "assets/img/imp_bomber_throw.png",
+            "": "img/imp_bomber.png",
+            "throw": "img/imp_bomber_throw.png",
         },
         offset_x: 0.0,
         offset_y: 0.15,
@@ -120,9 +120,9 @@
     ),
     "imp_summoner": (
         paths: {
-            "": "assets/img/imp_summoner.png",
-            "summon": "assets/img/imp_summoner_cast.png",
-            "bloodlust": "assets/img/imp_summoner_cast.png",
+            "": "img/imp_summoner.png",
+            "summon": "img/imp_summoner_cast.png",
+            "bloodlust": "img/imp_summoner_cast.png",
         },
         offset_x: 0.0,
         offset_y: 0.15,
@@ -130,7 +130,7 @@
     ),
     "boulder": (
         paths: {
-            "": "assets/img/boulder.png",
+            "": "img/boulder.png",
         },
         offset_x: 0.0,
         offset_y: 0.4,
@@ -138,7 +138,7 @@
     ),
     "bomb_damage": (
         paths: {
-            "": "assets/img/bomb.png",
+            "": "img/bomb.png",
         },
         offset_x: 0.0,
         offset_y: 0.2,
@@ -146,7 +146,7 @@
     ),
     "bomb_push": (
         paths: {
-            "": "assets/img/bomb.png",
+            "": "img/bomb.png",
         },
         offset_x: 0.0,
         offset_y: 0.2,
@@ -154,7 +154,7 @@
     ),
     "bomb_fire": (
         paths: {
-            "": "assets/img/bomb_fire.png",
+            "": "img/bomb_fire.png",
         },
         offset_x: 0.0,
         offset_y: 0.2,
@@ -162,7 +162,7 @@
     ),
     "bomb_poison": (
         paths: {
-            "": "assets/img/bomb_poison.png",
+            "": "img/bomb_poison.png",
         },
         offset_x: 0.0,
         offset_y: 0.2,
@@ -170,7 +170,7 @@
     ),
     "bomb_demonic": (
         paths: {
-            "": "assets/img/bomb_demonic.png",
+            "": "img/bomb_demonic.png",
         },
         offset_x: 0.0,
         offset_y: 0.2,
@@ -178,7 +178,7 @@
     ),
     "fire": (
         paths: {
-            "": "assets/img/fire.png",
+            "": "img/fire.png",
         },
         offset_x: 0.0,
         offset_y: 0.2,
@@ -187,7 +187,7 @@
     ),
     "poison_cloud": (
         paths: {
-            "": "assets/img/poison_cloud.png",
+            "": "img/poison_cloud.png",
         },
         offset_x: 0.0,
         offset_y: 0.2,
@@ -196,7 +196,7 @@
     ),
     "spike_trap": (
         paths: {
-            "": "assets/img/spike_trap.png",
+            "": "img/spike_trap.png",
         },
         offset_x: 0.0,
         offset_y: 0.5,

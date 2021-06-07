@@ -45,8 +45,8 @@ impl Status {
     }
 }
 
-#[serde(from = "Ability")]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(from = "Ability")]
 pub struct RechargeableAbility {
     pub ability: Ability,
     pub status: Status,
