@@ -151,12 +151,12 @@ impl State {
         match action {
             Action::Recruit { agent_type } => {
                 let squad_size_penalty = self.agents.len() as i32;
-                let agent_cost = self.agent_info[&agent_type].cost;
+                let agent_cost = self.agent_info[agent_type].cost;
                 Renown(agent_cost.0 + squad_size_penalty)
             }
             Action::Upgrade { from, to } => {
-                let cost_from = self.agent_info[&from].cost;
-                let cost_to = self.agent_info[&to].cost;
+                let cost_from = self.agent_info[from].cost;
+                let cost_to = self.agent_info[to].cost;
                 Renown(cost_to.0 - cost_from.0)
             }
         }

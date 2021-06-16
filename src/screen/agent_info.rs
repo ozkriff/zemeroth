@@ -77,8 +77,8 @@ fn info_panel(
     typename: &ObjType,
 ) -> ZResult<Box<dyn ui::Widget>> {
     let font = assets::get().font;
-    let proto = &prototypes.0[&typename];
-    let info = StaticObjectInfo::new(&typename, proto);
+    let proto = &prototypes.0[typename];
+    let info = StaticObjectInfo::new(typename, proto);
     let h = utils::line_heights().normal;
     let space_between_buttons = h / 8.0;
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));

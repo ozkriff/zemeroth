@@ -33,7 +33,7 @@ impl GeneralInfo {
         layout.add(label_s(&format!("~~~ {} ~~~", title))?);
         layout.add(spacer());
         for line in lines {
-            layout.add(label(&line)?);
+            layout.add(label(line)?);
         }
         layout.add(spacer());
         {
