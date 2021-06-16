@@ -417,7 +417,7 @@ fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Act
 
 pub fn get_effect_icon(effect: &effect::Lasting) -> Texture2D {
     let effects = &assets::get().textures.icons.lasting_effects;
-    *effects.get(&effect).expect("No such effect found")
+    *effects.get(effect).expect("No such effect found")
 }
 
 fn generate_brief_obj_info(
@@ -525,12 +525,12 @@ fn visualize_pre(state: &State, view: &mut BattleView, event: &Event) -> ZResult
     let mut actions = vec![visualize_event(state, view, &event.active_event)?];
     for &(id, ref effects) in &event.instant_effects {
         for effect in effects {
-            actions.push(visualize_instant_effect(state, view, id, &effect)?);
+            actions.push(visualize_instant_effect(state, view, id, effect)?);
         }
     }
     for &(id, ref effects) in &event.timed_effects {
         for effect in effects {
-            actions.push(visualize_lasting_effect(state, view, id, &effect)?);
+            actions.push(visualize_lasting_effect(state, view, id, effect)?);
         }
     }
     Ok(seq(actions))
