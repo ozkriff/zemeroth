@@ -638,6 +638,10 @@ fn extend_or_crate_sub_vec<T>(vec: &mut Vec<(Id, Vec<T>)>, id: Id, values: Vec<T
     }
 }
 
+fn any_effect_with_id(effects: &[(Id, Vec<Effect>)], expected_id: Id) -> bool {
+    effects.iter().any(|(id, _)| id == &expected_id)
+}
+
 #[must_use]
 #[derive(Default, Debug, PartialEq, Clone)]
 struct ExecuteContext {
@@ -717,11 +721,7 @@ fn execute_use_ability_explode_fire(
     command: &command::UseAbility,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
-    assert!(context
-        .instant_effects
-        .iter()
-        .position(|(id, _)| id == &command.id)
-        .is_none());
+    assert!(!any_effect_with_id(&context.instant_effects, command.id));
     let effects = vec![Effect::Vanish];
     context.instant_effects.push((command.id, effects));
     context.merge_with(start_fire(state, command.pos));
@@ -781,11 +781,7 @@ fn execute_use_ability_explode_poison(
     command: &command::UseAbility,
 ) -> ExecuteContext {
     let mut context = ExecuteContext::default();
-    assert!(context
-        .instant_effects
-        .iter()
-        .position(|(id, _)| id == &command.id)
-        .is_none());
+    assert!(!any_effect_with_id(&context.instant_effects, command.id));
     let effects = vec![Effect::Vanish];
     context.instant_effects.push((command.id, effects));
     context.merge_with(create_poison_cloud(state, command.pos));
@@ -916,11 +912,7 @@ fn execute_use_ability_explode_damage(
         let effects = vec![wound_break_kill(state, id, damage, armor_break)];
         context.instant_effects.push((id, effects));
     }
-    assert!(context
-        .instant_effects
-        .iter()
-        .position(|(id, _)| id == &command.id)
-        .is_none());
+    assert!(!any_effect_with_id(&context.instant_effects, command.id));
     let effects = vec![Effect::Vanish];
     context.instant_effects.push((command.id, effects));
     context
@@ -959,11 +951,7 @@ fn execute_use_ability_explode_push(
         }
         context.instant_effects.push((id, effects));
     }
-    assert!(context
-        .instant_effects
-        .iter()
-        .position(|(id, _)| id == &command.id)
-        .is_none());
+    assert!(!any_effect_with_id(&context.instant_effects, command.id));
     let effects = vec![Effect::Vanish];
     context.instant_effects.push((command.id, effects));
     context
