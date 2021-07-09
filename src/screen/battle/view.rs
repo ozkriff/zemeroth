@@ -109,6 +109,9 @@ impl MessagesMap {
     }
 
     pub fn delay_at(&self, pos: PosHex) -> Option<Duration> {
+        if !self.map.is_inboard(pos) {
+            return None;
+        }
         self.map.tile(pos)
     }
 
@@ -146,7 +149,9 @@ impl MessagesMap {
     }
 
     pub fn register_message_at(&mut self, pos: PosHex, duration: Duration) {
-        assert!(self.map.is_inboard(pos));
+        if !self.map.is_inboard(pos) {
+            return;
+        }
         let duration = duration.mul_f32(0.5);
         self.mark_tile_as_busy(pos, duration);
         // Also mark neighbors to the left and to the right as busy.
