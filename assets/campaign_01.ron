@@ -68,7 +68,7 @@ Plan(
         (
             scenario: (
                 rocky_tiles_count: 5,
-                randomzed_objects: [
+                randomized_objects: [
                     (owner: None, typename: "boulder", line: None, count: 2),
                     (owner: None, typename: "spike_trap", line: None, count: 2),
                     (owner: Some((1)), typename: "imp", line: Some(Front), count: 5),
