@@ -609,6 +609,12 @@ impl Battle {
             if check(&self.state, &command).is_ok() {
                 self.do_command(&command);
             } else {
+                let pos = if self.state.map().is_inboard(pos) {
+                    pos
+                } else {
+                    // on outboard click show message on agent pos
+                    self.state.parts().pos.get(id).0
+                };
                 self.view.message(pos, "cancelled")?;
             }
             self.set_mode(id, SelectionMode::Normal)?;
