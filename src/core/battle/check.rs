@@ -130,7 +130,7 @@ fn check_ability_knockback(state: &State, id: Id, pos: PosHex) -> Result<(), Err
     let selected_pos = state.parts().pos.get(id).0;
     check_min_distance(selected_pos, pos, Distance(1))?;
     check_max_distance(selected_pos, pos, Distance(1))?;
-    let target_id = match state::agent_id_at_opt(state, pos) {
+    let target_id = match state::blocker_id_at_opt(state, pos) {
         Some(id) => id,
         None => return Err(Error::NoTarget),
     };
