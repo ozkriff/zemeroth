@@ -130,6 +130,10 @@ impl Scene {
     pub fn tick(&mut self, dtime: Duration) {
         self.interpreter.tick(dtime);
     }
+
+    pub fn any_unfinished_actions(&self) -> bool {
+        !self.interpreter.actions.is_empty()
+    }
 }
 
 #[derive(Debug)]

@@ -239,6 +239,10 @@ impl BattleView {
         self.scene.add_action(action);
     }
 
+    pub fn any_unfinished_actions(&self) -> bool {
+        self.scene.any_unfinished_actions()
+    }
+
     // TODO: return `(f32, f32)`? width and height separately?
     pub fn tile_size(&self) -> f32 {
         self.tile_size

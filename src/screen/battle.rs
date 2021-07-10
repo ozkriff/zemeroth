@@ -653,7 +653,7 @@ impl Screen for Battle {
         }
         self.view.tick(dtime);
         self.update_block_timer(dtime)?;
-        if self.block_timer.is_none() {
+        if self.block_timer.is_none() && !self.view.any_unfinished_actions() {
             if let Some(result) = self.state.battle_result().clone() {
                 self.send_battle_result(Some(result));
                 return Ok(StackCommand::Pop);
