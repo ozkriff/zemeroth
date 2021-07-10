@@ -24,6 +24,8 @@ pub trait Action: Debug {
     fn update(&mut self, _dtime: Duration) {}
     fn end(&mut self) {}
 
+    /// Note that it return only the main actions' duration and ignores all forks.
+    /// Also see [Scene::any_unfinished_actions] if you need to check for alive forks.
     fn duration(&self) -> Duration {
         Duration::new(0, 0)
     }
