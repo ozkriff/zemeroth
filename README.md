@@ -1,4 +1,4 @@
-# ![title image](zemeroth.svg)
+# ![title image](assets_src/zemeroth_glow.svg)
 
 [![Github Actions][img_gh-actions]][gh-actions]
 [![dependency status][img_deps-rs]][deps-rs]
