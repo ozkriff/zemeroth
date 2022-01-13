@@ -3,7 +3,7 @@ use std::{
     time::Duration,
 };
 
-use heck::TitleCase;
+use heck::ToTitleCase;
 use log::{info, trace};
 use mq::{color::Color, math::Vec2};
 
