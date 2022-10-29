@@ -1,7 +1,7 @@
 //! This module groups all the async loading stuff.
 
 // TODO: https://github.com/rust-lang/rust-clippy/issues/4637
-#![allow(clippy::eval_order_dependence)]
+#![allow(clippy::mixed_read_write_in_expression)]
 
 use std::{collections::HashMap, hash::Hash};
 
@@ -48,7 +48,7 @@ async fn read_file(path: &str) -> ZResult<String> {
 
 async fn deserialize_from_file<D: DeserializeOwned>(path: &str) -> ZResult<D> {
     let s = read_file(path).await?;
-    ron::de::from_str(&s).map_err(|e| ZError::from_ron_de_error(e, path.into()))
+    ron::de::from_str(&s).map_err(|e| ZError::from_ron_de_error(e.into(), path.into()))
 }
 
 async fn load_map<Key: Hash + Eq + Copy>(
