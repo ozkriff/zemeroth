@@ -16,8 +16,11 @@ use crate::{
 
 #[derive(Copy, Clone, Debug)]
 enum Message {
+    #[cfg_attr(target_arch = "wasm32", allow(unused))] // can't quit WASM so it's not used there
     Exit,
+
     StartInstant,
+
     StartCampaign,
 }
 
