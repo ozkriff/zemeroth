@@ -116,7 +116,6 @@ impl Drawable {
 struct Sprite {
     drawable: Drawable,
     dimensions: Rect,
-    basic_scale: f32,
     pos: Vec2,
     scale: Vec2,
     color: Color,
@@ -129,7 +128,6 @@ impl Sprite {
         Self {
             drawable,
             dimensions,
-            basic_scale,
             pos: Vec2::new(0.0, 0.0),
             scale: Vec2::new(basic_scale, basic_scale),
             color: SPRITE_COLOR,
