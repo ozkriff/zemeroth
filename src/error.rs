@@ -2,35 +2,35 @@ use std::{error, fmt, io, path::PathBuf};
 
 #[derive(Debug, derive_more::From)]
 pub enum ZError {
-    UiError(ui::Error),
-    SceneError(zscene::Error),
-    RonDeserializeError {
+    Ui(ui::Error),
+    Scene(zscene::Error),
+    RonDeserialize {
         error: ron::de::Error,
         path: PathBuf,
     },
-    IOError(io::Error),
-    MqFileError(mq::file::FileError),
-    MqFontError(mq::text::FontError),
+    IO(io::Error),
+    MqFile(mq::file::FileError),
+    MqFont(mq::text::FontError),
 }
 
 impl ZError {
     pub fn from_ron_de_error(error: ron::de::Error, path: PathBuf) -> Self {
-        ZError::RonDeserializeError { error, path }
+        ZError::RonDeserialize { error, path }
     }
 }
 
 impl fmt::Display for ZError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ZError::UiError(ref e) => write!(f, "ZGUI Error: {}", e),
-            ZError::SceneError(ref e) => write!(f, "ZScene Error: {}", e),
-            ZError::RonDeserializeError { error, path } => {
+            ZError::Ui(ref e) => write!(f, "ZGUI Error: {}", e),
+            ZError::Scene(ref e) => write!(f, "ZScene Error: {}", e),
+            ZError::RonDeserialize { error, path } => {
                 let s = path.to_str().unwrap_or("<no path>");
                 write!(f, "Can't deserialize '{}': {}", s, error)
             }
-            ZError::IOError(ref e) => write!(f, "IO Error: {}", e),
-            ZError::MqFileError(ref e) => write!(f, "Macroquad File error: {}", e),
-            ZError::MqFontError(ref e) => write!(f, "Macroquad Font error: {}", e),
+            ZError::IO(ref e) => write!(f, "IO Error: {}", e),
+            ZError::MqFile(ref e) => write!(f, "Macroquad File error: {}", e),
+            ZError::MqFont(ref e) => write!(f, "Macroquad Font error: {}", e),
         }
     }
 }
@@ -38,12 +38,12 @@ impl fmt::Display for ZError {
 impl error::Error for ZError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            ZError::UiError(ref e) => Some(e),
-            ZError::SceneError(ref e) => Some(e),
-            ZError::RonDeserializeError { error, .. } => Some(error),
-            ZError::IOError(ref e) => Some(e),
-            ZError::MqFileError(ref e) => Some(e),
-            ZError::MqFontError(ref e) => Some(e),
+            ZError::Ui(ref e) => Some(e),
+            ZError::Scene(ref e) => Some(e),
+            ZError::RonDeserialize { error, .. } => Some(error),
+            ZError::IO(ref e) => Some(e),
+            ZError::MqFile(ref e) => Some(e),
+            ZError::MqFont(ref e) => Some(e),
         }
     }
 }

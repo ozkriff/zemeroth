@@ -5,7 +5,7 @@ use std::{
 
 use log::trace;
 use mq::math::Vec2;
-use ui::{self, Gui, Widget};
+use ui::{self, Widget};
 
 use crate::{
     assets,
@@ -16,8 +16,11 @@ use crate::{
 
 #[derive(Copy, Clone, Debug)]
 enum Message {
+    #[cfg_attr(target_arch = "wasm32", allow(unused))] // can't quit WASM so it's not used there
     Exit,
+
     StartInstant,
+
     StartCampaign,
 }
 
@@ -49,7 +52,7 @@ fn make_gui() -> ZResult<ui::Gui<Message>> {
 
 #[derive(Debug)]
 pub struct MainMenu {
-    gui: Gui<Message>,
+    gui: ui::Gui<Message>,
     receiver_battle_result: Option<Receiver<Option<state::BattleResult>>>,
 }
 
