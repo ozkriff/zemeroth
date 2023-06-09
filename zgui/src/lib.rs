@@ -166,6 +166,7 @@ impl Sprite {
                         font,
                         font_scale,
                         font_scale_aspect,
+                        rotation: 0.0,
                         color: self.color,
                     },
                 );

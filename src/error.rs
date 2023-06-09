@@ -5,7 +5,7 @@ pub enum ZError {
     Ui(ui::Error),
     Scene(zscene::Error),
     RonDeserialize {
-        error: ron::de::Error,
+        error: ron::de::SpannedError,
         path: PathBuf,
     },
     IO(io::Error),
@@ -14,7 +14,7 @@ pub enum ZError {
 }
 
 impl ZError {
-    pub fn from_ron_de_error(error: ron::de::Error, path: PathBuf) -> Self {
+    pub fn from_ron_de_error(error: ron::de::SpannedError, path: PathBuf) -> Self {
         ZError::RonDeserialize { error, path }
     }
 }
