@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use heck::TitleCase;
+use heck::ToTitleCase;
 use mq::{color::Color, math::Vec2};
 use ui::{self, Drawable, Gui, Widget};
 

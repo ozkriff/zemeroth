@@ -3,7 +3,7 @@ use std::{
     time::Duration,
 };
 
-use heck::TitleCase;
+use heck::ToTitleCase;
 use log::info;
 use mq::{math::Vec2, text::Font};
 use ui::{self, Drawable, Gui, Widget};
