@@ -84,17 +84,14 @@ pub struct Id(i32);
 #[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Strength(pub i32);
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub enum Weight {
+    #[default]
     Normal = 0,
-    Heavy = 1,
-    Immovable = 2,
-}
 
-impl Default for Weight {
-    fn default() -> Self {
-        Weight::Normal
-    }
+    Heavy = 1,
+
+    Immovable = 2,
 }
 
 impl fmt::Display for Weight {
@@ -132,14 +129,10 @@ pub struct Accuracy(pub i32);
 #[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Dodge(pub i32);
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TileType {
+    #[default]
     Plain,
-    Rocks,
-}
 
-impl Default for TileType {
-    fn default() -> Self {
-        TileType::Plain
-    }
+    Rocks,
 }
