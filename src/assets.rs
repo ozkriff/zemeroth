@@ -1,8 +1,5 @@
 //! This module groups all the async loading stuff.
 
-// TODO: https://github.com/rust-lang/rust-clippy/issues/4637
-#![allow(clippy::eval_order_dependence)]
-
 use std::{collections::HashMap, hash::Hash};
 
 use mq::{
