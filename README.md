@@ -25,17 +25,14 @@ Zemeroth is a turn-based hexagonal tactical game written in [Rust].
 [facebook](https://fb.com/ozkriff.games) |
 [devlog on imgur](https://imgur.com/a/SMVqO)
 
-## Online Version
-
-You can play an online WebAssembly version of Zemeroth at
+## Versions
+- Play an online WebAssembly version of Zemeroth at
 [ozkriff.itch.io/zemeroth](https://ozkriff.itch.io/zemeroth)
-
-## Precompiled Binaries
-
-Precompiled binaries for Linux, Windows and macOS:
+- Early access Android version via [Google Play](https://play.google.com/store/apps/details?id=rust.zemeroth)
+- Precompiled binaries for Linux, Windows and macOS:
 [github.com/ozkriff/zemeroth/releases](https://github.com/ozkriff/zemeroth/releases)
 
-## Screenshots
+## In-Game Screenshots & Gifs
 
 !["big" screenshot](https://i.imgur.com/iUkyqIq.png)
 
@@ -43,13 +40,9 @@ Precompiled binaries for Linux, Windows and macOS:
 
 ![web version of a phone](https://i.imgur.com/cviYFkY.jpg)
 
-## Gifs
-
 ![main gameplay animation](https://i.imgur.com/HqgHmOH.gif)
 
-## Videos
-
-[youtube.com/c/andreylesnikov/videos](https://youtube.com/c/andreylesnikov/videos)
+For in-game video recordings see: [youtube.com/c/andreylesnikov/videos](https://youtube.com/c/andreylesnikov/videos)
 
 ## Vision
 
@@ -119,7 +112,7 @@ of the project is:
   - [ ] Quest system
   - [ ] NPC/Agent/Masters system
 
-## Inspiration
+### Inspiration
 
 Tactical battle mechanics are mostly inspired by these games:
 
@@ -134,6 +127,8 @@ Tactical battle mechanics are mostly inspired by these games:
 
 ## Building from Source
 
+### Binary
+
 Install all [miniquad's system dependencies][mq_sys_deps].
 
 ```bash
@@ -144,7 +139,7 @@ cargo run
 
 [mq_sys_deps]: https://github.com/not-fl3/miniquad/tree/b8c347b1bbuilding-examples
 
-## WebAssembly
+### WebAssembly
 
 ```bash
 cargo install resvg
