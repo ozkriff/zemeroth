@@ -679,7 +679,8 @@ impl Screen for Battle {
                 return Ok(StackCommand::PushPopup(self.popup_confirm_exit()?));
             }
             Some(Message::EndTurn) => {
-                assert!(self.block_timer.is_none());
+//                 assert!(self.block_timer.is_none());
+                // TODO: just warn or check if the battle is already over and only assert then
                 self.end_turn()?;
             }
             Some(Message::Ability(ability)) => self.use_ability(ability)?,
