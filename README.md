@@ -136,6 +136,12 @@ Tactical battle mechanics are mostly inspired by these games:
 
 Install all [miniquad's system dependencies][mq_sys_deps].
 
+In Ubuntu, you'll need to install the following packages:
+
+```bash
+sudo apt install libgl-dev libxi-dev
+```
+
 ```bash
 cargo install resvg
 ./utils/assets_export.sh
