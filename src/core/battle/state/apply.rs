@@ -195,7 +195,7 @@ fn apply_event_use_ability(state: &mut State, event: &event::UseAbility) {
         }
         Ability::Summon => {
             assert!(parts.summoner.get_opt(id).is_some());
-            let mut summoner = parts.summoner.get_mut(id);
+            let summoner = parts.summoner.get_mut(id);
             summoner.count += 1;
         }
         _ => {}

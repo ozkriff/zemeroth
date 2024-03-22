@@ -9,4 +9,4 @@ keywords = ["gamedev", "gui"]
 
 [dependencies]
 log = "0.4"
-mq = { package = "macroquad", version = "0.3" }
+mq = { package = "macroquad", version = "0.4" }

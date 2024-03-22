@@ -21,11 +21,11 @@ pub struct GeneralInfo {
 
 impl GeneralInfo {
     pub fn new(title: &str, lines: &[String]) -> ZResult<Self> {
-        let font = assets::get().font;
+        let font = &assets::get().font;
         let mut gui = ui::Gui::new();
         let h = utils::line_heights().normal;
         let mut layout = Box::new(ui::VLayout::new().stretchable(true));
-        let text_ = |s: &str| ui::Drawable::text(s, font);
+        let text_ = |s: &str| ui::Drawable::text(s, font.clone());
         let label_ = |text: &str| -> ZResult<_> { Ok(ui::Label::new(text_(text), h)?) };
         let label = |text: &str| -> ZResult<_> { Ok(Box::new(label_(text)?)) };
         let label_s = |text: &str| -> ZResult<_> { Ok(Box::new(label_(text)?.stretchable(true))) };

@@ -9,8 +9,7 @@ pub enum ZError {
         path: PathBuf,
     },
     IO(io::Error),
-    MqFile(mq::file::FileError),
-    MqFont(mq::text::FontError),
+    Mq(mq::Error),
 }
 
 impl ZError {
@@ -29,8 +28,7 @@ impl fmt::Display for ZError {
                 write!(f, "Can't deserialize '{}': {}", s, error)
             }
             ZError::IO(ref e) => write!(f, "IO Error: {}", e),
-            ZError::MqFile(ref e) => write!(f, "Macroquad File error: {}", e),
-            ZError::MqFont(ref e) => write!(f, "Macroquad Font error: {}", e),
+            ZError::Mq(ref e) => write!(f, "Macroquad error: {}", e),
         }
     }
 }
@@ -42,8 +40,7 @@ impl error::Error for ZError {
             ZError::Scene(ref e) => Some(e),
             ZError::RonDeserialize { error, .. } => Some(error),
             ZError::IO(ref e) => Some(e),
-            ZError::MqFile(ref e) => Some(e),
-            ZError::MqFont(ref e) => Some(e),
+            ZError::Mq(ref e) => Some(e),
         }
     }
 }

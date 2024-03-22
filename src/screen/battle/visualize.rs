@@ -72,7 +72,7 @@ fn textures() -> &'static assets::Textures {
 pub fn message(view: &mut BattleView, pos: PosHex, text: &str) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = Color::new(0.0, 0.0, 0.0, 0.0);
-    let font = assets::get().font;
+    let font = &assets::get().font;
     let mut sprite = Sprite::from_text((text, font), 0.1);
     sprite.set_centered(true);
     let point = view.hex_to_point(pos);
@@ -119,14 +119,14 @@ fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dy
     };
     let actions_text = {
         let color = [0.0, 0.0, 0.0, 1.0].into();
-        let font = assets::get().font;
+        let font = &assets::get().font;
         let mut sprite = Sprite::from_text((text, font), height_text);
         sprite.set_centered(true);
         action_show_and_hide(sprite, color)
     };
     let actions_bg = {
         let color = [1.0, 1.0, 1.0, 0.5].into();
-        let texture = textures().map.white_hex;
+        let texture = &textures().map.white_hex;
         let mut sprite = Sprite::from_texture(texture, height_bg);
         sprite.set_centered(true);
         action_show_and_hide(sprite, color)
@@ -141,7 +141,7 @@ fn announce(view: &mut BattleView, text: &str, time: Duration) -> ZResult<Box<dy
 fn attack_message(view: &mut BattleView, pos: Vec2, text: &str) -> ZResult<Box<dyn Action>> {
     let visible = [0.0, 0.0, 0.0, 1.0].into();
     let invisible = [0.0, 0.0, 0.0, 0.0].into();
-    let font = assets::get().font;
+    let font = &assets::get().font;
     let mut sprite = Sprite::from_text((text, font), 0.1);
     sprite.set_centered(true);
     let point = pos + Vec2::new(0.0, view.tile_size() * 0.5);
@@ -178,7 +178,7 @@ fn show_blood_particles(
         let invisible = Color { a: 0.0, ..visible };
         let scale = roll_dice(0.05, 0.15);
         let size = view.tile_size() * 2.0 * scale;
-        let mut sprite = Sprite::from_texture(textures().map.white_hex, size);
+        let mut sprite = Sprite::from_texture(&textures().map.white_hex, size);
         sprite.set_centered(true);
         sprite.set_pos(point_origin);
         sprite.set_color(invisible);
@@ -197,7 +197,7 @@ fn show_blood_particles(
 }
 
 fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
-    let mut sprite = Sprite::from_texture(textures().map.blood, view.tile_size() * 2.0);
+    let mut sprite = Sprite::from_texture(&textures().map.blood, view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 0.0].into());
     sprite.set_pos(view.hex_to_point(at) + Vec2::new(0.0, view.tile_size() * 0.1));
@@ -213,7 +213,7 @@ fn show_blood_spot(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>
 }
 
 fn show_explosion_ground_mark(view: &mut BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
-    let tex = textures().map.explosion_ground_mark;
+    let tex = &textures().map.explosion_ground_mark;
     let mut sprite = Sprite::from_texture(tex, view.tile_size() * 2.0);
     sprite.set_centered(true);
     sprite.set_color([1.0, 1.0, 1.0, 1.0].into());
@@ -248,7 +248,7 @@ fn show_dust(view: &mut BattleView, at: Vec2, count: i32) -> ZResult<Box<dyn Act
         };
         let point = at + vector;
         let sprite = {
-            let mut sprite = Sprite::from_texture(textures().map.white_hex, size);
+            let mut sprite = Sprite::from_texture(&textures().map.white_hex, size);
             sprite.set_centered(true);
             sprite.set_pos(point);
             sprite.set_color(invisible);
@@ -279,7 +279,7 @@ fn show_flare_scale_time(
     let visible = color;
     let invisible = Color { a: 0.0, ..visible };
     let size = view.tile_size() * 2.0 * scale;
-    let mut sprite = Sprite::from_texture(textures().map.white_hex, size);
+    let mut sprite = Sprite::from_texture(&textures().map.white_hex, size);
     let point = view.hex_to_point(at);
     sprite.set_centered(true);
     sprite.set_pos(point);
@@ -304,7 +304,7 @@ fn show_weapon_flash(
     let tile_size = view.tile_size();
     let sprite_size = tile_size * 2.0;
     let texture = textures.get(&weapon_type).expect("No such attack flash");
-    let mut sprite = Sprite::from_texture(*texture, sprite_size);
+    let mut sprite = Sprite::from_texture(texture, sprite_size);
     let point = view.hex_to_point(at) - Vec2::new(0.0, tile_size * 0.3);
     sprite.set_centered(true);
     sprite.set_pos(point);
@@ -417,7 +417,7 @@ fn remove_brief_agent_info(view: &mut BattleView, id: Id) -> ZResult<Box<dyn Act
 
 pub fn get_effect_icon(effect: &effect::Lasting) -> Texture2D {
     let effects = &assets::get().textures.icons.lasting_effects;
-    *effects.get(effect).expect("No such effect found")
+    effects.get(effect).expect("No such effect found").clone()
 }
 
 fn generate_brief_obj_info(
@@ -460,7 +460,7 @@ fn generate_brief_obj_info(
     }
     let mut sprites = Vec::new();
     for &(color, point) in &dots {
-        let mut sprite = Sprite::from_texture(textures().dot, size);
+        let mut sprite = Sprite::from_texture(&textures().dot, size);
         sprite.set_centered(true);
         sprite.set_pos(point);
         sprite.set_color(Color { a: 0.0, ..color });
@@ -481,7 +481,7 @@ fn generate_brief_obj_info(
                 icon_point.y += icon_size;
                 let effect = &timed_effect.effect;
                 let texture = get_effect_icon(effect);
-                let mut sprite = Sprite::from_texture(texture, icon_size);
+                let mut sprite = Sprite::from_texture(&texture, icon_size);
                 sprite.set_pos(icon_point);
                 sprite.set_centered(true);
                 actions.push(action::Show::new(&view.layers().dots, &sprite).boxed());
@@ -972,7 +972,7 @@ fn visualize_effect_create(
         sprite
     };
     let sprite_shadow = {
-        let tex = textures().map.shadow;
+        let tex = &textures().map.shadow;
         let mut sprite = Sprite::from_texture(tex, size * info.shadow_size_coefficient);
         sprite.set_centered(true);
         sprite.set_color(Color { a: 0.0, ..color });

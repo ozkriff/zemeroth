@@ -78,12 +78,13 @@ pub enum Drawable {
 }
 
 impl Drawable {
+    // TODO: consider accepting Font by ref and cloning it inside
     pub fn text(label: impl Into<String>, font: Font) -> Drawable {
         Drawable::Text {
             label: label.into(),
             font,
             // TODO: this field doesn't mean much with new macroquad since
-            //   we're using camera_font_scale vefore rendering it anyway.
+            //   we're using camera_font_scale before rendering it anyway.
             //   But it's somewhat tricky to remove this so I'm putting this constant here for now.
             font_size: 128,
         }
@@ -91,12 +92,12 @@ impl Drawable {
 
     fn dimensions(&self) -> Rect {
         match *self {
-            Drawable::Texture(texture) => {
+            Drawable::Texture(ref texture) => {
                 Rect::new(0.0, 0.0, texture.width() as _, texture.height() as _)
             }
             Drawable::Text {
                 ref label,
-                font,
+                ref font,
                 font_size,
             } => {
                 let dimensions = measure_text(label, Some(font), font_size, 1.0);
@@ -136,7 +137,7 @@ impl Sprite {
 
     fn draw(&self) {
         match self.drawable {
-            Drawable::Texture(texture) => {
+            Drawable::Texture(ref texture) => {
                 draw_texture_ex(
                     texture,
                     self.pos.x,
@@ -150,7 +151,7 @@ impl Sprite {
             }
             Drawable::Text {
                 ref label,
-                font,
+                ref font,
                 font_size,
             } => {
                 // desired font size in camera space
@@ -163,7 +164,7 @@ impl Sprite {
                     self.pos.y + (self.dimensions.y + self.dimensions.h) * self.scale.y * 0.5,
                     TextParams {
                         font_size,
-                        font,
+                        font: Some(font),
                         font_scale,
                         font_scale_aspect,
                         rotation: 0.0,

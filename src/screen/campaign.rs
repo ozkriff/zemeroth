@@ -45,7 +45,7 @@ fn basic_gui() -> ZResult<Gui<Message>> {
     let mut gui = Gui::new();
     let h = utils::line_heights().large;
     let button_menu = {
-        let icon = Drawable::Texture(assets::get().textures.icons.main_menu);
+        let icon = Drawable::Texture(assets::get().textures.icons.main_menu.clone());
         ui::Button::new(icon, h, gui.sender(), Message::Menu)?
     };
     let mut layout = ui::VLayout::new();
@@ -59,7 +59,7 @@ fn build_panel_agents(
     gui: &mut ui::Gui<Message>,
     agents: &[ObjType],
 ) -> ZResult<Box<dyn ui::Widget>> {
-    let font = assets::get().font;
+    let font = &assets::get().font;
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     layout.add(label(font, "Your group consists of:")?);
     layout.add(Box::new(ui::Spacer::new_vertical(line_height_small())));
@@ -70,7 +70,7 @@ fn build_panel_agents(
         let spacer = ui::Spacer::new_horizontal(line_height_small()).stretchable(true);
         line.add(Box::new(spacer));
         {
-            let icon = Drawable::Texture(assets::get().textures.icons.info);
+            let icon = Drawable::Texture(assets::get().textures.icons.info.clone());
             let message = Message::AgentInfo(agent_type.clone());
             let button = ui::Button::new(icon, line_height(), gui.sender(), message)?;
             line.add(Box::new(button));
@@ -84,7 +84,7 @@ fn build_panel_agents(
 }
 
 fn build_panel_casualties(state: &State) -> ZResult<Option<Box<dyn ui::Widget>>> {
-    let font = assets::get().font;
+    let font = &assets::get().font;
     let casualties = state.last_battle_casualties();
     if casualties.is_empty() {
         return Ok(None);
@@ -102,7 +102,7 @@ fn build_panel_casualties(state: &State) -> ZResult<Option<Box<dyn ui::Widget>>>
 }
 
 fn build_panel_renown(state: &State) -> ZResult<Box<dyn ui::Widget>> {
-    let font = assets::get().font;
+    let font = &assets::get().font;
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     let renown_text = &format!("Your renown is: {}r", state.renown().0);
     layout.add(label(font, renown_text)?);
@@ -111,7 +111,7 @@ fn build_panel_renown(state: &State) -> ZResult<Box<dyn ui::Widget>> {
 }
 
 fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box<dyn ui::Widget>> {
-    let font = assets::get().font;
+    let font = &assets::get().font;
     let h = line_height();
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     layout.add(label(font, "Actions:")?);
@@ -131,7 +131,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
             }
         };
         {
-            let text = ui::Drawable::text(text, font);
+            let text = ui::Drawable::text(text, font.clone());
             let sender = gui.sender();
             let message = Message::Action(action.clone());
             let mut button = ui::Button::new(text, h, sender, message)?.stretchable(true);
@@ -142,7 +142,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
         }
         line.add(Box::new(ui::Spacer::new_horizontal(line_height_small())));
         {
-            let icon = Drawable::Texture(assets::get().textures.icons.info);
+            let icon = Drawable::Texture(assets::get().textures.icons.info.clone());
             let message = match action.clone() {
                 Action::Recruit { agent_type, .. } => Message::AgentInfo(agent_type),
                 Action::Upgrade { from, to } => Message::UpgradeInfo { from, to },
@@ -160,7 +160,7 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
             state.current_scenario_index() + 1,
             state.scenarios_count()
         );
-        let text = ui::Drawable::text(text, font);
+        let text = ui::Drawable::text(text, font.clone());
         let command = Message::StartBattle;
         let button = ui::Button::new(text, h, gui.sender(), command)?.stretchable(true);
         layout.add(Box::new(button));
@@ -170,8 +170,8 @@ fn build_panel_actions(gui: &mut ui::Gui<Message>, state: &State) -> ZResult<Box
     Ok(Box::new(layout))
 }
 
-fn label(font: Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
-    let text = ui::Drawable::text(text, font);
+fn label(font: &Font, text: &str) -> ZResult<Box<dyn ui::Widget>> {
+    let text = ui::Drawable::text(text, font.clone());
     Ok(Box::new(ui::Label::new(text, line_height())?))
 }
 
@@ -252,9 +252,9 @@ impl Campaign {
     }
 
     fn add_label_central_message(&mut self, text: &str) -> ZResult {
-        let font = assets::get().font;
+        let font = &assets::get().font;
         let h = utils::line_heights().large;
-        let text = ui::Drawable::text(text, font);
+        let text = ui::Drawable::text(text, font.clone());
         let label = ui::pack(ui::Label::new_with_bg(text, h)?);
         let anchor = ui::Anchor(ui::HAnchor::Middle, ui::VAnchor::Middle);
         self.gui.add(&label, anchor);

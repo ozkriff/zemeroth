@@ -177,7 +177,7 @@ impl BattleView {
         let tile_size = tile_size(map_diameter);
         let make_marker_sprite = |color: Color| -> ZResult<Sprite> {
             let h = tile_size * 2.0 * geom::FLATNESS_COEFFICIENT;
-            let mut sprite = Sprite::from_texture(textures().map.selection, h);
+            let mut sprite = Sprite::from_texture(&textures().map.selection, h);
             sprite.set_centered(true);
             sprite.set_color(color);
             Ok(sprite)
@@ -470,7 +470,7 @@ impl BattleView {
 
     fn highlight_tile(&mut self, pos: PosHex, color: Color) -> ZResult {
         let size = self.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
-        let mut sprite = Sprite::from_texture(textures().map.white_hex, size);
+        let mut sprite = Sprite::from_texture(&textures().map.white_hex, size);
         let color_from = Color { a: 0.0, ..color };
         sprite.set_centered(true);
         sprite.set_color(color_from);
@@ -491,7 +491,7 @@ impl BattleView {
         let chances = hit_chance(state, attacker_id, target_id);
         let pos = hex_to_point(self.tile_size(), target_pos);
         let text = format!("{}%", chances.1 * 10);
-        let font = assets::get().font;
+        let font = &assets::get().font;
         let mut sprite = Sprite::from_text((text.as_str(), font), 0.1);
         sprite.set_pos(pos);
         sprite.set_centered(true);
@@ -506,8 +506,8 @@ impl BattleView {
 fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
     let texture = match state.map().tile(at) {
-        TileType::Plain => textures().map.tile,
-        TileType::Rocks => textures().map.tile_rocks,
+        TileType::Plain => &textures().map.tile,
+        TileType::Rocks => &textures().map.tile_rocks,
     };
     let size = view.tile_size() * 2.0 * geom::FLATNESS_COEFFICIENT;
     let mut sprite = Sprite::from_texture(texture, size);
@@ -518,7 +518,7 @@ fn make_action_show_tile(state: &State, view: &BattleView, at: PosHex) -> ZResul
 
 fn make_action_grass(view: &BattleView, at: PosHex) -> ZResult<Box<dyn Action>> {
     let screen_pos = hex_to_point(view.tile_size(), at);
-    let mut sprite = Sprite::from_texture(textures().map.grass, view.tile_size() * 2.0);
+    let mut sprite = Sprite::from_texture(&textures().map.grass, view.tile_size() * 2.0);
     let v_offset = view.tile_size() * 0.5; // depends on the image
     let mut screen_pos_grass = screen_pos + geom::rand_tile_offset(view.tile_size(), 0.5);
     screen_pos_grass.y -= v_offset;

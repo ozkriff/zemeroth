@@ -9,10 +9,7 @@ use crate::core::{
     utils,
 };
 
-pub use self::{
-    apply::apply,
-    private::{BattleResult, State},
-};
+pub use self::private::{BattleResult, State};
 
 mod apply;
 mod private;

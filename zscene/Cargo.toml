@@ -8,4 +8,4 @@ description = "Scene and Actions for gwg"
 keywords = ["gamedev", "2D"]
 
 [dependencies]
-mq = { package = "macroquad", version = "0.3" }
+mq = { package = "macroquad", version = "0.4" }

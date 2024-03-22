@@ -15,8 +15,8 @@ enum Message {
 }
 
 fn make_gui(assets: common::Assets) -> ui::Result<ui::Gui<Message>> {
-    let text = |s| ui::Drawable::text(s, assets.font);
-    let texture = || ui::Drawable::Texture(assets.texture);
+    let text = |s| ui::Drawable::text(s, assets.font.clone());
+    let texture = || ui::Drawable::Texture(assets.texture.clone());
     let mut gui = ui::Gui::new();
     {
         let button = ui::Button::new(texture(), 0.1, gui.sender(), Message::Image)?;

@@ -57,7 +57,7 @@ fn agent_image(typename: &ObjType) -> ZResult<Box<dyn ui::Widget>> {
     let h = 0.3;
     let assets = &assets::get();
     let default_frame = "";
-    let texture = Drawable::Texture(assets.sprite_frames[typename][default_frame]);
+    let texture = Drawable::Texture(assets.sprite_frames[typename][default_frame].clone());
     let label = ui::Label::new(texture, h)?
         .with_color(Color::new(1.0, 1.0, 1.0, 1.0))
         .stretchable(true);
@@ -76,7 +76,7 @@ fn info_panel(
     prototypes: &Prototypes,
     typename: &ObjType,
 ) -> ZResult<Box<dyn ui::Widget>> {
-    let font = assets::get().font;
+    let font = assets::get().font.clone();
     let proto = &prototypes.0[typename];
     let info = StaticObjectInfo::new(typename, proto);
     let h = utils::line_heights().normal;
@@ -84,7 +84,7 @@ fn info_panel(
     let mut layout = Box::new(ui::VLayout::new().stretchable(true));
     layout.add(agent_image(typename)?);
     let mut add = |w| layout.add(w);
-    let text_ = |s: &str| ui::Drawable::text(s, font);
+    let text_ = |s: &str| ui::Drawable::text(s, font.clone());
     let label_ = |text: &str| -> ZResult<_> { Ok(ui::Label::new(text_(text), h)?) };
     let label = |text: &str| -> ZResult<Box<_>> { Ok(Box::new(label_(text)?)) };
     let label_s = |text: &str| -> ZResult<_> { Ok(Box::new(label_(text)?.stretchable(true))) };
@@ -148,7 +148,7 @@ fn info_panel(
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(&text)?);
                     line_layout.add(spacer_s());
-                    let icon = Drawable::Texture(assets::get().textures.icons.info);
+                    let icon = Drawable::Texture(assets::get().textures.icons.info.clone());
                     let message = Message::AbilityInfo(r_ability.ability);
                     let button = ui::Button::new(icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));
@@ -164,7 +164,7 @@ fn info_panel(
                     let mut line_layout = ui::HLayout::new().stretchable(true);
                     line_layout.add(label(&ability.title())?);
                     line_layout.add(spacer_s());
-                    let icon = Drawable::Texture(assets::get().textures.icons.info);
+                    let icon = Drawable::Texture(assets::get().textures.icons.info.clone());
                     let message = Message::PassiveAbilityInfo(ability);
                     let button = ui::Button::new(icon, h, gui.sender(), message)?;
                     line_layout.add(Box::new(button));
@@ -179,7 +179,7 @@ fn info_panel(
 }
 
 fn button_back(gui: &mut ui::Gui<Message>, layout_width: f32) -> ZResult<Box<dyn ui::Widget>> {
-    let font = assets::get().font;
+    let font = assets::get().font.clone();
     let h = utils::line_heights().normal;
     let text = ui::Drawable::text("back", font);
     let msg = Message::Back;
@@ -213,7 +213,7 @@ impl AgentInfo {
         from: &ObjType,
         to: &ObjType,
     ) -> ZResult<Self> {
-        let font = assets::get().font;
+        let font = assets::get().font.clone();
         let mut gui = ui::Gui::new();
         let mut layout = ui::VLayout::new();
         let h = utils::line_heights().big;
@@ -226,7 +226,7 @@ impl AgentInfo {
             let col = {
                 let mut col = Box::new(ui::VLayout::new());
                 col.add(Box::new(ui::Spacer::new_vertical(panel_from_height * 0.5)));
-                let text = ui::Drawable::text("=>", font);
+                let text = ui::Drawable::text("=>", font.clone());
                 col.add(Box::new(ui::Label::new(text, h)?));
                 col
             };
