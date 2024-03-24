@@ -58,9 +58,9 @@ dependencies = [
 
 [[package]]
 name = "bumpalo"
-version = "3.15.4"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ff69b9dd49fd426c69a0db9fc04dd934cdb6645ff000864d98f7e2af8830eaa"
+checksum = "2e8c087f005730276d1096a652e92a8bacee2e2472bcc9715a74d2bec38b5820"
 
 [[package]]
 name = "bytemuck"
@@ -689,6 +689,7 @@ version = "0.2.0"
 name = "zemeroth"
 version = "0.7.0-snapshot"
 dependencies = [
+ "bumpalo",
  "derive_more",
  "env_logger",
  "heck",
